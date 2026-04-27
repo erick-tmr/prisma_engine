@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: prisma_engine
+      POSTGRES_PASSWORD: prisma_engine
+      POSTGRES_DB: prisma_engine_development
+    ports: ["5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prisma_engine"]
+      interval: 5s
+
+volumes:
+  postgres_data:
