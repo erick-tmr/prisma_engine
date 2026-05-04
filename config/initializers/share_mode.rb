@@ -38,7 +38,7 @@ class BlockDevIntrospection
   def call(env)
     path = env["PATH_INFO"].to_s
     if BLOCKED_PREFIXES.any? { |prefix| path == prefix || path.start_with?("#{prefix}/") }
-      [404, { "content-type" => "text/plain" }, ["Not found"]]
+      [ 404, { "content-type" => "text/plain" }, [ "Not found" ] ]
     else
       @app.call(env)
     end
