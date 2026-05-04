@@ -1,0 +1,27 @@
+<% content_for :title, "Jogos — Prisma Games" %>
+
+<div class="container">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">Catálogo</h1>
+    <% if @query.present? %>
+      <p class="text-muted small mb-0">
+        Resultados para <strong><%= @query %></strong> — <%= pluralize(@products.size, "produto") %>
+      </p>
+    <% else %>
+      <p class="text-muted small mb-0"><%= pluralize(@products.size, "produto") %> disponíveis</p>
+    <% end %>
+  </header>
+
+  <% if @products.empty? %>
+    <div class="alert alert-light border text-center py-5">
+      <p class="mb-2">Nenhum produto encontrado para sua busca.</p>
+      <%= link_to "Voltar ao catálogo", products_path, class: "btn btn-outline-dark btn-sm" %>
+    </div>
+  <% else %>
+    <div class="row">
+      <% @products.each do |product| %>
+        <%= render "products/card", product: product %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

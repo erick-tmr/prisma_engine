@@ -1,0 +1,68 @@
+<% content_for :title, "Identificação — Prisma Games" %>
+
+<div class="container py-4">
+  <h1 class="h3 mb-4 text-center">Acesse sua conta</h1>
+
+  <div class="row justify-content-center">
+    <div class="col-md-5 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Já sou cliente</h2>
+          <%= form_with url: identification_path, method: :post, local: true do %>
+            <%= hidden_field_tag :intent, "login" %>
+            <div class="form-group">
+              <label for="login_email" class="small">E-mail</label>
+              <input type="email" id="login_email" name="email" class="form-control" required autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="login_password" class="small">Senha</label>
+              <input type="password" id="login_password" name="password" class="form-control" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-dark btn-block">Entrar</button>
+            <p class="small text-muted text-center mt-3 mb-0">
+              Esqueceu a senha? <a href="#">Recuperar acesso</a>
+            </p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Sou novo por aqui</h2>
+          <%= form_with url: identification_path, method: :post, local: true do %>
+            <%= hidden_field_tag :intent, "register" %>
+            <div class="form-group">
+              <label for="reg_name" class="small">Nome completo</label>
+              <input type="text" id="reg_name" name="name" class="form-control" required autocomplete="name">
+            </div>
+            <div class="form-group">
+              <label for="reg_email" class="small">E-mail</label>
+              <input type="email" id="reg_email" name="email" class="form-control" required autocomplete="email">
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="reg_cpf" class="small">CPF</label>
+                <input type="text" id="reg_cpf" name="cpf" class="form-control" data-mask-cpf="true" autocomplete="off">
+              </div>
+              <div class="form-group col-md-6">
+                <label for="reg_phone" class="small">Celular</label>
+                <input type="text" id="reg_phone" name="phone" class="form-control" data-mask-phone="true" autocomplete="tel">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="reg_password" class="small">Senha</label>
+              <input type="password" id="reg_password" name="password" class="form-control" required minlength="6" autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Criar conta</button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-muted small text-center mt-3">
+    A integração com o backend de contas ainda não foi conectada nesta versão.
+  </p>
+</div>

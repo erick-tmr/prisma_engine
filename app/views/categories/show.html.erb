@@ -1,0 +1,28 @@
+<% content_for :title, "#{@label} — Prisma Games" %>
+
+<div class="container">
+  <header class="mb-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb bg-transparent p-0 small">
+        <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Catálogo", products_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @label %></li>
+      </ol>
+    </nav>
+    <h1 class="h3 mb-1"><%= @label %></h1>
+    <p class="text-muted small mb-0"><%= pluralize(@products.size, "produto") %> nesta categoria</p>
+  </header>
+
+  <% if @products.empty? %>
+    <div class="alert alert-light border text-center py-5">
+      <p class="mb-2">Sem produtos cadastrados nesta categoria por enquanto.</p>
+      <%= link_to "Ver todos os jogos", products_path, class: "btn btn-outline-dark btn-sm" %>
+    </div>
+  <% else %>
+    <div class="row">
+      <% @products.each do |product| %>
+        <%= render "products/card", product: product %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

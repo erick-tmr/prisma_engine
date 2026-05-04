@@ -1,0 +1,64 @@
+<% content_for :title, "#{@product.title} — Prisma Games" %>
+
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent p-0 small">
+      <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
+      <li class="breadcrumb-item"><%= link_to "Catálogo", products_path %></li>
+      <% if Product::CATEGORY_IDS[@product.category] %>
+        <li class="breadcrumb-item">
+          <%= link_to @product.category_label,
+                      category_path(slug: @product.category, category_id: Product::CATEGORY_IDS[@product.category]) %>
+        </li>
+      <% end %>
+      <li class="breadcrumb-item active" aria-current="page"><%= @product.title %></li>
+    </ol>
+  </nav>
+
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <% if @product.image.present? %>
+        <a href="<%= @product.image %>" data-fancybox="product-gallery" class="d-block">
+          <img src="<%= @product.image %>" alt="<%= @product.title %>" class="img-fluid rounded shadow-sm">
+        </a>
+      <% end %>
+    </div>
+
+    <div class="col-md-6">
+      <h1 class="h3 mb-2"><%= @product.title %></h1>
+      <p class="text-muted small mb-3">
+        <%= @product.category_label %> · SKU <%= @product.short_id %>
+      </p>
+
+      <div class="bg-light p-3 rounded mb-3">
+        <p class="text-muted small mb-1">A partir de</p>
+        <p class="h3 mb-0"><%= @product.price_formatted %></p>
+      </div>
+
+      <%= form_with url: cart_items_path, method: :post, local: true do %>
+        <%= hidden_field_tag :product_id, @product.id %>
+        <div class="form-row align-items-end">
+          <div class="col-4 col-md-3 mb-2">
+            <label for="quantity" class="small text-muted mb-1">Quantidade</label>
+            <input type="number" name="quantity" id="quantity" value="1" min="1" max="99" class="form-control" data-spinner="true">
+          </div>
+          <div class="col-8 col-md-9 mb-2">
+            <button type="submit" class="btn btn-dark btn-block">
+              <i class="bi bi-cart-plus"></i> Adicionar ao carrinho
+            </button>
+          </div>
+        </div>
+      <% end %>
+
+      <a href="https://wa.me/5535920001100?text=<%= u("Olá! Tenho interesse em #{@product.title}") %>" target="_blank" rel="noopener" class="btn btn-success btn-block mb-3">
+        <i class="bi bi-whatsapp"></i> Tirar dúvidas no WhatsApp
+      </a>
+
+      <ul class="list-unstyled small text-muted">
+        <li class="mb-1"><i class="bi bi-shield-check mr-1"></i> Produzido no Brasil com garantia.</li>
+        <li class="mb-1"><i class="bi bi-truck mr-1"></i> Envio via Melhor Envio (Correios / transportadoras).</li>
+        <li class="mb-1"><i class="bi bi-credit-card-2-front mr-1"></i> Pagamento via Pix, boleto ou cartão.</li>
+      </ul>
+    </div>
+  </div>
+</div>
