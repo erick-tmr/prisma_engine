@@ -1,0 +1,51 @@
+<% content_for :title, "Perguntas frequentes — Prisma Games" %>
+
+<div class="container py-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent p-0 small">
+      <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
+      <li class="breadcrumb-item active" aria-current="page">Perguntas frequentes</li>
+    </ol>
+  </nav>
+
+  <h1 class="h3 mb-3">Perguntas frequentes</h1>
+  <p class="text-muted mb-4">
+    Respostas rápidas sobre disponibilidade, prazo, frete, pagamento e suporte.
+  </p>
+
+  <div class="accordion" id="faq-accordion">
+    <% [
+      ["Como funciona o pedido sob demanda?",          "faq-pedido"],
+      ["Qual o prazo de produção e envio?",            "faq-prazo"],
+      ["Quais formas de pagamento vocês aceitam?",     "faq-pagamento"],
+      ["Como funciona o frete? Atendem todo o Brasil?", "faq-frete"],
+      ["Qual a garantia dos cartuchos e do hardware?", "faq-garantia"],
+      ["Posso encomendar um jogo que não está no catálogo?", "faq-encomenda"],
+    ].each_with_index do |(question, key), idx| %>
+      <div class="card">
+        <div class="card-header py-2" id="<%= key %>-heading">
+          <button class="btn btn-link text-left text-dark w-100 p-0" type="button"
+                  data-toggle="collapse" data-target="#<%= key %>"
+                  aria-expanded="<%= idx == 0 %>" aria-controls="<%= key %>">
+            <%= question %>
+          </button>
+        </div>
+        <div id="<%= key %>" class="collapse <%= "show" if idx == 0 %>"
+             aria-labelledby="<%= key %>-heading" data-parent="#faq-accordion">
+          <div class="card-body small text-muted">
+            <p class="mb-0">
+              Conteúdo desta resposta a ser preenchido com base na FAQ atual do site.
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="bg-light text-center py-4 mt-4 rounded">
+    <p class="mb-2">Não encontrou o que procurava?</p>
+    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success">
+      <i class="bi bi-whatsapp"></i> Falar no WhatsApp
+    </a>
+  </div>
+</div>

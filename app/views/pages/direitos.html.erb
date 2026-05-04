@@ -1,0 +1,34 @@
+<% content_for :title, "Direitos do consumidor — Prisma Games" %>
+
+<div class="container py-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent p-0 small">
+      <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
+      <li class="breadcrumb-item active" aria-current="page">Direitos do consumidor</li>
+    </ol>
+  </nav>
+
+  <h1 class="h3 mb-3">Direitos do consumidor</h1>
+  <p class="text-muted mb-4">
+    Política de troca, devolução, garantia e privacidade. Texto formal a ser
+    preenchido com a versão atual do site.
+  </p>
+
+  <% [
+    ["Direito de arrependimento",
+     "Prazo de 7 dias após o recebimento, conforme o Código de Defesa do Consumidor (Art. 49)."],
+    ["Garantia",
+     "Cobertura legal e contratual sobre o cartucho e o hardware produzidos pela Prisma Games."],
+    ["Trocas e devoluções",
+     "Como solicitar, prazos e condições para cobertura."],
+    ["Privacidade e cookies",
+     "Quais dados coletamos, como tratamos e por quanto tempo armazenamos."],
+    ["Contato",
+     "Canais oficiais (WhatsApp, e-mail) e horário de atendimento."],
+  ].each do |label, blurb| %>
+    <section class="mb-4">
+      <h2 class="h5 mb-2"><%= label %></h2>
+      <p class="text-muted small mb-0"><%= blurb %></p>
+    </section>
+  <% end %>
+</div>
