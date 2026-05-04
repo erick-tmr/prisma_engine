@@ -1,0 +1,56 @@
+<header class="site-header bg-white border-bottom py-2">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-6 col-md-3">
+        <%= link_to root_path, class: "site-logo d-inline-block" do %>
+          <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games" height="48">
+        <% end %>
+      </div>
+
+      <div class="col-md-6 d-none d-md-block">
+        <%= form_with url: products_path, method: :get, local: true, class: "form-inline w-100" do %>
+          <div class="input-group w-100">
+            <%= text_field_tag :term, params[:term],
+                  class: "form-control",
+                  placeholder: "Buscar jogos, hardware, acessórios…",
+                  aria: { label: "Buscar produtos" } %>
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-dark" aria-label="Buscar">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="col-6 col-md-3 text-right">
+        <%= link_to identification_path, class: "btn btn-link text-dark", title: "Minha conta" do %>
+          <i class="bi bi-person fs-5"></i>
+          <span class="d-none d-lg-inline">Conta</span>
+        <% end %>
+        <%= link_to "/carrinho", class: "btn btn-link text-dark position-relative", title: "Carrinho" do %>
+          <i class="bi bi-cart3 fs-5"></i>
+          <span class="d-none d-lg-inline">Carrinho</span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="row d-md-none mt-2">
+      <div class="col-12">
+        <%= form_with url: products_path, method: :get, local: true, class: "form-inline w-100" do %>
+          <div class="input-group w-100">
+            <%= text_field_tag :term, params[:term],
+                  class: "form-control form-control-sm",
+                  placeholder: "Buscar produtos…",
+                  aria: { label: "Buscar produtos" } %>
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-dark btn-sm" aria-label="Buscar">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</header>

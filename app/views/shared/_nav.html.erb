@@ -1,0 +1,41 @@
+<nav class="site-nav navbar navbar-expand-lg navbar-dark bg-dark py-1">
+  <div class="container">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#site-nav-collapse" aria-controls="site-nav-collapse" aria-expanded="false" aria-label="Alternar navegação">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="site-nav-collapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <%= link_to "Todos os jogos", products_path, class: "nav-link" %>
+        </li>
+        <li class="nav-item">
+          <%= link_to "Game Boy Classic",
+                category_path(slug: "game-boy-classic", category_id: 351512),
+                class: "nav-link" %>
+        </li>
+        <li class="nav-item">
+          <%= link_to "Game Boy Color",
+                category_path(slug: "game-boy-color", category_id: 354342),
+                class: "nav-link" %>
+        </li>
+        <li class="nav-item">
+          <%= link_to "Recomendação",
+                page_path(slug: "recomendacao-de-jogos"),
+                class: "nav-link" %>
+        </li>
+        <li class="nav-item">
+          <%= link_to "Reviews", page_path(slug: "reviews"), class: "nav-link" %>
+        </li>
+        <li class="nav-item">
+          <%= link_to "FAQ", page_path(slug: "perguntas-frequentes"), class: "nav-link" %>
+        </li>
+      </ul>
+
+      <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success btn-sm my-2 my-lg-0">
+        <i class="bi bi-whatsapp"></i>
+        <span class="d-none d-lg-inline ml-1">Atendimento</span>
+      </a>
+    </div>
+  </div>
+</nav>

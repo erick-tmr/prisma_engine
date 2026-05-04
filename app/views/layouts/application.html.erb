@@ -1,31 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
   <head>
-    <title><%= content_for(:title) || "Prisma Engine" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Prisma Engine">
     <meta name="mobile-web-app-capable" content="yes">
+
+    <title><%= content_for(:title).presence || "Prisma Games" %></title>
+    <meta name="description" content="<%= content_for(:description).presence || "Prisma Games — especializada em desenvolvimento e produção de hardware para o Game Boy, da Nintendo." %>">
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
-    <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/assets/owl.theme.default.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Wruczek/Bootstrap-Cookie-Alert/cookiealert.css">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+
+    <%= yield :head %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
+  <body class="<%= content_for(:body_class) %>">
+    <%= render "shared/header" %>
+    <%= render "shared/nav" %>
+
+    <main class="wrapper py-3">
+      <% if flash.any? %>
+        <div class="container">
+          <% flash.each do |key, value| %>
+            <div class="alert alert-<%= key == "notice" ? "info" : "warning" %> alert-dismissible fade show" role="alert">
+              <%= value %>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Fechar"><span aria-hidden="true">&times;</span></button>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
       <%= yield %>
     </main>
+
+    <%= render "shared/footer" %>
+    <%= render "shared/cookie_banner" %>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/owl.carousel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-mask-plugin@1.14.16/dist/jquery.mask.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-input-spinner@1.10.14/dist/bootstrap-input-spinner.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/holderjs@2.9.8/holder.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-countdown@2.2.0/dist/jquery.countdown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/Wruczek/Bootstrap-Cookie-Alert/cookiealert.js"></script>
+
+    <script>
+      $(function () {
+        $('.owl-carousel').each(function () {
+          var $el = $(this);
+          $el.owlCarousel({
+            loop: $el.data('loop') !== false,
+            margin: $el.data('margin') || 10,
+            nav: $el.data('nav') !== false,
+            dots: $el.data('dots') === true,
+            autoplay: $el.data('autoplay') === true,
+            autoplayTimeout: 5000,
+            responsive: {
+              0:    { items: $el.data('items-xs') || 2 },
+              576:  { items: $el.data('items-sm') || 3 },
+              768:  { items: $el.data('items-md') || 4 },
+              992:  { items: $el.data('items-lg') || 5 },
+              1200: { items: $el.data('items-xl') || 5 }
+            }
+          });
+        });
+
+        $('[data-fancybox]').fancybox({});
+        $('input[type="number"][data-spinner]').inputSpinner();
+        $('[data-mask-cpf]').mask('000.000.000-00', { reverse: true });
+        $('[data-mask-cnpj]').mask('00.000.000/0000-00', { reverse: true });
+        $('[data-mask-phone]').mask('(00) 00000-0000');
+        $('[data-mask-cep]').mask('00000-000');
+      });
+    </script>
+
+    <%= yield :scripts %>
   </body>
 </html>
