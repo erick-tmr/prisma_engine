@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 #
-# Boot the Rails dev server (LAN-accessible) and a Cloudflare Tunnel that
-# exposes it at a random https://*.trycloudflare.com URL.
+# Boot the Rails dev server in SHARE_MODE (HTTP basic auth, no source-leaking
+# error pages, no web-console) behind a Cloudflare Tunnel that exposes it at a
+# random https://*.trycloudflare.com URL. Safe enough to leave running while
+# you sleep.
 #
-# Usage:   bin/share-dev
-# Stops:   Ctrl-C (kills both)
+# Usage:           bin/share-dev
+# Auto-stops:      after $SHARE_TIMEOUT (default 8h) — override e.g. SHARE_TIMEOUT=1h
+# Manual stop:     Ctrl-C (kills Rails + tunnel)
+# Custom creds:    SHARE_AUTH_USER=demo SHARE_AUTH_PASSWORD='...' bin/share-dev
 #
 set -euo pipefail
 
@@ -13,9 +17,10 @@ cd "$ROOT"
 
 CLOUDFLARED_BIN="${CLOUDFLARED_BIN:-./tmp/bin/cloudflared}"
 PORT="${PORT:-3000}"
+SHARE_TIMEOUT="${SHARE_TIMEOUT:-8h}"
 
 # 1. Ensure cloudflared is available. Prefer a system install; fall back to a
-#    cached binary under tmp/bin so this script is hermetic.
+#    cached static binary under tmp/bin so the script is hermetic.
 if command -v cloudflared >/dev/null 2>&1; then
   CLOUDFLARED_BIN="$(command -v cloudflared)"
 elif [ ! -x "$CLOUDFLARED_BIN" ]; then
@@ -34,29 +39,43 @@ elif [ ! -x "$CLOUDFLARED_BIN" ]; then
   chmod +x "$CLOUDFLARED_BIN"
 fi
 
+# 2. Generate or reuse credentials. Default user is "demo"; password is a
+#    24-char random string unless overridden via env (~143 bits of entropy).
+export SHARE_MODE=1
+export SHARE_AUTH_USER="${SHARE_AUTH_USER:-demo}"
+if [ -z "${SHARE_AUTH_PASSWORD:-}" ]; then
+  SHARE_AUTH_PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24)"
+fi
+export SHARE_AUTH_PASSWORD
+
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 
-# 2. Start Rails (background) bound to all interfaces so phones/LAN can reach it.
-echo "==> Starting Rails on 0.0.0.0:${PORT}"
+# 3. Start Rails (background) in SHARE_MODE, bound to all interfaces. The
+#    initializer wires basic auth + dev-route blocking; the env config drops
+#    web-console and verbose error pages.
+echo "==> Starting Rails (SHARE_MODE=1) on 0.0.0.0:${PORT}"
 bin/rails server -b 0.0.0.0 -p "$PORT" &
 RAILS_PID=$!
 
 cleanup() {
   echo
-  echo "==> Stopping Rails (pid $RAILS_PID) and tunnel"
+  echo "==> Stopping Rails (pid $RAILS_PID) and tunnel (pid ${TUNNEL_PID:-?})"
   kill "$RAILS_PID" 2>/dev/null || true
-  kill "$TUNNEL_PID" 2>/dev/null || true
+  kill "${TUNNEL_PID:-0}" 2>/dev/null || true
+  kill "${TIMEOUT_PID:-0}" 2>/dev/null || true
   wait 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
-# 3. Wait for Rails to answer.
+# 4. Wait for Rails to answer (probe on /up, which auth-blocks but still 401s
+#    fast — proving the app is up).
 for _ in $(seq 1 30); do
-  if curl -fsS "http://127.0.0.1:${PORT}/up" >/dev/null 2>&1; then break; fi
+  code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PORT}/up" || true)"
+  if [ "$code" = "401" ] || [ "$code" = "200" ]; then break; fi
   sleep 1
 done
 
-# 4. Start Cloudflare Tunnel and tee its output so we can echo the public URL.
+# 5. Start the tunnel and tee its output so we can echo the public URL.
 TUNNEL_LOG="tmp/cloudflared.log"
 : > "$TUNNEL_LOG"
 echo "==> Opening Cloudflare Tunnel"
@@ -64,7 +83,6 @@ echo "==> Opening Cloudflare Tunnel"
   >>"$TUNNEL_LOG" 2>&1 &
 TUNNEL_PID=$!
 
-# 5. Pluck the public URL out of the log.
 PUBLIC_URL=""
 for _ in $(seq 1 60); do
   PUBLIC_URL="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$TUNNEL_LOG" | head -1 || true)"
@@ -72,17 +90,24 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
+# 6. Auto-stop after SHARE_TIMEOUT.
+( sleep "$SHARE_TIMEOUT" ; echo; echo "==> SHARE_TIMEOUT (${SHARE_TIMEOUT}) reached, shutting down"; kill "$RAILS_PID" "$TUNNEL_PID" 2>/dev/null || true ) &
+TIMEOUT_PID=$!
+
 cat <<BANNER
 
 ==================================================================
-  Prisma Games dev server is live.
+  Prisma Games preview is live.
 
   Local:    http://localhost:${PORT}
   LAN:      http://${LAN_IP:-<your-lan-ip>}:${PORT}   (phone on same Wi-Fi)
   Public:   ${PUBLIC_URL:-<not ready, see tmp/cloudflared.log>}
 
+  Login:    user     ${SHARE_AUTH_USER}
+            password ${SHARE_AUTH_PASSWORD}
+
+  Auto-stops in ${SHARE_TIMEOUT}.  Ctrl-C to stop sooner.
   Tunnel log: tmp/cloudflared.log
-  Ctrl-C to stop.
 ==================================================================
 BANNER
 

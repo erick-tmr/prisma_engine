@@ -82,4 +82,21 @@ Rails.application.configure do
   config.hosts << /\A(?:\d{1,3}\.){3}\d{1,3}\z/        # any IPv4 (covers LAN)
   config.hosts << /\A[\w-]+\.trycloudflare\.com\z/     # ad-hoc cloudflared URLs
   config.hosts << /\A[\w-]+\.ngrok(?:-free)?\.app\z/   # ngrok if you ever swap
+
+  # When SHARE_MODE=1 (set by bin/share-dev), harden the dev server enough to
+  # be safe behind a public tunnel: no source-leaking error pages, no remote
+  # web-console REPL, no verbose query/view annotations. Basic auth + dev-only
+  # path blocking are wired in config/initializers/share_mode.rb.
+  if ENV["SHARE_MODE"] == "1"
+    config.consider_all_requests_local           = false
+    config.action_dispatch.show_exceptions       = :rescuable
+    config.action_view.annotate_rendered_view_with_filenames = false
+    config.active_record.verbose_query_logs      = false
+    config.action_dispatch.verbose_redirect_logs = false
+    config.active_job.verbose_enqueue_logs       = false
+    config.server_timing                         = false
+    # web-console treats 127.0.0.1 as trusted; tunneled requests appear local,
+    # so explicitly empty the allow-list to disable the REPL entirely.
+    config.web_console.permissions = "::" if config.respond_to?(:web_console)
+  end
 end
