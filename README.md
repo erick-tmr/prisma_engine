@@ -60,10 +60,3 @@ Storefront frontend port from prismagames.com.br has shipped:
 - 143 product images vendored under `public/images/`.
 
 Domain models, real cart/checkout, Mercado Pago, Melhor Envio, NF-e, and the admin workbench come in subsequent phases — see `docs/architecture.md` § Migration Plan.
-
-## Conventions
-
-- **Commit signing is on** (SSH ed25519). All commits land signed; `git push` must remain clean — never bypass with `--no-verify` or `-c commit.gpgsign=false`.
-- Run `bin/pre-push-check` before pushing.
-- New env vars: document in `.env.example`, set locally in `.env`.
-- This is a greenfield project — delete unused code rather than leaving commented-out blocks or backwards-compat shims.
