@@ -70,12 +70,32 @@ bin/rails server -b 0.0.0.0 -p "$PORT" &
 RAILS_PID=$!
 
 cleanup() {
+  # Disarm the trap so additional Ctrl-Cs during cleanup don't re-enter this
+  # function and produce the dreaded multi-stop message loop.
+  trap '' EXIT INT TERM
+
   echo
-  echo "==> Stopping Rails (pid $RAILS_PID) and tunnel (pid ${TUNNEL_PID:-?})"
-  kill "$RAILS_PID" 2>/dev/null || true
-  kill "${TUNNEL_PID:-0}" 2>/dev/null || true
+  echo "==> Stopping tunnel (pid ${TUNNEL_PID:-?}) and timer (pid ${TIMEOUT_PID:-?})"
+  kill "${TUNNEL_PID:-0}"  2>/dev/null || true
   kill "${TIMEOUT_PID:-0}" 2>/dev/null || true
+
+  # Puma traps SIGTERM as a graceful shutdown and waits for keep-alive
+  # connections (cloudflared holds one open). Send TERM, give it 5s, then KILL.
+  if kill -0 "$RAILS_PID" 2>/dev/null; then
+    echo "==> Stopping Rails (pid $RAILS_PID) — graceful, then forced after 5s"
+    kill -TERM "$RAILS_PID" 2>/dev/null || true
+    for _ in $(seq 1 10); do
+      kill -0 "$RAILS_PID" 2>/dev/null || break
+      sleep 0.5
+    done
+    if kill -0 "$RAILS_PID" 2>/dev/null; then
+      echo "==> Rails didn't exit gracefully, sending SIGKILL"
+      kill -KILL "$RAILS_PID" 2>/dev/null || true
+    fi
+  fi
+
   wait 2>/dev/null || true
+  exit 0
 }
 trap cleanup EXIT INT TERM
 
