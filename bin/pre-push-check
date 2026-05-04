@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#
+# Pre-push gate: runs the same five checks CI runs, in the same order, so
+# nothing red lands on origin/main. Run this manually before `git push`.
+#
+# Usage:        bin/pre-push-check
+# Skip tests:   SKIP_TESTS=1 bin/pre-push-check   (faster — useful for docs-only)
+# Bail fast:    set -e exits on the first failure; output identifies which step.
+#
+set -e
+
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+step() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
+ok()   { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
+
+step "rubocop"
+bin/rubocop
+ok "rubocop"
+
+step "brakeman"
+bin/brakeman --no-pager -q
+ok "brakeman"
+
+step "bundler-audit"
+bin/bundler-audit
+ok "bundler-audit"
+
+step "importmap audit"
+bin/importmap audit
+ok "importmap audit"
+
+if [ "${SKIP_TESTS:-}" = "1" ]; then
+  step "tests (skipped via SKIP_TESTS=1)"
+else
+  step "tests"
+  bin/rails test
+  ok "tests"
+fi
+
+printf '\n\033[1;32m✓ All pre-push checks passed — safe to push.\033[0m\n'
