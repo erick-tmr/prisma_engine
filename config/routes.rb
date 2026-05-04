@@ -3,7 +3,7 @@ Rails.application.routes.draw do
 
   root "pages#home"
 
-  get  "/produtos",          to: "products#index"
+  get  "/produtos",          to: "products#index", as: :products
   post "/produtos",          to: "products#index"
   get  "/produtos/:slug",    to: "categories#show", as: :category
   get  "/produto/:slug/:id", to: "products#show",
