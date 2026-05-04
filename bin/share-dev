@@ -6,7 +6,8 @@
 # you sleep.
 #
 # Usage:           bin/share-dev
-# Auto-stops:      after $SHARE_TIMEOUT (default 8h) — override e.g. SHARE_TIMEOUT=1h
+# Auto-stops:      only if SHARE_TIMEOUT is set (e.g. SHARE_TIMEOUT=8h);
+#                  unset = run until Ctrl-C
 # Manual stop:     Ctrl-C (kills Rails + tunnel)
 # Custom creds:    SHARE_AUTH_USER=demo SHARE_AUTH_PASSWORD='...' bin/share-dev
 #
@@ -27,7 +28,8 @@ fi
 
 CLOUDFLARED_BIN="${CLOUDFLARED_BIN:-./tmp/bin/cloudflared}"
 PORT="${PORT:-3000}"
-SHARE_TIMEOUT="${SHARE_TIMEOUT:-8h}"
+# SHARE_TIMEOUT is optional. Unset/empty = run until Ctrl-C.
+SHARE_TIMEOUT="${SHARE_TIMEOUT:-}"
 
 # 1. Ensure cloudflared is available. Prefer a system install; fall back to a
 #    cached static binary under tmp/bin so the script is hermetic.
@@ -100,9 +102,14 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
-# 6. Auto-stop after SHARE_TIMEOUT.
-( sleep "$SHARE_TIMEOUT" ; echo; echo "==> SHARE_TIMEOUT (${SHARE_TIMEOUT}) reached, shutting down"; kill "$RAILS_PID" "$TUNNEL_PID" 2>/dev/null || true ) &
-TIMEOUT_PID=$!
+# 6. Auto-stop after SHARE_TIMEOUT — only if it was set. Empty = run forever.
+if [ -n "$SHARE_TIMEOUT" ]; then
+  ( sleep "$SHARE_TIMEOUT" ; echo; echo "==> SHARE_TIMEOUT (${SHARE_TIMEOUT}) reached, shutting down"; kill "$RAILS_PID" "$TUNNEL_PID" 2>/dev/null || true ) &
+  TIMEOUT_PID=$!
+  TIMEOUT_NOTE="Auto-stops in ${SHARE_TIMEOUT}.  Ctrl-C to stop sooner."
+else
+  TIMEOUT_NOTE="No auto-stop (SHARE_TIMEOUT unset).  Ctrl-C to stop."
+fi
 
 cat <<BANNER
 
@@ -116,7 +123,7 @@ cat <<BANNER
   Login:    user     ${SHARE_AUTH_USER}
             password ${SHARE_AUTH_PASSWORD}
 
-  Auto-stops in ${SHARE_TIMEOUT}.  Ctrl-C to stop sooner.
+  ${TIMEOUT_NOTE}
   Tunnel log: tmp/cloudflared.log
 ==================================================================
 BANNER
