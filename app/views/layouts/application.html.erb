@@ -30,6 +30,7 @@
   </head>
 
   <body class="<%= content_for(:body_class) %>">
+    <%= render "shared/drawer" %>
     <%= render "shared/header" %>
     <%= render "shared/nav" %>
 
@@ -63,6 +64,30 @@
 
     <script>
       $(function () {
+        var $drawer = $('#site-drawer');
+        var $backdrop = $('.site-drawer-backdrop');
+
+        function openDrawer() {
+          $drawer.addClass('open').attr('aria-hidden', 'false');
+          $backdrop.addClass('open');
+          $('body').addClass('site-drawer-locked');
+        }
+
+        function closeDrawer() {
+          $drawer.removeClass('open').attr('aria-hidden', 'true');
+          $backdrop.removeClass('open');
+          $('body').removeClass('site-drawer-locked');
+        }
+
+        $('[data-toggle="drawer"]').on('click', function (e) {
+          e.preventDefault();
+          openDrawer();
+        });
+        $('.site-drawer-close, [data-drawer-dismiss]').on('click', closeDrawer);
+        $(document).on('keydown', function (e) {
+          if (e.key === 'Escape' && $drawer.hasClass('open')) closeDrawer();
+        });
+
         $('.owl-carousel').each(function () {
           var $el = $(this);
           $el.owlCarousel({

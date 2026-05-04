@@ -1,7 +1,12 @@
 <header class="site-header bg-white border-bottom py-2">
   <div class="container">
     <div class="row align-items-center">
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-3 d-flex align-items-center">
+        <button class="btn btn-link text-dark p-0 mr-2 site-drawer-toggle" type="button"
+                data-toggle="drawer" data-target="#site-drawer"
+                aria-controls="site-drawer" aria-expanded="false" aria-label="Abrir menu de categorias">
+          <i class="bi bi-list" style="font-size: 1.6rem;"></i>
+        </button>
         <%= link_to root_path, class: "site-logo d-inline-block" do %>
           <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games" height="48">
         <% end %>

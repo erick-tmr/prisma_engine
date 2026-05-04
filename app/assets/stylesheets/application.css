@@ -1,10 +1,64 @@
 /*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
+ * Storefront-wide styles. Loaded after Bootstrap so cascade overrides apply.
  */
+
+.site-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 300px;
+  max-width: 85vw;
+  background: #fff;
+  z-index: 1050;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.site-drawer.open {
+  transform: translateX(0);
+}
+
+.site-drawer-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.site-drawer-link {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  color: #212529;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.site-drawer-link:hover,
+.site-drawer-link:focus {
+  background: #f6f6f6;
+  color: #212529;
+  border-left-color: #212529;
+  text-decoration: none;
+}
+
+.site-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.site-drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.site-drawer-locked {
+  overflow: hidden;
+}
