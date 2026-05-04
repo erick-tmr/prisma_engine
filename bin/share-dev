@@ -15,6 +15,16 @@ set -euo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Source .env so SHARE_AUTH_USER / SHARE_AUTH_PASSWORD / PORT / SHARE_TIMEOUT
+# pinned there take precedence over the random-password fallback below.
+# (dotenv gem loads it for Rails too, but Rails boots after this script.)
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
 CLOUDFLARED_BIN="${CLOUDFLARED_BIN:-./tmp/bin/cloudflared}"
 PORT="${PORT:-3000}"
 SHARE_TIMEOUT="${SHARE_TIMEOUT:-8h}"

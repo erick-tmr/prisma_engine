@@ -106,6 +106,7 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     docile (1.4.1)
+    dotenv (3.2.0)
     drb (2.2.3)
     erb (6.0.4)
     erubi (1.13.1)
@@ -376,6 +377,7 @@ DEPENDENCIES
   bundler-audit
   capybara
   debug
+  dotenv (~> 3.1)
   image_processing (~> 1.2)
   importmap-rails
   pg (~> 1.1)
