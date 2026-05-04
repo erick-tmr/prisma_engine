@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+#
+# Boot the Rails dev server (LAN-accessible) and a Cloudflare Tunnel that
+# exposes it at a random https://*.trycloudflare.com URL.
+#
+# Usage:   bin/share-dev
+# Stops:   Ctrl-C (kills both)
+#
+set -euo pipefail
+
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+CLOUDFLARED_BIN="${CLOUDFLARED_BIN:-./tmp/bin/cloudflared}"
+PORT="${PORT:-3000}"
+
+# 1. Ensure cloudflared is available. Prefer a system install; fall back to a
+#    cached binary under tmp/bin so this script is hermetic.
+if command -v cloudflared >/dev/null 2>&1; then
+  CLOUDFLARED_BIN="$(command -v cloudflared)"
+elif [ ! -x "$CLOUDFLARED_BIN" ]; then
+  echo "==> cloudflared not found, downloading static binary into tmp/bin/"
+  mkdir -p tmp/bin
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    x86_64)  CF_ASSET="cloudflared-linux-amd64" ;;
+    aarch64) CF_ASSET="cloudflared-linux-arm64" ;;
+    armv7l)  CF_ASSET="cloudflared-linux-arm" ;;
+    *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+  esac
+  curl -fL --retry 3 \
+    "https://github.com/cloudflare/cloudflared/releases/latest/download/${CF_ASSET}" \
+    -o "$CLOUDFLARED_BIN"
+  chmod +x "$CLOUDFLARED_BIN"
+fi
+
+LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+
+# 2. Start Rails (background) bound to all interfaces so phones/LAN can reach it.
+echo "==> Starting Rails on 0.0.0.0:${PORT}"
+bin/rails server -b 0.0.0.0 -p "$PORT" &
+RAILS_PID=$!
+
+cleanup() {
+  echo
+  echo "==> Stopping Rails (pid $RAILS_PID) and tunnel"
+  kill "$RAILS_PID" 2>/dev/null || true
+  kill "$TUNNEL_PID" 2>/dev/null || true
+  wait 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+# 3. Wait for Rails to answer.
+for _ in $(seq 1 30); do
+  if curl -fsS "http://127.0.0.1:${PORT}/up" >/dev/null 2>&1; then break; fi
+  sleep 1
+done
+
+# 4. Start Cloudflare Tunnel and tee its output so we can echo the public URL.
+TUNNEL_LOG="tmp/cloudflared.log"
+: > "$TUNNEL_LOG"
+echo "==> Opening Cloudflare Tunnel"
+"$CLOUDFLARED_BIN" tunnel --no-autoupdate --url "http://localhost:${PORT}" \
+  >>"$TUNNEL_LOG" 2>&1 &
+TUNNEL_PID=$!
+
+# 5. Pluck the public URL out of the log.
+PUBLIC_URL=""
+for _ in $(seq 1 60); do
+  PUBLIC_URL="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$TUNNEL_LOG" | head -1 || true)"
+  [ -n "$PUBLIC_URL" ] && break
+  sleep 1
+done
+
+cat <<BANNER
+
+==================================================================
+  Prisma Games dev server is live.
+
+  Local:    http://localhost:${PORT}
+  LAN:      http://${LAN_IP:-<your-lan-ip>}:${PORT}   (phone on same Wi-Fi)
+  Public:   ${PUBLIC_URL:-<not ready, see tmp/cloudflared.log>}
+
+  Tunnel log: tmp/cloudflared.log
+  Ctrl-C to stop.
+==================================================================
+BANNER
+
+wait "$RAILS_PID"
