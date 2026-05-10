@@ -20,6 +20,15 @@ Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 +
 - Products are a YAML-backed PORO (`config/products.yml` + `app/models/product.rb`) until a real `Product` ActiveRecord model lands.
 - Cart and identification are placeholder views; their `create` actions are no-ops that flash + redirect. Form targets are real Rails routes ready for backend wiring.
 
+## Git workflow
+
+All changes flow through a branch + PR. No direct commits to `main`.
+
+- Start every task with `git checkout -b <type>/<short-desc>` (e.g. `feat/cart-badge`, `fix/pre-push-rails-shutdown`). Use the same `<type>` prefixes as commit messages (`feat`, `fix`, `chore`, `docs`).
+- `bin/pre-push-check` must pass before pushing.
+- Open a PR with `gh pr create` once the branch is pushed; merge from GitHub.
+- Branch protection on `main` blocks direct pushes — fix the cause, never `--force` or bypass.
+
 ## Conventions
 
 - Commit signing is on (SSH ed25519). Never pass `--no-verify` or `-c commit.gpgsign=false` — fix the underlying cause if a hook fails.
