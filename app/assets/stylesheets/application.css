@@ -84,7 +84,7 @@ body.site-drawer-locked {
   line-height: 1;
 }
 
-/* ── Category logo nav strip (Phase 2) ───────────────────────────── */
+/* ── Category logo nav strip ─────────────────────────────────────── */
 
 :root {
   --pg-whatsapp: #25D366;
@@ -180,7 +180,7 @@ body.site-drawer-locked {
   filter: brightness(0.96);
 }
 
-/* ── Banner carousel (Phase 3) ───────────────────────────────────── */
+/* ── Banner carousel ─────────────────────────────────────────────── */
 
 .pg-banner-wrap {
   max-width: 1320px;
@@ -224,7 +224,7 @@ body.site-drawer-locked {
   background: var(--pg-ink);
 }
 
-/* ── Per-category sections (Phase 4) ─────────────────────────────── */
+/* ── Per-category sections ───────────────────────────────────────── */
 
 .pg-section {
   max-width: 1320px;
