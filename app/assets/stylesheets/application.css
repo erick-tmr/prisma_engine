@@ -62,3 +62,24 @@
 body.site-drawer-locked {
   overflow: hidden;
 }
+
+.site-cart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cart-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 21px;
+  padding: 0 6px;
+  background: #007bff;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
