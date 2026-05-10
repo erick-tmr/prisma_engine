@@ -1,15 +1,16 @@
 <%# locals: (product:) %>
-<div class="col-6 col-md-4 col-lg-3 mb-4">
-  <%= link_to product_path(slug: product.slug, id: product.id), class: "card h-100 shadow-sm text-decoration-none text-dark" do %>
-    <div class="card-img-top ratio" style="aspect-ratio: 1 / 1; background-color: #f6f6f6; overflow: hidden;">
+<div class="col-6 col-md-3 mb-4">
+  <%= link_to product_path(slug: product.slug, id: product.id), class: "product-card" do %>
+    <div class="product-card-thumb">
+      <span class="wishlist-heart" aria-hidden="true"><i class="bi bi-heart"></i></span>
       <% if product.image.present? %>
-        <img src="<%= product.image %>" alt="<%= product.title %>" class="img-fluid w-100 h-100" style="object-fit: cover;" loading="lazy">
+        <img src="<%= product.image %>" alt="<%= product.title %>" loading="lazy">
       <% end %>
     </div>
-    <div class="card-body p-3">
-      <p class="text-muted small mb-1"><%= product.category_label %></p>
-      <h6 class="card-title mb-2 text-truncate" title="<%= product.title %>"><%= product.title %></h6>
-      <p class="card-text mb-0 font-weight-bold"><%= product.price_formatted %></p>
+    <div class="product-card-body">
+      <p class="pc-cat"><%= product.category_label %></p>
+      <p class="pc-title"><%= product.title %></p>
+      <p class="pc-price"><%= product.price_formatted %></p>
     </div>
   <% end %>
 </div>
