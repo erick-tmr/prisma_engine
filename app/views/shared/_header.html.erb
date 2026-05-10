@@ -33,9 +33,10 @@
           <i class="bi bi-person fs-5"></i>
           <span class="d-none d-lg-inline">Conta</span>
         <% end %>
-        <%= link_to "/carrinho", class: "btn btn-link text-dark position-relative", title: "Carrinho" do %>
-          <i class="bi bi-cart3 fs-5"></i>
+        <%= link_to "/carrinho", class: "btn btn-link text-dark site-cart", title: "Carrinho" do %>
+          <i class="bi bi-handbag fs-5"></i>
           <span class="d-none d-lg-inline">Carrinho</span>
+          <span class="cart-counter" data-cart-count>0</span>
         <% end %>
       </div>
     </div>
