@@ -1,25 +1,24 @@
 <% content_for :title, "Prisma Games — Game Boy ❤️" %>
 
-<section class="hero bg-dark text-light py-5 mb-4">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-md-7">
-        <h1 class="display-5 font-weight-bold mb-3">Game Boy <span class="text-danger">❤️</span></h1>
-        <p class="lead mb-4">
-          Hardware e jogos sob demanda para o portátil da Nintendo. Cartuchos
-          com FRAM, saves duradouros, ber&ccedil;o e caixa em papel mais grosso —
-          produzidos no Brasil com garantia.
-        </p>
-        <div>
-          <%= link_to "Ver todos os jogos", products_path, class: "btn btn-light btn-lg mr-2" %>
-          <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success btn-lg">
-            <i class="bi bi-whatsapp"></i> Falar no WhatsApp
-          </a>
-        </div>
-      </div>
-      <div class="col-md-5 text-center mt-4 mt-md-0">
-        <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games" class="img-fluid bg-light p-3 rounded" style="max-height: 220px;">
-      </div>
+<section class="pg-banner-wrap">
+  <div class="owl-carousel owl-theme"
+       data-loop="true"
+       data-nav="false"
+       data-dots="true"
+       data-autoplay="true"
+       data-items-xs="1"
+       data-items-sm="1"
+       data-items-md="1"
+       data-items-lg="1"
+       data-items-xl="1">
+    <div class="banner-slot">
+      <img src="/images/stores/uploads/2475313/conversions/large.jpg" alt="Banner Pokémon Yellow" loading="eager">
+    </div>
+    <div class="banner-slot">
+      <img src="/images/stores/uploads/2690742/conversions/large.jpg" alt="Banner Game Boy Color" loading="lazy">
+    </div>
+    <div class="banner-slot">
+      <img src="/images/stores/uploads/2475445/conversions/large.jpg" alt="Banner Pokémon Hack" loading="lazy">
     </div>
   </div>
 </section>
