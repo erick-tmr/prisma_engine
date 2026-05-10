@@ -1,8 +1,7 @@
 class PagesController < ApplicationController
   def home
-    @featured = Product.featured(8)
-    @classic  = Product.for_category("game-boy-classic").first(4)
-    @color    = Product.for_category("game-boy-color").first(4)
+    @classic = Product.for_category("game-boy-classic").first(8)
+    @color   = Product.for_category("game-boy-color").first(8)
   end
 
   def show

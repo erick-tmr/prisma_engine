@@ -23,46 +23,43 @@
   </div>
 </section>
 
-<section class="container mb-5">
+<section class="pg-section">
+  <div class="block-title-wrap">
+    <%= link_to category_path(slug: "game-boy-classic", category_id: 351512),
+          class: "block-title-logo", aria: { label: "Ver tudo de Game Boy Classic" } do %>
+      <span class="nav-chip-circle">
+        <img src="/images/nav-logos/game-boy-classic.jpg" alt="" width="72" height="72">
+      </span>
+      <h2 class="block-title">Game Boy Classic</h2>
+    <% end %>
+    <div class="rainbow-runner" aria-hidden="true"></div>
+    <%= link_to "Ver tudo →",
+          category_path(slug: "game-boy-classic", category_id: 351512),
+          class: "section-see-all" %>
+  </div>
   <div class="row">
-    <div class="col-md-6 mb-4">
-      <%= link_to category_path(slug: "game-boy-classic", category_id: 351512), class: "card text-white text-decoration-none" do %>
-        <% sample = @classic.first %>
-        <% if sample&.image %>
-          <img src="<%= sample.image %>" alt="Game Boy Classic" class="card-img" style="max-height: 240px; object-fit: cover; filter: brightness(0.55);">
-        <% end %>
-        <div class="card-img-overlay d-flex align-items-end">
-          <div>
-            <h2 class="h4 mb-0">Game Boy Classic</h2>
-            <p class="mb-0 small">Cartuchos e hardware</p>
-          </div>
-        </div>
-      <% end %>
-    </div>
-    <div class="col-md-6 mb-4">
-      <%= link_to category_path(slug: "game-boy-color", category_id: 354342), class: "card text-white text-decoration-none" do %>
-        <% sample = @color.first %>
-        <% if sample&.image %>
-          <img src="<%= sample.image %>" alt="Game Boy Color" class="card-img" style="max-height: 240px; object-fit: cover; filter: brightness(0.55);">
-        <% end %>
-        <div class="card-img-overlay d-flex align-items-end">
-          <div>
-            <h2 class="h4 mb-0">Game Boy Color</h2>
-            <p class="mb-0 small">Linha colorida</p>
-          </div>
-        </div>
-      <% end %>
-    </div>
+    <% @classic.each do |product| %>
+      <%= render "products/card", product: product %>
+    <% end %>
   </div>
 </section>
 
-<section class="container mb-5">
-  <div class="d-flex align-items-end justify-content-between mb-3">
-    <h2 class="h4 mb-0">Em destaque</h2>
-    <%= link_to "Ver tudo →", products_path, class: "small text-muted" %>
+<section class="pg-section">
+  <div class="block-title-wrap">
+    <%= link_to category_path(slug: "game-boy-color", category_id: 354342),
+          class: "block-title-logo", aria: { label: "Ver tudo de Game Boy Color" } do %>
+      <span class="nav-chip-circle">
+        <img src="/images/nav-logos/game-boy-color.jpg" alt="" width="72" height="72">
+      </span>
+      <h2 class="block-title">Game Boy Color</h2>
+    <% end %>
+    <div class="rainbow-runner" aria-hidden="true"></div>
+    <%= link_to "Ver tudo →",
+          category_path(slug: "game-boy-color", category_id: 354342),
+          class: "section-see-all" %>
   </div>
   <div class="row">
-    <% @featured.each do |product| %>
+    <% @color.each do |product| %>
       <%= render "products/card", product: product %>
     <% end %>
   </div>
