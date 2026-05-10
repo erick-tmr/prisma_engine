@@ -24,14 +24,14 @@
     ].each_with_index do |(question, key), idx| %>
       <div class="card">
         <div class="card-header py-2" id="<%= key %>-heading">
-          <button class="btn btn-link text-left text-dark w-100 p-0" type="button"
-                  data-toggle="collapse" data-target="#<%= key %>"
+          <button class="btn btn-link text-start text-dark w-100 p-0" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#<%= key %>"
                   aria-expanded="<%= idx == 0 %>" aria-controls="<%= key %>">
             <%= question %>
           </button>
         </div>
         <div id="<%= key %>" class="collapse <%= "show" if idx == 0 %>"
-             aria-labelledby="<%= key %>-heading" data-parent="#faq-accordion">
+             aria-labelledby="<%= key %>-heading" data-bs-parent="#faq-accordion">
           <div class="card-body small text-muted">
             <p class="mb-0">
               Conteúdo desta resposta a ser preenchido com base na FAQ atual do site.

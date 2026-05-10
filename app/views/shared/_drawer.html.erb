@@ -14,22 +14,22 @@
     <ul class="list-unstyled mb-0">
       <li>
         <%= link_to products_path, class: "site-drawer-link" do %>
-          <i class="bi bi-grid mr-2"></i> Todos os jogos
-          <span class="badge badge-light ml-auto"><%= Product.all.size %></span>
+          <i class="bi bi-grid me-2"></i> Todos os jogos
+          <span class="badge text-bg-light ms-auto"><%= Product.all.size %></span>
         <% end %>
       </li>
       <li>
         <%= link_to category_path(slug: "game-boy-classic", category_id: 351512),
               class: "site-drawer-link" do %>
-          <i class="bi bi-controller mr-2"></i> Game Boy Classic
-          <span class="badge badge-light ml-auto"><%= Product.for_category("game-boy-classic").size %></span>
+          <i class="bi bi-controller me-2"></i> Game Boy Classic
+          <span class="badge text-bg-light ms-auto"><%= Product.for_category("game-boy-classic").size %></span>
         <% end %>
       </li>
       <li>
         <%= link_to category_path(slug: "game-boy-color", category_id: 354342),
               class: "site-drawer-link" do %>
-          <i class="bi bi-palette mr-2"></i> Game Boy Color
-          <span class="badge badge-light ml-auto"><%= Product.for_category("game-boy-color").size %></span>
+          <i class="bi bi-palette me-2"></i> Game Boy Color
+          <span class="badge text-bg-light ms-auto"><%= Product.for_category("game-boy-color").size %></span>
         <% end %>
       </li>
     </ul>
@@ -38,22 +38,22 @@
     <ul class="list-unstyled mb-0">
       <li>
         <%= link_to page_path(slug: "recomendacao-de-jogos"), class: "site-drawer-link" do %>
-          <i class="bi bi-bookmark-star mr-2"></i> Recomendação de jogos
+          <i class="bi bi-bookmark-star me-2"></i> Recomendação de jogos
         <% end %>
       </li>
       <li>
         <%= link_to page_path(slug: "reviews"), class: "site-drawer-link" do %>
-          <i class="bi bi-chat-quote mr-2"></i> Reviews
+          <i class="bi bi-chat-quote me-2"></i> Reviews
         <% end %>
       </li>
       <li>
         <%= link_to page_path(slug: "perguntas-frequentes"), class: "site-drawer-link" do %>
-          <i class="bi bi-question-circle mr-2"></i> Perguntas frequentes
+          <i class="bi bi-question-circle me-2"></i> Perguntas frequentes
         <% end %>
       </li>
       <li>
         <%= link_to page_path(slug: "direitos"), class: "site-drawer-link" do %>
-          <i class="bi bi-shield-check mr-2"></i> Direitos do consumidor
+          <i class="bi bi-shield-check me-2"></i> Direitos do consumidor
         <% end %>
       </li>
     </ul>
@@ -62,20 +62,20 @@
     <ul class="list-unstyled mb-0">
       <li>
         <%= link_to identification_path, class: "site-drawer-link" do %>
-          <i class="bi bi-person mr-2"></i> Entrar / Cadastrar
+          <i class="bi bi-person me-2"></i> Entrar / Cadastrar
         <% end %>
       </li>
       <li>
         <%= link_to "/carrinho", class: "site-drawer-link" do %>
-          <i class="bi bi-handbag mr-2"></i> Carrinho
+          <i class="bi bi-handbag me-2"></i> Carrinho
         <% end %>
       </li>
     </ul>
   </nav>
 
   <div class="site-drawer-footer p-3 border-top">
-    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success btn-block">
-      <i class="bi bi-whatsapp mr-1"></i> Falar no WhatsApp
+    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success w-100">
+      <i class="bi bi-whatsapp me-1"></i> Falar no WhatsApp
     </a>
   </div>
 </aside>
