@@ -89,7 +89,7 @@ products:
     title: "Metroid II - Return of Samus GB Classic (DMG) - Com Caixa 🟢"
     price_brl: 180.00
     image: "/images/stores/uploads/3105612/conversions/large.jpg"
-    category: "game-boy-color"
+    category: "game-boy-classic"
   - id: "1402284-0"
     short_id: "1402284"
     slug: "survival-kids"
@@ -110,14 +110,14 @@ products:
     title: "Kirby&#039;s Dream Land GB Classic (DMG) - Com Caixa"
     price_brl: 180.00
     image: "/images/stores/uploads/3266054/conversions/large.jpg"
-    category: "game-boy-color"
+    category: "game-boy-classic"
   - id: "1402307-0"
     short_id: "1402307"
     slug: "kirbys-dream-land-2"
     title: "Kirby&#039;s Dream Land 2 GB Classic (DMG) - Com Caixa"
     price_brl: 180.00
     image: "/images/stores/uploads/3266068/conversions/large.jpg"
-    category: "game-boy-color"
+    category: "game-boy-classic"
   - id: "1510516-0"
     short_id: "1510516"
     slug: "pokemon-gold-patch-rtc"
