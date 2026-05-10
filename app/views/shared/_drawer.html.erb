@@ -15,21 +15,21 @@
       <li>
         <%= link_to products_path, class: "site-drawer-link" do %>
           <i class="bi bi-grid me-2"></i> Todos os jogos
-          <span class="badge text-bg-light ms-auto"><%= Product.all.size %></span>
+          <span class="badge text-bg-secondary ms-auto"><%= Product.all.size %></span>
         <% end %>
       </li>
       <li>
         <%= link_to category_path(slug: "game-boy-classic", category_id: 351512),
               class: "site-drawer-link" do %>
           <i class="bi bi-controller me-2"></i> Game Boy Classic
-          <span class="badge text-bg-light ms-auto"><%= Product.for_category("game-boy-classic").size %></span>
+          <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("game-boy-classic").size %></span>
         <% end %>
       </li>
       <li>
         <%= link_to category_path(slug: "game-boy-color", category_id: 354342),
               class: "site-drawer-link" do %>
           <i class="bi bi-palette me-2"></i> Game Boy Color
-          <span class="badge text-bg-light ms-auto"><%= Product.for_category("game-boy-color").size %></span>
+          <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("game-boy-color").size %></span>
         <% end %>
       </li>
     </ul>

@@ -40,3 +40,7 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Playwright MCP session files and ad-hoc screenshots
+/.playwright-mcp/
+/*.png
