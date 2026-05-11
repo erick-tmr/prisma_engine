@@ -26,8 +26,59 @@
         <% end %>
       </div>
     </div>
-    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener noreferrer" class="pg-whatsapp-btn">
-      <i class="bi bi-whatsapp"></i> Atendimento
-    </a>
+
+    <div class="pg-right pg-links-wrap">
+      <div class="pg-links-anchor">
+        <button type="button"
+                class="pg-links-btn"
+                aria-haspopup="menu"
+                aria-expanded="false"
+                data-links-menu="trigger">
+          <span class="pg-pulse-dot" aria-hidden="true"></span>
+          Central Prisma
+          <i class="bi bi-chevron-down pg-links-chevron pg-links-chevron-down" aria-hidden="true"></i>
+          <i class="bi bi-chevron-up pg-links-chevron pg-links-chevron-up" aria-hidden="true"></i>
+        </button>
+
+        <div class="pg-links-panel" role="menu" data-links-menu="panel" hidden>
+          <div class="pg-links-section-title">
+            <i class="bi bi-youtube" style="color: var(--pg-yt);" aria-hidden="true"></i> Parceiros YouTube
+          </div>
+          <div class="pg-links-grid">
+            <% nav_partners.each do |p| %>
+              <%= link_to p[:url], class: "pg-links-row", target: "_blank", rel: "noopener noreferrer" do %>
+                <span class="pg-links-av" style="background: <%= p[:gradient] %>;"><%= p[:initial] %></span>
+                <span class="pg-links-meta">
+                  <strong><%= p[:name] %></strong>
+                  <small><%= p[:tagline] %></small>
+                </span>
+                <i class="bi bi-youtube pg-links-yt" aria-hidden="true"></i>
+              <% end %>
+            <% end %>
+          </div>
+
+          <hr>
+
+          <div class="pg-links-section-title">
+            <i class="bi bi-bookmark-star" aria-hidden="true"></i> Páginas úteis
+          </div>
+          <div class="pg-links-list">
+            <%= link_to page_path("perguntas-frequentes") do %><i class="bi bi-question-circle" aria-hidden="true"></i> Perguntas frequentes<% end %>
+            <%= link_to page_path("recomendacao-de-jogos") do %><i class="bi bi-stars" aria-hidden="true"></i> Recomendação de jogos<% end %>
+            <%= link_to page_path("reviews") do %><i class="bi bi-chat-quote" aria-hidden="true"></i> Reviews da loja<% end %>
+            <%= link_to page_path("direitos") do %><i class="bi bi-shield-check" aria-hidden="true"></i> Direitos do consumidor<% end %>
+          </div>
+        </div>
+      </div>
+
+      <a href="<%= social_links[:whatsapp] %>" target="_blank" rel="noopener noreferrer"
+         class="pg-social pg-social-wa" aria-label="WhatsApp">
+        <i class="bi bi-whatsapp" aria-hidden="true"></i>
+      </a>
+      <a href="<%= social_links[:instagram] %>" target="_blank" rel="noopener noreferrer"
+         class="pg-social pg-social-ig" aria-label="Instagram">
+        <i class="bi bi-instagram" aria-hidden="true"></i>
+      </a>
+    </div>
   </div>
 </nav>

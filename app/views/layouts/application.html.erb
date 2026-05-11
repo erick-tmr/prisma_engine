@@ -64,6 +64,26 @@
 
     <script>
       $(function () {
+        $('.pg-links-wrap').each(function () {
+          var $wrap    = $(this);
+          var $trigger = $wrap.find('[data-links-menu="trigger"]');
+          var $panel   = $wrap.find('[data-links-menu="panel"]');
+
+          function open()  { $wrap.addClass('open');    $panel.prop('hidden', false); $trigger.attr('aria-expanded', 'true'); }
+          function close() { $wrap.removeClass('open'); $panel.prop('hidden', true);  $trigger.attr('aria-expanded', 'false'); }
+
+          $trigger.on('click', function (e) {
+            e.stopPropagation();
+            $wrap.hasClass('open') ? close() : open();
+          });
+          $(document).on('click', function (e) {
+            if (!$wrap.is(e.target) && $wrap.has(e.target).length === 0) close();
+          });
+          $(document).on('keydown', function (e) {
+            if (e.key === 'Escape') close();
+          });
+        });
+
         var $drawer = $('#site-drawer');
         var $backdrop = $('.site-drawer-backdrop');
 
