@@ -149,17 +149,6 @@ body.site-drawer-locked {
   border-radius: 50%;
 }
 
-.nav-chip-label {
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-align: center;
-  color: #e9ecef;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ── Header — Central Prisma mega-menu + social icons ────────────── */
 
 :root {
