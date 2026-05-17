@@ -24,7 +24,8 @@ Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 +
 
 All changes flow through a branch + PR. No direct commits to `main`.
 
-- Start every task with `git checkout -b <type>/<short-desc>` (e.g. `feat/cart-badge`, `fix/pre-push-rails-shutdown`). Use the same `<type>` prefixes as commit messages (`feat`, `fix`, `chore`, `docs`).
+- Start every task from a fresh `main`: `git fetch origin && git switch -c <type>/<short-desc> origin/main` (e.g. `feat/cart-badge`, `fix/pre-push-rails-shutdown`). Never branch off another feature branch — a not-yet-merged base produces conflicting, noisy PRs. Use the same `<type>` prefixes as commit messages (`feat`, `fix`, `chore`, `docs`).
+- To check whether commits are already upstream, use `git cherry -v origin/main` (patch-id based). Don't trust `origin/main..HEAD`: squash/rebase merges rewrite SHAs, so that range still lists work that's already in `main`.
 - `bin/pre-push-check` must pass before pushing.
 - Open a PR with `gh pr create` once the branch is pushed; merge from GitHub.
 - Branch protection on `main` blocks direct pushes — fix the cause, never `--force` or bypass.
