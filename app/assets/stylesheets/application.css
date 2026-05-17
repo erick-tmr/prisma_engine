@@ -109,44 +109,61 @@ body.site-drawer-locked {
   gap: 16px;
 }
 
-.pg-nav-strip .nav-owl-wrap {
+/* ---------- Left side: bare category logos --------------- */
+
+.pg-cats {
   flex: 1;
   min-width: 0;
-}
-
-.nav-chip {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-decoration: none;
-  color: #fff;
-  gap: 6px;
+  gap: 20px;
+  overflow: hidden;
 }
 
-.nav-chip-circle {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #fff;
-  padding: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  display: flex;
+.cat-link {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  transition: transform 0.18s ease, border-color 0.18s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 8px;
+  transition: transform 0.18s ease;
 }
 
-.nav-chip:hover .nav-chip-circle {
-  border-color: rgba(255, 255, 255, 0.7);
-  transform: translateY(-2px);
+.cat-link:hover {
+  transform: translateY(-1px);
 }
 
-.nav-chip-circle img {
-  width: 100%;
+.cat-link img.cat-logo {
   height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+  width: auto;
+  max-width: 170px;
+  display: block;
+  object-fit: contain;
+
+  /* V4 — Neon: 1px sharp white outline + soft outer glow.
+     The 4-direction drop-shadow stack traces the actual letter
+     shapes (not the bounding box) since drop-shadow operates on
+     the SVG alpha mask. */
+  filter:
+    drop-shadow( 1px  0   0 #fff)
+    drop-shadow(-1px  0   0 #fff)
+    drop-shadow( 0    1px 0 #fff)
+    drop-shadow( 0   -1px 0 #fff)
+    drop-shadow( 0    0   6px rgba(255, 255, 255, 0.6));
+}
+
+/* Fallback for categories without a logo SVG yet (DS, 3DS, etc.) */
+.cat-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  padding: 0 6px;
 }
 
 /* ── Header — Central Prisma mega-menu + social icons ────────────── */
@@ -413,7 +430,21 @@ body.site-drawer-locked {
 .block-title-logo .nav-chip-circle {
   width: 72px;
   height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  padding: 4px;
   border: 2px solid #d8dde3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.block-title-logo .nav-chip-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .block-title-logo:hover .block-title {
