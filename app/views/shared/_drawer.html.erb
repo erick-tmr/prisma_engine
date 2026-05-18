@@ -58,6 +58,23 @@
       </li>
     </ul>
 
+    <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Parceiros</div>
+    <ul class="list-unstyled mb-0">
+      <% nav_partners.each do |p| %>
+        <li>
+          <a href="<%= p[:url] %>" target="_blank" rel="noopener noreferrer"
+             class="site-drawer-link">
+            <span class="pg-links-av me-2" style="background: <%= p[:gradient] %>;"><%= p[:initial] %></span>
+            <span class="pg-links-meta">
+              <strong><%= p[:name] %></strong>
+              <small><%= p[:tagline] %></small>
+            </span>
+            <i class="bi bi-youtube pg-links-yt" aria-hidden="true"></i>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+
     <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Sua conta</div>
     <ul class="list-unstyled mb-0">
       <li>
