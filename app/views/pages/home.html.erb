@@ -24,19 +24,8 @@
 </section>
 
 <section class="pg-section">
-  <div class="block-title-wrap">
-    <%= link_to category_path(slug: "game-boy-classic", category_id: 351512),
-          class: "block-title-logo", aria: { label: "Ver tudo de Game Boy Classic" } do %>
-      <span class="nav-chip-circle">
-        <img src="/images/nav-logos/game-boy-classic.jpg" alt="" width="72" height="72">
-      </span>
-      <h2 class="block-title">Game Boy Classic</h2>
-    <% end %>
-    <div class="rainbow-runner" aria-hidden="true"></div>
-    <%= link_to "Ver tudo →",
-          category_path(slug: "game-boy-classic", category_id: 351512),
-          class: "section-see-all" %>
-  </div>
+  <%= render "block_title", slug: "game-boy-classic", category_id: 351512,
+                            label: "Game Boy Classic" %>
   <div class="row">
     <% @classic.each do |product| %>
       <%= render "products/card", product: product %>
@@ -45,19 +34,9 @@
 </section>
 
 <section class="pg-section">
-  <div class="block-title-wrap">
-    <%= link_to category_path(slug: "game-boy-color", category_id: 354342),
-          class: "block-title-logo", aria: { label: "Ver tudo de Game Boy Color" } do %>
-      <span class="nav-chip-circle">
-        <img src="/images/nav-logos/game-boy-color.jpg" alt="" width="72" height="72">
-      </span>
-      <h2 class="block-title">Game Boy Color</h2>
-    <% end %>
-    <div class="rainbow-runner" aria-hidden="true"></div>
-    <%= link_to "Ver tudo →",
-          category_path(slug: "game-boy-color", category_id: 354342),
-          class: "section-see-all" %>
-  </div>
+  <%= render "block_title", slug: "game-boy-color", category_id: 354342,
+                            label: "Game Boy Color",
+                            logo: "game-boy-color-horizontal" %>
   <div class="row">
     <% @color.each do |product| %>
       <%= render "products/card", product: product %>
