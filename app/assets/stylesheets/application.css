@@ -753,3 +753,95 @@ body.site-drawer-locked {
   color: #cfd4da;
   font-size: 13px;
 }
+
+/* ── Mobile: category nav strip (horizontal swipe rail) ──────────── */
+/* The strip is a single flex row built for desktop. On phones the
+   logos can't all fit, so the rail scrolls sideways instead of
+   clipping; a right-edge fade + a peeking next logo hint there's more. */
+@media (max-width: 767.98px) {
+  .pg-nav-inner {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .pg-cats {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    gap: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+            mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  }
+  .pg-cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cat-link {
+    height: 44px;
+    padding: 0 4px;
+    scroll-snap-align: start;
+  }
+  .cat-link img.cat-logo {
+    max-width: 130px;
+  }
+
+  .pg-right {
+    gap: 8px;
+  }
+  .pg-social {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* ── Mobile: section title block ─────────────────────────────────── */
+/* Desktop anchors "Ver tudo →" absolutely to the right edge over a
+   centered logo. On a phone that overlaps, so stack the block and
+   pull the link back into flow. */
+@media (max-width: 767.98px) {
+  .block-title-wrap {
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    margin: 20px 0 22px;
+  }
+  .block-title-wrap .ver-tudo {
+    position: static;
+    transform: none;
+    top: auto;
+    right: auto;
+  }
+  .block-title-logo img.cat-logo {
+    height: 40px;
+    max-width: 80vw;
+  }
+}
+
+@media (max-width: 520px) {
+  /* The centered logo links to the same category_path, so the
+     separate "Ver tudo" link is redundant on a narrow phone. */
+  .block-title-wrap .ver-tudo {
+    display: none;
+  }
+  .block-title-logo img.cat-logo {
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cat-link {
+    height: 40px;
+  }
+  .cat-link img.cat-logo {
+    max-width: 110px;
+  }
+  .pg-social {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+}
