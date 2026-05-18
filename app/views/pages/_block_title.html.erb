@@ -1,0 +1,28 @@
+<%# locals: (slug:, category_id:, label:, logo: nil) %>
+<%# Section title: bare SVG wordmark over a logo-width rainbow bar, with
+    "Ver tudo →" anchored to the right edge. The wordmark IS the visible
+    title; an sr-only <h2> keeps the heading in the document outline.
+
+    `logo` defaults to `slug`; pass it when the section title needs a
+    different wordmark file than the nav strip (e.g. the horizontal
+    Game Boy Color variant). %>
+<% logo ||= slug %>
+
+<div class="block-title-wrap">
+  <%= link_to category_path(slug: slug, category_id: category_id),
+              class: "block-title-logo", "aria-label": "Ver tudo de #{label}" do %>
+    <div class="block-title-center">
+      <img src="/images/nav-logos/<%= logo %>.svg"
+           alt="<%= label %>"
+           class="cat-logo" loading="lazy">
+      <span class="rainbow-bar" aria-hidden="true"></span>
+    </div>
+  <% end %>
+
+  <h2 class="block-title sr-only"><%= label %></h2>
+
+  <%= link_to category_path(slug: slug, category_id: category_id),
+              class: "ver-tudo" do %>
+    Ver tudo <i class="bi bi-arrow-right" aria-hidden="true"></i>
+  <% end %>
+</div>

@@ -404,19 +404,23 @@ body.site-drawer-locked {
   padding: 0 16px;
 }
 
+/* Section title (block header) — bare logo + rainbow bar */
+
 .block-title-wrap {
-  text-align: center;
-  margin: 12px 0 24px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0 28px;
+  min-height: 80px;
 }
 
-.block-title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--pg-ink);
-  margin: 0;
-  text-transform: uppercase;
+/* Center column: logo stacked on top of the rainbow bar */
+.block-title-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .block-title-logo {
@@ -424,43 +428,48 @@ body.site-drawer-locked {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  gap: 12px;
+  transition: transform 0.18s ease;
 }
 
-.block-title-logo .nav-chip-circle {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: #fff;
-  padding: 4px;
-  border: 2px solid #d8dde3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.block-title-logo:hover {
+  transform: translateY(-1px);
+}
+
+/* Bare SVG wordmark — no chip wrapper. Both classic + color SVGs are
+   calibrated to render the GAME BOY caps at the same height here. */
+.block-title-logo img.cat-logo {
+  height: 48px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+}
+
+/* The visible title is the wordmark; keep an accessible heading off-screen. */
+.block-title.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.block-title-logo .nav-chip-circle img {
+/* Rainbow gradient bar — sits directly under the logo, logo-width.
+   The colours animate (a slow horizontal slide), as the section
+   header did before the redesign. The palette is mirrored so the
+   2x-wide track loops back to its start with no visible seam. */
+.block-title-wrap .rainbow-bar {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.block-title-logo:hover .block-title {
-  color: var(--pg-primary);
-}
-
-.rainbow-runner {
-  width: 150px;
   height: 4px;
-  margin: 10px auto 0;
-  border-radius: 4px;
-  overflow: hidden;
+  border-radius: 2px;
   background: linear-gradient(
     90deg,
-    #ff3b30, #ff9500, #ffcc00, #34c759,
-    #5ac8fa, #007aff, #af52de, #ff2d55
+    #b80a41, #daac06, #00938a, #4e4ba8, #00938a, #daac06, #b80a41
   );
   background-size: 200% 100%;
   animation: rainbow-slide 3s linear infinite;
@@ -471,18 +480,28 @@ body.site-drawer-locked {
   100% { background-position: 200% 0%; }
 }
 
-.section-see-all {
+/* "Ver tudo →" anchored to the right edge of the title row */
+.block-title-wrap .ver-tudo {
   position: absolute;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 13px;
-  color: var(--pg-muted);
+  color: var(--pg-ink);
   text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.section-see-all:hover {
-  color: var(--pg-primary);
+.block-title-wrap .ver-tudo i {
+  font-size: 13px;
+  transition: transform 0.18s ease;
+}
+
+.block-title-wrap .ver-tudo:hover i {
+  transform: translateX(3px);
 }
 
 /* ── Product cards ────────────────────────────────────────────────── */
