@@ -181,9 +181,7 @@ GEM
       thor
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
-    image_processing (1.14.0)
-      mini_magick (>= 4.9.5, < 6)
-      ruby-vips (>= 2.0.17, < 3)
+    image_processing (2.0.1)
     imagen (0.2.0)
       parser (>= 2.5, != 2.5.1.1)
     importmap-rails (2.2.3)
@@ -213,8 +211,6 @@ GEM
     matrix (0.4.3)
     memory_profiler (1.1.0)
     mini_histogram (0.3.1)
-    mini_magick (5.3.1)
-      logger
     mini_mime (1.1.5)
     minitest (6.0.5)
       drb (~> 2.0)
@@ -359,9 +355,6 @@ GEM
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
     ruby-statistics (4.1.1)
-    ruby-vips (2.3.0)
-      ffi (~> 1.12)
-      logger
     ruby2_keywords (0.0.5)
     rubyzip (3.2.2)
     rugged (1.9.0)
@@ -457,7 +450,7 @@ DEPENDENCIES
   debug
   derailed_benchmarks
   dotenv (~> 3.1)
-  image_processing (~> 1.2)
+  image_processing (~> 2.0)
   importmap-rails
   memory_profiler
   pg (~> 1.1)
