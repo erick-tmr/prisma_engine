@@ -1,0 +1,21 @@
+title = "Prisma Engine gitleaks config"
+
+# Inherit gitleaks' built-in ruleset, then layer our allowlist on top.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Committed-by-design placeholders are not real secrets"
+# .env.example ships intentionally and only holds placeholder values
+# (e.g. DATABASE_PASSWORD=prisma_engine, SHARE_AUTH_PASSWORD=change-me-min-16-chars).
+# The real .env is gitignored.
+paths = [
+  '''(^|/)\.env\.example$''',
+]
+# Ignore the known documentation/example placeholder tokens wherever they appear
+# (e.g. .env.example values and the `echo ... >> .env` examples in README.md).
+regexes = [
+  '''prisma_engine''',
+  '''change-me-min-16-chars''',
+  '''at-least-16-chars-long''',
+]

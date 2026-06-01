@@ -19,11 +19,35 @@ jobs:
           bundler-cache: true
 
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
-      
+        run: |
+          mkdir -p tmp
+          bin/brakeman --no-pager | tee tmp/brakeman.txt
+
+      - name: Summarize Brakeman findings on failure
+        if: failure()
+        run: |
+          {
+            echo "## Brakeman findings"
+            echo '```'
+            cat tmp/brakeman.txt 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Scan for known security vulnerabilities in gems used
-        run: bin/bundler-audit
-      
+        run: |
+          mkdir -p tmp
+          bin/bundler-audit | tee tmp/bundler-audit.txt
+
+      - name: Summarize vulnerable gems on failure
+        if: failure()
+        run: |
+          {
+            echo "## Vulnerable gems (bundler-audit)"
+            echo '```'
+            cat tmp/bundler-audit.txt 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   scan_js:
     runs-on: ubuntu-latest
 
@@ -37,7 +61,19 @@ jobs:
           bundler-cache: true
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
+        run: |
+          mkdir -p tmp
+          bin/importmap audit | tee tmp/importmap-audit.txt
+
+      - name: Summarize vulnerable JavaScript dependencies on failure
+        if: failure()
+        run: |
+          {
+            echo "## Vulnerable JavaScript dependencies (importmap audit)"
+            echo '```'
+            cat tmp/importmap-audit.txt 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   lint:
     runs-on: ubuntu-latest
@@ -63,7 +99,19 @@ jobs:
             rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-
 
       - name: Lint code for consistent style
-        run: bin/rubocop -f github
+        run: |
+          mkdir -p tmp
+          bin/rubocop -f github -f offenses -o tmp/rubocop-offenses.txt
+
+      - name: Summarize RuboCop offenses on failure
+        if: failure()
+        run: |
+          {
+            echo "## RuboCop offenses"
+            echo '```'
+            cat tmp/rubocop-offenses.txt 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   test:
     runs-on: ubuntu-latest
@@ -102,7 +150,19 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        run: |
+          mkdir -p tmp
+          bin/rails db:test:prepare test 2>&1 | tee tmp/test.log
+
+      - name: Summarize test failures on failure
+        if: failure()
+        run: |
+          {
+            echo "## Test failures"
+            echo '```'
+            tail -60 tmp/test.log 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   system-test:
     runs-on: ubuntu-latest
@@ -141,7 +201,21 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test:system
+        run: |
+          mkdir -p tmp
+          bin/rails db:test:prepare test:system 2>&1 | tee tmp/system-test.log
+
+      - name: Summarize system test failures on failure
+        if: failure()
+        run: |
+          {
+            echo "## System test failures"
+            echo '```'
+            tail -60 tmp/system-test.log 2>/dev/null || echo "(no output captured)"
+            echo '```'
+            echo ""
+            echo "_Screenshots of failed system tests are uploaded as the **screenshots** artifact on this run._"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v7

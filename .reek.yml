@@ -1,0 +1,18 @@
+# Reek configuration — keeps the signal high on a small Rails app.
+# Reek runs advisory-only in CI (.github/workflows/quality.yml), on changed
+# files. These overrides silence Rails-idiomatic patterns that aren't real smells;
+# the value is catching genuine god-objects / over-long methods in new code.
+detectors:
+  IrresponsibleModule:
+    enabled: false        # don't demand a descriptive comment on every class/module
+  TooManyStatements:
+    max_statements: 8     # controller actions run a few lines; reek's default is 5
+  DuplicateMethodCall:
+    enabled: false        # noisy on view/controller idioms
+
+exclude_paths:
+  - bin
+  - config
+  - db
+  - tmp
+  - vendor
