@@ -50,11 +50,18 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Code smell detection for changed files [https://github.com/troessner/reek]
+  gem "reek", require: false
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Memory profiling, run on demand — see CLAUDE.md "Investigating memory"
+  gem "derailed_benchmarks", require: false
+  gem "memory_profiler", require: false
 end
 
 group :test do
@@ -64,4 +71,7 @@ group :test do
 
   # Test coverage reporting [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false
+  # Changed-line coverage on PRs; ships the SimpleCov JSON formatter it reads
+  # [https://github.com/grodowski/undercover]
+  gem "undercover", require: false
 end

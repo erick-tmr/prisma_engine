@@ -5,9 +5,9 @@ Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 +
 ## Commands
 
 - `bin/dev` — Rails server. Needs `docker compose up -d` first for Postgres.
-- `bin/setup` — fresh-machine setup, idempotent.
+- `bin/setup` — fresh-machine setup, idempotent. Needs **cmake** present (builds the `rugged` native ext that `undercover` uses for changed-line coverage): `brew install cmake` / `sudo apt-get install -y cmake pkg-config`.
 - `bin/share-dev` — public Cloudflare Tunnel for client previews. Reads `SHARE_AUTH_USER` / `SHARE_AUTH_PASSWORD` / `SHARE_TIMEOUT` from `.env`.
-- `bin/pre-push-check` — **run before `git push`**. Mirrors CI: rubocop → brakeman → bundler-audit → importmap audit → tests. Fail-fast. `SKIP_TESTS=1` for docs-only pushes.
+- `bin/pre-push-check` — **run before `git push`**. Mirrors CI: rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → tests → undercover changed-line coverage. Fail-fast. `SKIP_TESTS=1` skips tests + undercover (docs-only pushes).
 
 ## Frontend stack — non-obvious
 
@@ -41,6 +41,26 @@ All changes flow through a branch + PR. No direct commits to `main`.
 
 - `bin/share-dev` boots Rails in `SHARE_MODE=1` behind HTTP basic auth and a hardened middleware stack (no source-leaking error pages, no web-console, `/rails/info|conductor|mailers|db` paths 404'd). Safe for unattended public exposure.
 - Postgres is bound to `127.0.0.1:5432` only in `compose.yaml`. Do not switch to `0.0.0.0`.
+
+## CI quality gates
+
+Two workflows run on every PR. `ci.yml` keeps the existing hard gates (rubocop, brakeman, bundler-audit, importmap audit, tests, system-tests) and now prints a `$GITHUB_STEP_SUMMARY` of *what broke* when one fails. `quality.yml` adds **diff-aware** gates — they only judge the lines a PR changes, so existing untested code is grandfathered but all new code is held to the bar:
+
+- **Changed-line coverage** (undercover) — new/changed Ruby lines must be covered by a test, or the PR fails. Mark genuinely un-testable lines with `# :nocov:`.
+- **New security findings** (Semgrep `--baseline-commit`) and **secrets** (gitleaks) and **new high-severity gem CVEs** (dependency-review) block the PR. Brakeman + Semgrep findings also show under **Security ▸ Code scanning**.
+- **Code smells** (reek, changed files) are advisory — reported in the sticky `ci-quality` PR comment, never blocking.
+
+These `quality.yml` jobs must be added to `main`'s required status checks in branch protection to actually block merges.
+
+## Investigating memory
+
+Memory profiling is local and on-demand — not a CI gate (too noisy for a storefront this small). `derailed_benchmarks` + `memory_profiler` live in the `:development` group:
+
+- `bundle exec derailed exec perf:mem` — memory each `require` adds at boot, by source.
+- `bundle exec derailed exec perf:objects` — object allocation by call site (via memory_profiler).
+- `bundle exec derailed exec perf:mem_over_time` — RSS across repeated requests; steady growth signals a leak, a plateau is healthy.
+
+Reach for these when a feature looks heavy; track production memory via APM once there's real traffic.
 
 ## Gotchas
 
