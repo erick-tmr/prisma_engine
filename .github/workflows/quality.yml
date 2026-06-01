@@ -85,6 +85,7 @@ jobs:
           path: |
             coverage/
             undercover-report.txt
+          include-hidden-files: true   # keep .last_run.json (total %) for the report job
           if-no-files-found: warn
 
   code_quality:
@@ -209,6 +210,7 @@ jobs:
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # required by the action to scan PRs
           GITLEAKS_CONFIG: .gitleaks.toml
           # GITLEAKS_LICENSE is only needed for organization-owned repos.
 
