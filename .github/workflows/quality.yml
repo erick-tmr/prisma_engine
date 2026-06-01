@@ -229,6 +229,7 @@ jobs:
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
+          license-check: false   # we don't enforce a license policy; skip the unknown-license noise
           comment-summary-in-pr: on-failure
 
   report:
