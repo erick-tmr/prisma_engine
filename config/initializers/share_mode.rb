@@ -49,9 +49,27 @@ Rails.application.config.middleware.insert_before(
   ActionDispatch::HostAuthorization, BlockDevIntrospection
 )
 
+# Basic auth guards every path so the public preview isn't world-open. There are
+# no exempt paths: the app makes only outbound calls to Correios (tracking is
+# polled), so nothing needs to bypass the preview credentials.
+class PreviewBasicAuth
+  EXEMPT = [].freeze
+
+  def initialize(app, realm, &authenticator)
+    @app  = app
+    @auth = Rack::Auth::Basic.new(app, realm, &authenticator)
+  end
+
+  def call(env)
+    path = env["PATH_INFO"].to_s
+    exempt = EXEMPT.any? { |prefix| path == prefix || path.start_with?("#{prefix}/") }
+    (exempt ? @app : @auth).call(env)
+  end
+end
+
 Rails.application.config.middleware.insert_before(
   ActionDispatch::HostAuthorization,
-  Rack::Auth::Basic,
+  PreviewBasicAuth,
   "Prisma Games — preview"
 ) do |user, pass|
   ActiveSupport::SecurityUtils.secure_compare(

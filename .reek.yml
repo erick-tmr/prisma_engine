@@ -9,6 +9,17 @@ detectors:
     max_statements: 8     # controller actions run a few lines; reek's default is 5
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms
+  UtilityFunction:
+    enabled: false        # ActiveJob#perform and stateless private helpers (mappers,
+                          # connection builders) are normal in jobs/service objects
+  FeatureEnvy:
+    enabled: false        # attribute mappers and the Faraday request-builder DSL
+                          # (`do |req| req.headers ... end`) legitimately lean on a param
+  NilCheck:
+    enabled: false        # `return if x.nil?` guard clauses are idiomatic Ruby
+  MissingSafeMethod:
+    enabled: false        # our bang methods wrap ActiveRecord's update!/save! (raise on
+                          # failure); there's no non-raising twin to provide
 
 exclude_paths:
   - bin

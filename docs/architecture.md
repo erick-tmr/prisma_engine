@@ -308,6 +308,90 @@ Use `aasm`. Each transition:
 - Triggers side effects via background jobs
 - Recoverable
 
+#### Carrier integration layering (anti-corruption layer)
+
+Correios (and any future carrier) is integrated through three layers so the 3rd-party
+API stays isolated from our domain — the convention lives in `CLAUDE.md`:
+
+- **`Correios::Api::*`** (`app/services/correios/api/`) — infrastructure / ACL: HTTP,
+  auth tokens, endpoints, timeouts, (de)serialization, error mapping. Returns plain data,
+  depends on nothing of ours. Holds `Api::Tracking` (rastro GET), `Api::PrePostagem`
+  (create POST), `Api::Client` (shared Faraday + `raise_for_status`), `Api::Timestamp`,
+  and the `Error`/`TransientError`/`InvalidObjectError` hierarchy.
+- **`Shipping::*`** (`app/services/shipping/`) + the `Shipment` model — domain: business
+  config + request building (`Shipping::CreatePrePostagem`), the response→`Shipment` factory
+  (`Shipping::ShipmentFactory`), the rastro-event→lifecycle interpretation
+  (`Shipping::TrackingUpdate`), and the service map (`Shipping::SERVICES`). Depends on the
+  `Api` client, never on HTTP.
+- **Jobs** — thin application entrypoints wiring the two (`SyncShipmentJob` =
+  `Correios::Api::Tracking.fetch` → `Shipping::TrackingUpdate.apply`).
+
+Why: the vendor's quirks (token-bucket headers, SRO messages, payload field names) stay
+behind the `Api` boundary, so swapping Correios for another carrier (e.g. Melhor Envio)
+means a new `Api` adapter without touching the domain.
+
+#### Pré-postagem creation (Correios label generation)
+
+A shipment starts as a **pré-postagem** — we `POST /prepostagem/v1/prepostagens`
+(`Shipping::CreatePrePostagem` → `Correios::Api::PrePostagem`) and persist the response as a
+`Shipment` (`Shipping::ShipmentFactory.from_pre_postagem`), which the polling below then
+tracks. It authenticates with a **separate** "cartão de postagem" bearer token
+(`CORREIOS_CARTAO_API_TOKEN`), distinct from the rastro token; both API clients share one
+Faraday base and error hierarchy (`Correios::Api::Client`, `Correios::Api::TransientError`).
+
+Most of the request body is **hardcoded for now** — the models that will feed it
+don't exist yet. What's placeholder today and where it'll come from:
+
+| Field | Now | Later |
+|---|---|---|
+| `remetente` | store constant (Prisma Games) | seller settings |
+| `destinatario` | placeholder contact | customer profile (after auth/registration) |
+| `codigoServico` | required — caller picks a `Shipping::SERVICES` name (`:sedex` / `:mini_envios` / `:pac`), mapped to the code; no default | chosen at checkout |
+| `numeroCartaoPostagem` | constant | seller settings |
+| `codigoFormatoObjetoInformado` | constant `"2"` (pacote) | maybe per-item |
+| `itensDeclaracaoConteudo` | placeholder | order line-items (game name/qty/price) |
+| `pesoInformado` / `altura` / `largura` / `comprimento` | placeholder | packing algorithm |
+| `observacao` | placeholder | order identifier |
+| `cienteObjetoNaoProibido` `"1"`, `solicitarColeta` `"N"`, `logisticaReversa` `"N"`, `emiteDCe` `"S"` | fixed policy | unchanged |
+
+It's **triggered manually from the backoffice** — an operator presses a button to
+generate the label for an order; there's no automatic trigger.
+
+#### Shipment tracking sync (Correios polling)
+
+Our Correios contract has **no webhooks**, so tracking is **polled**. An hourly
+orchestrator (`SyncPendingShipmentsJob`) selects shipments still in flight and
+fans out one `SyncShipmentJob` per shipment — each syncs in isolation, with its
+own retries and a Solid Queue concurrency cap so a large fan-out can't trip
+Correios' rate limit. A shipment carries its own `tracking_state`
+(`pending → in_transit → delivered / returned / unavailable`) derived from rastro
+events; the final states stop the polling loop.
+
+**Event interpretation:** `Shipping::TrackingUpdate` maps confirmed `(code, type)`
+pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label); anything
+else that isn't the label counts as in-transit. We **don't know the `returned` code
+yet** — uncatalogued `(code, type)` pairs are persisted as events *and* logged
+(`unmapped event …`) so we can identify them from real data and extend the map.
+
+**Rate limit:** the rastro gateway returns its token-bucket limits in response
+headers — `x-ratelimit-replenish-rate: 50` (50 req/s), `x-ratelimit-burst-capacity: 55`,
+per contract key. The concurrency cap (`limits_concurrency to: 5`, ~30 req/s) sits
+well under that; a 429 (empty body) is mapped to `Correios::Api::TransientError` and
+retried with backoff.
+
+**Invalid codes:** a 200 can carry no events and a `mensagem`. `SRO-020` (not in
+Correios' base yet) is benign — we keep polling. `SRO-019` (objeto inválido) is
+permanent — the client raises `Correios::Api::InvalidObjectError`, and the job stops
+polling that shipment (`tracking_state: unavailable`) and records the message in
+`tracking_error` / `tracking_errored_at` so we can debug how a bad code reached our
+DB (it shouldn't — codes come from Correios' own pré-postagem).
+
+**Loop closure (future, not built yet):** once the `Order` model exists, the
+orchestrator filters to shipments whose **order is not yet in a final state**, and
+a shipment reaching a final `tracking_state` becomes the trigger that transitions
+its order — `shipped → delivered` (or `returned`) — closing the loop. Today the
+job updates the shipment only; there is no `Order` yet.
+
 #### Transactional emails
 
 All of these break trust if missing:

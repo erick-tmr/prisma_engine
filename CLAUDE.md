@@ -36,6 +36,18 @@ All changes flow through a branch + PR. No direct commits to `main`.
 - Greenfield repo: delete unused code rather than commenting it out, renaming `_var`, or adding backwards-compat shims.
 - `bundler-audit` and `brakeman` block on findings. Fix the cause; don't add ignores without flagging it in the PR.
 - New env vars: document the variable in `.env.example` (committed) and add to local `.env` (gitignored).
+- Pin every new gem with a pessimistic version constraint (`gem "foo", "~> 1.2"`) — never add an unversioned gem. Use the installed minor as the floor.
+- Keep **reek at zero warnings on changed files** (advisory, but treat it as a gate). `bin/pre-push-check` and the CI `ci-quality` comment report them — before each push, check them and either fix the smell or, if it's framework-idiom noise, silence that detector in `.reek.yml` with a comment justifying why. Don't push new reek warnings.
+
+## Third-party integrations (anti-corruption layer)
+
+External API integrations are split into three layers — keep them separate:
+
+- **Infrastructure** — `<Vendor>::Api::*` (e.g. `Correios::Api`). Owns HTTP, auth/tokens, endpoints, timeouts, (de)serialization, and error mapping. Returns **plain data** (hashes/arrays), never a domain model, and **depends on nothing of ours**. Translating a vendor quirk into our error vocabulary (e.g. an SRO message → `InvalidObjectError`) belongs here.
+- **Domain** — models + `Shipping::*` (and future bounded-context namespaces). Holds business rules, the interpretation of vendor data, and persistence. Depends on the `Api` client; **never touches Faraday/HTTP**.
+- **Application** — jobs / use-case services. Thin: call the `Api` client, hand the data to the domain.
+
+Rules: don't put business rules or persistence in an `Api` client; don't put HTTP in the domain. A new carrier/provider is a new `Api` adapter — the domain shouldn't change. Reference implementation: `app/services/correios/api/` (infra) + `app/services/shipping/` (domain), wired by `SyncShipmentJob`. Rationale in `docs/architecture.md`.
 
 ## Sharing the prototype
 
