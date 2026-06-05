@@ -38,6 +38,9 @@ gem "image_processing", "~> 2.0"
 # HTTP client for the Correios tracking (rastro) API [https://github.com/lostisland/faraday]
 gem "faraday", "~> 2.14"
 
+# Pretty, history-tracked slugs for catalog URLs [https://github.com/norman/friendly_id]
+gem "friendly_id", "~> 5.5"
+
 group :development, :test do
   # Load environment variables from .env files [https://github.com/bkeepers/dotenv]
   gem "dotenv", "~> 3.1", require: "dotenv/load"

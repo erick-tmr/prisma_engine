@@ -1,15 +1,13 @@
 class ProductsController < ApplicationController
   def index
     @query    = params[:term].to_s.strip
-    @products = if @query.present?
-                  Product.all.select { |p| p.title.downcase.include?(@query.downcase) }
-    else
-                  Product.all
-    end
+    @products = Product.published.includes(:category)
+    @products = @products.where("products.name ILIKE ?", "%#{@query}%") if @query.present?
   end
 
   def show
-    @product = Product.find_by_slug_and_id(params[:slug], params[:id])
-    render "not_found", status: :not_found unless @product
+    @product = Product.friendly.includes(:category).find(params[:slug])
+  rescue ActiveRecord::RecordNotFound
+    render "not_found", status: :not_found
   end
 end

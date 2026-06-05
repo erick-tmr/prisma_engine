@@ -1,7 +1,7 @@
 class PagesController < ApplicationController
   def home
-    @classic = Product.for_category("game-boy-classic").first(8)
-    @color   = Product.for_category("game-boy-color").first(8)
+    @classic = Product.for_category("game-boy-classic").published.limit(8)
+    @color   = Product.for_category("game-boy-color").published.limit(8)
   end
 
   def show

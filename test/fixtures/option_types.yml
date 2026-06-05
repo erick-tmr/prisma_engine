@@ -1,0 +1,9 @@
+idioma:
+  name: Idioma
+  slug: idioma
+  position: 0
+
+caixa:
+  name: Caixa
+  slug: caixa
+  position: 1

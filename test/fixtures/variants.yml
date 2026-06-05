@@ -1,0 +1,23 @@
+yellow_master:
+  product: yellow
+  sku: TEST-YELLOW-MASTER
+  price_cents: 18000
+  available: true
+  is_master: true
+  position: 0
+
+yellow_boxed:
+  product: yellow
+  sku: TEST-YELLOW-BOXED
+  price_cents: 18000
+  available: true
+  is_master: false
+  position: 1
+
+metroid_master:
+  product: metroid
+  sku: TEST-METROID-MASTER
+  price_cents: 18000
+  available: true
+  is_master: true
+  position: 0

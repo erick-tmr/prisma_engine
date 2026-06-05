@@ -1,0 +1,23 @@
+idioma_pt:
+  option_type: idioma
+  name: Português BR
+  price_contribution_cents: 0
+  position: 0
+
+idioma_en:
+  option_type: idioma
+  name: Inglês
+  price_contribution_cents: 0
+  position: 1
+
+caixa_com:
+  option_type: caixa
+  name: Com caixa
+  price_contribution_cents: 1000
+  position: 0
+
+caixa_sem:
+  option_type: caixa
+  name: Sem caixa
+  price_contribution_cents: 0
+  position: 1

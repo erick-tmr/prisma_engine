@@ -6,8 +6,7 @@ Rails.application.routes.draw do
   get  "/produtos",          to: "products#index", as: :products
   post "/produtos",          to: "products#index"
   get  "/produtos/:slug",    to: "categories#show", as: :category
-  get  "/produto/:slug/:id", to: "products#show",
-       constraints: { id: /\d+-0/ }, as: :product
+  get  "/produto/:slug",     to: "products#show", as: :product
 
   get  "/carrinho",          to: "cart#show"
   post "/carrinho/items",    to: "cart#create", as: :cart_items
