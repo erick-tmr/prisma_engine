@@ -208,7 +208,7 @@ jobs:
           fetch-depth: 0   # scan the full commit range, not just the tip
 
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # required by the action to scan PRs
           GITLEAKS_CONFIG: .gitleaks.toml
