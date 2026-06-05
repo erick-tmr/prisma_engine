@@ -19,7 +19,6 @@ module Shipping
         cep: "37600000",
         logradouro: "Rua José Cláudio Venturelli",
         numero: "156",
-        complemento: "Apto 113 B",
         bairro: "Vila Mariana",
         cidade: "Cambuí",
         uf: "MG"
