@@ -19,10 +19,27 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+# No test may reach the network. Correios rastro calls are stubbed with WebMock;
+# localhost stays open for Capybara/Selenium system tests.
+require "webmock/minitest"
+WebMock.disable_net_connect!(allow_localhost: true)
+
 module ActiveSupport
   class TestCase
     # Run tests in parallel with specified workers
     parallelize(workers: :number_of_processors)
+
+    # Once the suite crosses the parallelization threshold it forks workers, and
+    # SimpleCov tracks coverage per process. Give each worker a unique result name
+    # and flush its result on teardown so the parent merges them — otherwise the
+    # merged coverage.json undercover reads looks nearly empty.
+    parallelize_setup do |worker|
+      SimpleCov.command_name "#{SimpleCov.command_name}-#{worker}"
+    end
+
+    parallelize_teardown do |_worker|
+      SimpleCov.result
+    end
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
