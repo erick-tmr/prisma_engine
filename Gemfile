@@ -35,6 +35,9 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 2.0"
 
+# HTTP client for the Correios tracking (rastro) API [https://github.com/lostisland/faraday]
+gem "faraday", "~> 2.14"
+
 group :development, :test do
   # Load environment variables from .env files [https://github.com/bkeepers/dotenv]
   gem "dotenv", "~> 3.1", require: "dotenv/load"
@@ -68,6 +71,9 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Stub external HTTP (Correios rastro) in tests [https://github.com/bblimke/webmock]
+  gem "webmock", "~> 3.26"
 
   # Test coverage reporting [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false

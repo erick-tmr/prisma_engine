@@ -102,6 +102,9 @@ GEM
       xpath (~> 3.2)
     concurrent-ruby (1.3.6)
     connection_pool (3.0.2)
+    crack (1.0.1)
+      bigdecimal
+      rexml
     crass (1.0.6)
     date (3.5.1)
     debug (1.11.1)
@@ -161,6 +164,12 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    faraday (2.14.2)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.4)
+      net-http (~> 0.5)
     ffi (1.17.4-aarch64-linux-gnu)
     ffi (1.17.4-aarch64-linux-musl)
     ffi (1.17.4-arm-linux-gnu)
@@ -177,6 +186,7 @@ GEM
       ffi (~> 1.0)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    hashdiff (1.2.1)
     heapy (0.2.0)
       thor
     i18n (1.14.8)
@@ -217,6 +227,8 @@ GEM
       prism (~> 1.5)
     msgpack (1.8.1)
     mutex_m (0.3.0)
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     net-imap (0.6.4)
       date
       net-protocol
@@ -421,6 +433,10 @@ GEM
       actionview (>= 8.0.0)
       bindex (>= 0.4.0)
       railties (>= 8.0.0)
+    webmock (3.26.2)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
     websocket (1.2.11)
     websocket-driver (0.8.0)
       base64
@@ -450,6 +466,7 @@ DEPENDENCIES
   debug
   derailed_benchmarks
   dotenv (~> 3.1)
+  faraday (~> 2.14)
   image_processing (~> 2.0)
   importmap-rails
   memory_profiler
@@ -470,6 +487,7 @@ DEPENDENCIES
   tzinfo-data
   undercover
   web-console
+  webmock (~> 3.26)
 
 BUNDLED WITH
    2.6.9
