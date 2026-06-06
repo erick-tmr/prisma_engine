@@ -1,6 +1,6 @@
 # Catalog seed — idempotent.
 #
-# config/products.yml is the single source of the real SKUs (curated slugs,
+# config/products.yml is the single source of the real catalog (curated slugs,
 # titles, prices, images). It is intentionally retained as a one-time seed
 # source: nothing loads it at runtime now that Product is an AR model. A later
 # slice can migrate this ingest into a proper admin import and drop the YAML.
@@ -9,14 +9,13 @@ require "bigdecimal"
 
 # --- Categories (consoles) -------------------------------------------------
 categories = {
-  "game-boy-classic" => { name: "Game Boy Classic", position: 0 },
-  "game-boy-color"   => { name: "Game Boy Color",   position: 1 },
+  "game-boy-classic" => { name: "Game Boy Classic" },
+  "game-boy-color"   => { name: "Game Boy Color" },
   # Game Boy Advance has no products yet — seeded for the near-future catalog.
-  "game-boy-advance" => { name: "Game Boy Advance", position: 2 }
+  "game-boy-advance" => { name: "Game Boy Advance" }
 }.transform_values do |attrs|
   Category.find_or_create_by!(slug: attrs.fetch(:name).parameterize) do |c|
-    c.name     = attrs[:name]
-    c.position = attrs[:position]
+    c.name = attrs[:name]
   end
 end
 
@@ -24,26 +23,6 @@ category_by_slug = {
   "game-boy-classic" => categories["game-boy-classic"],
   "game-boy-color"   => categories["game-boy-color"]
 }
-
-# --- Global option types ---------------------------------------------------
-# Contributions are 0: the mechanism is proven without inventing prices that
-# are not present in the source data. Real pricing lands when Vinicius supplies
-# per-product schemas.
-option_data = {
-  "Idioma" => [ "Português BR", "Inglês", "Japonês" ],
-  "Caixa"  => [ "Com caixa", "Sem caixa" ]
-}
-option_data.each do |type_name, value_names|
-  type = OptionType.find_or_create_by!(slug: type_name.parameterize) do |ot|
-    ot.name = type_name
-  end
-  value_names.each_with_index do |value_name, idx|
-    OptionValue.find_or_create_by!(option_type: type, name: value_name) do |ov|
-      ov.price_contribution_cents = 0
-      ov.position = idx
-    end
-  end
-end
 
 # --- Products --------------------------------------------------------------
 def infer_tag_slugs(name)
@@ -56,8 +35,18 @@ def infer_tag_slugs(name)
   slugs.uniq
 end
 
+# Default option set seeded on every product. Deltas are 0: the mechanism is
+# proven without inventing prices not present in the source data.
+default_options = [
+  { group_name: "Idioma", name: "Português BR", price_delta_cents: 0, position: 0 },
+  { group_name: "Idioma", name: "Inglês",       price_delta_cents: 0, position: 1 },
+  { group_name: "Idioma", name: "Japonês",      price_delta_cents: 0, position: 2 },
+  { group_name: "Caixa",  name: "Com caixa",    price_delta_cents: 0, position: 3 },
+  { group_name: "Caixa",  name: "Sem caixa",    price_delta_cents: 0, position: 4 }
+]
+
 raw = YAML.safe_load_file(Rails.root.join("config/products.yml"))
-raw.fetch("products").each_with_index do |entry, index|
+raw.fetch("products").each do |entry|
   category = category_by_slug.fetch(entry["category"])
 
   product = Product.find_or_initialize_by(slug: entry["slug"])
@@ -67,18 +56,19 @@ raw.fetch("products").each_with_index do |entry, index|
     price_cents:       (BigDecimal(entry["price_brl"].to_s) * 100).to_i,
     currency:          "BRL",
     published:         true,
-    position:          index,
-    legacy_image_path: entry["image"],
-    legacy_short_id:   entry["short_id"]
+    legacy_image_path: entry["image"]
   )
   product.save!
 
-  # Master variant: the SKU a product falls back to when no options are chosen.
-  Variant.find_or_create_by!(product: product, is_master: true) do |v|
-    v.sku         = "PG-#{entry['short_id']}"
-    v.price_cents = product.price_cents
-    v.available   = true
-    v.position    = 0
+  default_options.each do |attrs|
+    ProductOption.find_or_create_by!(
+      product:    product,
+      group_name: attrs[:group_name],
+      name:       attrs[:name]
+    ) do |opt|
+      opt.price_delta_cents = attrs[:price_delta_cents]
+      opt.position          = attrs[:position]
+    end
   end
 
   infer_tag_slugs(product.name).each do |tag_slug|
@@ -102,5 +92,5 @@ raw.fetch("products").each_with_index do |entry, index|
 end
 
 puts "Seeded: #{Category.count} categories, #{Product.count} products, " \
-     "#{Variant.count} variants, #{Tag.count} tags, " \
+     "#{ProductOption.count} options, #{Tag.count} tags, " \
      "#{ProductPhoto.count} photos"

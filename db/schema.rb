@@ -45,10 +45,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_005243) do
   create_table "categories", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.integer "position", default: 0, null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
-    t.index ["position"], name: "index_categories_on_position"
     t.index ["slug"], name: "index_categories_on_slug", unique: true
   end
 
@@ -63,35 +61,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_005243) do
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
   end
 
-  create_table "option_types", force: :cascade do |t|
+  create_table "product_options", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "group_name"
     t.string "name", null: false
     t.integer "position", default: 0, null: false
-    t.string "slug", null: false
-    t.datetime "updated_at", null: false
-    t.index ["slug"], name: "index_option_types_on_slug", unique: true
-  end
-
-  create_table "option_values", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.bigint "option_type_id", null: false
-    t.integer "position", default: 0, null: false
-    t.integer "price_contribution_cents", default: 0, null: false
-    t.datetime "updated_at", null: false
-    t.index ["option_type_id", "name"], name: "index_option_values_on_option_type_id_and_name", unique: true
-    t.index ["option_type_id"], name: "index_option_values_on_option_type_id"
-  end
-
-  create_table "product_option_types", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "option_type_id", null: false
-    t.integer "position", default: 0, null: false
+    t.integer "price_delta_cents", default: 0, null: false
     t.bigint "product_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["option_type_id"], name: "index_product_option_types_on_option_type_id"
-    t.index ["product_id", "option_type_id"], name: "index_product_option_types_on_product_id_and_option_type_id", unique: true
-    t.index ["product_id"], name: "index_product_option_types_on_product_id"
+    t.index ["product_id", "group_name", "name"], name: "index_product_options_uniqueness", unique: true
+    t.index ["product_id"], name: "index_product_options_on_product_id"
   end
 
   create_table "product_photos", force: :cascade do |t|
@@ -100,9 +79,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_005243) do
     t.integer "position", default: 0, null: false
     t.bigint "product_id", null: false
     t.datetime "updated_at", null: false
-    t.bigint "variant_id"
     t.index ["product_id"], name: "index_product_photos_on_product_id"
-    t.index ["variant_id"], name: "index_product_photos_on_variant_id"
   end
 
   create_table "product_tags", force: :cascade do |t|
@@ -121,9 +98,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_005243) do
     t.string "currency", default: "BRL", null: false
     t.text "description"
     t.string "legacy_image_path"
-    t.string "legacy_short_id"
     t.string "name", null: false
-    t.integer "position", default: 0, null: false
     t.integer "price_cents", default: 0, null: false
     t.boolean "published", default: true, null: false
     t.string "slug", null: false
@@ -201,44 +176,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_005243) do
     t.index ["slug"], name: "index_tags_on_slug", unique: true
   end
 
-  create_table "variant_option_values", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "option_value_id", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "variant_id", null: false
-    t.index ["option_value_id"], name: "index_variant_option_values_on_option_value_id"
-    t.index ["variant_id", "option_value_id"], name: "index_variant_option_values_uniqueness", unique: true
-    t.index ["variant_id"], name: "index_variant_option_values_on_variant_id"
-  end
-
-  create_table "variants", force: :cascade do |t|
-    t.boolean "available", default: true, null: false
-    t.datetime "created_at", null: false
-    t.boolean "is_master", default: false, null: false
-    t.integer "position", default: 0, null: false
-    t.integer "price_cents", default: 0, null: false
-    t.integer "price_modifier_cents"
-    t.bigint "product_id", null: false
-    t.string "sku", null: false
-    t.datetime "updated_at", null: false
-    t.index ["product_id"], name: "index_variants_on_product_id"
-    t.index ["product_id"], name: "index_variants_one_master_per_product", unique: true, where: "(is_master = true)"
-    t.index ["sku"], name: "index_variants_on_sku", unique: true
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "option_values", "option_types"
-  add_foreign_key "product_option_types", "option_types"
-  add_foreign_key "product_option_types", "products"
+  add_foreign_key "product_options", "products"
   add_foreign_key "product_photos", "products"
-  add_foreign_key "product_photos", "variants"
   add_foreign_key "product_tags", "products"
   add_foreign_key "product_tags", "tags"
   add_foreign_key "products", "categories"
   add_foreign_key "questions", "products"
   add_foreign_key "shipment_tracking_events", "shipments"
-  add_foreign_key "variant_option_values", "option_values"
-  add_foreign_key "variant_option_values", "variants"
-  add_foreign_key "variants", "products"
 end

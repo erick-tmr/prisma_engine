@@ -12,8 +12,4 @@ class CategoryTest < ActiveSupport::TestCase
     assert_not category.destroy
     assert_includes category.errors[:base].join, "Cannot delete"
   end
-
-  test "default scope orders by position" do
-    assert_equal Category.order(:position).to_a, Category.all.to_a
-  end
 end

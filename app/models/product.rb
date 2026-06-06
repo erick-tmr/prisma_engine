@@ -5,11 +5,9 @@ class Product < ApplicationRecord
 
   belongs_to :category
 
-  has_many :variants, dependent: :destroy
-  has_many :product_photos, -> { order(:position) }, dependent: :destroy
+  has_many :product_options, dependent: :destroy
+  has_many :product_photos, dependent: :destroy
   has_many :questions, dependent: :destroy
-  has_many :product_option_types, dependent: :destroy
-  has_many :option_types, through: :product_option_types
   has_many :product_tags, dependent: :destroy
   has_many :tags, through: :product_tags
 
@@ -22,7 +20,10 @@ class Product < ApplicationRecord
     published.where.not("products.name LIKE ?", "- %").limit(limit)
   }
 
-  money_attribute :price_cents, as: :price_formatted
+  # An unpriced product means "ask for the price" — not "R$ 0.00".
+  def price_formatted
+    price_cents.to_i.zero? ? "Sob consulta" : HasMoney.format(price_cents)
+  end
 
   # --- Storefront read interface preserved from the former YAML PORO ---
 
@@ -35,16 +36,12 @@ class Product < ApplicationRecord
   end
 
   def image
-    photo = product_photos.first
+    photo = product_photos.in_display_order.first
     if photo&.image&.attached?
       Rails.application.routes.url_helpers.rails_blob_path(photo.image, only_path: true)
     else
       legacy_image_path
     end
-  end
-
-  def master_variant
-    variants.find_by(is_master: true)
   end
 
   # Titles carry HTML entities (&#039;, &amp;) and emoji; unescape and strip

@@ -51,7 +51,6 @@ class ProductTest < ActiveSupport::TestCase
     yellow = products(:yellow)
     assert_equal yellow.name, yellow.title
     assert_equal "Game Boy Color", yellow.category_label
-    assert_equal variants(:yellow_master), yellow.master_variant
   end
 
   test "category_label is nil when no category is associated" do

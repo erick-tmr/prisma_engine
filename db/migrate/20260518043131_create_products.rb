@@ -8,9 +8,7 @@ class CreateProducts < ActiveRecord::Migration[8.1]
       t.integer :price_cents, null: false, default: 0
       t.string  :currency, null: false, default: "BRL"
       t.boolean :published, null: false, default: true
-      t.integer :position, null: false, default: 0
       t.string  :legacy_image_path
-      t.string  :legacy_short_id
 
       t.timestamps
     end

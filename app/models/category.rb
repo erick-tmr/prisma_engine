@@ -3,6 +3,4 @@ class Category < ApplicationRecord
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true
-
-  default_scope { order(:position) }
 end

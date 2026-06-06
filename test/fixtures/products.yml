@@ -6,9 +6,7 @@ yellow:
   price_cents: 18000
   currency: BRL
   published: true
-  position: 0
   legacy_image_path: /images/test-yellow.jpg
-  legacy_short_id: "1041693"
 
 metroid:
   category: gb_classic
@@ -17,8 +15,6 @@ metroid:
   price_cents: 18000
   currency: BRL
   published: true
-  position: 1
-  legacy_short_id: "1338689"
 
 placeholder:
   category: gb_color
@@ -27,8 +23,6 @@ placeholder:
   price_cents: 18000
   currency: BRL
   published: true
-  position: 2
-  legacy_short_id: "2581296"
 
 hidden:
   category: gb_color
@@ -37,5 +31,3 @@ hidden:
   price_cents: 0
   currency: BRL
   published: false
-  position: 3
-  legacy_short_id: "9999999"
