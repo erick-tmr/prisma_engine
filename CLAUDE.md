@@ -7,7 +7,7 @@ Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 +
 - `bin/dev` — Rails server. Needs `docker compose up -d` first for Postgres.
 - `bin/setup` — fresh-machine setup, idempotent. Needs **cmake** present (builds the `rugged` native ext that `undercover` uses for changed-line coverage): `brew install cmake` / `sudo apt-get install -y cmake pkg-config`.
 - `bin/share-dev` — public Cloudflare Tunnel for client previews. Reads `SHARE_AUTH_USER` / `SHARE_AUTH_PASSWORD` / `SHARE_TIMEOUT` from `.env`.
-- `bin/pre-push-check` — **run before `git push`**. Local subset of CI: rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → tests → undercover changed-line coverage. Fail-fast. `SKIP_TESTS=1` skips tests + undercover (docs-only pushes). **Does not run** `Semgrep (new findings)`, `Dependency review`, or `system-test` — those only run in GitHub Actions, so a green local gauntlet is necessary, not sufficient (see Git workflow).
+- `bin/pre-push-check` — **run before `git push`**. Local subset of CI: rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → semgrep diff-mode (if semgrep or docker is installed) → tests → undercover changed-line coverage. Fail-fast. `SKIP_TESTS=1` skips tests + undercover (docs-only pushes). **Does not run** `Dependency review` or `system-test` — those only run in GitHub Actions, so a green local gauntlet is necessary, not sufficient (see Git workflow).
 
 ## Frontend stack — non-obvious
 
@@ -58,13 +58,15 @@ Rules: don't put business rules or persistence in an `Api` client; don't put HTT
 
 ## CI quality gates
 
-Two workflows run on every PR. `ci.yml` keeps the existing hard gates (rubocop, brakeman, bundler-audit, importmap audit, tests, system-tests) and now prints a `$GITHUB_STEP_SUMMARY` of *what broke* when one fails. `quality.yml` adds **diff-aware** gates — they only judge the lines a PR changes, so existing untested code is grandfathered but all new code is held to the bar:
+A single workflow (`.github/workflows/ci.yml`) runs on every PR. It mixes the hard gates (rubocop, brakeman, bundler-audit, importmap audit, tests, system-tests, semgrep diff, secret scan, dependency review) with the diff-aware visibility layer (changed-line coverage via undercover, code smells via reek, SARIF uploads, the sticky `ci-quality` PR comment). Required-vs-advisory is enforced by main's branch protection list, not by which file a job lives in. Each step prints a `$GITHUB_STEP_SUMMARY` of *what broke* on failure.
 
+- **Tests run once.** The `test` job uploads the SimpleCov output as the `coverage` artifact; the `coverage` job downloads it and runs `undercover` against `origin/main`.
 - **Changed-line coverage** (undercover) — new/changed Ruby lines must be covered by a test, or the PR fails. Mark genuinely un-testable lines with `# :nocov:`.
-- **New security findings** (Semgrep `--baseline-commit`) and **secrets** (gitleaks) and **new high-severity gem CVEs** (dependency-review) block the PR. Brakeman + Semgrep findings also show under **Security ▸ Code scanning**.
+- **Total coverage floor** (SimpleCov `minimum_coverage 100`) — the suite itself refuses to pass below 100%. Combined with undercover, this enforces both "every changed line is tested" and "no regressions in existing coverage."
+- **New security findings** (Semgrep `--baseline-commit`) and **secrets** (gitleaks) and **moderate-or-higher gem CVEs** (dependency-review) block the PR. Brakeman + Semgrep findings also show under **Security ▸ Code scanning**.
 - **Code smells** (reek, changed files) are advisory — reported in the sticky `ci-quality` PR comment, never blocking.
 
-These `quality.yml` jobs must be added to `main`'s required status checks in branch protection to actually block merges.
+These jobs must be added to `main`'s required status checks in branch protection to actually block merges.
 
 ## Investigating memory
 
