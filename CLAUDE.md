@@ -17,8 +17,9 @@ Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 +
 
 ## Data
 
-- Products are a YAML-backed PORO (`config/products.yml` + `app/models/product.rb`) until a real `Product` ActiveRecord model lands.
-- Cart and identification are placeholder views; their `create` actions are no-ops that flash + redirect. Form targets are real Rails routes ready for backend wiring.
+- Catalog is ActiveRecord: `Category`, `Product` (FriendlyId, history-enabled), `ProductOption`, `ProductPhoto` (Active Storage), `Tag` / `ProductTag`, `Question`. The legacy `config/products.yml` is stale (referenced only by a code comment in `product.rb`).
+- Cart and identification (`/carrinho`, `/identificacao`) are placeholder views; their `create` actions are no-ops that flash + redirect. Form targets are real routes ready for backend wiring.
+- Shipping primitives shipped: `Shipment` + `ShipmentTrackingEvent`, hourly rastro polling via `SyncPendingShipmentsJob` (`config/recurring.yml`). Pré-postagem creation in `Shipping::CreatePrePostagem`.
 
 ## Git workflow
 
@@ -40,6 +41,9 @@ All changes flow through a branch + PR. No direct commits to `main`.
 - New env vars: document the variable in `.env.example` (committed) and add to local `.env` (gitignored).
 - Pin every new gem with a pessimistic version constraint (`gem "foo", "~> 1.2"`) — never add an unversioned gem. Use the installed minor as the floor.
 - Keep **reek at zero warnings on changed files** (advisory, but treat it as a gate). `bin/pre-push-check` and the CI `ci-quality` comment report them — before each push, check them and either fix the smell or, if it's framework-idiom noise, silence that detector in `.reek.yml` with a comment justifying why. Don't push new reek warnings.
+- **Brand names follow official source.** Pix is written `Pix` (capital P, lowercase ix — Banco Central style), never `PIX`. The PSP is `InfinitePay` (one word, camelcase). Don't reintroduce `Mercado Pago`, `Pagar.me`, or other PSP names — the locked-in decision is InfinitePay.
+- **No boleto.** InfinitePay doesn't issue one. Storefront copy, payment-method enums, schema columns, and customer-facing UI must not promise boleto. Pix + card + parcelamento only — see `docs/architecture.md` § 0.2.
+- **Customer-facing order states are pt-BR `snake_case`** matching `docs/architecture.md` § 4 (`aguardando_pagamento`, `pagamento_confirmado`, `aguardando_componentes`, `em_producao`, `problema_na_producao`, `etiqueta_emitida`, `enviado`, `entregue`). Each state ships with the pt-BR description from that table on the customer order page.
 
 ## Third-party integrations (anti-corruption layer)
 
