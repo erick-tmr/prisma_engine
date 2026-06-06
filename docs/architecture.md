@@ -33,14 +33,11 @@ Per-product variation is modeled as `ProductOption` — `(group_name, name, posi
 
 ### Order lifecycle differs
 
-```
-pending → paid → in_production → ready_to_ship → shipped → delivered
-                              ↘ cancelled (only before in_production)
-```
+Six customer-facing states (pt-BR) with two branch points — full table in §4. Key principles:
 
 - Cancellation window closes when production starts (communicate clearly at checkout)
-- Production status visible to customer ("We started your piece on X")
-- Optional progress photos uploaded by artisan to the order
+- Every state has a short customer-facing description in pt-BR visible on the order page
+- Optional progress photos uploaded by Vinicius surface on the customer's order page
 
 ### Returns under Brazilian law (CDC art. 49)
 
@@ -54,18 +51,18 @@ pending → paid → in_production → ready_to_ship → shipped → delivered
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Payments | **Mercado Pago** or **Pagar.me** (Stripe BR is an option but weaker on PIX/parcelamento) | PIX + cards + boleto in one integration |
+| Payments | **InfinitePay** | Brazilian PSP — PIX + card + boleto + parcelamento in one integration |
 | PIX | First-class checkout option | ~30–40% of online payments in BR; instant settlement, lowest fees |
 | Card installments | Parcelamento up to 6x or 12x sem juros | Cultural expectation; absorb fee or pass to customer |
 | Boleto | Optional | High abandonment (~70%) but still expected by some segments |
 | NF-e (electronic invoice) | **eNotas**, **NFe.io**, or **Bling** | Mandatory for businesses; issue automatically on payment confirmation |
 | Shipping + addresses | **Correios** | PAC + SEDEX + Mini Envios via the Correios API (rastro + pré-postagem); real-time quotes; CEP autocomplete + address validation also come from Correios — no separate ViaCEP integration. |
-| Anti-fraud | Provider's native (Mercado Pago/Pagar.me have built-in) | **Clearsale** or **Konduto** if scaling |
+| Anti-fraud | InfinitePay's native | **Clearsale** or **Konduto** if scaling |
 | Locale | i18n with pt-BR as default | `R$ 1.234,56`, dd/mm/yyyy, brazilian-documents gem for CPF/CNPJ |
 | Compliance | **LGPD** (not GDPR) | ANPD authority; same rights (access, deletion, portability) |
 | Reputation | Reclame Aqui presence from day 1 | Brazilian buyers check it before purchasing |
 
-**Replaces in the main doc:** Stripe → Mercado Pago/Pagar.me; Stripe Tax → eNotas/NFe.io; flat-rate shipping → Correios quotes; GDPR/CCPA → LGPD.
+**Replaces in the main doc:** Stripe → InfinitePay; Stripe Tax → eNotas/NFe.io; flat-rate shipping → Correios quotes; GDPR/CCPA → LGPD.
 
 ---
 
@@ -165,7 +162,8 @@ gem 'pundit'              # authorization (admin/staff/customer roles)
 gem 'pg_search'           # Postgres full-text search
 
 # Payments / external (Brazil — see §0.2)
-gem 'mercadopago-sdk'     # or 'pagarme-ruby'
+# InfinitePay needs no extra gem — write the client over the already-pinned
+# `faraday`, mirroring the `Correios::Api` shape.
 gem 'brazilian-documents' # CPF/CNPJ validation + formatting
 
 # Operational
@@ -261,7 +259,7 @@ Implementation rules:
 
 #### Payment processing
 
-Use **Mercado Pago** or **Pagar.me** (see §0.2). Never store card data ourselves.
+Use **InfinitePay** (see §0.2). Never store card data ourselves.
 
 Critical patterns (provider-agnostic):
 - **Idempotency keys** on every payment attempt — prevents double-charging on retries
@@ -293,16 +291,30 @@ Must-haves:
 
 #### Order state machine (made-to-order)
 
-```
-pending → paid → in_production → ready_to_ship → shipped → delivered
-                              ↘ cancelled (only before in_production) → refunded
-                              ↘ returned → refunded   # ready-made only
-```
+Six customer-facing states in pt-BR. The flow is **not linear** — two branch points (after payment, and during production).
 
-Use `aasm`. Each transition:
-- Auditable (who/when/why)
-- Triggers side effects via background jobs
-- Recoverable
+| # | State | Description shown to the customer | Trigger |
+|---|---|---|---|
+| 1 | `aguardando_pagamento` | "O pedido foi criado e encontra-se aguardando pagamento." | Auto on order creation |
+| 2 | `pagamento_confirmado` | "O seu pedido está aguardando para entrar em produção, de acordo com a ordem de chegada." | InfinitePay webhook |
+| 3.1 | `aguardando_componentes` | "Estamos com falta de alguns componentes para produção do seu pedido." | Manual (operator) |
+| 3.2 | `em_producao` | "Seu pedido está em produção e em breve será enviado para os correios." | Auto — order surfaces on the production report |
+| 4.1 | `problema_na_producao` | "Tive problemas com a produção, entre em contato para esclarecimentos." | Auto — 2 calendar days in `em_producao` without progress |
+| 4.2 | `etiqueta_emitida` | "Etiqueta dos Correios emitida, seu pedido será enviado em breve." Email + WhatsApp carry the tracking code plus the delivery details. | Auto — on successful pré-postagem creation |
+| 5 | `enviado` | "Seu pedido foi enviado aos correios." + mini-envios disclaimer; Correios sub-statuses surfaced AliExpress-style for the in-transit timeline. | Correios rastro first transit event (via `Shipping::TrackingUpdate`) |
+| 6 | `entregue` | "Seu pedido foi entregue." | Correios rastro delivery event |
+
+**Branch points** (the flow is not linear):
+
+- After **2 `pagamento_confirmado`** → either **3.1 `aguardando_componentes`** (manual; operator flags missing parts) or **3.2 `em_producao`** (auto; the order first appears on the production report). From 3.1, an operator move flips to 3.2 once components arrive.
+- During **3.2 `em_producao`** → either **4.2 `etiqueta_emitida`** (auto; `Shipping::CreatePrePostagem` succeeded) or **4.1 `problema_na_producao`** (auto; 2 calendar days without progress). Recovery from 4.1 back to 3.2 is a manual operator transition.
+
+**Cross-cutting:**
+
+- Modeled with `aasm`. Each transition is auditable (who/when/why), triggers side effects via background jobs, and is recoverable.
+- The 2-day stuck-in-production rule and the production-report scan run as recurring jobs (same Solid Queue + `config/recurring.yml` shape as `SyncPendingShipmentsJob`).
+- 4.2 → 5 → 6 are driven by `Shipping::TrackingUpdate` interpreting rastro events (§ "Shipment tracking sync") — the order subscribes to the same final-state signals the `Shipment` already exposes.
+- Cancellation is allowed only before `em_producao` (3.2) per §0.1. Refund flow attaches to `Payment`, not the order state machine.
 
 #### Carrier integration layering (anti-corruption layer) — **shipped**
 
@@ -426,7 +438,7 @@ Using the payment provider's hosted checkout/elements correctly = **SAQ A** (min
 
 #### Fraud prevention
 
-The payment provider's native antifraud handles 95% of cases (Mercado Pago / Pagar.me). Add:
+The PSP's native antifraud handles 95% of cases (InfinitePay). Add:
 - AVS + CVV checks (default)
 - 3DS2 enabled for high-risk transactions
 - Velocity limits via `rack-attack` (max N orders per IP/email per hour)
@@ -490,7 +502,7 @@ The Migration Plan below adapts this generic order to Prisma Games specifically.
 1. Product catalog + categories with variant options (ProductOption rows)
 2. Cart (session-based) with chosen `ProductOption` ids per line item + guest checkout
 3. CEP autocomplete + Correios quote at cart (both via the Correios API)
-4. Payment integration: PIX first (highest conversion in BR), then card with parcelamento — via Mercado Pago or Pagar.me
+4. Payment integration: PIX first (highest conversion in BR), then card with parcelamento — via InfinitePay
 5. Order model with made-to-order state machine + cancellation window logic
 6. NF-e issuance via eNotas/NFe.io on payment confirmation (background job)
 7. Transactional emails (pt-BR) + PIX QR code email
@@ -543,7 +555,7 @@ For a small niche store, these are pure overengineering:
 1. **Boring stack, interesting business logic.** All engineering effort goes into solving real business problems (tax, fulfillment, refunds, inventory accuracy), not fighting infrastructure.
 2. **Server-rendered first.** SEO and performance come for free; reach for JS only where it adds clear UX value.
 3. **One codebase, one deploy.** Avoid distributed systems until the pain justifies them.
-4. **Use hosted services for the regulated stuff.** Payments (Mercado Pago/Pagar.me), NF-e (NFe.io/eNotas), email (Postmark/Resend), CDN (Cloudflare) — never reinvent these.
+4. **Use hosted services for the regulated stuff.** Payments (InfinitePay), NF-e (NFe.io/eNotas), email (Postmark/Resend), CDN (Cloudflare) — never reinvent these.
 5. **Background everything that's not in the request path.** Emails, webhooks, fulfillment side-effects, analytics events — all in jobs.
 6. **Cache aggressively at the edge.** Product pages and category pages are the hot path; CDN them.
 7. **Audit everything.** Orders, refunds, admin actions, inventory changes — all logged with who/when/why.
@@ -622,10 +634,10 @@ The storefront port from prismagames.com.br is in place:
   - Cart (cookie token), guest checkout, variant picker (one row per `ProductOption.group_name`). Today `/carrinho` is a placeholder.
   - CEP autocomplete in checkout via the Correios API (reuses the existing `Correios::Api::Client`).
   - Shipping quotes — start stubbed (fixed PAC/SEDEX rates), then swap for a Correios quote call sharing the existing `Correios::Api::Client`.
-  - Mercado Pago **PIX** with webhook handler. Use `MERCADO_PAGO_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:mp_webhook[order_id]` that POSTs to the webhook endpoint as if Mercado Pago did.
+  - InfinitePay **PIX** with webhook handler. Use `INFINITE_PAY_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:infinitepay_webhook[order_id]` that POSTs to the webhook endpoint as if InfinitePay did.
   - Order state machine (AASM, §4 lifecycle) + capacity-booking transaction inside checkout.
   - Transactional emails in pt-BR via **Postmark** or **Resend** (decide before checkout lands): order placed, PIX QR + copy-paste, payment confirmed, payment failed.
-  - Minimal `/admin`: order list with filters, single-order page, manual `mark_as_paid`/`mark_in_production`/`mark_shipped` buttons (kanban comes later).
+  - Minimal `/admin`: order list with filters, single-order page, manual transitions for any state in the order lifecycle (kanban comes later).
 
 **Gems still to add** (beyond Rails 8 defaults + what's already in `Gemfile`): `aasm`, `paper_trail`, `pundit`, `meta-tags`, `sitemap_generator`, `brazilian-documents`, `rack-attack`, plus dev/test (`factory_bot_rails`, `faker`, `vcr`). `webmock` already pinned for the Correios specs.
 
@@ -635,7 +647,7 @@ The storefront port from prismagames.com.br is in place:
 
 End state: Vinicius fulfills real orders through the new admin, prints labels in batch, NF-e issued automatically.
 
-- **Mercado Pago card + parcelamento sem juros up to 6x** (or 12x — Vinicius decides whether to absorb fees).
+- **InfinitePay card + parcelamento sem juros up to 6x** (or 12x — Vinicius decides whether to absorb fees).
 - **Live Correios** — 🟡 partial. **Shipped:** pré-postagem creation (`Shipping::CreatePrePostagem` → `Correios::Api::PrePostagem`), the `Shipment` factory + lifecycle, and hourly rastro polling (`SyncPendingShipmentsJob` → `SyncShipmentJob`). **Still to land:** real-time quotes at PDP/cart (a `Correios::Api::Precos` adapter sharing the existing `Client`), wiring the operator-triggered label button into `/admin/shipments`, customer notification email on `tracking_code` capture, and once `Order` exists, transitioning the order on a final `tracking_state`.
 - **Production kanban** (`/admin/production`): columns `pending → flashed → boxed → labeled → shipped`. Drag-drop with Stimulus + Turbo Streams (Solid Cable broadcasts updates to all open admin tabs). `Order#fulfillment_stage` enum is **separate** from `Order#status` (AASM tracks customer-facing state; `fulfillment_stage` tracks internal kanban).
 - **Per-order workbench** (`/admin/orders/:id`):
@@ -658,7 +670,7 @@ End state: existing customers can log in, see their orders, see in-progress phot
 - Order history page; in-progress orders show progress photos uploaded by Vinicius.
 - Abandoned-PIX-cart recovery email (Solid Queue cron, 1h/24h after PIX expiry).
 - Discount codes (simple `Coupon` model: code, percent_off or amount_off_cents, max_uses, expires_at).
-- Refunds + cancellation flow: PIX refund through Mercado Pago API; cancellation only allowed before `in_production` per §0.1.
+- Refunds + cancellation flow: PIX refund through InfinitePay API; cancellation only allowed before `em_producao` (3.2) per §0.1.
 - SEO: sitemap.xml, JSON-LD on PDPs (Product + Offer + BreadcrumbList), Search Console verification, robots.txt.
 - LGPD: privacy policy page (pt-BR), cookie consent banner, data-export rake task (`rake lgpd:export[email]`), data-deletion rake task.
 - Reclame Aqui link in footer (per §0.2).
@@ -671,7 +683,7 @@ End state: app is deployable, observable, and ready for Vinicius to flip DNS whe
 - **Cloudflare** in front of R2 + the app; Let's Encrypt via Kamal proxy.
 - **Sentry** + **Better Stack** (logs + uptime).
 - **WebP/AVIF** variants via `image_processing`; `loading="lazy"` below the fold; explicit width/height (CLS).
-- **Boleto via Mercado Pago** if Vinicius wants it (high abandonment ~70% — confirm desire before building).
+- **Boleto via InfinitePay** if Vinicius wants it (high abandonment ~70% — confirm desire before building).
 - Staging env (second VPS box, or same box with separate `prisma_engine_staging` deploy) for Vinicius to walk through.
 - DNS cutover playbook handed to Vinicius — leave the actual flip to him.
 
@@ -679,7 +691,7 @@ End state: app is deployable, observable, and ready for Vinicius to flip DNS whe
 
 | Decision | Choice | Why |
 |---|---|---|
-| Payment gateway | **Mercado Pago** | Best PIX UX in BR, native parcelamento sem juros, antifraud included, brand customers already trust. |
+| Payment gateway | **InfinitePay** | Brazilian PSP — PIX + card + boleto + parcelamento + native antifraud in one integration. |
 | NF-e provider | **NFe.io** | Cleaner REST API than eNotas; pay-per-issue pricing fits the SKU volume; not an ERP like Bling. |
 | Shipping carrier | **Correios** (direct API) | Only carrier in scope; PAC + SEDEX + Mini Envios cover cartridge-sized parcels. `Correios::Api::*` + `Shipping::*` shipped. |
 | Postgres | **Co-located on the VPS** | Daily `pg_dump` → R2 covers 99% of risk; managed Postgres is a future migration. |
@@ -701,11 +713,11 @@ Still to pick:
 
 These don't block kicking off Phase 1 but block portions of Phase 1–2:
 
-- **CNPJ status** — required for Mercado Pago merchant account, NFe.io account, and the Correios contract (rastro + pré-postagem API tokens). Confirm he has one and apps are submitted (approvals can take 1–2 weeks).
+- **CNPJ status** — required for the InfinitePay merchant account, NFe.io account, and the Correios contract (rastro + pré-postagem API tokens). Confirm he has one and apps are submitted (approvals can take 1–2 weeks).
 - **NCM codes** for each cartridge type — wrong NCM = NF-e fines. Lock with Vinicius's accountant before Phase 2.
 - **Brand assets** — logo source files, brand fonts, color tokens. Otherwise we lift from current site (visual only, not files he doesn't own).
 - **Per-product variant options** — Vinicius enumerates ROM choices, shell colors, label art per cartridge; each becomes a `ProductOption` row. Use a shared spreadsheet → seed file.
-- **Mercado Pago + NFe.io + Correios API credentials** (rastro token + cartão de postagem token) — needed by end of Phase 1 dev.
+- **InfinitePay + NFe.io + Correios API credentials** (rastro token + cartão de postagem token) — needed by end of Phase 1 dev.
 - **Maximum installments policy** — 6x or 12x sem juros? Who eats the fee?
 - **Boleto: yes or no?** — Phase 4 flag.
 
@@ -731,7 +743,7 @@ These don't block kicking off Phase 1 but block portions of Phase 1–2:
 - `app/models/cart.rb`, `line_item.rb`, `payment.rb`, `address.rb`, `customer.rb`, `admin_user.rb`, `nfe_issuance.rb`, `rom_file.rb`.
 - `app/controllers/admin/production_controller.rb` — kanban board (the killer feature).
 - `app/views/admin/production/index.html.erb` — kanban view with Turbo Streams.
-- `app/services/mercado_pago/create_pix_payment.rb` — first PSP service; sets convention.
+- `app/services/infinite_pay/api/` + `app/services/payments/` — InfinitePay client + domain use cases, mirroring `Correios::Api` + `Shipping`.
 - `app/services/correios/api/precos.rb` + `app/services/shipping/quote.rb` — live shipping quotes (reuses the existing `Client`).
 - `app/services/nfe_io/issue_invoice.rb`.
 - `app/jobs/issue_nfe_job.rb`, `abandoned_cart_job.rb`.
@@ -749,11 +761,11 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 - 🟢 Catalog renders from ActiveRecord (Category / Product / ProductPhoto / Question), legacy URL shape works (`/produtos`, `/produto/:slug`, etc.).
 - ⚪ Place a test order with a ROM-hack variant chosen through the storefront.
 - ⚪ PIX QR code email arrives in dev inbox (Letter Opener or Postmark sandbox).
-- ⚪ `rake simulate:mp_webhook[order_number]` flips the order to `paid`.
+- ⚪ `rake simulate:infinitepay_webhook[order_number]` flips the order to `pagamento_confirmado`.
 - ⚪ Order appears in `/admin/orders` with the chosen options visible.
 
 **Phase 2 verification**
-- ⚪ Real Mercado Pago sandbox card payment succeeds with installments.
+- ⚪ Real InfinitePay sandbox card payment succeeds with installments.
 - ⚪ Correios quote returns ≥2 services (PAC + SEDEX) with prices in cart.
 - 🟢 `Shipping::CreatePrePostagem` returns a tracking_code against the Correios sandbox and persists a `Shipment`; `SyncShipmentJob` reconciles its rastro events into `tracking_state`.
 - ⚪ Drag a card across the kanban; status persists; second admin browser tab updates live.
@@ -763,7 +775,7 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 **Phase 3 verification**
 - Existing customer logs in, sees order history with progress photos
 - Apply a discount code at checkout; total updates correctly
-- Trigger a refund; PIX refund created in Mercado Pago sandbox; email sent
+- Trigger a refund; PIX refund created in InfinitePay sandbox; email sent
 - View source on a PDP shows valid `application/ld+json` Product schema (validate at search.google.com/test/rich-results)
 - `rake lgpd:export[customer@example.com]` produces a JSON dump
 

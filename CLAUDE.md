@@ -1,6 +1,6 @@
 # Prisma Engine
 
-Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 + jQuery storefront ported from prismagames.com.br. Domain models, real cart, Mercado Pago, NF-e, Correios land in later phases — see `docs/architecture.md`.
+Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 + jQuery storefront ported from prismagames.com.br. Domain models, real cart, InfinitePay, NF-e, Correios land in later phases — see `docs/architecture.md`.
 
 ## Commands
 
