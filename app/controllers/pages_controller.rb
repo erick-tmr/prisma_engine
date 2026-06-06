@@ -10,8 +10,12 @@ class PagesController < ApplicationController
     when "recomendacao-de-jogos"  then render "recomendacao_de_jogos"
     when "reviews"                then render "reviews"
     when "direitos"               then render "direitos"
-    else
-      raise ActionController::RoutingError, "Unknown page"
+    # :nocov:
+    # The route constraint rejects unknown slugs before the controller is
+    # reached; this branch is defensive guard for future widening of the
+    # constraint, hence excluded from coverage.
+    else raise ActionController::RoutingError, "Unknown page"
+      # :nocov:
     end
   end
 end

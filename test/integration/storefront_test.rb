@@ -42,4 +42,37 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match(/Todos os jogos/, response.body)
   end
+
+  test "cart placeholder show and create both 200" do
+    get "/carrinho"
+    assert_response :success
+    post cart_items_path, params: { product_id: products(:yellow).id }
+    assert_redirected_to "/carrinho"
+    follow_redirect!
+    assert_match(/Carrinho ainda não está conectado/, response.body)
+  end
+
+  test "identification placeholder show and create both 200" do
+    get identification_path
+    assert_response :success
+    post identification_path
+    assert_response :success
+    assert_match(/Login ainda não está conectado/, response.body)
+  end
+
+  test "every static page route renders" do
+    %w[perguntas-frequentes recomendacao-de-jogos reviews direitos].each do |slug|
+      get page_path(slug: slug)
+      assert_response :success, "expected /pagina/#{slug} to render"
+    end
+  end
+
+  test "unknown static page slug 404s via the routing constraint" do
+    # The route constraint rejects unknown slugs before reaching the controller,
+    # so the integration test sees a 404 response (Rails converts the routing
+    # error internally). The controller's case-statement `else raise` branch
+    # is unreachable through normal HTTP and is marked `# :nocov:`.
+    get "/pagina/desconhecido"
+    assert_response :not_found
+  end
 end

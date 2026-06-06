@@ -5,6 +5,13 @@ SimpleCov.start "rails" do
   enable_coverage :branch
   add_filter "/test/"
 
+  # 100% floor — the suite refuses to pass below full line and branch coverage.
+  # Combined with undercover (changed-line gate), this enforces both "every
+  # changed line is tested" and "no regressions in existing coverage." Mark
+  # genuinely untestable lines (Rails scaffold stubs, defensive guards behind
+  # route constraints) with `# :nocov:` and a comment explaining why.
+  minimum_coverage line: 100, branch: 100
+
   # HTML for humans + Undercover's JSON formatter (coverage/coverage.json), which
   # the `undercover` CLI reads to flag changed lines that lack test coverage.
   # SimpleCov also writes coverage/.last_run.json (total line/branch %) for the
