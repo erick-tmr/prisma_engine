@@ -7,7 +7,7 @@ Brazilian retro-game e-commerce. Rails 8 backend; first phase is a Bootstrap 4 +
 - `bin/dev` — Rails server. Needs `docker compose up -d` first for Postgres.
 - `bin/setup` — fresh-machine setup, idempotent. Needs **cmake** present (builds the `rugged` native ext that `undercover` uses for changed-line coverage): `brew install cmake` / `sudo apt-get install -y cmake pkg-config`.
 - `bin/share-dev` — public Cloudflare Tunnel for client previews. Reads `SHARE_AUTH_USER` / `SHARE_AUTH_PASSWORD` / `SHARE_TIMEOUT` from `.env`.
-- `bin/pre-push-check` — **run before `git push`**. Mirrors CI: rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → tests → undercover changed-line coverage. Fail-fast. `SKIP_TESTS=1` skips tests + undercover (docs-only pushes).
+- `bin/pre-push-check` — **run before `git push`**. Local subset of CI: rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → tests → undercover changed-line coverage. Fail-fast. `SKIP_TESTS=1` skips tests + undercover (docs-only pushes). **Does not run** `Semgrep (new findings)`, `Dependency review`, or `system-test` — those only run in GitHub Actions, so a green local gauntlet is necessary, not sufficient (see Git workflow).
 
 ## Frontend stack — non-obvious
 
@@ -28,6 +28,8 @@ All changes flow through a branch + PR. No direct commits to `main`.
 - To check whether commits are already upstream, use `git cherry -v origin/main` (patch-id based). Don't trust `origin/main..HEAD`: squash/rebase merges rewrite SHAs, so that range still lists work that's already in `main`.
 - `bin/pre-push-check` must pass before pushing.
 - Open a PR with `gh pr create` once the branch is pushed; merge from GitHub.
+- **After every push to an open PR, and immediately after opening one, verify CI** with `gh pr checks <N>`. The local gauntlet does not cover `Semgrep (new findings)`, `Dependency review`, or `system-test`, so a green pre-push can still produce a red PR. For each failing check: `gh run view <run-id> --log-failed` and, for security gates, `gh api repos/<owner>/<repo>/code-scanning/alerts` to read the actual finding. Also re-read the sticky `ci-quality` comment (`gh api repos/<owner>/<repo>/issues/<N>/comments`) — its content updates after each push. Don't report the work as done while a check is red or while you haven't actually checked.
+- After every push that meaningfully changes scope, refresh the PR title/body (`gh pr edit <N>`) so they describe the current state, not the first commit.
 - Branch protection on `main` blocks direct pushes — fix the cause, never `--force` or bypass.
 
 ## Conventions
