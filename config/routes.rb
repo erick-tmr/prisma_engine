@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   get  "/identificacao",     to: "identification#show", as: :identification
   post "/identificacao",     to: "identification#create"
 
-  get  "/pagina/:slug",      to: "pages#show", as: :page,
-       constraints: { slug: /perguntas-frequentes|recomendacao-de-jogos|reviews|direitos/ }
+  get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes
+  get  "/pagina/recomendacao-de-jogos", to: "pages#recomendacao_de_jogos", as: :recomendacao_de_jogos
+  get  "/pagina/reviews",               to: "pages#reviews",               as: :reviews
+  get  "/pagina/direitos",              to: "pages#direitos",              as: :direitos
 end

@@ -61,17 +61,18 @@ class StorefrontTest < ActionDispatch::IntegrationTest
   end
 
   test "every static page route renders" do
-    %w[perguntas-frequentes recomendacao-de-jogos reviews direitos].each do |slug|
-      get page_path(slug: slug)
-      assert_response :success, "expected /pagina/#{slug} to render"
+    [
+      perguntas_frequentes_path,
+      recomendacao_de_jogos_path,
+      reviews_path,
+      direitos_path
+    ].each do |path|
+      get path
+      assert_response :success, "expected #{path} to render"
     end
   end
 
-  test "unknown static page slug 404s via the routing constraint" do
-    # The route constraint rejects unknown slugs before reaching the controller,
-    # so the integration test sees a 404 response (Rails converts the routing
-    # error internally). The controller's case-statement `else raise` branch
-    # is unreachable through normal HTTP and is marked `# :nocov:`.
+  test "unknown static page slug 404s — no matching route" do
     get "/pagina/desconhecido"
     assert_response :not_found
   end
