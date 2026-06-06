@@ -9,7 +9,7 @@
 | Decision | Choice | Implication |
 |---|---|---|
 | Product domain | **Handmade / made-to-order** | No traditional stock; production capacity + lead times; per-order personalization; returns mostly non-applicable |
-| Primary market | **Brazil** (BRL, pt-BR) | PIX is mandatory; parcelamento expected; NF-e issuance; LGPD; Correios/Melhor Envio shipping; ViaCEP |
+| Primary market | **Brazil** (BRL, pt-BR) | PIX is mandatory; parcelamento expected; NF-e issuance; LGPD; Correios shipping; ViaCEP |
 | Deployment | **Kamal on a VPS** | Single-box friendly choices: Solid Queue + Solid Cache, Postgres co-located or managed; S3-compatible object storage external (R2/B2/Spaces) |
 | Codebase | Rails 8 majestic monolith | One repo, one deploy |
 
@@ -64,13 +64,13 @@ pending → paid → in_production → ready_to_ship → shipped → delivered
 | Boleto | Optional | High abandonment (~70%) but still expected by some segments |
 | NF-e (electronic invoice) | **eNotas**, **NFe.io**, or **Bling** | Mandatory for businesses; issue automatically on payment confirmation |
 | Address | **ViaCEP** (free) | Autocomplete from CEP; reduces failed deliveries |
-| Shipping | **Melhor Envio** or **Frenet** | Aggregates Correios + private carriers; real-time quotes |
+| Shipping | **Correios** | PAC + SEDEX + Mini Envios via the Correios API (rastro + pré-postagem); real-time quotes |
 | Anti-fraud | Provider's native (Mercado Pago/Pagar.me have built-in) | **Clearsale** or **Konduto** if scaling |
 | Locale | i18n with pt-BR as default | `R$ 1.234,56`, dd/mm/yyyy, brazilian-documents gem for CPF/CNPJ |
 | Compliance | **LGPD** (not GDPR) | ANPD authority; same rights (access, deletion, portability) |
 | Reputation | Reclame Aqui presence from day 1 | Brazilian buyers check it before purchasing |
 
-**Replaces in the main doc:** Stripe → Mercado Pago/Pagar.me; Stripe Tax → eNotas/NFe.io; flat-rate shipping → Melhor Envio quotes; GDPR/CCPA → LGPD.
+**Replaces in the main doc:** Stripe → Mercado Pago/Pagar.me; Stripe Tax → eNotas/NFe.io; flat-rate shipping → Correios quotes; GDPR/CCPA → LGPD.
 
 ---
 
@@ -98,10 +98,10 @@ pending → paid → in_production → ready_to_ship → shipped → delivered
 ### Chosen approach: Rails majestic monolith
 
 A single Rails application that contains:
-- Storefront (server-rendered HTML + Hotwire/Turbo)
-- Customer accounts and checkout
-- Backoffice admin
-- Background jobs (Sidekiq or Solid Queue)
+- Storefront (server-rendered HTML — Bootstrap 4.6 + jQuery, ported from the legacy site)
+- Customer accounts and checkout (future)
+- Backoffice admin (future — Hotwire/Turbo Streams)
+- Background jobs (Solid Queue)
 - All business logic and persistence
 
 ### Why not the alternatives
@@ -135,7 +135,7 @@ A single Rails application that contains:
 | Database | PostgreSQL |
 | Cache | Solid Cache (or Redis) |
 | Background jobs | Solid Queue (or Sidekiq + Redis) |
-| Frontend | Hotwire (Turbo + Stimulus) + Tailwind |
+| Frontend | **Storefront:** Bootstrap 4.6 + jQuery via CDN (ported from the legacy site; Tailwind deliberately dropped — see `CLAUDE.md`). **Admin (future):** Hotwire (Turbo + Stimulus) over Importmap. |
 | File storage | Active Storage + S3-compatible bucket |
 | CDN | Cloudflare or Bunny.net (for images and static assets) |
 | Email | Postmark / Resend / SendGrid (transactional) |
@@ -143,15 +143,28 @@ A single Rails application that contains:
 
 ### Key gems
 
+Already in `Gemfile` (installed, in use):
+
+```ruby
+gem 'friendly_id'         # product slugs (history-enabled)
+gem 'image_processing'    # WebP/AVIF variants via Active Storage
+gem 'faraday'             # HTTP client used by the Correios API layer
+# Rails 8 defaults wired up: solid_queue, solid_cache, solid_cable, propshaft,
+# importmap-rails, turbo-rails, stimulus-rails (turbo/stimulus dormant on the
+# storefront — see CLAUDE.md).
+# Dev/test: dotenv, webmock, simplecov, undercover, reek, brakeman,
+# bundler-audit, rubocop-rails-omakase, derailed_benchmarks, memory_profiler.
+```
+
+Add when their use case lands (not preinstalled):
+
 ```ruby
 # SEO
 gem 'meta-tags'           # per-page <title>, <description>, OG tags
 gem 'sitemap_generator'   # XML sitemap + auto-ping to search engines
-gem 'friendly_id'         # /products/leather-wallet slugs
-gem 'better_seo'          # JSON-LD structured data (Product, Breadcrumb, etc.)
 
 # Domain
-gem 'aasm'                # state machine for orders
+gem 'aasm'                # state machine for orders, payments, NF-e issuance
 gem 'paper_trail'         # audit log
 gem 'pundit'              # authorization (admin/staff/customer roles)
 gem 'pg_search'           # Postgres full-text search
@@ -159,11 +172,9 @@ gem 'pg_search'           # Postgres full-text search
 # Payments / external (Brazil — see §0.2)
 gem 'mercadopago-sdk'     # or 'pagarme-ruby'
 gem 'brazilian-documents' # CPF/CNPJ validation + formatting
-gem 'image_processing'    # WebP/AVIF variants
 
 # Operational
 gem 'rack-attack'         # rate limiting
-gem 'sidekiq'             # if not using Solid Queue
 ```
 
 ---
@@ -287,7 +298,7 @@ Don't build it. For BR you need **NF-e issuance** (legal requirement for busines
 
 #### Shipping (Brazil)
 
-Use **Melhor Envio** or **Frenet** — they aggregate Correios (PAC/SEDEX) plus private carriers (Jadlog, Loggi) and return real-time quotes from a single API. Quote at PDP/cart with the customer's CEP.
+Use the **Correios** API directly — PAC, SEDEX, and Mini Envios cover the cartridge envelope. Quote at PDP/cart with the customer's CEP; create the label as a pré-postagem on payment confirmation.
 
 Must-haves:
 - CEP autocomplete via ViaCEP (free) — fills street/neighborhood/city/state
@@ -308,10 +319,10 @@ Use `aasm`. Each transition:
 - Triggers side effects via background jobs
 - Recoverable
 
-#### Carrier integration layering (anti-corruption layer)
+#### Carrier integration layering (anti-corruption layer) — **shipped**
 
-Correios (and any future carrier) is integrated through three layers so the 3rd-party
-API stays isolated from our domain — the convention lives in `CLAUDE.md`:
+Correios is integrated through three layers so the 3rd-party API stays isolated
+from our domain — the convention lives in `CLAUDE.md`:
 
 - **`Correios::Api::*`** (`app/services/correios/api/`) — infrastructure / ACL: HTTP,
   auth tokens, endpoints, timeouts, (de)serialization, error mapping. Returns plain data,
@@ -327,10 +338,10 @@ API stays isolated from our domain — the convention lives in `CLAUDE.md`:
   `Correios::Api::Tracking.fetch` → `Shipping::TrackingUpdate.apply`).
 
 Why: the vendor's quirks (token-bucket headers, SRO messages, payload field names) stay
-behind the `Api` boundary, so swapping Correios for another carrier (e.g. Melhor Envio)
-means a new `Api` adapter without touching the domain.
+behind the `Api` boundary, so swapping Correios for another carrier later means a new
+`Api` adapter without touching the domain.
 
-#### Pré-postagem creation (Correios label generation)
+#### Pré-postagem creation (Correios label generation) — **shipped** (operator trigger pending)
 
 A shipment starts as a **pré-postagem** — we `POST /prepostagem/v1/prepostagens`
 (`Shipping::CreatePrePostagem` → `Correios::Api::PrePostagem`) and persist the response as a
@@ -354,18 +365,25 @@ don't exist yet. What's placeholder today and where it'll come from:
 | `observacao` | placeholder | order identifier |
 | `cienteObjetoNaoProibido` `"1"`, `solicitarColeta` `"N"`, `logisticaReversa` `"N"`, `emiteDCe` `"S"` | fixed policy | unchanged |
 
-It's **triggered manually from the backoffice** — an operator presses a button to
-generate the label for an order; there's no automatic trigger.
+It will be **triggered manually from the backoffice** — an operator presses a button to
+generate the label for an order; there's no automatic trigger. The button itself lands
+with the admin namespace; today the call is invokable from a console.
 
-#### Shipment tracking sync (Correios polling)
+#### Shipment tracking sync (Correios polling) — **shipped**
 
 Our Correios contract has **no webhooks**, so tracking is **polled**. An hourly
-orchestrator (`SyncPendingShipmentsJob`) selects shipments still in flight and
-fans out one `SyncShipmentJob` per shipment — each syncs in isolation, with its
-own retries and a Solid Queue concurrency cap so a large fan-out can't trip
-Correios' rate limit. A shipment carries its own `tracking_state`
-(`pending → in_transit → delivered / returned / unavailable`) derived from rastro
-events; the final states stop the polling loop.
+orchestrator (`SyncPendingShipmentsJob`, scheduled in `config/recurring.yml`)
+selects shipments still in flight (`Shipment.awaiting_tracking`) and fans out one
+`SyncShipmentJob` per shipment — each syncs in isolation, with its own retries
+(`retry_on … wait: :polynomially_longer, attempts: 5`) and a Solid Queue
+concurrency cap (`limits_concurrency to: 5, key: "correios_rastro"`) so a large
+fan-out can't trip Correios' rate limit. A shipment carries its own
+`tracking_state` (`pending → in_transit → delivered / returned / unavailable`,
+modeled as an `enum` on `Shipment`) derived from rastro events; the
+`FINAL_TRACKING_STATES` set stops the polling loop. The orchestrator also skips
+shipments whose pré-postagem hit a terminal status (`TERMINAL_PREPOST_STATUSES =
+[4, 5, 6]` — expirado, cancelado, estornado), because they will never become a
+real shipment.
 
 **Event interpretation:** `Shipping::TrackingUpdate` maps confirmed `(code, type)`
 pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label); anything
@@ -486,7 +504,7 @@ The Migration Plan below adapts this generic order to Prisma Games specifically.
 
 1. Product catalog + categories with `lead_time_days` and personalization schema (JSONB)
 2. Cart (session-based) with customization fields per line item + guest checkout
-3. CEP autocomplete (ViaCEP) + Melhor Envio quote at cart
+3. CEP autocomplete (ViaCEP) + Correios quote at cart
 4. Payment integration: PIX first (highest conversion in BR), then card with parcelamento — via Mercado Pago or Pagar.me
 5. Order model with made-to-order state machine + cancellation window logic
 6. NF-e issuance via eNotas/NFe.io on payment confirmation (background job)
@@ -496,7 +514,7 @@ The Migration Plan below adapts this generic order to Prisma Games specifically.
 ### Phase 2 — Can you operate the business?
 
 9. Production capacity model (daily/weekly slots per product)
-10. Order fulfillment workflow + Melhor Envio label printing + tracking notifications
+10. Order fulfillment workflow + Correios label printing + tracking notifications
 11. Refunds + cancellations (PIX refund, card refund/chargeback handling)
 12. Returns flow for ready-made items only (CDC art. 49)
 13. Sitemap + structured data + Search Console (BR property)
@@ -555,38 +573,46 @@ Vinicius runs https://www.prismagames.com.br/ on **Meloja** (Brazilian SaaS), se
 
 The rebuild is **greenfield** at `/home/ericktmr/Code/prisma_engine`. The made-to-order assumption (§0.1 above) applies in full.
 
-**Migration approach (per user)**: not a data migration. Clone the existing site's visual layout (HTML/CSS) into Rails ERB+Tailwind, manually re-seed the 24 SKUs, then iterate. No Meloja exporter. Cutover strategy deferred — keep prismagames.com.br on Meloja until the new app is ready and Vinicius approves the flip.
+**Migration approach (per user)**: not a data migration. Clone the existing site's visual layout (HTML/CSS) into Rails ERB, manually re-seed the SKUs, then iterate. No Meloja exporter. **The storefront port kept the legacy Bootstrap 4 + jQuery stack** — Tailwind was tried and dropped (CSS reset + class collisions); see `CLAUDE.md`. Cutover strategy deferred — keep prismagames.com.br on Meloja until the new app is ready and Vinicius approves the flip.
 
 **The backoffice is the product.** The storefront is "just to collect orders." Engineering effort should weight ~50/50 storefront/backoffice, not 80/20.
 
 ## Recommended approach
 
-A single Rails 8 app at `/home/ericktmr/Code/prisma_engine/` containing storefront, customer-facing checkout, and an `/admin` namespace for Vinicius's production workbench. Hotwire-only (no React, no JS bundler). Importmap + Stimulus + Turbo Streams for live admin updates. PostgreSQL co-located on a VPS via Kamal, with R2 for object storage. Pundit-gated admin with role `admin/fulfillment/support` (Vinicius will be the only admin for now).
+A single Rails 8 app at `/home/ericktmr/Code/prisma_engine/` containing storefront, customer-facing checkout, and an `/admin` namespace for Vinicius's production workbench. **Storefront** is server-rendered ERB on Bootstrap 4.6 + jQuery (legacy stack preserved through the port). **Admin** (future) will use Hotwire — Importmap + Stimulus + Turbo Streams for live updates. PostgreSQL co-located on a VPS via Kamal, with R2 for object storage. Pundit-gated admin with role `admin/fulfillment/support` (Vinicius will be the only admin for now).
 
-The HTML/CSS clone happens in **parallel** with domain modeling in Phase 1 — markup doesn't block models and vice versa.
+The HTML/CSS clone happens in **parallel** with domain modeling — markup doesn't block models and vice versa.
 
 ## Domain model — first cut
 
 UUIDs for public-facing resources (Order, Cart, LineItem, Payment); bigint for internal-only. Encrypt PII (`encrypts :cpf, :phone`) per LGPD.
 
-| Model | Notes |
-|---|---|
-| **Product** | `slug`, `name`, `price_cents`, `lead_time_days`, `daily_capacity` (nullable → unlimited), `customization_schema` (jsonb), `published`. FriendlyId, PaperTrail, pg_search later. |
-| **Variant** | belongs_to Product. `sku`, `price_modifier_cents`, `customization_overrides`. Lets one cart have ROM-hacked + standard SKUs. |
-| **ProductionSlot** | `(product_id, date, daily_max, booked_count)`. Locked in checkout transaction (§4 above). For 24 SKUs / 1 fulfiller, may collapse to a global daily slot table — defer the decision until usage shows contention. |
-| **Cart** | guest-cookie token; nullable `customer_id`; `expires_at`. |
-| **LineItem** | belongs_to Cart **and** Order (two FKs, not polymorphic). `customizations` jsonb validated against Product schema. `fulfillment_progress` jsonb tracks per-step checkboxes for the workbench. |
-| **Order** | human-readable `number` (`PG-2026-000123`). AASM lifecycle from §4 above. Address fields snapshotted as jsonb to survive customer edits. PaperTrail. |
-| **Address** | reusable for customer book + order snapshot. CEP/street/number/complement/neighborhood/city/state. CPF on shipping. |
-| **Payment** | `provider`, `method` (pix/card/boleto), `external_id`, AASM (pending → authorized → captured → refunded → failed), idempotency keys. `qr_code_payload`, `boleto_url`. |
-| **Shipment** | `provider` (melhor_envio), `service` (PAC/SEDEX), `tracking_code`, `label_url`, `posted_at`, `delivered_at`. |
-| **NfeIssuance** | `provider` (nfe_io), AASM (pending → issued → failed), `pdf_url`, `xml_url`, `numero`, `serie`. Retried on failure. |
-| **Customer** | `has_secure_password` (Rails 8 native auth), `cpf` (encrypted), `lgpd_consent_at`. |
-| **AdminUser** | role enum, `otp_secret` (2FA optional in Phase 1). |
-| **RomFile** | `name`, `version`, `notes`, has_one_attached :file (Active Storage → R2). Linked to Variant by FK or referenced from customization JSONB by `rom_identifier` string. |
+Legend: 🟢 shipped · 🟡 partial · ⚪ planned (not yet built).
+
+| Model | Status | Notes |
+|---|---|---|
+| **Product** | 🟡 | `slug`, `name`, `price_cents`, `published`, `currency` (BRL), `legacy_image_path`, `description`. FriendlyId (history-enabled), `has_many :product_options/:product_photos/:tags/:questions`. Still missing: `lead_time_days`, `daily_capacity`, `customization_schema`. PaperTrail + pg_search land later. |
+| **Category** | 🟢 | `name`, `slug` (unique), `has_many :products`. |
+| **ProductOption** | 🟢 | belongs_to Product. `group_name`, `name`, `position`, `price_delta_cents`. Per-product variant axis (e.g. "shell color"). |
+| **ProductPhoto** | 🟢 | belongs_to Product. `position`, `alt_text`, `has_one_attached :image` (Active Storage). |
+| **Tag** / **ProductTag** | 🟢 | many-to-many tagging on products. |
+| **Question** | 🟢 | belongs_to Product. `asker_name`, `asker_email`, `body`, `answer_body`, `answered`, `published` — Q&A under the PDP. |
+| **Shipment** | 🟢 | belongs_to Order (future). `tracking_code` (unique), `service` / `service_code`, `pre_post_id` (unique), `pre_post_payload` (jsonb), package dims (`weight_grams`, `height/length/width_cm`), `posted_at`, `posting_deadline`, `delivered_at`. **Pré-postagem state:** `correios_status` (1–7 enum), `correios_status_label`, `correios_status_at`. **Tracking state:** `tracking_state` enum (`pending/in_transit/delivered/returned/unavailable`), `last_tracking_status`, `last_tracked_at`, `tracking_error`/`tracking_errored_at`. `awaiting_tracking` scope drives the polling loop. |
+| **ShipmentTrackingEvent** | 🟢 | belongs_to Shipment. `(shipment_id, position)` unique. `event_code`, `event_type`, `description`, `occurred_at`, `payload` (jsonb), `tracking_code`. |
+| **Variant** | ⚪ | belongs_to Product. `sku`, `price_modifier_cents`, `customization_overrides`. Lets one cart have ROM-hacked + standard SKUs. (ProductOption may absorb this — revisit when checkout lands.) |
+| **ProductionSlot** | ⚪ | `(product_id, date, daily_max, booked_count)`. Locked in checkout transaction (§4 above). For 24 SKUs / 1 fulfiller, may collapse to a global daily slot table — defer the decision until usage shows contention. |
+| **Cart** | ⚪ | guest-cookie token; nullable `customer_id`; `expires_at`. Today `/carrinho` is a placeholder no-op (see `CLAUDE.md`). |
+| **LineItem** | ⚪ | belongs_to Cart **and** Order (two FKs, not polymorphic). `customizations` jsonb validated against Product schema. `fulfillment_progress` jsonb tracks per-step checkboxes for the workbench. |
+| **Order** | ⚪ | human-readable `number` (`PG-2026-000123`). AASM lifecycle from §4 above. Address fields snapshotted as jsonb to survive customer edits. PaperTrail. Final shipment state will close back into the order. |
+| **Address** | ⚪ | reusable for customer book + order snapshot. CEP/street/number/complement/neighborhood/city/state. CPF on shipping. |
+| **Payment** | ⚪ | `provider`, `method` (pix/card/boleto), `external_id`, AASM (pending → authorized → captured → refunded → failed), idempotency keys. `qr_code_payload`, `boleto_url`. |
+| **NfeIssuance** | ⚪ | `provider` (nfe_io), AASM (pending → issued → failed), `pdf_url`, `xml_url`, `numero`, `serie`. Retried on failure. |
+| **Customer** | ⚪ | `has_secure_password` (Rails 8 native auth), `cpf` (encrypted), `lgpd_consent_at`. |
+| **AdminUser** | ⚪ | role enum, `otp_secret` (2FA optional). |
+| **RomFile** | ⚪ | `name`, `version`, `notes`, has_one_attached :file (Active Storage → R2). Linked to Variant by FK or referenced from customization JSONB by `rom_identifier` string. |
 
 **AASM** on Order, Payment, NfeIssuance.
-**FriendlyId** on Product.
+**FriendlyId** on Product (already wired).
 **PaperTrail** on Product, Variant, Order, Payment, NfeIssuance, AdminUser actions.
 
 **Customization schema example** (per Product):
@@ -605,43 +631,48 @@ UUIDs for public-facing resources (Order, Cart, LineItem, Payment); bigint for i
 ```
 A `Customizations::Validator` PORO validates LineItem payloads against this schema (rejects unknown keys, enforces required + length + file type). Same partial renders both storefront input and admin read-only view.
 
-## Phase 1 — "Look like the old site, take a PIX order" (~3 weeks)
+## Phase 1 — "Look like the old site, take a PIX order"
 
 End state: Vinicius places a PIX test order on the new app and sees it in his admin queue.
 
-**HTML/CSS clone (parallel track)**
-1. `wget --mirror --no-parent --convert-links --page-requisites https://www.prismagames.com.br/` into `tmp/legacy_clone/` (gitignored). Save view-source for homepage, category, PDP into `docs/legacy_html/` so the snapshots survive.
-2. Port markup skeletons (header, footer, homepage, category grid, PDP, cart, checkout) into `app/views/storefront/` partials. Rebuild markup from scratch even when it visually matches — do not lift Meloja-templated HTML wholesale (licensing).
-3. Drop scraped CSS into `app/assets/stylesheets/legacy/site.css`; Propshaft serves as-is. Strip third-party tracking and Meloja branding selectors.
-4. Tailwind-ify component-by-component (header → product card → PDP → cart → checkout); delete legacy CSS rules as they're replaced.
-5. **Do not lift product descriptions or customer photos.** Vinicius rewrites copy; new product photos go through Active Storage.
+**HTML/CSS clone — 🟢 shipped**
 
-**Domain + checkout**
-- Domain models from the table above (`bin/rails g model …` for each).
-- Seed 24 SKUs in `db/seeds/products.rb` — explicit `Product.create!` calls per cartridge with customization schemas. Photos staged in `db/seeds/images/`.
-- Cart (cookie token), guest checkout, full customizations form.
-- ViaCEP autocomplete in checkout (free, no auth).
-- Shipping quotes **stubbed** in Phase 1 (fixed PAC/SEDEX rates). Live Melhor Envio integration in Phase 2.
-- Mercado Pago **PIX** integration with webhook handler. Use `MERCADO_PAGO_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:mp_webhook[order_id]` that POSTs to the webhook endpoint as if Mercado Pago did.
-- Order state machine (AASM, §4 lifecycle) + capacity-booking transaction inside checkout.
-- Transactional emails in pt-BR via **Postmark** or **Resend** (decide week 1): order placed, PIX QR + copy-paste, payment confirmed, payment failed.
-- Minimal `/admin`: order list with filters, single-order page, manual `mark_as_paid`/`mark_in_production`/`mark_shipped` buttons (kanban comes Phase 2).
+The storefront port from prismagames.com.br is in place:
 
-**Initial gems beyond Rails 8 defaults**: `aasm`, `friendly_id`, `paper_trail`, `pundit`, `meta-tags`, `sitemap_generator`, `brazilian-documents`, `image_processing`, `rack-attack`, plus dev/test (`factory_bot_rails`, `faker`, `vcr`, `webmock`).
+- Routes mirror the legacy URL shape: `/produtos`, `/produtos/:slug` (category), `/produto/:slug` (PDP), `/carrinho`, `/identificacao`, `/pagina/...`.
+- Five thin controllers: `pages`, `products`, `categories`, `cart`, `identification`. `cart#create` and `identification#create` are no-op flash-and-redirect placeholders until checkout is wired.
+- Layout uses **Bootstrap 4.6 + jQuery via CDN**. Shared partials: `shared/_header`, `_nav`, `_footer`, `_cookie_banner`, `_drawer`. **Tailwind was deliberately dropped** during the port (CSS reset + class collisions). Hotwire (turbo/stimulus) is installed but dormant — see `CLAUDE.md`.
+- 143 product images vendored under `public/images/`; no remote `cdn-meloja.*` / `prismagames.com.br` / `a.meloja.com.br` URLs anywhere in `app/` or `public/`.
+- Markup was rebuilt from scratch, not lifted wholesale — Meloja-templated HTML is not relicensable. Vinicius rewrites product copy; new product photos go through Active Storage.
 
-**Webhooks in dev**: ngrok with persistent subdomain documented in `.env.example`.
+**Domain — 🟡 partial**
 
-## Phase 2 — "Operate the business end-to-end" (~3 weeks)
+- Catalog migrated from a YAML PORO to ActiveRecord: `Category`, `Product` (FriendlyId-slugged, history-enabled), `ProductOption`, `ProductPhoto` (Active Storage), `Tag` / `ProductTag`, `Question`. 🟢 shipped.
+- Shipping primitives wired: `Shipment` + `ShipmentTrackingEvent`. 🟢 shipped (see § "Carrier integration layering" for the full stack).
+- Still ⚪ to land:
+  - Cart (cookie token), guest checkout, full customizations form. Today `/carrinho` is a placeholder.
+  - ViaCEP autocomplete in checkout (free, no auth).
+  - Shipping quotes — start stubbed (fixed PAC/SEDEX rates), then swap for a Correios quote call sharing the existing `Correios::Api::Client`.
+  - Mercado Pago **PIX** with webhook handler. Use `MERCADO_PAGO_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:mp_webhook[order_id]` that POSTs to the webhook endpoint as if Mercado Pago did.
+  - Order state machine (AASM, §4 lifecycle) + capacity-booking transaction inside checkout.
+  - Transactional emails in pt-BR via **Postmark** or **Resend** (decide before checkout lands): order placed, PIX QR + copy-paste, payment confirmed, payment failed.
+  - Minimal `/admin`: order list with filters, single-order page, manual `mark_as_paid`/`mark_in_production`/`mark_shipped` buttons (kanban comes later).
 
-End state: Vinicius fulfills 5 real orders through the new admin, prints labels in batch, NF-e issued automatically.
+**Gems still to add** (beyond Rails 8 defaults + what's already in `Gemfile`): `aasm`, `paper_trail`, `pundit`, `meta-tags`, `sitemap_generator`, `brazilian-documents`, `rack-attack`, plus dev/test (`factory_bot_rails`, `faker`, `vcr`). `webmock` already pinned for the Correios specs.
+
+**Webhooks in dev**: ngrok with persistent subdomain to be documented in `.env.example` when the first webhook lands.
+
+## Phase 2 — "Operate the business end-to-end"
+
+End state: Vinicius fulfills real orders through the new admin, prints labels in batch, NF-e issued automatically.
 
 - **Mercado Pago card + parcelamento sem juros up to 6x** (or 12x — Vinicius decides whether to absorb fees).
-- **Live Melhor Envio**: real-time quotes at PDP/cart, label generation post-payment, tracking-code capture + customer email.
+- **Live Correios** — 🟡 partial. **Shipped:** pré-postagem creation (`Shipping::CreatePrePostagem` → `Correios::Api::PrePostagem`), the `Shipment` factory + lifecycle, and hourly rastro polling (`SyncPendingShipmentsJob` → `SyncShipmentJob`). **Still to land:** real-time quotes at PDP/cart (a `Correios::Api::Precos` adapter sharing the existing `Client`), wiring the operator-triggered label button into `/admin/shipments`, customer notification email on `tracking_code` capture, and once `Order` exists, transitioning the order on a final `tracking_state`.
 - **Production kanban** (`/admin/production`): columns `pending → flashed → boxed → labeled → shipped`. Drag-drop with Stimulus + Turbo Streams (Solid Cable broadcasts updates to all open admin tabs). `Order#fulfillment_stage` enum is **separate** from `Order#status` (AASM tracks customer-facing state; `fulfillment_stage` tracks internal kanban).
 - **Per-order workbench** (`/admin/orders/:id`):
   - Customizations checklist auto-generated from LineItem JSONB ("Flash ROM: Pokémon Crystal Clear v2.5.10" with checkbox)
   - ROM file lookup: clicking the customization shows the matching `RomFile` with download link from R2
-  - Shipping panel: one-click Melhor Envio label → PDF
+  - Shipping panel: one-click Correios pré-postagem label → PDF
   - Timeline of state transitions (PaperTrail)
   - Customer-facing progress photos: drag-drop upload to Active Storage; "visible to customer" toggle. Visible photos appear on the customer's order page.
 - **Bulk label printing** (`/admin/shipments/print_batch`): fetches selected orders' labels, merges into one PDF via `combine_pdf` or `prawn`. Trigger from kanban.
@@ -650,7 +681,7 @@ End state: Vinicius fulfills 5 real orders through the new admin, prints labels 
 - **PaperTrail** wired on key models.
 - **`encrypts :cpf, :phone`** on Customer + Address.
 
-## Phase 3 — "Customers come back" (~2 weeks)
+## Phase 3 — "Customers come back"
 
 End state: existing customers can log in, see their orders, see in-progress photos.
 
@@ -663,7 +694,7 @@ End state: existing customers can log in, see their orders, see in-progress phot
 - LGPD: privacy policy page (pt-BR), cookie consent banner, data-export rake task (`rake lgpd:export[email]`), data-deletion rake task.
 - Reclame Aqui link in footer (per §0.2).
 
-## Phase 4 — "Polish for cutover" (~1–2 weeks)
+## Phase 4 — "Polish for cutover"
 
 End state: app is deployable, observable, and ready for Vinicius to flip DNS when he says go.
 
@@ -675,69 +706,92 @@ End state: app is deployable, observable, and ready for Vinicius to flip DNS whe
 - Staging env (second VPS box, or same box with separate `prisma_engine_staging` deploy) for Vinicius to walk through.
 - DNS cutover playbook handed to Vinicius — leave the actual flip to him.
 
-## Decisions to lock in week 1
+## Decisions locked in
+
+| Decision | Choice | Why |
+|---|---|---|
+| Payment gateway | **Mercado Pago** | Best PIX UX in BR, native parcelamento sem juros, antifraud included, brand customers already trust. |
+| NF-e provider | **NFe.io** | Cleaner REST API than eNotas; pay-per-issue pricing fits the SKU volume; not an ERP like Bling. |
+| Shipping carrier | **Correios** (direct API) | Only carrier in scope; PAC + SEDEX + Mini Envios cover cartridge-sized parcels. `Correios::Api::*` + `Shipping::*` shipped. |
+| Postgres | **Co-located on the VPS** | Daily `pg_dump` → R2 covers 99% of risk; managed Postgres is a future migration. |
+| Background jobs | **Solid Queue** | Rails 8 default; Postgres-backed; no Redis to operate. Recurring jobs via `config/recurring.yml`. |
+| Storefront stack | **Bootstrap 4.6 + jQuery via CDN** | Preserves the legacy site's look during the port. Tailwind was tried and dropped — see `CLAUDE.md`. |
+| Admin auth | **Rails 8 native authentication generator** | No Devise; less ceremony. |
+| Admin JS (future) | **Importmap + Stimulus + Turbo** (no bundler) | Aligns with §0 boring-stack principle; gems installed, dormant on the storefront. |
+| Test framework | **Minitest** (Rails 8 default) | Revisit if integration tests get awkward. |
+| HTTP client | **Faraday** | Shared base in `Correios::Api::Client`; reuse for future external APIs. |
+
+Still to pick:
 
 | Decision | Recommendation | Why |
 |---|---|---|
-| Payment gateway | **Mercado Pago** | Best PIX UX in BR, native parcelamento sem juros, antifraud included, brand customers already trust |
-| NF-e provider | **NFe.io** | Cleaner REST API than eNotas; pay-per-issue pricing fits 24-SKU volume; not an ERP like Bling |
-| VPS provider | **See § Deferred Decisions** | Pick at deployment time; Brazilian providers preferred (BR latency on PIX) |
-| Postgres | **Co-located on the VPS** for all 4 phases | Daily pg_dump → R2 covers 99% of risk; managed Postgres is a future migration |
-| Background jobs | **Solid Queue** | Rails 8 default; Postgres-backed; no Redis to operate |
-| Admin auth | **Rails 8 native authentication generator** | No Devise; less ceremony |
-| Frontend JS | **Importmap + Stimulus + Turbo** (no bundler) | Aligns with §0 boring-stack principle |
-| Test framework | **Minitest** (Rails 8 default) | Learning angle; revisit at Phase 2 if integration tests get awkward |
-| Email provider | **Postmark** or **Resend** | Both work from BR; pick one week 1 and stop deciding |
+| VPS provider | **See § Deferred Decisions** | Pick at deployment time; Brazilian providers preferred (BR latency on PIX). |
+| Email provider | **Postmark** or **Resend** | Both work from BR; pick before the first transactional email lands and stop deciding. |
 
 ## Open items / needs from Vinicius
 
 These don't block kicking off Phase 1 but block portions of Phase 1–2:
 
-- **CNPJ status** — required for Mercado Pago merchant account, NFe.io account, Melhor Envio account. Confirm he has one and apps are submitted (approvals can take 1–2 weeks).
+- **CNPJ status** — required for Mercado Pago merchant account, NFe.io account, and the Correios contract (rastro + pré-postagem API tokens). Confirm he has one and apps are submitted (approvals can take 1–2 weeks).
 - **NCM codes** for each cartridge type — wrong NCM = NF-e fines. Lock with Vinicius's accountant before Phase 2.
 - **Brand assets** — logo source files, brand fonts, color tokens. Otherwise we lift from current site (visual only, not files he doesn't own).
 - **Per-product customization schemas** — Vinicius needs to enumerate ROM choices, shell colors, label art rules per cartridge. Use a shared spreadsheet → seed file.
-- **Mercado Pago + NFe.io + Melhor Envio sandbox credentials** — needed by end of Phase 1 dev.
+- **Mercado Pago + NFe.io + Correios API credentials** (rastro token + cartão de postagem token) — needed by end of Phase 1 dev.
 - **Maximum installments policy** — 6x or 12x sem juros? Who eats the fee?
 - **Boleto: yes or no?** — Phase 4 flag.
 
-## Critical files to create
+## Critical files
 
-- `/home/ericktmr/Code/prisma_engine/` — Rails app root
-- `app/models/product.rb` — customization_schema declaration, lead_time_days, FriendlyId, PaperTrail, pg_search hooks
-- `app/models/order.rb` — AASM lifecycle, transactional capacity booking (§4 snippet)
-- `app/models/line_item.rb` — `Customizations::Validator` integration, fulfillment_progress jsonb
-- `app/models/concerns/customizations/validator.rb` — schema-driven validation PORO
-- `app/controllers/admin/production_controller.rb` — kanban board controller (the killer feature)
-- `app/views/admin/production/index.html.erb` — kanban view with Turbo Streams
-- `app/services/mercado_pago/create_pix_payment.rb` — first service object; sets convention for all external integrations
-- `app/services/melhor_envio/quote_shipping.rb`, `app/services/melhor_envio/generate_label.rb`
-- `app/services/nfe_io/issue_invoice.rb`
-- `app/services/via_cep/lookup.rb`
-- `app/jobs/issue_nfe_job.rb`, `app/jobs/abandoned_cart_job.rb`
-- `db/seeds/products.rb` + `db/seeds/images/` — 24 SKU seed
-- `config/deploy.yml` — Kamal config (Phase 4)
-- `Procfile.dev`, `bin/dev`, `.env.example`
-- `docs/legacy_html/` — frozen HTML snapshots from prismagames.com.br
-- `docs/restore_drill.md` — backup/restore playbook (Phase 4)
+🟢 In place today:
+
+- `/home/ericktmr/Code/prisma_engine/` — Rails app root.
+- `app/models/product.rb`, `category.rb`, `product_option.rb`, `product_photo.rb`, `tag.rb`, `product_tag.rb`, `question.rb` — catalog (ActiveRecord, FriendlyId on Product).
+- `app/models/shipment.rb`, `shipment_tracking_event.rb` — Correios pré-postagem state + tracking lifecycle.
+- `app/services/correios/api/` (`client.rb`, `tracking.rb`, `pre_postagem.rb`, `timestamp.rb`) — infrastructure / ACL.
+- `app/services/shipping/` (`create_pre_postagem.rb`, `pre_postagem_request.rb`, `shipment_factory.rb`, `tracking_update.rb`) — domain.
+- `app/jobs/sync_pending_shipments_job.rb`, `sync_shipment_job.rb` — application wiring (hourly orchestrator + per-shipment worker).
+- `app/views/{layouts,pages,products,categories,cart,identification,shared}/*` — Bootstrap 4 + jQuery storefront port.
+- `config/routes.rb` — legacy URL shape mirrored.
+- `config/recurring.yml` — `SyncPendingShipmentsJob` hourly.
+- `Procfile.dev`, `bin/dev`, `bin/setup`, `bin/share-dev`, `bin/pre-push-check`, `.env.example`, `compose.yaml`.
+- `.github/workflows/ci.yml` — single workflow (see § CI in `CLAUDE.md`).
+
+⚪ Still to create:
+
+- `app/models/order.rb` — AASM lifecycle, transactional capacity booking (§4 snippet).
+- `app/models/cart.rb`, `line_item.rb`, `payment.rb`, `address.rb`, `customer.rb`, `admin_user.rb`, `nfe_issuance.rb`, `production_slot.rb`, `rom_file.rb`.
+- `app/models/concerns/customizations/validator.rb` — schema-driven validation PORO.
+- `app/controllers/admin/production_controller.rb` — kanban board (the killer feature).
+- `app/views/admin/production/index.html.erb` — kanban view with Turbo Streams.
+- `app/services/mercado_pago/create_pix_payment.rb` — first PSP service; sets convention.
+- `app/services/correios/api/precos.rb` + `app/services/shipping/quote.rb` — live shipping quotes (reuses the existing `Client`).
+- `app/services/nfe_io/issue_invoice.rb`.
+- `app/services/via_cep/lookup.rb`.
+- `app/jobs/issue_nfe_job.rb`, `abandoned_cart_job.rb`.
+- `db/seeds/products.rb` + `db/seeds/images/` — production seed (today the catalog seed is hand-curated).
+- `config/deploy.yml` — Kamal config (deployment).
+- `docs/legacy_html/` — frozen HTML snapshots from prismagames.com.br (currently in `tmp/snapshot/`, gitignored — promote to `docs/` once stable).
+- `docs/restore_drill.md` — backup/restore playbook.
 
 ## Verification (per phase)
 
 Each phase ends with a concrete demo to Vinicius — no phase is "done" until the demo works end-to-end on a real device.
 
 **Phase 1 verification**
-- `bin/dev` boots; storefront loads at localhost:3000 visually matching prismagames.com.br
-- Place a test order with a ROM-hack customization through the storefront
-- PIX QR code email arrives in dev inbox (Letter Opener or Postmark sandbox)
-- `rake simulate:mp_webhook[order_number]` flips the order to `paid`
-- Order appears in `/admin/orders` with the customization visible
+- 🟢 `bin/dev` boots; storefront loads at localhost:3000 visually matching prismagames.com.br.
+- 🟢 Catalog renders from ActiveRecord (Category / Product / ProductPhoto / Question), legacy URL shape works (`/produtos`, `/produto/:slug`, etc.).
+- ⚪ Place a test order with a ROM-hack customization through the storefront.
+- ⚪ PIX QR code email arrives in dev inbox (Letter Opener or Postmark sandbox).
+- ⚪ `rake simulate:mp_webhook[order_number]` flips the order to `paid`.
+- ⚪ Order appears in `/admin/orders` with the customization visible.
 
 **Phase 2 verification**
-- Real Mercado Pago sandbox card payment succeeds with installments
-- Melhor Envio quote returns ≥2 services with prices in cart
-- Drag a card across the kanban; status persists; second admin browser tab updates live
-- Click "Print labels" on 3 selected orders → single merged PDF downloads
-- NF-e issuance job runs against NFe.io sandbox; PDF URL stored on Order
+- ⚪ Real Mercado Pago sandbox card payment succeeds with installments.
+- ⚪ Correios quote returns ≥2 services (PAC + SEDEX) with prices in cart.
+- 🟢 `Shipping::CreatePrePostagem` returns a tracking_code against the Correios sandbox and persists a `Shipment`; `SyncShipmentJob` reconciles its rastro events into `tracking_state`.
+- ⚪ Drag a card across the kanban; status persists; second admin browser tab updates live.
+- ⚪ Click "Print labels" on 3 selected orders → single merged PDF downloads.
+- ⚪ NF-e issuance job runs against NFe.io sandbox; PDF URL stored on Order.
 
 **Phase 3 verification**
 - Existing customer logs in, sees order history with progress photos
@@ -765,15 +819,15 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 
 Recorded so we don't lose them. Pick at the time the decision actually matters, not before.
 
-- **VPS provider (Phase 4 — production deployment).** Pick at deployment time. **Brazilian providers preferred** because audience is Brazil-only and 10 ms vs 200 ms on PIX checkout matters. First-look candidates in priority order:
+- **VPS provider** (production deployment). Pick at deployment time. **Brazilian providers preferred** because audience is Brazil-only and 10 ms vs 200 ms on PIX checkout matters. First-look candidates in priority order:
   1. **Magalu Cloud** (São Paulo, BRL billing, BR provider)
   2. **DigitalOcean São Paulo (BRA1)** (well-documented, strong Kamal support, ~10 ms latency)
   3. **AWS Lightsail sa-east-1** (cheap VPS, AWS ecosystem if useful later)
   4. **Hetzner Cloud** (cheapest globally, canonical Kamal pairing, but ~200 ms latency from BR — only if budget dominates latency)
-- **CI pipeline** (GitHub Actions or alternative) — wire up once there's app code to gate.
-- **Pre-commit hooks** (Lefthook / Overcommit) — same reason.
-- **Kamal config** (`config/deploy.yml`, `.kamal/secrets`) — `--skip-kamal` at scaffold time; add at Phase 4 with a target VPS chosen. Production `Dockerfile` itself is generated by `rails new` and lives in the repo from day one.
-- **Error monitoring** (Sentry / Honeybadger / AppSignal) — defer to Phase 1 launch.
-- **Solid Queue worker process in `bin/dev` Procfile** — add when first background job ships.
-- **Auth stack** (Devise vs Rails 8 built-in `bin/rails generate authentication` vs Rodauth) — decide when first user-facing flow lands.
-- **GitHub remote** (private repo + push) — gh CLI install pending; revisit after scaffold lands locally.
+- ~~**CI pipeline**~~ — 🟢 `.github/workflows/ci.yml` shipped: rubocop, brakeman, bundler-audit, importmap audit, semgrep (diff mode), gitleaks, dependency review, tests + system-tests + 100% SimpleCov + undercover (changed-line coverage), reek (advisory), sticky `ci-quality` PR comment. Local parity via `bin/pre-push-check`. See `CLAUDE.md`.
+- ~~**Pre-commit hooks**~~ — 🟢 `bin/pre-push-check` (script-based, not Lefthook) runs the same gauntlet locally before push.
+- ~~**GitHub remote**~~ — 🟢 hosted at `github.com/erick-tmr/prisma_engine`.
+- **Kamal config** (`config/deploy.yml`, `.kamal/secrets`) — `--skip-kamal` at scaffold time; add at deployment with a target VPS chosen. Production `Dockerfile` itself is generated by `rails new` and lives in the repo from day one.
+- **Error monitoring** (Sentry / Honeybadger / AppSignal) — defer until first deploy.
+- **Solid Queue worker process in `bin/dev` Procfile** — Solid Queue runs via `bin/jobs` today; revisit `SOLID_QUEUE_IN_PUMA` for the single-VPS deploy.
+- **Auth stack** (Devise vs Rails 8 built-in `bin/rails generate authentication` vs Rodauth) — decide when first user-facing flow lands. Current bias: Rails 8 native.

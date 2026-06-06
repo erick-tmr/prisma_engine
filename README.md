@@ -1,6 +1,6 @@
 # prisma_engine
 
-Rails 8 ecommerce platform for Prisma Games — a Brazilian retro Game Boy cartridge store. Made-to-order fulfillment workflow with PIX/parcelamento payments, Correios/Melhor Envio shipping, NF-e issuance, and an operator workbench for the artisan.
+Rails 8 ecommerce platform for Prisma Games — a Brazilian retro Game Boy cartridge store. Made-to-order fulfillment workflow with PIX/parcelamento payments, Correios shipping, NF-e issuance, and an operator workbench for the artisan.
 
 See `docs/architecture.md` for the full architecture and the migration plan from Meloja, and `CLAUDE.md` for the working contract used during AI-assisted development.
 
@@ -59,4 +59,4 @@ Storefront frontend port from prismagames.com.br has shipped:
 - `Product` PORO backed by `config/products.yml` (26 products extracted from the live-site snapshot) until a real ActiveRecord model lands.
 - 143 product images vendored under `public/images/`.
 
-Domain models, real cart/checkout, Mercado Pago, Melhor Envio, NF-e, and the admin workbench come in subsequent phases — see `docs/architecture.md` § Migration Plan.
+Domain models, real cart/checkout, Mercado Pago, Correios, NF-e, and the admin workbench come in subsequent phases — see `docs/architecture.md` § Migration Plan.
