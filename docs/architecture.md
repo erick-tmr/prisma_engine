@@ -9,7 +9,7 @@
 | Decision | Choice | Implication |
 |---|---|---|
 | Product domain | **Handmade / made-to-order** | Default: no stock — sell as many as orders come in; some products may opt into a small ready-made stock (see §0.1). Per-order variant choices (ROM, shell color, …) modeled as `ProductOption` rows. Returns mostly non-applicable. |
-| Primary market | **Brazil** (BRL, pt-BR) | PIX is mandatory; parcelamento expected; NF-e issuance; LGPD; Correios shipping |
+| Primary market | **Brazil** (BRL, pt-BR) | Pix is mandatory; parcelamento expected; NF-e issuance; LGPD; Correios shipping |
 | Deployment | **Kamal on a VPS** | Single-box friendly choices: Solid Queue + Solid Cache, Postgres co-located or managed; S3-compatible object storage external (R2/B2/Spaces) |
 | Codebase | Rails 8 majestic monolith | One repo, one deploy |
 
@@ -51,10 +51,10 @@ Six customer-facing states (pt-BR) with two branch points — full table in §4.
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Payments | **InfinitePay** | Brazilian PSP — PIX + card + boleto + parcelamento in one integration |
-| PIX | First-class checkout option | ~30–40% of online payments in BR; instant settlement, lowest fees |
+| Payments | **InfinitePay** | Brazilian PSP — Pix + card + parcelamento in one integration. **No boleto** (InfinitePay doesn't issue one). |
+| Pix | First-class checkout option | ~30–40% of online payments in BR; instant settlement, lowest fees |
 | Card installments | Parcelamento up to 6x or 12x sem juros | Cultural expectation; absorb fee or pass to customer |
-| Boleto | Optional | High abandonment (~70%) but still expected by some segments |
+| Boleto | **Out of scope** | Would require a second PSP. Skip until there's clear demand. |
 | NF-e (electronic invoice) | **eNotas**, **NFe.io**, or **Bling** | Mandatory for businesses; issue automatically on payment confirmation |
 | Shipping + addresses | **Correios** | PAC + SEDEX + Mini Envios via the Correios API (rastro + pré-postagem); real-time quotes; CEP autocomplete + address validation also come from Correios — no separate ViaCEP integration. |
 | Anti-fraud | InfinitePay's native | **Clearsale** or **Konduto** if scaling |
@@ -263,10 +263,10 @@ Use **InfinitePay** (see §0.2). Never store card data ourselves.
 
 Critical patterns (provider-agnostic):
 - **Idempotency keys** on every payment attempt — prevents double-charging on retries
-- **Webhook handling** for async events (payment approved/rejected/refunded) — never trust the synchronous response alone; PIX is async by nature
+- **Webhook handling** for async events (payment approved/rejected/refunded) — never trust the synchronous response alone; Pix is async by nature
 - **3DS2** on cards — shifts fraud liability from merchant to issuer
-- Store `external_payment_id` and `payment_method` (pix/card/boleto) on Order for reconciliation
-- PIX-specific: order is `pending` until webhook confirms; show QR code + copy-paste code; expire after 30 min
+- Store `external_payment_id` and `payment_method` (pix/card) on Order for reconciliation
+- Pix-specific: order is `aguardando_pagamento` until the webhook confirms; show QR code + copy-paste code; expire after 30 min
 
 #### Inventory race conditions
 
@@ -502,23 +502,23 @@ The Migration Plan below adapts this generic order to Prisma Games specifically.
 1. Product catalog + categories with variant options (ProductOption rows)
 2. Cart (session-based) with chosen `ProductOption` ids per line item + guest checkout
 3. CEP autocomplete + Correios quote at cart (both via the Correios API)
-4. Payment integration: PIX first (highest conversion in BR), then card with parcelamento — via InfinitePay
+4. Payment integration: Pix first (highest conversion in BR), then card with parcelamento — via InfinitePay
 5. Order model with made-to-order state machine + cancellation window logic
 6. NF-e issuance via eNotas/NFe.io on payment confirmation (background job)
-7. Transactional emails (pt-BR) + PIX QR code email
+7. Transactional emails (pt-BR) + Pix QR code email
 8. Basic admin: order list, production status update, customer's chosen options visible
 
 ### Phase 2 — Can you operate the business?
 
 9. Production capacity model (daily/weekly slots per product)
 10. Order fulfillment workflow + Correios label printing + tracking notifications
-11. Refunds + cancellations (PIX refund, card refund/chargeback handling)
+11. Refunds + cancellations (Pix refund, card refund/chargeback handling)
 12. Returns flow for ready-made items only (CDC art. 49)
 13. Sitemap + structured data + Search Console (BR property)
 
 ### Phase 3 — Can you grow it?
 
-14. Abandoned cart recovery (PIX-expired carts are a high-recovery segment)
+14. Abandoned cart recovery (Pix-expired carts are a high-recovery segment)
 15. Customer accounts + order history + production progress photos
 16. Reviews/ratings (with Reclame Aqui link in footer)
 17. Discount codes / promotions
@@ -600,7 +600,7 @@ Legend: 🟢 shipped · 🟡 partial · ⚪ planned (not yet built).
 | **LineItem** | ⚪ | belongs_to Cart **and** Order (two FKs, not polymorphic). Joined to the chosen `ProductOption` rows (one per option group). `fulfillment_progress` jsonb tracks per-step checkboxes for the workbench. |
 | **Order** | ⚪ | human-readable `number` (`PG-2026-000123`). AASM lifecycle from §4 above. Address fields snapshotted as jsonb to survive customer edits. PaperTrail. Final shipment state will close back into the order. |
 | **Address** | ⚪ | reusable for customer book + order snapshot. CEP/street/number/complement/neighborhood/city/state. CPF on shipping. |
-| **Payment** | ⚪ | `provider`, `method` (pix/card/boleto), `external_id`, AASM (pending → authorized → captured → refunded → failed), idempotency keys. `qr_code_payload`, `boleto_url`. |
+| **Payment** | ⚪ | `provider`, `method` (pix/card), `external_id`, AASM (pending → authorized → captured → refunded → failed), idempotency keys. `qr_code_payload`. |
 | **NfeIssuance** | ⚪ | `provider` (nfe_io), AASM (pending → issued → failed), `pdf_url`, `xml_url`, `numero`, `serie`. Retried on failure. |
 | **Customer** | ⚪ | `has_secure_password` (Rails 8 native auth), `cpf` (encrypted), `lgpd_consent_at`. |
 | **AdminUser** | ⚪ | role enum, `otp_secret` (2FA optional). |
@@ -612,9 +612,9 @@ Legend: 🟢 shipped · 🟡 partial · ⚪ planned (not yet built).
 
 Variant axes (ROM, shell color, label art, etc.) are `ProductOption` rows grouped by `group_name` (see `app/models/product_option.rb`). The checkout form picks one row per group; the line item references those rows directly. No extra JSON schema, no separate validator — the AR-level `(product, group, name)` uniqueness is the contract.
 
-## Phase 1 — "Look like the old site, take a PIX order"
+## Phase 1 — "Look like the old site, take a Pix order"
 
-End state: Vinicius places a PIX test order on the new app and sees it in his admin queue.
+End state: Vinicius places a Pix test order on the new app and sees it in his admin queue.
 
 **HTML/CSS clone — 🟢 shipped**
 
@@ -634,9 +634,9 @@ The storefront port from prismagames.com.br is in place:
   - Cart (cookie token), guest checkout, variant picker (one row per `ProductOption.group_name`). Today `/carrinho` is a placeholder.
   - CEP autocomplete in checkout via the Correios API (reuses the existing `Correios::Api::Client`).
   - Shipping quotes — start stubbed (fixed PAC/SEDEX rates), then swap for a Correios quote call sharing the existing `Correios::Api::Client`.
-  - InfinitePay **PIX** with webhook handler. Use `INFINITE_PAY_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:infinitepay_webhook[order_id]` that POSTs to the webhook endpoint as if InfinitePay did.
+  - InfinitePay **Pix** with webhook handler. Use `INFINITE_PAY_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:infinitepay_webhook[order_id]` that POSTs to the webhook endpoint as if InfinitePay did.
   - Order state machine (AASM, §4 lifecycle) + capacity-booking transaction inside checkout.
-  - Transactional emails in pt-BR via **Postmark** or **Resend** (decide before checkout lands): order placed, PIX QR + copy-paste, payment confirmed, payment failed.
+  - Transactional emails in pt-BR via **Postmark** or **Resend** (decide before checkout lands): order placed, Pix QR + copy-paste, payment confirmed, payment failed.
   - Minimal `/admin`: order list with filters, single-order page, manual transitions for any state in the order lifecycle (kanban comes later).
 
 **Gems still to add** (beyond Rails 8 defaults + what's already in `Gemfile`): `aasm`, `paper_trail`, `pundit`, `meta-tags`, `sitemap_generator`, `brazilian-documents`, `rack-attack`, plus dev/test (`factory_bot_rails`, `faker`, `vcr`). `webmock` already pinned for the Correios specs.
@@ -668,9 +668,9 @@ End state: existing customers can log in, see their orders, see in-progress phot
 
 - Customer accounts via Rails 8 native authentication (`bin/rails generate authentication`). No Devise.
 - Order history page; in-progress orders show progress photos uploaded by Vinicius.
-- Abandoned-PIX-cart recovery email (Solid Queue cron, 1h/24h after PIX expiry).
+- Abandoned-Pix-cart recovery email (Solid Queue cron, 1h/24h after Pix expiry).
 - Discount codes (simple `Coupon` model: code, percent_off or amount_off_cents, max_uses, expires_at).
-- Refunds + cancellation flow: PIX refund through InfinitePay API; cancellation only allowed before `em_producao` (3.2) per §0.1.
+- Refunds + cancellation flow: Pix refund through InfinitePay API; cancellation only allowed before `em_producao` (3.2) per §0.1.
 - SEO: sitemap.xml, JSON-LD on PDPs (Product + Offer + BreadcrumbList), Search Console verification, robots.txt.
 - LGPD: privacy policy page (pt-BR), cookie consent banner, data-export rake task (`rake lgpd:export[email]`), data-deletion rake task.
 - Reclame Aqui link in footer (per §0.2).
@@ -683,7 +683,6 @@ End state: app is deployable, observable, and ready for Vinicius to flip DNS whe
 - **Cloudflare** in front of R2 + the app; Let's Encrypt via Kamal proxy.
 - **Sentry** + **Better Stack** (logs + uptime).
 - **WebP/AVIF** variants via `image_processing`; `loading="lazy"` below the fold; explicit width/height (CLS).
-- **Boleto via InfinitePay** if Vinicius wants it (high abandonment ~70% — confirm desire before building).
 - Staging env (second VPS box, or same box with separate `prisma_engine_staging` deploy) for Vinicius to walk through.
 - DNS cutover playbook handed to Vinicius — leave the actual flip to him.
 
@@ -691,7 +690,7 @@ End state: app is deployable, observable, and ready for Vinicius to flip DNS whe
 
 | Decision | Choice | Why |
 |---|---|---|
-| Payment gateway | **InfinitePay** | Brazilian PSP — PIX + card + boleto + parcelamento + native antifraud in one integration. |
+| Payment gateway | **InfinitePay** | Brazilian PSP — Pix + card + parcelamento + native antifraud in one integration. No boleto. |
 | NF-e provider | **NFe.io** | Cleaner REST API than eNotas; pay-per-issue pricing fits the SKU volume; not an ERP like Bling. |
 | Shipping carrier | **Correios** (direct API) | Only carrier in scope; PAC + SEDEX + Mini Envios cover cartridge-sized parcels. `Correios::Api::*` + `Shipping::*` shipped. |
 | Postgres | **Co-located on the VPS** | Daily `pg_dump` → R2 covers 99% of risk; managed Postgres is a future migration. |
@@ -706,7 +705,7 @@ Still to pick:
 
 | Decision | Recommendation | Why |
 |---|---|---|
-| VPS provider | **See § Deferred Decisions** | Pick at deployment time; Brazilian providers preferred (BR latency on PIX). |
+| VPS provider | **See § Deferred Decisions** | Pick at deployment time; Brazilian providers preferred (BR latency on Pix). |
 | Email provider | **Postmark** or **Resend** | Both work from BR; pick before the first transactional email lands and stop deciding. |
 
 ## Open items / needs from Vinicius
@@ -719,7 +718,6 @@ These don't block kicking off Phase 1 but block portions of Phase 1–2:
 - **Per-product variant options** — Vinicius enumerates ROM choices, shell colors, label art per cartridge; each becomes a `ProductOption` row. Use a shared spreadsheet → seed file.
 - **InfinitePay + NFe.io + Correios API credentials** (rastro token + cartão de postagem token) — needed by end of Phase 1 dev.
 - **Maximum installments policy** — 6x or 12x sem juros? Who eats the fee?
-- **Boleto: yes or no?** — Phase 4 flag.
 
 ## Critical files
 
@@ -760,7 +758,7 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 - 🟢 `bin/dev` boots; storefront loads at localhost:3000 visually matching prismagames.com.br.
 - 🟢 Catalog renders from ActiveRecord (Category / Product / ProductPhoto / Question), legacy URL shape works (`/produtos`, `/produto/:slug`, etc.).
 - ⚪ Place a test order with a ROM-hack variant chosen through the storefront.
-- ⚪ PIX QR code email arrives in dev inbox (Letter Opener or Postmark sandbox).
+- ⚪ Pix QR code email arrives in dev inbox (Letter Opener or Postmark sandbox).
 - ⚪ `rake simulate:infinitepay_webhook[order_number]` flips the order to `pagamento_confirmado`.
 - ⚪ Order appears in `/admin/orders` with the chosen options visible.
 
@@ -775,7 +773,7 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 **Phase 3 verification**
 - Existing customer logs in, sees order history with progress photos
 - Apply a discount code at checkout; total updates correctly
-- Trigger a refund; PIX refund created in InfinitePay sandbox; email sent
+- Trigger a refund; Pix refund created in InfinitePay sandbox; email sent
 - View source on a PDP shows valid `application/ld+json` Product schema (validate at search.google.com/test/rich-results)
 - `rake lgpd:export[customer@example.com]` produces a JSON dump
 
@@ -798,7 +796,7 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 
 Recorded so we don't lose them. Pick at the time the decision actually matters, not before.
 
-- **VPS provider** (production deployment). Pick at deployment time. **Brazilian providers preferred** because audience is Brazil-only and 10 ms vs 200 ms on PIX checkout matters. First-look candidates in priority order:
+- **VPS provider** (production deployment). Pick at deployment time. **Brazilian providers preferred** because audience is Brazil-only and 10 ms vs 200 ms on Pix checkout matters. First-look candidates in priority order:
   1. **Magalu Cloud** (São Paulo, BRL billing, BR provider)
   2. **DigitalOcean São Paulo (BRA1)** (well-documented, strong Kamal support, ~10 ms latency)
   3. **AWS Lightsail sa-east-1** (cheap VPS, AWS ecosystem if useful later)
