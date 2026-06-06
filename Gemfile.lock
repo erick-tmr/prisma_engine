@@ -178,6 +178,8 @@ GEM
     ffi (1.17.4-x86_64-darwin)
     ffi (1.17.4-x86_64-linux-gnu)
     ffi (1.17.4-x86_64-linux-musl)
+    friendly_id (5.7.0)
+      activerecord (>= 4.0.0)
     fugit (1.12.1)
       et-orbi (~> 1.4)
       raabro (~> 1.4)
@@ -467,6 +469,7 @@ DEPENDENCIES
   derailed_benchmarks
   dotenv (~> 3.1)
   faraday (~> 2.14)
+  friendly_id (~> 5.5)
   image_processing (~> 2.0)
   importmap-rails
   memory_profiler

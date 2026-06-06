@@ -1,72 +1,56 @@
-class Product
-  DATA_PATH = Rails.root.join("config", "products.yml")
+class Product < ApplicationRecord
+  include HasMoney
+  extend FriendlyId
+  friendly_id :name, use: [ :slugged, :history ]
 
-  CATEGORY_LABELS = {
-    "game-boy-classic" => "Game Boy Classic",
-    "game-boy-color"   => "Game Boy Color",
-    "other"            => "Outros"
-  }.freeze
+  belongs_to :category
 
-  CATEGORY_IDS = {
-    "game-boy-classic" => 351512,
-    "game-boy-color"   => 354342
-  }.freeze
+  has_many :product_options, dependent: :destroy
+  has_many :product_photos, dependent: :destroy
+  has_many :questions, dependent: :destroy
+  has_many :product_tags, dependent: :destroy
+  has_many :tags, through: :product_tags
 
-  attr_reader :id, :short_id, :slug, :title, :price_brl, :image, :category
+  validates :name, presence: true
+  validates :price_cents, numericality: { greater_than_or_equal_to: 0 }
 
-  def initialize(attrs)
-    @id        = attrs.fetch("id")
-    @short_id  = attrs.fetch("short_id")
-    @slug      = attrs.fetch("slug")
-    @title     = attrs.fetch("title")
-    @price_brl = attrs["price_brl"].to_f
-    @image     = attrs["image"]
-    @category  = attrs["category"]
+  scope :published, -> { where(published: true) }
+  scope :for_category, ->(slug) { joins(:category).where(categories: { slug: slug }) }
+  scope :featured, ->(limit = 8) {
+    published.where.not("products.name LIKE ?", "- %").limit(limit)
+  }
+
+  # An unpriced product means "ask for the price" — not "R$ 0.00".
+  def price_formatted
+    price_cents.to_i.zero? ? "Sob consulta" : HasMoney.format(price_cents)
+  end
+
+  # --- Storefront read interface preserved from the former YAML PORO ---
+
+  def title
+    name
   end
 
   def category_label
-    CATEGORY_LABELS[category] || CATEGORY_LABELS["other"]
+    category&.name
   end
 
-  def to_param
-    id
+  def image
+    photo = product_photos.in_display_order.first
+    if photo&.image&.attached?
+      Rails.application.routes.url_helpers.rails_blob_path(photo.image, only_path: true)
+    else
+      legacy_image_path
+    end
   end
 
-  def price_formatted
-    return "Sob consulta" if price_brl.zero?
-    "R$ %0.2f" % price_brl
-  end
-
-  class << self
-    def all
-      @all ||= load_from_yaml
-    end
-
-    def reload!
-      @all = load_from_yaml
-    end
-
-    def find(id)
-      all.find { |p| p.id == id }
-    end
-
-    def find_by_slug_and_id(slug, id)
-      all.find { |p| p.slug == slug && p.id == id }
-    end
-
-    def for_category(category)
-      all.select { |p| p.category == category }
-    end
-
-    def featured(limit = 8)
-      all.reject { |p| p.title.start_with?("- ") }.first(limit)
-    end
-
-    private
-
-    def load_from_yaml
-      raw = YAML.safe_load_file(DATA_PATH)
-      raw.fetch("products", []).map { |attrs| new(attrs) }
-    end
+  # Titles carry HTML entities (&#039;, &amp;) and emoji; unescape and strip
+  # anything non-alphanumeric before parameterize so generated slugs stay clean
+  # (e.g. "Kirby&#039;s Dream Land" -> "kirbys-dream-land"). friendly_id calls
+  # this publicly, so it must not be private.
+  def normalize_friendly_id(value)
+    CGI.unescapeHTML(value.to_s)
+       .gsub(/[^\p{Latin}\p{Digit}\s-]/, "")
+       .parameterize
   end
 end

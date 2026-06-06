@@ -2,8 +2,9 @@
 #
 # Pre-push gate: mirrors the CI gates locally so nothing red lands on
 # origin/main. Runs rubocop, brakeman, bundler-audit, importmap audit, reek
-# (advisory), gitleaks (when installed), the test suite, then undercover
-# changed-line coverage. Run this manually before `git push`.
+# (advisory), gitleaks (when installed), semgrep diff-mode (when semgrep or
+# docker is available), the test suite, then undercover changed-line coverage.
+# Run this manually before `git push`.
 #
 # Usage:        bin/pre-push-check
 # Skip tests:   SKIP_TESTS=1 bin/pre-push-check   (faster — useful for docs-only;
@@ -49,6 +50,38 @@ if command -v gitleaks >/dev/null 2>&1; then
   ok "gitleaks"
 else
   printf '  (skipped — gitleaks not installed; `brew install gitleaks`)\n'
+fi
+
+# Mirrors CI's Semgrep (new findings) job. Prefers a local install, falls back
+# to docker, skips if neither is present. Same config + suppression filter as
+# .github/workflows/ci.yml — if it passes here it should pass there.
+step "semgrep (diff-mode, new findings only)"
+if command -v semgrep >/dev/null 2>&1; then
+  SEMGREP_RUN=(semgrep)
+elif command -v docker >/dev/null 2>&1; then
+  SEMGREP_RUN=(docker run --rm -v "$ROOT":/src -w /src returntocorp/semgrep:1.165.0 semgrep)
+else
+  SEMGREP_RUN=()
+fi
+if [ ${#SEMGREP_RUN[@]} -eq 0 ]; then
+  printf '  (skipped — install semgrep or docker; `pipx install semgrep` or `brew install --cask docker`)\n'
+else
+  mkdir -p tmp
+  BASE="$(git merge-base origin/main HEAD)"
+  "${SEMGREP_RUN[@]}" scan \
+    --config p/ruby --config p/security-audit \
+    --metrics off --sarif --output tmp/semgrep.sarif \
+    --baseline-commit "$BASE" >/dev/null
+  UNSUPPRESSED='[.runs[].results[]? | select((.suppressions // []) | length == 0)]'
+  COUNT=$(jq -r "$UNSUPPRESSED | length" tmp/semgrep.sarif)
+  if [ "$COUNT" -gt 0 ]; then
+    jq -r "$UNSUPPRESSED"' | .[] |
+      "---\nRULE: \(.ruleId)\nFILE: \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)\nCODE: \((.locations[0].physicalLocation.region.snippet.text // "(no snippet)") | gsub("\n"; " "))\nMSG:  \(.message.text | gsub("\n"; " "))"
+    ' tmp/semgrep.sarif
+    printf '\n\033[1;31m✗ semgrep — %s new finding(s); fix or add a justified `# nosemgrep: <rule-id>`\033[0m\n' "$COUNT"
+    exit 1
+  fi
+  ok "semgrep"
 fi
 
 if [ "${SKIP_TESTS:-}" = "1" ]; then

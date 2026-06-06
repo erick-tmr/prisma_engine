@@ -1,14 +1,31 @@
 name: CI
 
+# Single workflow for both the blocking pass/fail contract (rubocop, brakeman,
+# bundler-audit, importmap audit, tests, system-tests, semgrep diff, secret
+# scan, dependency review) and the diff-aware visibility layer (changed-line
+# coverage, code smells, SARIF uploads, the sticky `ci-quality` PR comment).
+#
+# Required-vs-advisory is enforced by main's branch protection list, not by
+# which file a job lives in. Keeping all jobs in one workflow run means
+# artifacts (e.g. coverage from the `test` job) flow naturally into downstream
+# jobs (`undercover` reads them) without a workflow_run serialization hop.
+
 on:
   pull_request:
   push:
     branches: [ main ]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   scan_ruby:
+    name: Brakeman + bundler-audit
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -49,8 +66,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   scan_js:
+    name: importmap audit
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -76,6 +93,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   lint:
+    name: RuboCop
     runs-on: ubuntu-latest
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
@@ -114,8 +132,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   test:
+    name: Tests
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres
@@ -125,13 +143,6 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
-
-      # redis:
-      #   image: valkey/valkey:8
-      #   ports:
-      #     - 6379:6379
-      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
@@ -148,8 +159,6 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          # REDIS_URL: redis://localhost:6379/0
         run: |
           mkdir -p tmp
           bin/rails db:test:prepare test 2>&1 | tee tmp/test.log
@@ -164,9 +173,20 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-  system-test:
-    runs-on: ubuntu-latest
+      # Hand off the SimpleCov output to the undercover job (and the sticky
+      # comment via the report job). Keeps tests from running twice.
+      - name: Upload coverage data
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage/
+          include-hidden-files: true   # .last_run.json carries total %
+          if-no-files-found: warn
 
+  system-test:
+    name: System tests
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres
@@ -176,13 +196,6 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
-
-      # redis:
-      #   image: valkey/valkey:8
-      #   ports:
-      #     - 6379:6379
-      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
@@ -199,8 +212,6 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          # REDIS_URL: redis://localhost:6379/0
         run: |
           mkdir -p tmp
           bin/rails db:test:prepare test:system 2>&1 | tee tmp/system-test.log
@@ -224,3 +235,299 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+
+  coverage:
+    name: Coverage (changed lines)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [ test ]
+    permissions:
+      contents: read
+    steps:
+      # cmake/pkg-config build the rugged (libgit2) native ext that undercover needs.
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y cmake pkg-config
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # undercover diffs changed lines against origin/main
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Download coverage data from test job
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage
+          path: coverage
+
+      - name: Coverage of changed lines (undercover)
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main || true
+          bundle exec undercover --compare origin/main | tee undercover-report.txt
+
+      - name: Coverage summary
+        if: ${{ !cancelled() }}
+        run: |
+          LINE=$(jq -r '.result.line' coverage/.last_run.json 2>/dev/null || echo "?")
+          BRANCH=$(jq -r '.result.branch' coverage/.last_run.json 2>/dev/null || echo "?")
+          {
+            echo "## Coverage"
+            echo "- Total line coverage: **${LINE}%**"
+            echo "- Total branch coverage: **${BRANCH}%**"
+            echo ""
+            echo "### Changed lines (undercover)"
+            echo '```'
+            cat undercover-report.txt 2>/dev/null || echo "(no report)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload undercover report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: undercover-report
+          path: undercover-report.txt
+          if-no-files-found: warn
+
+  code_quality:
+    name: Code smells (changed files)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Reek on changed Ruby files (advisory)
+        continue-on-error: true
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main || true
+          CHANGED=$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'app/**/*.rb' 'lib/**/*.rb' | tr '\n' ' ')
+          if [ -z "$CHANGED" ]; then
+            echo "No changed Ruby files." | tee reek-report.txt
+          else
+            echo "Reek on: $CHANGED"
+            bundle exec reek --force-exclusion $CHANGED | tee reek-report.txt || true
+          fi
+
+      - name: Code-smell summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Code smells — reek (changed files)"
+            echo '```'
+            cat reek-report.txt 2>/dev/null || echo "(none)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reek report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: reek-report
+          path: reek-report.txt
+          if-no-files-found: warn
+
+  brakeman_sarif:
+    name: Brakeman (code scanning)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # required to upload SARIF to code scanning
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      # The blocking Brakeman run lives in the scan_ruby job; this run only
+      # surfaces findings as PR annotations + the Security tab, so it must not
+      # fail the job.
+      - name: Brakeman SARIF
+        run: bin/brakeman -f sarif -o brakeman.sarif.json --no-pager || true
+
+      - name: Upload Brakeman SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: brakeman.sarif.json
+          category: brakeman
+
+  semgrep_diff:
+    name: Semgrep (new findings)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # Pin: floating versions previously masked a subtle suppression-handling
+      # difference between local and CI runs (see commit history on
+      # bin/pre-push-check). Bump deliberately.
+      - name: Install Semgrep
+        run: pipx install semgrep==1.165.0
+
+      # On PRs, --baseline-commit reports only NEWLY introduced findings. On
+      # main, a full scan seeds the default-branch baseline. Failure-on-finding
+      # is handled by the Render step below, not `--error`, so we can also
+      # print rule/file/line to the log, step summary, and sticky PR comment.
+      - name: Semgrep scan
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main || true
+          COMMON="--config p/ruby --config p/security-audit --sarif --output semgrep.sarif --metrics off"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=$(git merge-base origin/main HEAD)
+            semgrep scan $COMMON --baseline-commit "$BASE"
+          else
+            semgrep scan $COMMON
+          fi
+
+      # Convert SARIF into a readable text block (rule, file:line, code,
+      # message). Show in the log, attach to $GITHUB_STEP_SUMMARY, save as an
+      # artifact for the sticky `ci-quality` comment, and fail the step on PRs
+      # when at least one new finding was introduced.
+      - name: Render Semgrep findings
+        if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
+        run: |
+          # Semgrep emits suppressed (`# nosemgrep`) findings to SARIF anyway,
+          # tagged with .suppressions. Filter those out — they were already
+          # justified in-source.
+          UNSUPPRESSED='[.runs[].results[]? | select((.suppressions // []) | length == 0)]'
+          COUNT=$(jq -r "$UNSUPPRESSED | length" semgrep.sarif)
+          SUPPRESSED=$(jq -r '[.runs[].results[]? | select((.suppressions // []) | length > 0)] | length' semgrep.sarif)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No new Semgrep findings. (${SUPPRESSED} in-source nosemgrep suppressions.)" | tee semgrep-findings.txt
+          else
+            jq -r "$UNSUPPRESSED"' | .[] |
+              "---\nRULE: \(.ruleId)\nFILE: \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)\nCODE: \((.locations[0].physicalLocation.region.snippet.text // "(no snippet)") | gsub("\n"; " "))\nMSG:  \(.message.text | gsub("\n"; " "))"
+            ' semgrep.sarif | tee semgrep-findings.txt
+          fi
+          {
+            echo "## Semgrep (new findings)"
+            echo "**Count:** $COUNT"
+            echo ""
+            echo '```'
+            cat semgrep-findings.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$COUNT" -gt 0 ]; then
+            echo "::error::Semgrep reported $COUNT new finding(s) — see Render step above for details."
+            exit 1
+          fi
+
+      - name: Upload Semgrep findings (text)
+        if: ${{ !cancelled() && hashFiles('semgrep-findings.txt') != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: semgrep-findings
+          path: semgrep-findings.txt
+          if-no-files-found: warn
+
+      - name: Upload Semgrep SARIF
+        if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  secret_scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # scan the full commit range, not just the tip
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  dependency_review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: moderate   # tightened from high — e-commerce app
+          license-check: false         # we don't enforce a license policy; skip the unknown-license noise
+          comment-summary-in-pr: on-failure
+
+  report:
+    name: PR quality report
+    runs-on: ubuntu-latest
+    # always() so the comment still posts (with the uncovered lines) when the
+    # blocking coverage gate fails.
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    needs: [ coverage, code_quality, semgrep_diff ]
+    permissions:
+      contents: read
+      pull-requests: write   # required for the sticky comment
+    steps:
+      - name: Download reports
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+
+      - name: Assemble comment
+        run: |
+          LR=artifacts/coverage/.last_run.json
+          LINE=$(jq -r '.result.line' "$LR" 2>/dev/null || echo "?")
+          BRANCH=$(jq -r '.result.branch' "$LR" 2>/dev/null || echo "?")
+          {
+            echo "## CI quality summary"
+            echo ""
+            echo "### Coverage"
+            echo "- Total line coverage: **${LINE}%**"
+            echo "- Total branch coverage: **${BRANCH}%**"
+            echo ""
+            echo "Changed lines (undercover):"
+            echo '```'
+            cat artifacts/undercover-report/undercover-report.txt 2>/dev/null || echo "n/a"
+            echo '```'
+            echo "### Code smells — reek (changed files)"
+            echo '```'
+            cat artifacts/reek-report/reek-report.txt 2>/dev/null || echo "none"
+            echo '```'
+            echo "### Semgrep (new findings)"
+            echo '```'
+            cat artifacts/semgrep-findings/semgrep-findings.txt 2>/dev/null || echo "n/a"
+            echo '```'
+            echo "_Brakeman findings appear under **Security ▸ Code scanning**. Secret-scan and dependency-review report inline on failure._"
+          } > comment.md
+
+      - name: Post sticky comment
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: ci-quality
+          path: comment.md

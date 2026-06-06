@@ -1,0 +1,11 @@
+gb_classic:
+  name: Game Boy Classic
+  slug: game-boy-classic
+
+gb_color:
+  name: Game Boy Color
+  slug: game-boy-color
+
+gb_advance:
+  name: Game Boy Advance
+  slug: game-boy-advance

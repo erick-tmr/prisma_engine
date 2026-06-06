@@ -1,0 +1,33 @@
+yellow:
+  category: gb_color
+  name: Pokemon Yellow Version
+  slug: pokemon-yellow-version
+  description: Classic yellow cartridge.
+  price_cents: 18000
+  currency: BRL
+  published: true
+  legacy_image_path: /images/test-yellow.jpg
+
+metroid:
+  category: gb_classic
+  name: Metroid II Return of Samus
+  slug: metroid-ii-return-of-samus
+  price_cents: 18000
+  currency: BRL
+  published: true
+
+placeholder:
+  category: gb_color
+  name: "- Pokemon Hacks (Pedidos)"
+  slug: pokemon-hacks-pedidos
+  price_cents: 18000
+  currency: BRL
+  published: true
+
+hidden:
+  category: gb_color
+  name: Unpublished Zero Price Game
+  slug: unpublished-zero-price-game
+  price_cents: 0
+  currency: BRL
+  published: false

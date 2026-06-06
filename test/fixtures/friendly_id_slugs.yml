@@ -1,0 +1,6 @@
+# Historical slug so Product.friendly.find resolves a renamed product.
+yellow_old_slug:
+  slug: pokemon-amarelo
+  sluggable_type: Product
+  sluggable_id: <%= ActiveRecord::FixtureSet.identify(:yellow) %>
+  created_at: <%= 1.year.ago.to_fs(:db) %>

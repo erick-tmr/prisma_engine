@@ -1,0 +1,17 @@
+answered_published:
+  product: yellow
+  body: Esse cartucho salva o jogo?
+  asker_name: João
+  asker_email: joao@example.com
+  answer_body: Sim, bateria nova inclusa.
+  answered: true
+  published: true
+  answered_at: <%= 2.days.ago.to_fs(:db) %>
+
+unanswered:
+  product: yellow
+  body: Tem nota fiscal?
+  asker_name: Maria
+  asker_email: maria@example.com
+  answered: false
+  published: false

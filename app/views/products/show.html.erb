@@ -5,12 +5,9 @@
     <ol class="breadcrumb bg-transparent p-0 small">
       <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
       <li class="breadcrumb-item"><%= link_to "Catálogo", products_path %></li>
-      <% if Product::CATEGORY_IDS[@product.category] %>
-        <li class="breadcrumb-item">
-          <%= link_to @product.category_label,
-                      category_path(slug: @product.category, category_id: Product::CATEGORY_IDS[@product.category]) %>
-        </li>
-      <% end %>
+      <li class="breadcrumb-item">
+        <%= link_to @product.category_label, category_path(slug: @product.category.slug) %>
+      </li>
       <li class="breadcrumb-item active" aria-current="page"><%= @product.title %></li>
     </ol>
   </nav>
@@ -27,7 +24,7 @@
     <div class="col-md-6">
       <h1 class="h3 mb-2"><%= @product.title %></h1>
       <p class="text-muted small mb-3">
-        <%= @product.category_label %> · SKU <%= @product.short_id %>
+        <%= @product.category_label %>
       </p>
 
       <div class="bg-light p-3 rounded mb-3">

@@ -1,7 +1,8 @@
 # Reek configuration — keeps the signal high on a small Rails app.
-# Reek runs advisory-only in CI (.github/workflows/quality.yml), on changed
-# files. These overrides silence Rails-idiomatic patterns that aren't real smells;
-# the value is catching genuine god-objects / over-long methods in new code.
+# Reek runs advisory-only in CI (the `code_quality` job in
+# .github/workflows/ci.yml), on changed files. These overrides silence
+# Rails-idiomatic patterns that aren't real smells; the value is catching
+# genuine god-objects / over-long methods in new code.
 detectors:
   IrresponsibleModule:
     enabled: false        # don't demand a descriptive comment on every class/module
@@ -20,6 +21,11 @@ detectors:
   MissingSafeMethod:
     enabled: false        # our bang methods wrap ActiveRecord's update!/save! (raise on
                           # failure); there's no non-raising twin to provide
+  InstanceVariableAssumption:
+    enabled: false        # Rails action methods (`def show; @category = ...`) are the
+                          # framework's mechanism for passing state to the template;
+                          # reek's "assumes too much" lint is structurally wrong for
+                          # every controller action.
 
 exclude_paths:
   - bin
