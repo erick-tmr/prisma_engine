@@ -8,8 +8,8 @@
 
 | Decision | Choice | Implication |
 |---|---|---|
-| Product domain | **Handmade / made-to-order** | No traditional stock; production capacity + lead times; per-order personalization; returns mostly non-applicable |
-| Primary market | **Brazil** (BRL, pt-BR) | PIX is mandatory; parcelamento expected; NF-e issuance; LGPD; Correios shipping; ViaCEP |
+| Product domain | **Handmade / made-to-order** | Default: no stock — sell as many as orders come in; some products may opt into a small ready-made stock (see §0.1). Per-order variant choices (ROM, shell color, …) modeled as `ProductOption` rows. Returns mostly non-applicable. |
+| Primary market | **Brazil** (BRL, pt-BR) | PIX is mandatory; parcelamento expected; NF-e issuance; LGPD; Correios shipping |
 | Deployment | **Kamal on a VPS** | Single-box friendly choices: Solid Queue + Solid Cache, Postgres co-located or managed; S3-compatible object storage external (R2/B2/Spaces) |
 | Codebase | Rails 8 majestic monolith | One repo, one deploy |
 
@@ -21,19 +21,15 @@ These four decisions override any conflicting defaults later in the document.
 
 The standard ecommerce stock model **does not apply**. Replace it with:
 
-### Production capacity, not stock
+### Stock is optional, not the model
 
-- A product has `lead_time_days` (e.g., "ships in 7–10 business days") — show on PDP and in cart
-- Optional `daily_capacity` per product or per artisan to throttle order intake
-- "Stock" only exists for ready-made pieces; modeled as a separate `ready_to_ship` flag with `quantity_on_hand`
-- For pure made-to-order items: no decrement, but enforce capacity ceiling per day/week
+The default is **no stock** — Vinicius makes each cart on demand, so a product can be sold as many times as orders come in. Some products may carry an occasional ready-made piece, and that's it.
 
-### Personalization
+Direction (not built yet, no premature columns): a product opts in to "I have units sitting on the shelf" by being marked as stocked; the count decrements when an order ships. Everything else stays unlimited.
 
-- `LineItem` needs structured `customizations` (JSONB): text engraving, color, size, image upload
-- Validate per product (e.g., max 20 chars on engraving) — schema lives on the Product
-- Customer uploads (e.g., reference photos) via Active Storage → S3-compatible bucket
-- Personalized line items must surface in admin/fulfillment views immediately
+### Variants (already implemented)
+
+Per-product variation is modeled as `ProductOption` — `(group_name, name, position, price_delta_cents)` rows hung off `Product` (see `app/models/product_option.rb` + the migration in `db/migrate/`). Each row is one selectable choice within a group ("ROM" / "Shell color" / etc.), with an optional price delta. The line item will reference the chosen options when checkout lands; the validator that today rejects duplicate `(product, group, name)` rows is enough.
 
 ### Order lifecycle differs
 
@@ -63,8 +59,7 @@ pending → paid → in_production → ready_to_ship → shipped → delivered
 | Card installments | Parcelamento up to 6x or 12x sem juros | Cultural expectation; absorb fee or pass to customer |
 | Boleto | Optional | High abandonment (~70%) but still expected by some segments |
 | NF-e (electronic invoice) | **eNotas**, **NFe.io**, or **Bling** | Mandatory for businesses; issue automatically on payment confirmation |
-| Address | **ViaCEP** (free) | Autocomplete from CEP; reduces failed deliveries |
-| Shipping | **Correios** | PAC + SEDEX + Mini Envios via the Correios API (rastro + pré-postagem); real-time quotes |
+| Shipping + addresses | **Correios** | PAC + SEDEX + Mini Envios via the Correios API (rastro + pré-postagem); real-time quotes; CEP autocomplete + address validation also come from Correios — no separate ViaCEP integration. |
 | Anti-fraud | Provider's native (Mercado Pago/Pagar.me have built-in) | **Clearsale** or **Konduto** if scaling |
 | Locale | i18n with pt-BR as default | `R$ 1.234,56`, dd/mm/yyyy, brazilian-documents gem for CPF/CNPJ |
 | Compliance | **LGPD** (not GDPR) | ANPD authority; same rights (access, deletion, portability) |
@@ -275,20 +270,11 @@ Critical patterns (provider-agnostic):
 - Store `external_payment_id` and `payment_method` (pix/card/boleto) on Order for reconciliation
 - PIX-specific: order is `pending` until webhook confirms; show QR code + copy-paste code; expire after 30 min
 
-#### Inventory race conditions (made-to-order variant)
+#### Inventory race conditions
 
-Traditional stock locking only applies to ready-made pieces. For made-to-order, the equivalent is **production capacity**:
+Only relevant when a product opts into stock (see §0.1). For unlimited / made-to-order products there is nothing to race over — checkout always succeeds.
 
-```ruby
-ActiveRecord::Base.transaction do
-  capacity = ProductionSlot.lock.where(product_id: id, date: target_date).first
-  raise CapacityExceeded if capacity.booked + qty > capacity.daily_max
-  capacity.update!(booked: capacity.booked + qty)
-  Order.create!(...)
-end
-```
-
-For ready-made pieces, fall back to standard `SELECT FOR UPDATE` on `quantity_on_hand`.
+When stock is on, lock the row inside the checkout transaction (`SELECT FOR UPDATE`) and decrement at checkout, not at ship — same shape as any standard ecommerce decrement. Build it when the first stocked product appears, not before.
 
 ### Operational
 
@@ -301,8 +287,7 @@ Don't build it. For BR you need **NF-e issuance** (legal requirement for busines
 Use the **Correios** API directly — PAC, SEDEX, and Mini Envios cover the cartridge envelope. Quote at PDP/cart with the customer's CEP; create the label as a pré-postagem on payment confirmation.
 
 Must-haves:
-- CEP autocomplete via ViaCEP (free) — fills street/neighborhood/city/state
-- Address validation (bad addresses = failed deliveries = chargebacks)
+- CEP autocomplete + address validation via the same Correios API (no separate ViaCEP integration — Correios covers it)
 - Tracking code capture + customer notification
 - Shipping label generation through the same provider
 
@@ -502,14 +487,14 @@ The Migration Plan below adapts this generic order to Prisma Games specifically.
 
 ### Phase 1 — Can you take a single order?
 
-1. Product catalog + categories with `lead_time_days` and personalization schema (JSONB)
-2. Cart (session-based) with customization fields per line item + guest checkout
-3. CEP autocomplete (ViaCEP) + Correios quote at cart
+1. Product catalog + categories with variant options (ProductOption rows)
+2. Cart (session-based) with chosen `ProductOption` ids per line item + guest checkout
+3. CEP autocomplete + Correios quote at cart (both via the Correios API)
 4. Payment integration: PIX first (highest conversion in BR), then card with parcelamento — via Mercado Pago or Pagar.me
 5. Order model with made-to-order state machine + cancellation window logic
 6. NF-e issuance via eNotas/NFe.io on payment confirmation (background job)
 7. Transactional emails (pt-BR) + PIX QR code email
-8. Basic admin: order list, production status update, customer customizations visible
+8. Basic admin: order list, production status update, customer's chosen options visible
 
 ### Phase 2 — Can you operate the business?
 
@@ -591,7 +576,7 @@ Legend: 🟢 shipped · 🟡 partial · ⚪ planned (not yet built).
 
 | Model | Status | Notes |
 |---|---|---|
-| **Product** | 🟡 | `slug`, `name`, `price_cents`, `published`, `currency` (BRL), `legacy_image_path`, `description`. FriendlyId (history-enabled), `has_many :product_options/:product_photos/:tags/:questions`. Still missing: `lead_time_days`, `daily_capacity`, `customization_schema`. PaperTrail + pg_search land later. |
+| **Product** | 🟢 | `slug`, `name`, `price_cents`, `published`, `currency` (BRL), `legacy_image_path`, `description`. FriendlyId (history-enabled), `has_many :product_options/:product_photos/:tags/:questions`. PaperTrail + pg_search land later. A `stocked?`/`quantity_on_hand` opt-in lands when the first stocked product appears (see §0.1). |
 | **Category** | 🟢 | `name`, `slug` (unique), `has_many :products`. |
 | **ProductOption** | 🟢 | belongs_to Product. `group_name`, `name`, `position`, `price_delta_cents`. Per-product variant axis (e.g. "shell color"). |
 | **ProductPhoto** | 🟢 | belongs_to Product. `position`, `alt_text`, `has_one_attached :image` (Active Storage). |
@@ -599,37 +584,21 @@ Legend: 🟢 shipped · 🟡 partial · ⚪ planned (not yet built).
 | **Question** | 🟢 | belongs_to Product. `asker_name`, `asker_email`, `body`, `answer_body`, `answered`, `published` — Q&A under the PDP. |
 | **Shipment** | 🟢 | belongs_to Order (future). `tracking_code` (unique), `service` / `service_code`, `pre_post_id` (unique), `pre_post_payload` (jsonb), package dims (`weight_grams`, `height/length/width_cm`), `posted_at`, `posting_deadline`, `delivered_at`. **Pré-postagem state:** `correios_status` (1–7 enum), `correios_status_label`, `correios_status_at`. **Tracking state:** `tracking_state` enum (`pending/in_transit/delivered/returned/unavailable`), `last_tracking_status`, `last_tracked_at`, `tracking_error`/`tracking_errored_at`. `awaiting_tracking` scope drives the polling loop. |
 | **ShipmentTrackingEvent** | 🟢 | belongs_to Shipment. `(shipment_id, position)` unique. `event_code`, `event_type`, `description`, `occurred_at`, `payload` (jsonb), `tracking_code`. |
-| **Variant** | ⚪ | belongs_to Product. `sku`, `price_modifier_cents`, `customization_overrides`. Lets one cart have ROM-hacked + standard SKUs. (ProductOption may absorb this — revisit when checkout lands.) |
-| **ProductionSlot** | ⚪ | `(product_id, date, daily_max, booked_count)`. Locked in checkout transaction (§4 above). For 24 SKUs / 1 fulfiller, may collapse to a global daily slot table — defer the decision until usage shows contention. |
 | **Cart** | ⚪ | guest-cookie token; nullable `customer_id`; `expires_at`. Today `/carrinho` is a placeholder no-op (see `CLAUDE.md`). |
-| **LineItem** | ⚪ | belongs_to Cart **and** Order (two FKs, not polymorphic). `customizations` jsonb validated against Product schema. `fulfillment_progress` jsonb tracks per-step checkboxes for the workbench. |
+| **LineItem** | ⚪ | belongs_to Cart **and** Order (two FKs, not polymorphic). Joined to the chosen `ProductOption` rows (one per option group). `fulfillment_progress` jsonb tracks per-step checkboxes for the workbench. |
 | **Order** | ⚪ | human-readable `number` (`PG-2026-000123`). AASM lifecycle from §4 above. Address fields snapshotted as jsonb to survive customer edits. PaperTrail. Final shipment state will close back into the order. |
 | **Address** | ⚪ | reusable for customer book + order snapshot. CEP/street/number/complement/neighborhood/city/state. CPF on shipping. |
 | **Payment** | ⚪ | `provider`, `method` (pix/card/boleto), `external_id`, AASM (pending → authorized → captured → refunded → failed), idempotency keys. `qr_code_payload`, `boleto_url`. |
 | **NfeIssuance** | ⚪ | `provider` (nfe_io), AASM (pending → issued → failed), `pdf_url`, `xml_url`, `numero`, `serie`. Retried on failure. |
 | **Customer** | ⚪ | `has_secure_password` (Rails 8 native auth), `cpf` (encrypted), `lgpd_consent_at`. |
 | **AdminUser** | ⚪ | role enum, `otp_secret` (2FA optional). |
-| **RomFile** | ⚪ | `name`, `version`, `notes`, has_one_attached :file (Active Storage → R2). Linked to Variant by FK or referenced from customization JSONB by `rom_identifier` string. |
+| **RomFile** | ⚪ | `name`, `version`, `notes`, has_one_attached :file (Active Storage → R2). Linked to the ROM `ProductOption` row chosen on the line item. |
 
 **AASM** on Order, Payment, NfeIssuance.
 **FriendlyId** on Product (already wired).
-**PaperTrail** on Product, Variant, Order, Payment, NfeIssuance, AdminUser actions.
+**PaperTrail** on Product, Order, Payment, NfeIssuance, AdminUser actions.
 
-**Customization schema example** (per Product):
-```json
-{
-  "fields": [
-    { "key": "rom_choice", "label": "ROM", "type": "select",
-      "options": ["Stock", "Pokémon Crystal Clear", "Polished Ruby"], "required": true },
-    { "key": "shell_color", "label": "Cor do shell", "type": "select",
-      "options": ["Cinza original", "Transparente", "Amarelo"], "required": true },
-    { "key": "engraving", "label": "Gravação", "type": "text", "max_length": 20 },
-    { "key": "label_art", "label": "Arte da etiqueta", "type": "file",
-      "accept": ["image/png","image/jpeg"] }
-  ]
-}
-```
-A `Customizations::Validator` PORO validates LineItem payloads against this schema (rejects unknown keys, enforces required + length + file type). Same partial renders both storefront input and admin read-only view.
+Variant axes (ROM, shell color, label art, etc.) are `ProductOption` rows grouped by `group_name` (see `app/models/product_option.rb`). The checkout form picks one row per group; the line item references those rows directly. No extra JSON schema, no separate validator — the AR-level `(product, group, name)` uniqueness is the contract.
 
 ## Phase 1 — "Look like the old site, take a PIX order"
 
@@ -650,8 +619,8 @@ The storefront port from prismagames.com.br is in place:
 - Catalog migrated from a YAML PORO to ActiveRecord: `Category`, `Product` (FriendlyId-slugged, history-enabled), `ProductOption`, `ProductPhoto` (Active Storage), `Tag` / `ProductTag`, `Question`. 🟢 shipped.
 - Shipping primitives wired: `Shipment` + `ShipmentTrackingEvent`. 🟢 shipped (see § "Carrier integration layering" for the full stack).
 - Still ⚪ to land:
-  - Cart (cookie token), guest checkout, full customizations form. Today `/carrinho` is a placeholder.
-  - ViaCEP autocomplete in checkout (free, no auth).
+  - Cart (cookie token), guest checkout, variant picker (one row per `ProductOption.group_name`). Today `/carrinho` is a placeholder.
+  - CEP autocomplete in checkout via the Correios API (reuses the existing `Correios::Api::Client`).
   - Shipping quotes — start stubbed (fixed PAC/SEDEX rates), then swap for a Correios quote call sharing the existing `Correios::Api::Client`.
   - Mercado Pago **PIX** with webhook handler. Use `MERCADO_PAGO_MODE=fake` for local dev — canned QR codes from fixtures, with a Rake task `simulate:mp_webhook[order_id]` that POSTs to the webhook endpoint as if Mercado Pago did.
   - Order state machine (AASM, §4 lifecycle) + capacity-booking transaction inside checkout.
@@ -670,8 +639,8 @@ End state: Vinicius fulfills real orders through the new admin, prints labels in
 - **Live Correios** — 🟡 partial. **Shipped:** pré-postagem creation (`Shipping::CreatePrePostagem` → `Correios::Api::PrePostagem`), the `Shipment` factory + lifecycle, and hourly rastro polling (`SyncPendingShipmentsJob` → `SyncShipmentJob`). **Still to land:** real-time quotes at PDP/cart (a `Correios::Api::Precos` adapter sharing the existing `Client`), wiring the operator-triggered label button into `/admin/shipments`, customer notification email on `tracking_code` capture, and once `Order` exists, transitioning the order on a final `tracking_state`.
 - **Production kanban** (`/admin/production`): columns `pending → flashed → boxed → labeled → shipped`. Drag-drop with Stimulus + Turbo Streams (Solid Cable broadcasts updates to all open admin tabs). `Order#fulfillment_stage` enum is **separate** from `Order#status` (AASM tracks customer-facing state; `fulfillment_stage` tracks internal kanban).
 - **Per-order workbench** (`/admin/orders/:id`):
-  - Customizations checklist auto-generated from LineItem JSONB ("Flash ROM: Pokémon Crystal Clear v2.5.10" with checkbox)
-  - ROM file lookup: clicking the customization shows the matching `RomFile` with download link from R2
+  - Per-option checklist auto-generated from the line item's chosen `ProductOption` rows ("Flash ROM: Pokémon Crystal Clear v2.5.10" with checkbox)
+  - ROM file lookup: clicking the ROM option shows the matching `RomFile` with download link from R2
   - Shipping panel: one-click Correios pré-postagem label → PDF
   - Timeline of state transitions (PaperTrail)
   - Customer-facing progress photos: drag-drop upload to Active Storage; "visible to customer" toggle. Visible photos appear on the customer's order page.
@@ -735,7 +704,7 @@ These don't block kicking off Phase 1 but block portions of Phase 1–2:
 - **CNPJ status** — required for Mercado Pago merchant account, NFe.io account, and the Correios contract (rastro + pré-postagem API tokens). Confirm he has one and apps are submitted (approvals can take 1–2 weeks).
 - **NCM codes** for each cartridge type — wrong NCM = NF-e fines. Lock with Vinicius's accountant before Phase 2.
 - **Brand assets** — logo source files, brand fonts, color tokens. Otherwise we lift from current site (visual only, not files he doesn't own).
-- **Per-product customization schemas** — Vinicius needs to enumerate ROM choices, shell colors, label art rules per cartridge. Use a shared spreadsheet → seed file.
+- **Per-product variant options** — Vinicius enumerates ROM choices, shell colors, label art per cartridge; each becomes a `ProductOption` row. Use a shared spreadsheet → seed file.
 - **Mercado Pago + NFe.io + Correios API credentials** (rastro token + cartão de postagem token) — needed by end of Phase 1 dev.
 - **Maximum installments policy** — 6x or 12x sem juros? Who eats the fee?
 - **Boleto: yes or no?** — Phase 4 flag.
@@ -759,14 +728,12 @@ These don't block kicking off Phase 1 but block portions of Phase 1–2:
 ⚪ Still to create:
 
 - `app/models/order.rb` — AASM lifecycle, transactional capacity booking (§4 snippet).
-- `app/models/cart.rb`, `line_item.rb`, `payment.rb`, `address.rb`, `customer.rb`, `admin_user.rb`, `nfe_issuance.rb`, `production_slot.rb`, `rom_file.rb`.
-- `app/models/concerns/customizations/validator.rb` — schema-driven validation PORO.
+- `app/models/cart.rb`, `line_item.rb`, `payment.rb`, `address.rb`, `customer.rb`, `admin_user.rb`, `nfe_issuance.rb`, `rom_file.rb`.
 - `app/controllers/admin/production_controller.rb` — kanban board (the killer feature).
 - `app/views/admin/production/index.html.erb` — kanban view with Turbo Streams.
 - `app/services/mercado_pago/create_pix_payment.rb` — first PSP service; sets convention.
 - `app/services/correios/api/precos.rb` + `app/services/shipping/quote.rb` — live shipping quotes (reuses the existing `Client`).
 - `app/services/nfe_io/issue_invoice.rb`.
-- `app/services/via_cep/lookup.rb`.
 - `app/jobs/issue_nfe_job.rb`, `abandoned_cart_job.rb`.
 - `db/seeds/products.rb` + `db/seeds/images/` — production seed (today the catalog seed is hand-curated).
 - `config/deploy.yml` — Kamal config (deployment).
@@ -780,10 +747,10 @@ Each phase ends with a concrete demo to Vinicius — no phase is "done" until th
 **Phase 1 verification**
 - 🟢 `bin/dev` boots; storefront loads at localhost:3000 visually matching prismagames.com.br.
 - 🟢 Catalog renders from ActiveRecord (Category / Product / ProductPhoto / Question), legacy URL shape works (`/produtos`, `/produto/:slug`, etc.).
-- ⚪ Place a test order with a ROM-hack customization through the storefront.
+- ⚪ Place a test order with a ROM-hack variant chosen through the storefront.
 - ⚪ PIX QR code email arrives in dev inbox (Letter Opener or Postmark sandbox).
 - ⚪ `rake simulate:mp_webhook[order_number]` flips the order to `paid`.
-- ⚪ Order appears in `/admin/orders` with the customization visible.
+- ⚪ Order appears in `/admin/orders` with the chosen options visible.
 
 **Phase 2 verification**
 - ⚪ Real Mercado Pago sandbox card payment succeeds with installments.
