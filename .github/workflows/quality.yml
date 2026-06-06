@@ -176,18 +176,61 @@ jobs:
       - name: Install Semgrep
         run: pipx install semgrep
 
-      # On PRs, --baseline-commit reports/fails only on NEWLY introduced findings.
-      # On main, a full scan seeds the default-branch baseline (non-blocking there).
+      # On PRs, --baseline-commit reports only NEWLY introduced findings. On
+      # main, a full scan seeds the default-branch baseline. Failure-on-finding
+      # is handled by the Render step below, not `--error`, so we can also
+      # print rule/file/line to the log, step summary, and sticky PR comment.
       - name: Semgrep scan
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main || true
           COMMON="--config p/ruby --config p/security-audit --sarif --output semgrep.sarif --metrics off"
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE=$(git merge-base origin/main HEAD)
-            semgrep scan $COMMON --baseline-commit "$BASE" --error
+            semgrep scan $COMMON --baseline-commit "$BASE"
           else
             semgrep scan $COMMON
           fi
+
+      # Convert SARIF into a readable text block (rule, file:line, code,
+      # message). Show in the log, attach to $GITHUB_STEP_SUMMARY, save as an
+      # artifact for the sticky `ci-quality` comment, and fail the step on PRs
+      # when at least one new finding was introduced.
+      - name: Render Semgrep findings
+        if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
+        run: |
+          # Semgrep emits suppressed (`# nosemgrep`) findings to SARIF anyway,
+          # tagged with .suppressions. Filter those out — they were already
+          # justified in-source.
+          UNSUPPRESSED='[.runs[].results[]? | select((.suppressions // []) | length == 0)]'
+          COUNT=$(jq -r "$UNSUPPRESSED | length" semgrep.sarif)
+          SUPPRESSED=$(jq -r '[.runs[].results[]? | select((.suppressions // []) | length > 0)] | length' semgrep.sarif)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No new Semgrep findings. (${SUPPRESSED} in-source nosemgrep suppressions.)" | tee semgrep-findings.txt
+          else
+            jq -r "$UNSUPPRESSED"' | .[] |
+              "---\nRULE: \(.ruleId)\nFILE: \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)\nCODE: \((.locations[0].physicalLocation.region.snippet.text // "(no snippet)") | gsub("\n"; " "))\nMSG:  \(.message.text | gsub("\n"; " "))"
+            ' semgrep.sarif | tee semgrep-findings.txt
+          fi
+          {
+            echo "## Semgrep (new findings)"
+            echo "**Count:** $COUNT"
+            echo ""
+            echo '```'
+            cat semgrep-findings.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "$COUNT" -gt 0 ]; then
+            echo "::error::Semgrep reported $COUNT new finding(s) — see Render step above for details."
+            exit 1
+          fi
+
+      - name: Upload Semgrep findings (text)
+        if: ${{ !cancelled() && hashFiles('semgrep-findings.txt') != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: semgrep-findings
+          path: semgrep-findings.txt
+          if-no-files-found: warn
 
       - name: Upload Semgrep SARIF
         if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
@@ -238,7 +281,7 @@ jobs:
     # always() so the comment still posts (with the uncovered lines) when the
     # blocking coverage gate fails.
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: [ coverage, code_quality ]
+    needs: [ coverage, code_quality, semgrep_diff ]
     permissions:
       contents: read
       pull-requests: write   # required for the sticky comment
@@ -268,7 +311,11 @@ jobs:
             echo '```'
             cat artifacts/reek-report/reek-report.txt 2>/dev/null || echo "none"
             echo '```'
-            echo "_Security findings (Brakeman, Semgrep) appear as PR annotations and under **Security ▸ Code scanning**. Secret-scan and dependency-review report inline on failure._"
+            echo "### Semgrep (new findings)"
+            echo '```'
+            cat artifacts/semgrep-findings/semgrep-findings.txt 2>/dev/null || echo "n/a"
+            echo '```'
+            echo "_Brakeman findings appear under **Security ▸ Code scanning**. Secret-scan and dependency-review report inline on failure._"
           } > comment.md
 
       - name: Post sticky comment
