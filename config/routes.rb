@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/cartas"
+  end
+
   devise_for :users,
              path: "",
              path_names: {

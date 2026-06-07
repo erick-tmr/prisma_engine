@@ -69,8 +69,10 @@ group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 
-  # Preview Devise (confirmation / password-reset) emails in the browser
-  gem "letter_opener", "~> 1.10"
+  # Preview Devise (confirmation / password-reset) emails in the browser via
+  # a mounted /cartas inbox — the plain letter_opener gem hands the email
+  # file to Launchy, which on many setups hijacks the focused tab.
+  gem "letter_opener_web", "~> 3.0"
 
   # Memory profiling, run on demand — see CLAUDE.md "Investigating memory"
   gem "derailed_benchmarks", require: false
