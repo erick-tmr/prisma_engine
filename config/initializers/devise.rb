@@ -22,13 +22,13 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  # Match the Correios remetente email (Shipping::CreatePrePostagem::SENDER)
-  # so customers see one consistent "from" address across order confirmation,
-  # auth, and shipping correspondence.
-  config.mailer_sender = "vininess@hotmail.com"
+  # Transactional address customers should not reply to. Replies are funnelled
+  # to a real inbox via the help footer rendered by the mailer layout.
+  config.mailer_sender = "no-reply@prismagames.com.br"
 
-  # Configure the class responsible to send e-mails.
-  # config.mailer = 'Devise::Mailer'
+  # Subclass applies our `mailer.html.erb` layout so every Devise email carries
+  # the help-footer (support address) without overriding the gem's message bodies.
+  config.mailer = "Users::Mailer"
 
   # Configure the parent class responsible to send e-mails.
   # config.parent_mailer = 'ActionMailer::Base'
