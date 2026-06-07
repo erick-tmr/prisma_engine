@@ -130,8 +130,12 @@ Devise.setup do |config|
   # a value of 20 is already extremely slow: approx. 60 seconds for 1 calculation).
   config.stretches = Rails.env.test? ? 1 : 12
 
-  # Set up a pepper to generate the hashed password.
-  # config.pepper = 'c5fe0492f08485be9b2dde79dd08c7ea53d9883d376c58fcbad1d73be380e8f366195a968338439403630eb70810b2882e72acb7d7899d1965c21348d641d98d'
+  # Pepper appended to every password before bcrypt. Lives in per-environment
+  # Rails credentials (config/credentials.yml.enc for dev+test,
+  # config/credentials/production.yml.enc for prod) so a leaked DB dump cannot
+  # be brute-forced without also leaking the credentials master key, and so a
+  # leaked dev pepper cannot crack prod hashes.
+  config.pepper = Rails.application.credentials.dig(:devise, :pepper)
 
   # Send a notification to the original email when the user's email is changed.
   # On so a compromised account that swaps the e-mail still alerts the real

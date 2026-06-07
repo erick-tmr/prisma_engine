@@ -36,6 +36,7 @@
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
+/config/credentials/*.key
 
 
 /app/assets/builds/*
@@ -44,3 +45,7 @@
 # Playwright MCP session files and ad-hoc screenshots
 /.playwright-mcp/
 /*.png
+
+# Ignore key files for decrypting credentials and more.
+/config/credentials/*.key
+
