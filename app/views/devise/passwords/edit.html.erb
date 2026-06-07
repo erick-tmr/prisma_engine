@@ -1,0 +1,42 @@
+<% content_for :title, t("auth.page_title.reset_password") %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h4 mb-3 text-center"><%= t("auth.passwords.edit_heading") %></h1>
+
+          <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, novalidate: true }) do |f| %>
+            <%= f.hidden_field :reset_password_token %>
+
+            <% if resource.errors.any? %>
+              <div class="alert alert-danger" role="alert">
+                <ul class="mb-0 ps-3">
+                  <% resource.errors.full_messages.each do |msg| %>
+                    <li><%= msg %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-3">
+              <%= f.label :password, t("auth.fields.password"), class: "form-label small" %>
+              <%= f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control", required: true, minlength: @minimum_password_length %>
+              <% if @minimum_password_length %>
+                <div class="form-text"><%= t("devise.shared.minimum_password_length", count: @minimum_password_length) %></div>
+              <% end %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password_confirmation, t("auth.fields.password_confirmation"), class: "form-label small" %>
+              <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control", required: true %>
+            </div>
+
+            <%= f.submit t("auth.passwords.edit_submit"), class: "btn btn-dark w-100" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,7 +4,7 @@ class ProductOptionTest < ActiveSupport::TestCase
   test "name is required" do
     option = ProductOption.new(product: products(:metroid))
     assert_not option.valid?
-    assert_includes option.errors[:name], "can't be blank"
+    assert_includes option.errors[:name], "não pode ficar em branco"
   end
 
   test "price_delta_cents allows zero and positive values" do

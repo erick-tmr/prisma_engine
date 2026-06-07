@@ -1,4 +1,16 @@
 Rails.application.routes.draw do
+  devise_for :users,
+             path: "",
+             path_names: {
+               sign_in: "entrar",
+               sign_out: "sair",
+               sign_up: "cadastrar",
+               password: "recuperar-senha",
+               confirmation: "confirmar",
+               edit: "editar"
+             },
+             controllers: { registrations: "users/registrations" }
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "pages#home"
@@ -10,9 +22,6 @@ Rails.application.routes.draw do
 
   get  "/carrinho",          to: "cart#show"
   post "/carrinho/items",    to: "cart#create", as: :cart_items
-
-  get  "/identificacao",     to: "identification#show", as: :identification
-  post "/identificacao",     to: "identification#create"
 
   get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes
   get  "/pagina/recomendacao-de-jogos", to: "pages#recomendacao_de_jogos", as: :recomendacao_de_jogos

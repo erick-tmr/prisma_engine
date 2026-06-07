@@ -73,15 +73,17 @@ body.site-drawer-locked {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 19px;
-  height: 21px;
+  box-sizing: border-box;
+  min-width: 22px;
+  height: 22px;
   padding: 0 6px;
   background: #007bff;
   color: #fff;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Category logo nav strip ─────────────────────────────────────── */

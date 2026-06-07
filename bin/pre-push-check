@@ -46,7 +46,13 @@ ok "reek"
 
 step "gitleaks"
 if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks git --no-banner --redact --config .gitleaks.toml
+  # `--log-opts=--no-textconv` mirrors CI: CI has no master.key, so the
+  # `diff=rails_credentials` textconv on .yml.enc files silently fails and
+  # gitleaks sees raw ciphertext. Locally we *do* have master.key, so without
+  # this flag textconv decrypts the file and gitleaks flags the dev
+  # secret_key_base as a leak — a false positive only visible to someone
+  # who already holds the decryption key.
+  gitleaks git --no-banner --redact --config .gitleaks.toml --log-opts="--no-textconv"
   ok "gitleaks"
 else
   printf '  (skipped — gitleaks not installed; `brew install gitleaks`)\n'

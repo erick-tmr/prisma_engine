@@ -1,0 +1,68 @@
+pt-BR:
+  auth:
+    page_title:
+      sign_in: "Entrar — Prisma Games"
+      sign_up: "Criar conta — Prisma Games"
+      forgot_password: "Recuperar acesso — Prisma Games"
+      reset_password: "Definir nova senha — Prisma Games"
+      resend_confirmation: "Reenviar e-mail de confirmação — Prisma Games"
+    sign_in:
+      heading: "Já sou cliente"
+      submit: "Entrar"
+      forgot_password: "Esqueci minha senha"
+      no_account: "Ainda não tem cadastro?"
+      sign_up: "Criar conta"
+      resend_confirmation: "Reenviar e-mail de confirmação"
+    sign_up:
+      heading: "Sou novo por aqui"
+      submit: "Criar conta"
+      has_account: "Já tem cadastro?"
+      sign_in: "Entrar"
+    passwords:
+      new_heading: "Recuperar acesso"
+      new_lede: "Informe o e-mail do seu cadastro e enviaremos um link para definir uma nova senha."
+      new_submit: "Enviar link de recuperação"
+      edit_heading: "Definir nova senha"
+      edit_submit: "Salvar nova senha"
+    confirmations:
+      new_heading: "Reenviar e-mail de confirmação"
+      new_lede: "Não recebeu o e-mail de confirmação? Informe seu endereço e enviaremos outro."
+      new_submit: "Reenviar instruções"
+    fields:
+      full_name: "Nome completo"
+      email: "E-mail"
+      cpf: "CPF"
+      phone: "Celular (opcional)"
+      password: "Senha"
+      password_confirmation: "Confirmar senha"
+      current_password: "Senha atual"
+      remember_me: "Mantenha-me conectado"
+  mailer:
+    support_email: "vininess@hotmail.com"
+    help_footer_html: 'Precisa de ajuda? Escreva para <a href="mailto:%{email}">%{email}</a>.'
+    help_footer: "Precisa de ajuda? Escreva para %{email}."
+  account:
+    greeting_html: "Olá, %{name}"
+    short_label: "Conta"
+    sign_in: "Entrar"
+    sign_up: "Cadastrar"
+    sign_out: "Sair"
+    drawer:
+      heading: "Sua conta"
+      my_account: "Minha conta"
+  activerecord:
+    attributes:
+      user:
+        full_name: "Nome completo"
+        email: "E-mail"
+        cpf: "CPF"
+        phone: "Celular"
+        password: "Senha"
+        password_confirmation: "Confirmar senha"
+        current_password: "Senha atual"
+    errors:
+      models:
+        user:
+          attributes:
+            cpf:
+              invalid: "não é válido"

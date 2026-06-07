@@ -1,0 +1,21 @@
+# Devise password hashing is parameterized by the Devise config (stretches +
+# pepper), so use Encryptor.digest here — never a pre-baked bcrypt string.
+confirmed:
+  email: confirmed@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: <%= 1.day.ago.to_fs(:db) %>
+  full_name: "Cliente Confirmado"
+  cpf: "11144477735"
+  phone: "11999998888"
+  created_at: <%= 2.days.ago.to_fs(:db) %>
+  updated_at: <%= 1.day.ago.to_fs(:db) %>
+
+unconfirmed:
+  email: pendente@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmation_token: <%= Devise.token_generator.digest(User, :confirmation_token, "raw-token-pendente") %>
+  confirmation_sent_at: <%= 1.hour.ago.to_fs(:db) %>
+  full_name: "Cliente Pendente"
+  cpf: "12345678909"
+  created_at: <%= 1.hour.ago.to_fs(:db) %>
+  updated_at: <%= 1.hour.ago.to_fs(:db) %>
