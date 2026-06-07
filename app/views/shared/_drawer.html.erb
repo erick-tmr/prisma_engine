@@ -83,12 +83,6 @@
             <i class="bi bi-person me-2"></i> <%= t("account.drawer.my_account") %>
           <% end %>
         </li>
-        <li>
-          <%= button_to destroy_user_session_path, method: :delete,
-                class: "site-drawer-link bg-transparent border-0 text-start w-100" do %>
-            <i class="bi bi-box-arrow-right me-2"></i> <%= t("account.sign_out") %>
-          <% end %>
-        </li>
       <% else %>
         <li>
           <%= link_to new_user_session_path, class: "site-drawer-link" do %>
