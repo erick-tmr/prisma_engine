@@ -1,42 +1,47 @@
 <% content_for :title, t("auth.page_title.reset_password") %>
 
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h1 class="h4 mb-3 text-center"><%= t("auth.passwords.edit_heading") %></h1>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-prism" aria-hidden="true">
+        <span class="ray-soft"></span>
+        <span class="ray-line"></span>
+      </div>
+      <span class="auth-wordmark">Prisma Games</span>
+    </div>
 
-          <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, novalidate: true }) do |f| %>
-            <%= f.hidden_field :reset_password_token %>
+    <div class="auth-form-side">
+      <h1 class="auth-heading"><%= t("auth.passwords.edit_heading") %></h1>
+      <p class="auth-sub"><%= t("auth.passwords.edit_lede") %></p>
 
-            <% if resource.errors.any? %>
-              <div class="alert alert-danger" role="alert">
-                <ul class="mb-0 ps-3">
-                  <% resource.errors.full_messages.each do |msg| %>
-                    <li><%= msg %></li>
-                  <% end %>
-                </ul>
-              </div>
-            <% end %>
+      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "auth-form", novalidate: true }) do |f| %>
+        <%= f.hidden_field :reset_password_token %>
 
-            <div class="mb-3">
-              <%= f.label :password, t("auth.fields.password"), class: "form-label small" %>
-              <%= f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control", required: true, minlength: @minimum_password_length %>
-              <% if @minimum_password_length %>
-                <div class="form-text"><%= t("devise.shared.minimum_password_length", count: @minimum_password_length) %></div>
+        <% if resource.errors.any? %>
+          <div class="alert alert-danger" role="alert">
+            <ul class="mb-0 ps-3">
+              <% resource.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
               <% end %>
-            </div>
+            </ul>
+          </div>
+        <% end %>
 
-            <div class="mb-3">
-              <%= f.label :password_confirmation, t("auth.fields.password_confirmation"), class: "form-label small" %>
-              <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control", required: true %>
-            </div>
-
-            <%= f.submit t("auth.passwords.edit_submit"), class: "btn btn-dark w-100" %>
+        <div class="field">
+          <%= f.label :password, t("auth.fields.password"), class: "field-label" %>
+          <%= f.password_field :password, autofocus: true, autocomplete: "new-password", class: "field-input", required: true, minlength: @minimum_password_length, placeholder: "••••••••" %>
+          <% if @minimum_password_length %>
+            <span class="field-hint"><%= t("devise.shared.minimum_password_length", count: @minimum_password_length) %></span>
           <% end %>
         </div>
-      </div>
+
+        <div class="field">
+          <%= f.label :password_confirmation, t("auth.fields.password_confirmation"), class: "field-label" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "field-input", required: true, placeholder: "••••••••" %>
+        </div>
+
+        <%= f.submit t("auth.passwords.edit_submit"), class: "btn-prisma block", style: "margin-top:6px;" %>
+      <% end %>
     </div>
   </div>
 </div>
