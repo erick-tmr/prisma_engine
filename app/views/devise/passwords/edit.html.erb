@@ -17,15 +17,7 @@
       <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "auth-form", novalidate: true }) do |f| %>
         <%= f.hidden_field :reset_password_token %>
 
-        <% if resource.errors.any? %>
-          <div class="alert alert-danger" role="alert">
-            <ul class="mb-0 ps-3">
-              <% resource.errors.full_messages.each do |msg| %>
-                <li><%= msg %></li>
-              <% end %>
-            </ul>
-          </div>
-        <% end %>
+        <%= render "shared/form_errors", record: resource %>
 
         <div class="field">
           <%= f.label :password, t("auth.fields.password"), class: "field-label" %>

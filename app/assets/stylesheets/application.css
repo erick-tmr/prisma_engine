@@ -1951,3 +1951,89 @@ body.site-drawer-locked {
 .auth-terms a { color: var(--pg-ink); text-decoration: underline; }
 
 .auth-form .field-hint { margin-top: -6px; }
+
+/* ════════════════════════════════════════════════════════════════
+   Flash / system messages — Prisma Games brand
+   Replaces the generic Bootstrap .alert blocks. Map Rails flash keys
+   to variants via the pg_alert_meta helper:
+     notice → pg-alert-info (teal)
+     success → pg-alert-success (green)
+     alert → pg-alert-warning (gold)
+     error → pg-alert-danger (crimson)
+   ════════════════════════════════════════════════════════════════ */
+
+.pg-flash {
+  max-width: 1320px;
+  margin: 18px auto 0;
+  padding: 0 16px;
+}
+
+.pg-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 13px;
+  border: 1px solid;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #fff;
+}
+
+.pg-alert + .pg-alert { margin-top: 10px; }
+
+.pg-alert-ic {
+  font-size: 18px;
+  line-height: 1.45;
+  flex-shrink: 0;
+}
+
+.pg-alert-body {
+  flex: 1;
+  min-width: 0;
+  color: var(--pg-ink);
+}
+
+.pg-alert-body strong { font-weight: 700; }
+
+.pg-alert-body a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.pg-alert-close {
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  color: var(--pg-ink);
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 2px;
+  margin: -2px -2px 0 0;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  transition: opacity 0.15s ease;
+}
+
+.pg-alert-close:hover { opacity: 0.85; }
+
+.pg-alert-info    { background: #e9f4f2; border-color: #c4e4df; }
+.pg-alert-info    .pg-alert-ic { color: #00736c; }
+
+.pg-alert-success { background: #e6f5ed; border-color: #c7e8d6; }
+.pg-alert-success .pg-alert-ic { color: #1f8a5b; }
+
+.pg-alert-warning { background: #fbf2df; border-color: #efdeb6; }
+.pg-alert-warning .pg-alert-ic { color: #9a7400; }
+
+.pg-alert-danger  { background: #fceef1; border-color: #f2cdd8; }
+.pg-alert-danger  .pg-alert-ic { color: #b80a41; }
+
+.pg-alert-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.pg-alert-list li { margin-bottom: 2px; }
+.pg-alert-list li:last-child { margin-bottom: 0; }

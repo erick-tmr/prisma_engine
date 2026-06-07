@@ -61,6 +61,8 @@ pt-BR:
       remember_me: "Mantenha-me conectado"
     placeholders:
       full_name: "Seu nome completo"
+  forms:
+    errors_heading: "Não foi possível salvar. Corrija os campos abaixo:"
   mailer:
     support_email: "vininess@hotmail.com"
     help_footer_html: 'Precisa de ajuda? Escreva para <a href="mailto:%{email}">%{email}</a>.'

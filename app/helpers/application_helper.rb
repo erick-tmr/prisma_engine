@@ -1,2 +1,14 @@
 module ApplicationHelper
+  PG_ALERT_VARIANTS = {
+    "notice" => { variant: "info",    icon: "bi-info-circle-fill" },
+    "success" => { variant: "success", icon: "bi-check-circle-fill" },
+    "alert" => { variant: "warning", icon: "bi-exclamation-triangle-fill" },
+    "error" => { variant: "danger",  icon: "bi-exclamation-octagon-fill" }
+  }.freeze
+
+  PG_ALERT_FALLBACK = { variant: "info", icon: "bi-info-circle-fill" }.freeze
+
+  def pg_alert_meta(key)
+    PG_ALERT_VARIANTS.fetch(key.to_s, PG_ALERT_FALLBACK)
+  end
 end

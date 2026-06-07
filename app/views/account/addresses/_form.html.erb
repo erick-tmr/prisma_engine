@@ -1,13 +1,5 @@
 <%= form_with model: address, url: form_url, method: form_method, html: { novalidate: true } do |f| %>
-  <% if address.errors.any? %>
-    <div class="alert alert-danger" role="alert">
-      <ul class="mb-0 ps-3">
-        <% address.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render "shared/form_errors", record: address %>
 
   <div class="addr-form-grid">
     <div class="field col-zip">

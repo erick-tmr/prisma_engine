@@ -8,15 +8,7 @@
 
   <div class="panel-body">
     <%= form_with model: current_user, url: account_password_path, method: :patch, html: { novalidate: true } do |f| %>
-      <% if current_user.errors.any? %>
-        <div class="alert alert-danger" role="alert">
-          <ul class="mb-0 ps-3">
-            <% current_user.errors.full_messages.each do |msg| %>
-              <li><%= msg %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
+      <%= render "shared/form_errors", record: current_user %>
 
       <div class="field-grid single">
         <div class="field">
