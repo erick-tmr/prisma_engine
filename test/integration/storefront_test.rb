@@ -52,14 +52,6 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_match(/Carrinho ainda não está conectado/, response.body)
   end
 
-  test "identification placeholder show and create both 200" do
-    get identification_path
-    assert_response :success
-    post identification_path
-    assert_response :success
-    assert_match(/Login ainda não está conectado/, response.body)
-  end
-
   test "every static page route renders" do
     [
       perguntas_frequentes_path,

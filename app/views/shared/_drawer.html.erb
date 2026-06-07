@@ -75,13 +75,32 @@
       <% end %>
     </ul>
 
-    <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Sua conta</div>
+    <div class="px-3 pt-3 pb-1 small text-muted text-uppercase"><%= t("account.drawer.heading") %></div>
     <ul class="list-unstyled mb-0">
-      <li>
-        <%= link_to identification_path, class: "site-drawer-link" do %>
-          <i class="bi bi-person me-2"></i> Entrar / Cadastrar
-        <% end %>
-      </li>
+      <% if user_signed_in? %>
+        <li>
+          <%= link_to edit_user_registration_path, class: "site-drawer-link" do %>
+            <i class="bi bi-person me-2"></i> <%= t("account.drawer.my_account") %>
+          <% end %>
+        </li>
+        <li>
+          <%= button_to destroy_user_session_path, method: :delete,
+                class: "site-drawer-link bg-transparent border-0 text-start w-100" do %>
+            <i class="bi bi-box-arrow-right me-2"></i> <%= t("account.sign_out") %>
+          <% end %>
+        </li>
+      <% else %>
+        <li>
+          <%= link_to new_user_session_path, class: "site-drawer-link" do %>
+            <i class="bi bi-person me-2"></i> <%= t("account.sign_in") %>
+          <% end %>
+        </li>
+        <li>
+          <%= link_to new_user_registration_path, class: "site-drawer-link" do %>
+            <i class="bi bi-person-plus me-2"></i> <%= t("account.sign_up") %>
+          <% end %>
+        </li>
+      <% end %>
       <li>
         <%= link_to "/carrinho", class: "site-drawer-link" do %>
           <i class="bi bi-handbag me-2"></i> Carrinho

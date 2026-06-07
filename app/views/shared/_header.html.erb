@@ -27,9 +27,26 @@
       </div>
 
       <div class="col-6 col-md-3 text-end">
-        <%= link_to identification_path, class: "btn btn-link text-dark", title: "Minha conta" do %>
-          <i class="bi bi-person fs-5"></i>
-          <span class="d-none d-lg-inline">Conta</span>
+        <% if user_signed_in? %>
+          <%= link_to edit_user_registration_path, class: "btn btn-link text-dark", title: t("account.short_label") do %>
+            <i class="bi bi-person fs-5"></i>
+            <span class="d-none d-lg-inline"><%= t("account.greeting_html", name: current_user.first_name) %></span>
+          <% end %>
+          <%= button_to destroy_user_session_path, method: :delete,
+                class: "btn btn-link text-dark p-0 align-baseline",
+                form: { class: "d-inline" },
+                title: t("account.sign_out") do %>
+            <i class="bi bi-box-arrow-right fs-5"></i>
+            <span class="d-none d-lg-inline"><%= t("account.sign_out") %></span>
+          <% end %>
+        <% else %>
+          <%= link_to new_user_session_path, class: "btn btn-link text-dark", title: t("account.sign_in") do %>
+            <i class="bi bi-person fs-5"></i>
+            <span class="d-none d-lg-inline"><%= t("account.sign_in") %></span>
+          <% end %>
+          <%= link_to new_user_registration_path, class: "btn btn-link text-dark d-none d-lg-inline" do %>
+            <%= t("account.sign_up") %>
+          <% end %>
         <% end %>
         <%= link_to "/carrinho", class: "btn btn-link text-dark site-cart", title: "Carrinho" do %>
           <i class="bi bi-handbag fs-5"></i>

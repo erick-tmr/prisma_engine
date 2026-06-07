@@ -9,7 +9,7 @@ class QuestionTest < ActiveSupport::TestCase
 
     question.asker_email = "not-an-email"
     question.valid?
-    assert_includes question.errors[:asker_email], "is invalid"
+    assert_includes question.errors[:asker_email], "não é válido"
   end
 
   test "published scope" do

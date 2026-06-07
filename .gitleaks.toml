@@ -18,4 +18,12 @@ regexes = [
   '''prisma_engine''',
   '''change-me-min-16-chars''',
   '''at-least-16-chars-long''',
+  # `bin/rails g devise:install` ships a commented-out
+  # `# config.secret_key = '<128-char hex>'` in config/initializers/devise.rb
+  # as documentation of how to override Devise's default token derivation
+  # (it reads from Rails.application.secret_key_base by default). The hex
+  # trips the generic-api-key rule on every fresh install. We delete it
+  # before committing, but pin the false positive in case a future
+  # devise:install regenerates the file and the line slips through review.
+  '''# config\.secret_key = [']?[0-9a-f]{128}[']?''',
 ]

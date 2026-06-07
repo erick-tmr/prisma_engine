@@ -15,7 +15,7 @@ class ShipmentTest < ActiveSupport::TestCase
     shipment = Shipment.new(tracking_code: nil)
 
     assert_not shipment.valid?
-    assert_includes shipment.errors[:tracking_code], "can't be blank"
+    assert_includes shipment.errors[:tracking_code], "não pode ficar em branco"
   end
 
   test "requires a unique tracking code" do
@@ -23,7 +23,7 @@ class ShipmentTest < ActiveSupport::TestCase
     dup = Shipment.new(tracking_code: "AA1")
 
     assert_not dup.valid?
-    assert_includes dup.errors[:tracking_code], "has already been taken"
+    assert_includes dup.errors[:tracking_code], "já está em uso"
   end
 
   test "requires a unique pre_post_id but allows many without one" do

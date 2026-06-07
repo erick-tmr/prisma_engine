@@ -5,7 +5,7 @@ class ShipmentTrackingEventTest < ActiveSupport::TestCase
     event = ShipmentTrackingEvent.new(position: 0)
 
     assert_not event.valid?
-    assert_includes event.errors[:shipment], "must exist"
+    assert_includes event.errors[:shipment], "é obrigatório(a)"
   end
 
   test "links to a shipment" do
