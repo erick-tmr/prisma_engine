@@ -83,4 +83,18 @@ class UserTest < ActiveSupport::TestCase
     user.full_name = nil
     assert_nil user.first_name
   end
+
+  test "default_address returns the address flagged default" do
+    user = users(:confirmed)
+    user.addresses.create!(
+      zip: "12345678", street: "X", number: "1", neighborhood: "Y",
+      city: "Z", state: "SP"
+    )
+    second = user.addresses.create!(
+      zip: "12345678", street: "Outra", number: "2", neighborhood: "Y",
+      city: "Z", state: "SP"
+    )
+    second.mark_default!
+    assert_equal second, user.default_address
+  end
 end

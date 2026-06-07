@@ -1,0 +1,33 @@
+<% content_for :title, t("account.orders.page_title") %>
+
+<h1 class="h4 mb-3"><%= t("account.orders.heading") %></h1>
+
+<% if @orders.empty? %>
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-bag fs-1 text-muted d-block mb-2"></i>
+      <p class="text-muted mb-0"><%= t("account.orders.empty") %></p>
+    </div>
+  </div>
+<% else %>
+  <div class="list-group shadow-sm">
+    <% @orders.each do |order| %>
+      <%= link_to account_order_path(order), class: "list-group-item list-group-item-action" do %>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <div class="fw-semibold">#<%= order.number %></div>
+            <div class="small text-muted">
+              <%= l(order.placed_at.to_date, format: :long) %>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge <%= order_status_badge_class(order.status) %>">
+              <%= t("account.orders.states.#{order.status}.label") %>
+            </span>
+            <strong><%= format_brl(order.total_cents) %></strong>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

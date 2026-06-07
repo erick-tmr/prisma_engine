@@ -11,6 +11,18 @@ Rails.application.routes.draw do
              },
              controllers: { registrations: "users/registrations" }
 
+  scope path: "minha-conta", module: "account", as: :account do
+    root to: redirect("/minha-conta/perfil")
+    get   "perfil", to: "profiles#edit",  as: :profile
+    patch "perfil", to: "profiles#update"
+    get   "senha",  to: "passwords#edit", as: :password
+    patch "senha",  to: "passwords#update"
+    resources :enderecos, controller: "addresses", as: :addresses, except: :show do
+      member { patch :default }
+    end
+    resources :pedidos, controller: "orders", as: :orders, only: %i[index show]
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "pages#home"

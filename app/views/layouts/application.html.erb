@@ -47,7 +47,7 @@
         </div>
       <% end %>
 
-      <%= yield %>
+      <%= content_for?(:main) ? yield(:main) : yield %>
     </main>
 
     <%= render "shared/footer" %>

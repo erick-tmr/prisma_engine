@@ -1,0 +1,53 @@
+<% content_for :title, t("account.profile.page_title") %>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3"><%= t("account.profile.heading") %></h1>
+    <p class="text-muted small mb-4"><%= t("account.profile.lede") %></p>
+
+    <%= form_with model: current_user, url: account_profile_path, method: :patch, html: { novalidate: true } do |f| %>
+      <% if current_user.errors.any? %>
+        <div class="alert alert-danger" role="alert">
+          <ul class="mb-0 ps-3">
+            <% current_user.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="form-label small"><%= t("auth.fields.full_name") %></div>
+          <p class="form-control-plaintext mb-0"><%= current_user.full_name %></p>
+          <div class="form-text"><%= t("account.profile.full_name_locked") %></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="form-label small"><%= t("auth.fields.cpf") %></div>
+          <p class="form-control-plaintext mb-0"><%= current_user.cpf %></p>
+          <div class="form-text"><%= t("account.profile.cpf_locked") %></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <%= f.label :email, t("auth.fields.email"), class: "form-label small" %>
+          <%= f.email_field :email, autocomplete: "email", class: "form-control", required: true %>
+          <% if current_user.unconfirmed_email.present? %>
+            <div class="form-text">
+              <%= t("account.profile.email_pending_html", email: current_user.unconfirmed_email).html_safe %>
+            </div>
+          <% else %>
+            <div class="form-text"><%= t("account.profile.email_change_hint") %></div>
+          <% end %>
+        </div>
+        <div class="col-md-6 mb-3">
+          <%= f.label :phone, t("auth.fields.phone"), class: "form-label small" %>
+          <%= f.telephone_field :phone, autocomplete: "tel", class: "form-control", data: { "mask-phone": true } %>
+        </div>
+      </div>
+
+      <%= f.submit t("account.profile.submit"), class: "btn btn-success" %>
+    <% end %>
+  </div>
+</div>

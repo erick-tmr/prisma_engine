@@ -1,0 +1,51 @@
+<% content_for :title, t("account.addresses.page_title") %>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0"><%= t("account.addresses.heading") %></h1>
+  <%= link_to t("account.addresses.add"), new_account_address_path, class: "btn btn-success" %>
+</div>
+
+<% if @addresses.empty? %>
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-geo-alt fs-1 text-muted d-block mb-2"></i>
+      <p class="text-muted mb-3"><%= t("account.addresses.empty") %></p>
+      <%= link_to t("account.addresses.add_first"), new_account_address_path, class: "btn btn-outline-success" %>
+    </div>
+  </div>
+<% else %>
+  <div class="row g-3">
+    <% @addresses.each do |address| %>
+      <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between mb-2">
+              <strong><%= address.street %>, <%= address.number %></strong>
+              <% if address.default? %>
+                <span class="badge text-bg-success"><%= t("account.addresses.default_badge") %></span>
+              <% end %>
+            </div>
+            <p class="mb-1 small text-muted">
+              <% if address.complement.present? %><%= address.complement %> · <% end %>
+              <%= address.neighborhood %>
+            </p>
+            <p class="mb-3 small text-muted">
+              <%= address.city %> — <%= address.state %> · CEP <%= number_to_cep(address.zip) %>
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              <%= link_to t("account.addresses.edit"), edit_account_address_path(address), class: "btn btn-sm btn-outline-dark" %>
+              <% unless address.default? %>
+                <%= button_to t("account.addresses.set_default"), default_account_address_path(address),
+                      method: :patch, class: "btn btn-sm btn-outline-secondary",
+                      form: { class: "d-inline" } %>
+              <% end %>
+              <%= button_to t("account.addresses.delete"), account_address_path(address),
+                    method: :delete, class: "btn btn-sm btn-outline-danger",
+                    form: { class: "d-inline", data: { turbo_confirm: t("account.addresses.delete_confirm") } } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,12 @@
+<% content_for :title, t("account.addresses.new_page_title") %>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3"><%= t("account.addresses.new_heading") %></h1>
+    <%= render "form",
+          address: @address,
+          form_url: account_addresses_path,
+          form_method: :post,
+          submit_label: t("account.addresses.submit_new") %>
+  </div>
+</div>

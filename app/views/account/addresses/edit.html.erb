@@ -1,0 +1,12 @@
+<% content_for :title, t("account.addresses.edit_page_title") %>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3"><%= t("account.addresses.edit_heading") %></h1>
+    <%= render "form",
+          address: @address,
+          form_url: account_address_path(@address),
+          form_method: :patch,
+          submit_label: t("account.addresses.submit_edit") %>
+  </div>
+</div>

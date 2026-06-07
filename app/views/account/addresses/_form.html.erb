@@ -1,0 +1,53 @@
+<%= form_with model: address, url: form_url, method: form_method, html: { novalidate: true } do |f| %>
+  <% if address.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <ul class="mb-0 ps-3">
+        <% address.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <%= f.label :zip, t("account.addresses.fields.zip"), class: "form-label small" %>
+      <%= f.text_field :zip, class: "form-control", required: true, data: { "mask-cep": true }, inputmode: "numeric" %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8 mb-3">
+      <%= f.label :street, t("account.addresses.fields.street"), class: "form-label small" %>
+      <%= f.text_field :street, class: "form-control", required: true %>
+    </div>
+    <div class="col-md-2 mb-3">
+      <%= f.label :number, t("account.addresses.fields.number"), class: "form-label small" %>
+      <%= f.text_field :number, class: "form-control", required: true %>
+    </div>
+    <div class="col-md-2 mb-3">
+      <%= f.label :complement, t("account.addresses.fields.complement"), class: "form-label small" %>
+      <%= f.text_field :complement, class: "form-control" %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= f.label :neighborhood, t("account.addresses.fields.neighborhood"), class: "form-label small" %>
+      <%= f.text_field :neighborhood, class: "form-control", required: true %>
+    </div>
+    <div class="col-md-4 mb-3">
+      <%= f.label :city, t("account.addresses.fields.city"), class: "form-label small" %>
+      <%= f.text_field :city, class: "form-control", required: true %>
+    </div>
+    <div class="col-md-2 mb-3">
+      <%= f.label :state, t("account.addresses.fields.state"), class: "form-label small" %>
+      <%= f.select :state, Address::UF_LIST, { include_blank: true }, class: "form-select", required: true %>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= f.submit submit_label, class: "btn btn-success" %>
+    <%= link_to t("account.addresses.cancel"), account_addresses_path, class: "btn btn-link text-muted" %>
+  </div>
+<% end %>
