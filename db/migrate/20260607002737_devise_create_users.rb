@@ -20,6 +20,11 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.1]
       t.datetime :confirmation_sent_at
       t.string   :unconfirmed_email
 
+      ## Lockable
+      t.integer  :failed_attempts, default: 0, null: false
+      t.string   :unlock_token
+      t.datetime :locked_at
+
       ## Storefront profile fields
       t.string :full_name, null: false
       t.string :cpf,       null: false
@@ -31,6 +36,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.1]
     add_index :users, :email,                unique: true
     add_index :users, :reset_password_token, unique: true
     add_index :users, :confirmation_token,   unique: true
+    add_index :users, :unlock_token,         unique: true
     add_index :users, :cpf,                  unique: true
   end
 end

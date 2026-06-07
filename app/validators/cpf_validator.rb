@@ -13,13 +13,13 @@ class CpfValidator < ActiveModel::EachValidator
     return false unless digits.length == 11
     return false if digits.chars.uniq.size == 1
 
-    check1 = mod11_digit(digits[0, 9], 10)
-    check2 = mod11_digit(digits[0, 10], 11)
-    digits[9].to_i == check1 && digits[10].to_i == check2
+    first_check = mod11_digit(digits[0, 9], 10)
+    second_check = mod11_digit(digits[0, 10], 11)
+    digits[9].to_i == first_check && digits[10].to_i == second_check
   end
 
   def mod11_digit(slice, start_weight)
-    sum = slice.chars.each_with_index.sum { |c, i| c.to_i * (start_weight - i) }
+    sum = slice.chars.each_with_index.sum { |char, position| char.to_i * (start_weight - position) }
     remainder = (sum * 10) % 11
     remainder == 10 ? 0 : remainder
   end
