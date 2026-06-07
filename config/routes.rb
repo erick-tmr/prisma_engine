@@ -13,7 +13,10 @@ Rails.application.routes.draw do
                confirmation: "confirmar",
                edit: "editar"
              },
-             controllers: { registrations: "users/registrations" }
+             controllers: {
+               registrations: "users/registrations",
+               confirmations: "users/confirmations"
+             }
 
   scope path: "minha-conta", module: "account", as: :account do
     root to: redirect("/minha-conta/perfil")
