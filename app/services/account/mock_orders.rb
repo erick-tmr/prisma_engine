@@ -105,7 +105,7 @@ module Account
       DEFINITIONS.map { |definition| build(definition) }
     end
 
-    def find(_user, param)
+    def lookup(_user, param)
       definition = DEFINITIONS.find { |d| d[:number] == param }
       definition && build(definition)
     end

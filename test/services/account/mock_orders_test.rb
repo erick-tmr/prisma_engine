@@ -12,18 +12,18 @@ module Account
                    statuses.sort
     end
 
-    test "find returns the matching mock" do
-      order = MockOrders.find(users(:confirmed), "PG-2026-000001")
+    test "lookup returns the matching mock" do
+      order = MockOrders.lookup(users(:confirmed), "PG-2026-000001")
       assert_not_nil order
       assert_equal "aguardando_pagamento", order.status
     end
 
-    test "find returns nil for an unknown number" do
-      assert_nil MockOrders.find(users(:confirmed), "UNKNOWN")
+    test "lookup returns nil for an unknown number" do
+      assert_nil MockOrders.lookup(users(:confirmed), "UNKNOWN")
     end
 
     test "to_param returns the order number" do
-      order = MockOrders.find(users(:confirmed), "PG-2026-000001")
+      order = MockOrders.lookup(users(:confirmed), "PG-2026-000001")
       assert_equal "PG-2026-000001", order.to_param
     end
 
@@ -56,7 +56,7 @@ module Account
     end
 
     test "totals are subtotal + shipping" do
-      order = MockOrders.find(users(:confirmed), "PG-2026-000005")
+      order = MockOrders.lookup(users(:confirmed), "PG-2026-000005")
       assert_equal order.subtotal_cents + order.shipping_cents, order.total_cents
     end
   end

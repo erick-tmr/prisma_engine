@@ -5,7 +5,7 @@ module Account
     end
 
     def show
-      @order = MockOrders.find(current_user, params[:id])
+      @order = MockOrders.lookup(current_user, params[:id])
       raise ActiveRecord::RecordNotFound unless @order
     end
   end
