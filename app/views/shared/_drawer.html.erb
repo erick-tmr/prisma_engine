@@ -86,12 +86,7 @@
       <% else %>
         <li>
           <%= link_to new_user_session_path, class: "site-drawer-link" do %>
-            <i class="bi bi-person me-2"></i> <%= t("account.sign_in") %>
-          <% end %>
-        </li>
-        <li>
-          <%= link_to new_user_registration_path, class: "site-drawer-link" do %>
-            <i class="bi bi-person-plus me-2"></i> <%= t("account.sign_up") %>
+            <i class="bi bi-person me-2"></i> <%= t("account.short_label") %>
           <% end %>
         </li>
       <% end %>

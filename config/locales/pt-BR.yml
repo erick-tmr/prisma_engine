@@ -67,9 +67,7 @@ pt-BR:
     help_footer: "Precisa de ajuda? Escreva para %{email}."
   account:
     greeting_html: "Olá, %{name}"
-    short_label: "Conta"
-    sign_in: "Entrar"
-    sign_up: "Cadastrar"
+    short_label: "Minha conta"
     sign_out: "Sair"
     drawer:
       heading: "Sua conta"

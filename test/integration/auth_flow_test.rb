@@ -59,7 +59,7 @@ class AuthFlowTest < ActionDispatch::IntegrationTest
     sign_in users(:confirmed)
     delete destroy_user_session_path
     follow_redirect!
-    assert_match(/Entrar/, response.body)
+    assert_select "a[href='#{new_user_session_path}']"
     assert_no_match(/Olá,/, response.body)
   end
 
