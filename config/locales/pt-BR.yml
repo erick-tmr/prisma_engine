@@ -67,6 +67,9 @@ pt-BR:
     drawer:
       heading: "Sua conta"
       my_account: "Minha conta"
+    layout:
+      heading: "Minha conta"
+      greeting: "Olá, %{name} — bem-vindo de volta."
     sidebar:
       heading: "Minha conta"
     sections:
@@ -85,20 +88,33 @@ pt-BR:
       email_pending_html: "Aguardando confirmação do novo e-mail: <strong>%{email}</strong>. Acesse o link enviado para concluir a troca."
       submit: "Salvar alterações"
       updated: "Dados atualizados."
+      saved_note: "Seus dados são protegidos"
+      full_name_label: "Nome completo"
+      cpf_label: "CPF"
+      email_label: "E-mail"
+      phone_label: "Celular"
+      phone_optional: "(opcional)"
     password:
       page_title: "Alterar senha — Prisma Games"
       heading: "Alterar senha"
       lede: "Informe sua senha atual e escolha uma nova."
+      current_label: "Senha atual"
       new_label: "Nova senha"
+      confirm_label: "Confirmar senha"
       submit: "Salvar nova senha"
       updated: "Senha alterada com sucesso."
+      saved_note: "Use uma senha exclusiva"
+      min_length: "Mínimo de %{count} caracteres."
     addresses:
       page_title: "Meus endereços — Prisma Games"
       new_page_title: "Novo endereço — Prisma Games"
       edit_page_title: "Editar endereço — Prisma Games"
       heading: "Meus endereços"
+      lede: "Endereços usados para entrega dos seus pedidos."
       new_heading: "Novo endereço"
+      new_lede: "Preencha os dados de entrega."
       edit_heading: "Editar endereço"
+      edit_lede: "Atualize os dados de entrega."
       add: "Adicionar endereço"
       add_first: "Adicionar o primeiro endereço"
       empty: "Você ainda não tem endereços cadastrados."
@@ -126,6 +142,7 @@ pt-BR:
       page_title: "Meus pedidos — Prisma Games"
       show_page_title: "Pedido %{number} — Prisma Games"
       heading: "Meus pedidos"
+      lede: "Acompanhe o status e o histórico das suas compras."
       empty: "Você ainda não fez nenhum pedido."
       states:
         aguardando_pagamento:

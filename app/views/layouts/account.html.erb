@@ -1,10 +1,18 @@
 <% content_for :main do %>
-  <div class="container">
-    <div class="row g-4">
-      <aside class="col-lg-3">
+  <div class="account-wrap">
+    <div class="account-head">
+      <div class="account-avatar"><%= account_avatar_initials(current_user.full_name) %></div>
+      <div class="account-head-text">
+        <h1><%= t("account.layout.heading") %></h1>
+        <p><%= t("account.layout.greeting", name: current_user.first_name) %></p>
+      </div>
+    </div>
+
+    <div class="account-grid">
+      <aside>
         <%= render "account/sidebar" %>
       </aside>
-      <section class="col-lg-9">
+      <section>
         <%= yield %>
       </section>
     </div>

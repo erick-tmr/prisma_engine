@@ -37,4 +37,30 @@ class AccountHelperTest < ActionView::TestCase
   test "order_payment_method_label falls back to a humanized label" do
     assert_equal "Other psp", order_payment_method_label(:other_psp)
   end
+
+  test "format_cpf masks 11 digits as 000.000.000-00" do
+    assert_equal "111.444.777-35", format_cpf("11144477735")
+  end
+
+  test "format_cpf returns the input as-is when it isn't 11 digits" do
+    assert_equal "abc", format_cpf("abc")
+    assert_equal "12345", format_cpf("12345")
+    assert_equal "", format_cpf(nil)
+  end
+
+  test "account_avatar_initials uses first and last token initials" do
+    assert_equal "ET", account_avatar_initials("Erick Takeshi")
+    assert_equal "ER", account_avatar_initials("Erick Takeshi Mine Rezende")
+    assert_equal "JS", account_avatar_initials("João da Silva")
+  end
+
+  test "account_avatar_initials handles a single-token name" do
+    assert_equal "M", account_avatar_initials("Madonna")
+  end
+
+  test "account_avatar_initials returns empty string for blank input" do
+    assert_equal "", account_avatar_initials(nil)
+    assert_equal "", account_avatar_initials("")
+    assert_equal "", account_avatar_initials("   ")
+  end
 end

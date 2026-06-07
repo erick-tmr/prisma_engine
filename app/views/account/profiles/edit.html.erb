@@ -1,10 +1,12 @@
 <% content_for :title, t("account.profile.page_title") %>
 
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h1 class="h4 mb-3"><%= t("account.profile.heading") %></h1>
-    <p class="text-muted small mb-4"><%= t("account.profile.lede") %></p>
+<div class="account-card account-panel">
+  <div class="panel-head">
+    <h2><span class="rainbow-bar" aria-hidden="true"></span> <%= t("account.profile.heading") %></h2>
+    <p><%= t("account.profile.lede") %></p>
+  </div>
 
+  <div class="panel-body">
     <%= form_with model: current_user, url: account_profile_path, method: :patch, html: { novalidate: true } do |f| %>
       <% if current_user.errors.any? %>
         <div class="alert alert-danger" role="alert">
@@ -16,38 +18,47 @@
         </div>
       <% end %>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <div class="form-label small"><%= t("auth.fields.full_name") %></div>
-          <p class="form-control-plaintext mb-0"><%= current_user.full_name %></p>
-          <div class="form-text"><%= t("account.profile.full_name_locked") %></div>
+      <div class="field-grid">
+        <div class="field">
+          <span class="field-label"><%= t("account.profile.full_name_label") %></span>
+          <div class="locked-value">
+            <span><%= current_user.full_name %></span>
+            <span class="locked-badge"><i class="bi bi-lock-fill"></i> <%= t("account.profile.full_name_locked") %></span>
+          </div>
         </div>
-        <div class="col-md-6 mb-3">
-          <div class="form-label small"><%= t("auth.fields.cpf") %></div>
-          <p class="form-control-plaintext mb-0"><%= current_user.cpf %></p>
-          <div class="form-text"><%= t("account.profile.cpf_locked") %></div>
-        </div>
-      </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <%= f.label :email, t("auth.fields.email"), class: "form-label small" %>
-          <%= f.email_field :email, autocomplete: "email", class: "form-control", required: true %>
+        <div class="field">
+          <span class="field-label"><%= t("account.profile.cpf_label") %></span>
+          <div class="locked-value">
+            <span><%= format_cpf(current_user.cpf) %></span>
+            <span class="locked-badge"><i class="bi bi-lock-fill"></i> <%= t("account.profile.cpf_locked") %></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <%= f.label :email, t("account.profile.email_label"), class: "field-label" %>
+          <%= f.email_field :email, autocomplete: "email", class: "field-input", required: true %>
           <% if current_user.unconfirmed_email.present? %>
-            <div class="form-text">
+            <span class="field-hint">
               <%= t("account.profile.email_pending_html", email: current_user.unconfirmed_email).html_safe %>
-            </div>
+            </span>
           <% else %>
-            <div class="form-text"><%= t("account.profile.email_change_hint") %></div>
+            <span class="field-hint"><%= t("account.profile.email_change_hint") %></span>
           <% end %>
         </div>
-        <div class="col-md-6 mb-3">
-          <%= f.label :phone, t("auth.fields.phone"), class: "form-label small" %>
-          <%= f.telephone_field :phone, autocomplete: "tel", class: "form-control", data: { "mask-phone": true } %>
+
+        <div class="field">
+          <%= f.label :phone, class: "field-label" do %>
+            <%= t("account.profile.phone_label") %> <span class="opt"><%= t("account.profile.phone_optional") %></span>
+          <% end %>
+          <%= f.telephone_field :phone, autocomplete: "tel", class: "field-input", data: { "mask-phone": true } %>
         </div>
       </div>
 
-      <%= f.submit t("account.profile.submit"), class: "btn btn-success" %>
+      <div class="panel-actions">
+        <%= f.submit t("account.profile.submit"), class: "btn-prisma" %>
+        <span class="saved-note"><i class="bi bi-shield-check"></i> <%= t("account.profile.saved_note") %></span>
+      </div>
     <% end %>
   </div>
 </div>

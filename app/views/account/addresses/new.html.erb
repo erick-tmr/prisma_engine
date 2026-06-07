@@ -1,8 +1,12 @@
 <% content_for :title, t("account.addresses.new_page_title") %>
 
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h1 class="h4 mb-3"><%= t("account.addresses.new_heading") %></h1>
+<div class="account-card account-panel">
+  <div class="panel-head">
+    <h2><span class="rainbow-bar" aria-hidden="true"></span> <%= t("account.addresses.new_heading") %></h2>
+    <p><%= t("account.addresses.new_lede") %></p>
+  </div>
+
+  <div class="panel-body">
     <%= render "form",
           address: @address,
           form_url: account_addresses_path,
