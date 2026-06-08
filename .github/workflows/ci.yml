@@ -441,6 +441,19 @@ jobs:
           path: semgrep-findings.txt
           if-no-files-found: warn
 
+      # GitHub Code Scanning ignores Semgrep's `{"kind": "inSource"}` suppressions
+      # (it expects a `"status": "accepted"` it never gets), so an in-source
+      # `# nosemgrep` still surfaces as an open alert under Security ▸ Code
+      # scanning. Strip suppressed results from the SARIF — same filter the
+      # Render step uses for the text output — so the upload matches the
+      # justified-in-source reality.
+      - name: Strip suppressed findings from SARIF
+        if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
+        run: |
+          jq '.runs |= map(.results |= map(select((.suppressions // []) | length == 0)))' \
+            semgrep.sarif > semgrep.sarif.filtered
+          mv semgrep.sarif.filtered semgrep.sarif
+
       - name: Upload Semgrep SARIF
         if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@v4
