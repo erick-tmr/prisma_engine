@@ -26,6 +26,7 @@ Rails.application.routes.draw do
     patch "senha",  to: "passwords#update"
     resources :enderecos, controller: "addresses", as: :addresses, except: :show do
       member { patch :default }
+      collection { get "cep/:cep", action: :lookup_cep, as: :lookup_cep, constraints: { cep: /[\d-]{8,9}/ } }
     end
     resources :pedidos, controller: "orders", as: :orders, only: %i[index show]
   end

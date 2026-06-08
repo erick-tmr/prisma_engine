@@ -1,6 +1,7 @@
 require "test_helper"
 
 class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
+  BASE = Correios::Api::BASE_URL
   include Devise::Test::IntegrationHelpers
 
   def valid_attrs(overrides = {})
@@ -132,5 +133,73 @@ class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
     users(:confirmed).addresses.create!(valid_attrs)
     get account_addresses_path
     assert_match(/01310-100/, response.body)
+  end
+
+  test "GET lookup_cep returns the autofill JSON for a valid CEP" do
+    sign_in users(:confirmed)
+    stub_correios_cep("01310100", logradouro: "Avenida Paulista", bairro: "Bela Vista",
+                                   nomeMunicipio: "São Paulo", uf: "SP")
+
+    get lookup_cep_account_addresses_path(cep: "01310100")
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert_equal "Avenida Paulista", payload["street"]
+    assert_equal "SP", payload["state"]
+  end
+
+  test "GET lookup_cep accepts a hyphenated CEP" do
+    sign_in users(:confirmed)
+    # The controller normalizes — Correios receives the digits-only form.
+    stub_correios_cep("01310100", uf: "SP")
+
+    get lookup_cep_account_addresses_path(cep: "01310-100")
+    assert_response :success
+  end
+
+  test "GET lookup_cep returns 404 when Correios doesn't know the CEP" do
+    sign_in users(:confirmed)
+    stub_request(:get, "#{BASE}/cep/v2/enderecos/99999999")
+      .to_return(status: 404, body: "{}", headers: { "Content-Type" => "application/json" })
+
+    get lookup_cep_account_addresses_path(cep: "99999999")
+    assert_response :not_found
+  end
+
+  test "GET lookup_cep returns 502 when Correios is flaky" do
+    sign_in users(:confirmed)
+    stub_request(:get, "#{BASE}/cep/v2/enderecos/01310100").to_return(status: 503, body: "boom")
+
+    get lookup_cep_account_addresses_path(cep: "01310100")
+    assert_response :bad_gateway
+  end
+
+  test "GET lookup_cep returns 502 on a non-transient upstream error" do
+    sign_in users(:confirmed)
+    stub_request(:get, "#{BASE}/cep/v2/enderecos/01310100").to_return(status: 401, body: "no auth")
+
+    get lookup_cep_account_addresses_path(cep: "01310100")
+    assert_response :bad_gateway
+  end
+
+  test "signed-out users hitting lookup_cep get redirected to sign-in" do
+    get lookup_cep_account_addresses_path(cep: "01310100")
+    assert_redirected_to new_user_session_path
+  end
+
+  test "GET lookup_cep returns 422 when the param isn't 8 digits" do
+    sign_in users(:confirmed)
+    # 7 digits + hyphen makes it through the path constraint but the controller
+    # rejects it — guards against shape bugs in the JS or hand-crafted URLs.
+    get lookup_cep_account_addresses_path(cep: "12345-67")
+    assert_response :unprocessable_entity
+  end
+
+  private
+
+  def stub_correios_cep(cep, payload)
+    stub_request(:get, "#{BASE}/cep/v2/enderecos/#{cep}")
+      .to_return(status: 200, body: payload.transform_keys(&:to_s).to_json,
+                 headers: { "Content-Type" => "application/json" })
   end
 end
