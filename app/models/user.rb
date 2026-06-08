@@ -8,7 +8,7 @@ class User < ApplicationRecord
 
   validates :full_name, presence: true
   validates :cpf, presence: true, uniqueness: true, cpf: true
-  validates :phone, length: { maximum: 20 }, allow_blank: true
+  validates :phone, presence: true, length: { maximum: 20 }
 
   def first_name
     full_name.to_s.split(/\s+/).first

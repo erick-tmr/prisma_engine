@@ -39,6 +39,7 @@ module Users
             full_name: "",
             email: "novo@example.com",
             cpf: VALID_CPF,
+            phone: "11988887777",
             password: "password123",
             password_confirmation: "password123"
           }
@@ -48,6 +49,23 @@ module Users
       assert_match(/Nome completo/, response.body)
     end
 
+    test "POST /cadastrar without phone re-renders the form with errors" do
+      assert_no_difference "User.count" do
+        post user_registration_path, params: {
+          user: {
+            full_name: "Novo Cliente",
+            email: "novo@example.com",
+            cpf: VALID_CPF,
+            phone: "",
+            password: "password123",
+            password_confirmation: "password123"
+          }
+        }
+      end
+      assert_response :unprocessable_entity
+      assert_match(/Celular/, response.body)
+    end
+
     test "POST /cadastrar with an invalid CPF re-renders the form" do
       assert_no_difference "User.count" do
         post user_registration_path, params: {
@@ -55,6 +73,7 @@ module Users
             full_name: "Novo Cliente",
             email: "novo@example.com",
             cpf: "11111111111",
+            phone: "11988887777",
             password: "password123",
             password_confirmation: "password123"
           }

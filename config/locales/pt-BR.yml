@@ -70,7 +70,6 @@ pt-BR:
       full_name: "Nome completo"
       email: "E-mail"
       cpf: "CPF"
-      phone: "Celular (opcional)"
       password: "Senha"
       password_confirmation: "Confirmar senha"
       current_password: "Senha atual"
@@ -116,7 +115,6 @@ pt-BR:
       cpf_label: "CPF"
       email_label: "E-mail"
       phone_label: "Celular"
-      phone_optional: "(opcional)"
     password:
       page_title: "Alterar senha — Prisma Games"
       heading: "Alterar senha"

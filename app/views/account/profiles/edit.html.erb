@@ -40,10 +40,8 @@
         </div>
 
         <div class="field">
-          <%= f.label :phone, class: "field-label" do %>
-            <%= t("account.profile.phone_label") %> <span class="opt"><%= t("account.profile.phone_optional") %></span>
-          <% end %>
-          <%= f.telephone_field :phone, autocomplete: "tel", class: "field-input", data: { "mask-phone": true } %>
+          <%= f.label :phone, t("account.profile.phone_label"), class: "field-label" %>
+          <%= f.telephone_field :phone, autocomplete: "tel", class: "field-input", required: true, data: { "mask-phone": true } %>
         </div>
       </div>
 

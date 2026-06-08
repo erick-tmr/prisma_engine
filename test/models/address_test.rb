@@ -148,6 +148,7 @@ class AddressTest < ActiveSupport::TestCase
       password_confirmation: "password123",
       full_name: "Para Apagar",
       cpf: "52998224725",
+      phone: "11988887777",
       confirmed_at: 1.day.ago
     )
     user.addresses.create!(base_attrs)

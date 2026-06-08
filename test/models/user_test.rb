@@ -57,9 +57,10 @@ class UserTest < ActiveSupport::TestCase
     assert_includes user.errors.attribute_names, :cpf
   end
 
-  test "phone is optional" do
+  test "phone is required" do
     user = User.new(base_attrs(phone: nil, cpf: "52998224725"))
-    assert user.valid?, user.errors.full_messages.to_sentence
+    assert_not user.valid?
+    assert_includes user.errors.attribute_names, :phone
   end
 
   test "phone over 20 characters is rejected" do

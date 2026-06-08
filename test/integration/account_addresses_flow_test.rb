@@ -134,6 +134,7 @@ class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
       password_confirmation: "password123",
       full_name: "Outro Cliente",
       cpf: "52998224725",
+      phone: "11988887777",
       confirmed_at: 1.day.ago
     )
     others_address = other.addresses.create!(valid_attrs)
