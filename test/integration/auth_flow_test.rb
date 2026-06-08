@@ -26,10 +26,21 @@ class AuthFlowTest < ActionDispatch::IntegrationTest
     assert_select "form input[type=email]"
   end
 
-  test "GET /confirmar/new renders the resend-confirmation form" do
+  test "GET /confirmar/new without an email param shows the manual input" do
     get new_user_confirmation_path
     assert_response :success
-    assert_select "form input[type=email]"
+    assert_select "form input[type=email][name='user[email]']"
+    # No email pill since we don't know the address
+    assert_no_match(/email-pill/, response.body)
+  end
+
+  test "GET /confirmar/new?email=... renders the address in a pill" do
+    get new_user_confirmation_path(email: "novo@example.com")
+    assert_response :success
+    assert_match(/novo@example\.com/, response.body)
+    assert_match(/email-pill/, response.body)
+    # Hidden input carries the email through the resend POST
+    assert_select "form input[type=hidden][name='user[email]'][value='novo@example.com']"
   end
 
   test "POST /recuperar-senha enqueues a reset-password mail for an existing email" do
@@ -59,7 +70,7 @@ class AuthFlowTest < ActionDispatch::IntegrationTest
     sign_in users(:confirmed)
     delete destroy_user_session_path
     follow_redirect!
-    assert_match(/Entrar/, response.body)
+    assert_select "a[href='#{new_user_session_path}']"
     assert_no_match(/Olá,/, response.body)
   end
 

@@ -36,18 +36,19 @@
 
     <main class="wrapper py-3">
       <% if flash.any? %>
-        <div class="container">
+        <div class="pg-flash">
           <% flash.each do |key, value| %>
-            <% level = { "notice" => "info", "alert" => "warning", "error" => "danger" }.fetch(key.to_s, "warning") %>
-            <div class="alert alert-<%= level %> alert-dismissible fade show" role="alert">
-              <%= value %>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            <% meta = pg_alert_meta(key) %>
+            <div class="pg-alert pg-alert-<%= meta[:variant] %>" role="alert">
+              <i class="bi <%= meta[:icon] %> pg-alert-ic"></i>
+              <div class="pg-alert-body"><%= value %></div>
+              <button type="button" class="pg-alert-close" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
             </div>
           <% end %>
         </div>
       <% end %>
 
-      <%= yield %>
+      <%= content_for?(:main) ? yield(:main) : yield %>
     </main>
 
     <%= render "shared/footer" %>
@@ -134,6 +135,14 @@
         $('[data-mask-cnpj]').mask('00.000.000/0000-00', { reverse: true });
         $('[data-mask-phone]').mask('(00) 00000-0000');
         $('[data-mask-cep]').mask('00000-000');
+
+        // .pg-alert is our brand flash; Bootstrap's data-bs-dismiss looks for
+        // .alert, so dismiss is wired directly here.
+        $(document).on('click', '.pg-alert-close', function () {
+          var $a = $(this).closest('.pg-alert');
+          $a.css({ transition: 'opacity .15s ease', opacity: 0 });
+          setTimeout(function () { $a.remove(); }, 150);
+        });
       });
     </script>
 

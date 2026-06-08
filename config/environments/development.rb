@@ -40,9 +40,11 @@ Rails.application.configure do
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 
-  # Open Devise confirmation / password-reset mails in the browser instead of
-  # SMTP — zero-infra preview during local development.
-  config.action_mailer.delivery_method = :letter_opener
+  # Send Devise confirmation / password-reset mails to a local /cartas inbox
+  # (mounted in config/routes.rb) instead of SMTP — zero-infra preview during
+  # local development, and the email lives in its own tab so the focused app
+  # tab is never replaced.
+  config.action_mailer.delivery_method = :letter_opener_web
   config.action_mailer.perform_deliveries = true
 
   # Print deprecation notices to the Rails logger.

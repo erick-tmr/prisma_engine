@@ -29,18 +29,14 @@
       <div class="col-6 col-md-4">
         <div class="d-flex justify-content-end align-items-center flex-nowrap gap-3">
           <% if user_signed_in? %>
-            <%= link_to edit_user_registration_path, class: "btn btn-link text-dark p-0 text-nowrap d-inline-flex align-items-center gap-1", title: t("account.short_label") do %>
+            <%= link_to account_profile_path, class: "btn btn-link text-dark p-0 text-nowrap d-inline-flex align-items-center gap-1", title: t("account.short_label") do %>
               <i class="bi bi-person fs-5 lh-1"></i>
               <span class="d-none d-lg-inline"><%= t("account.greeting_html", name: current_user.first_name) %></span>
             <% end %>
           <% else %>
-            <%= link_to new_user_session_path, class: "btn btn-link text-dark p-0 text-nowrap d-inline-flex align-items-center gap-1", title: t("account.sign_in") do %>
+            <%= link_to new_user_session_path, class: "btn btn-link text-dark p-0 text-nowrap d-inline-flex align-items-center gap-1", title: t("account.short_label") do %>
               <i class="bi bi-person fs-5 lh-1"></i>
-              <span class="d-none d-lg-inline"><%= t("account.sign_in") %></span>
-            <% end %>
-            <%= link_to new_user_registration_path, class: "btn btn-link text-dark p-0 text-nowrap d-none d-lg-inline-flex align-items-center gap-1", title: t("account.sign_up") do %>
-              <i class="bi bi-person-plus fs-5 lh-1"></i>
-              <span><%= t("account.sign_up") %></span>
+              <span class="d-none d-lg-inline"><%= t("account.short_label") %></span>
             <% end %>
           <% end %>
           <%= link_to "/carrinho", class: "btn btn-link text-dark site-cart p-0 text-nowrap d-inline-flex align-items-center gap-1", title: "Carrinho" do %>

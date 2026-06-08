@@ -1,0 +1,30 @@
+<div class="account-card">
+  <nav class="account-nav" aria-label="<%= t("account.sidebar.heading") %>">
+    <%= link_to account_profile_path,
+          class: "account-nav-link #{'active' if account_section_active?(account_profile_path)}" do %>
+      <i class="bi bi-person"></i><span><%= t("account.sections.profile") %></span>
+      <i class="bi bi-chevron-right chev"></i>
+    <% end %>
+    <%= link_to account_password_path,
+          class: "account-nav-link #{'active' if account_section_active?(account_password_path)}" do %>
+      <i class="bi bi-key"></i><span><%= t("account.sections.password") %></span>
+      <i class="bi bi-chevron-right chev"></i>
+    <% end %>
+    <%= link_to account_addresses_path,
+          class: "account-nav-link #{'active' if account_section_active?(account_addresses_path)}" do %>
+      <i class="bi bi-geo-alt"></i><span><%= t("account.sections.addresses") %></span>
+      <i class="bi bi-chevron-right chev"></i>
+    <% end %>
+    <%= link_to account_orders_path,
+          class: "account-nav-link #{'active' if account_section_active?(account_orders_path)}" do %>
+      <i class="bi bi-bag"></i><span><%= t("account.sections.orders") %></span>
+      <i class="bi bi-chevron-right chev"></i>
+    <% end %>
+  </nav>
+</div>
+
+<div class="account-signout">
+  <%= button_to destroy_user_session_path, method: :delete do %>
+    <i class="bi bi-box-arrow-right"></i><span><%= t("account.sections.sign_out") %></span>
+  <% end %>
+</div>

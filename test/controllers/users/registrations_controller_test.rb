@@ -26,7 +26,10 @@ module Users
       assert_not_nil user
       assert_nil user.confirmed_at, "user should remain unconfirmed until they click the link"
       assert_equal "11988887777", user.phone
-      assert_redirected_to root_path
+      # Devise's generic flash is suppressed in favor of the dedicated page,
+      # which receives the email via query string to populate its pill.
+      assert_redirected_to new_user_confirmation_path(email: "novo@example.com")
+      assert_nil flash[:notice]
     end
 
     test "POST /cadastrar without full_name re-renders the form with errors" do
@@ -60,18 +63,20 @@ module Users
       assert_response :unprocessable_entity
     end
 
-    test "PATCH update changes the full_name when current_password matches" do
+    test "GET /editar redirects to /minha-conta/perfil (Devise edit route is dormant)" do
       sign_in users(:confirmed)
+      get edit_user_registration_path
+      assert_redirected_to account_profile_path
+    end
+
+    test "PATCH update redirects to /minha-conta/perfil and does not change profile fields" do
+      sign_in users(:confirmed)
+      original_full_name = users(:confirmed).full_name
       patch user_registration_path, params: {
-        user: {
-          full_name: "Nome Atualizado",
-          email: users(:confirmed).email,
-          cpf: users(:confirmed).cpf,
-          current_password: "password123"
-        }
+        user: { full_name: "Nope", current_password: "password123" }
       }
-      assert_redirected_to root_path
-      assert_equal "Nome Atualizado", users(:confirmed).reload.full_name
+      assert_redirected_to account_profile_path
+      assert_equal original_full_name, users(:confirmed).reload.full_name
     end
   end
 end

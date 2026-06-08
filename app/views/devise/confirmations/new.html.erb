@@ -1,29 +1,63 @@
-<% content_for :title, t("auth.page_title.resend_confirmation") %>
+<% content_for :title, t("auth.confirmations.page_title") %>
 
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h1 class="h4 mb-2 text-center"><%= t("auth.confirmations.new_heading") %></h1>
-          <p class="text-muted small text-center mb-4"><%= t("auth.confirmations.new_lede") %></p>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-prism" aria-hidden="true">
+        <span class="ray-soft"></span>
+        <span class="ray-line"></span>
+      </div>
+      <span class="auth-wordmark">Prisma Games</span>
+    </div>
 
-          <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post, novalidate: true }) do |f| %>
-            <div class="mb-3">
-              <%= f.label :email, t("auth.fields.email"), class: "form-label small" %>
-              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", required: true %>
+    <div class="auth-form-side">
+      <div class="confirm-hero-ic"><i class="bi bi-envelope-check"></i></div>
+      <h1 class="auth-heading" style="margin-top:18px;"><%= t("auth.confirmations.heading") %></h1>
+      <p class="auth-sub">
+        <%= @email.present? ? t("auth.confirmations.lede_known") : t("auth.confirmations.lede_unknown") %>
+      </p>
+
+      <% if @email.present? %>
+        <span class="email-pill"><i class="bi bi-envelope"></i> <%= @email %></span>
+      <% end %>
+
+      <ol class="confirm-steps">
+        <li>
+          <span class="n">1</span>
+          <span class="t"><%= t("auth.confirmations.steps.one_title") %><small><%= t("auth.confirmations.steps.one_hint") %></small></span>
+        </li>
+        <li>
+          <span class="n">2</span>
+          <span class="t"><%= t("auth.confirmations.steps.two_title") %><small><%= t("auth.confirmations.steps.two_hint") %></small></span>
+        </li>
+        <li>
+          <span class="n">3</span>
+          <span class="t"><%= t("auth.confirmations.steps.three_title") %><small><%= t("auth.confirmations.steps.three_hint") %></small></span>
+        </li>
+      </ol>
+
+      <div class="confirm-resend">
+        <p class="confirm-resend-text"><%= t("auth.confirmations.resend_hint") %></p>
+        <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post, class: "auth-form", novalidate: true }) do |f| %>
+          <% if @email.present? %>
+            <%= f.hidden_field :email, value: @email %>
+          <% else %>
+            <div class="field" style="margin-bottom: 14px;">
+              <%= f.label :email, t("auth.fields.email"), class: "field-label" %>
+              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "field-input", required: true, placeholder: "voce@email.com" %>
             </div>
-
-            <%= f.submit t("auth.confirmations.new_submit"), class: "btn btn-dark w-100" %>
           <% end %>
+          <button type="submit" class="btn-ghost">
+            <i class="bi bi-arrow-repeat"></i> <%= t("auth.confirmations.resend_submit") %>
+          </button>
+        <% end %>
+      </div>
 
-          <hr class="my-4">
-
-          <div class="d-flex flex-column gap-2 small text-center">
-            <%= link_to t("auth.sign_in.submit"), new_session_path(resource_name) %>
-            <%= link_to t("auth.sign_in.sign_up"), new_registration_path(resource_name) %>
-          </div>
-        </div>
+      <div class="auth-foot">
+        <%= t("auth.confirmations.wrong_email") %>
+        <%= link_to t("auth.confirmations.back_to_sign_up"), new_registration_path(resource_name) %>
+        <span class="auth-foot-sep">·</span>
+        <%= link_to t("auth.confirmations.to_sign_in"), new_session_path(resource_name) %>
       </div>
     </div>
   </div>

@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/cartas"
+  end
+
   devise_for :users,
              path: "",
              path_names: {
@@ -9,7 +13,22 @@ Rails.application.routes.draw do
                confirmation: "confirmar",
                edit: "editar"
              },
-             controllers: { registrations: "users/registrations" }
+             controllers: {
+               registrations: "users/registrations",
+               confirmations: "users/confirmations"
+             }
+
+  scope path: "minha-conta", module: "account", as: :account do
+    root to: redirect("/minha-conta/perfil")
+    get   "perfil", to: "profiles#edit",  as: :profile
+    patch "perfil", to: "profiles#update"
+    get   "senha",  to: "passwords#edit", as: :password
+    patch "senha",  to: "passwords#update"
+    resources :enderecos, controller: "addresses", as: :addresses, except: :show do
+      member { patch :default }
+    end
+    resources :pedidos, controller: "orders", as: :orders, only: %i[index show]
+  end
 
   get "up" => "rails/health#show", as: :rails_health_check
 

@@ -1,0 +1,104 @@
+<% content_for :title, t("account.orders.show_page_title", number: @order.number) %>
+
+<div class="account-card account-panel">
+  <div class="panel-body">
+    <%= link_to account_orders_path, class: "order-back" do %>
+      <i class="bi bi-arrow-left"></i> <%= t("account.orders.show.back") %>
+    <% end %>
+
+    <div class="order-detail-head">
+      <div>
+        <h2>#<%= @order.number %></h2>
+        <div class="sub"><%= t("account.orders.show.placed_on", date: l(@order.placed_at.to_date, format: :long)) %></div>
+      </div>
+      <span class="status-pill status-<%= @order.status %>">
+        <%= t("account.orders.states.#{@order.status}.label") %>
+      </span>
+    </div>
+
+    <div class="status-banner">
+      <div class="sb-text">
+        <span class="status-pill status-<%= @order.status %>">
+          <%= t("account.orders.states.#{@order.status}.label") %>
+        </span>
+        <p><%= t("account.orders.states.#{@order.status}.description") %></p>
+      </div>
+    </div>
+
+    <div class="subcard">
+      <div class="subcard-head"><%= t("account.orders.show.items") %></div>
+
+      <% @order.items.each do |item| %>
+        <div class="order-item">
+          <div class="order-item-thumb d-flex align-items-center justify-content-center">
+            <i class="bi bi-controller" style="font-size:24px;color:#9aa0a6;"></i>
+          </div>
+          <div class="order-item-info">
+            <span class="name"><%= item.name %></span>
+            <% if item.chosen_options.any? %>
+              <span class="opts"><%= item.chosen_options.join(" · ") %></span>
+            <% end %>
+            <span class="qty"><%= t("account.orders.show.quantity", count: item.quantity) %> · <%= format_brl(item.unit_price_cents) %></span>
+          </div>
+          <span class="order-item-line"><%= format_brl(item.line_total_cents) %></span>
+        </div>
+      <% end %>
+
+      <div class="order-totals">
+        <div class="row-t"><span><%= t("account.orders.show.subtotal") %></span><span><%= format_brl(@order.subtotal_cents) %></span></div>
+        <div class="row-t"><span><%= t("account.orders.show.shipping") %></span><span><%= format_brl(@order.shipping_cents) %></span></div>
+        <div class="row-t row-total"><span><%= t("account.orders.show.total") %></span><span><%= format_brl(@order.total_cents) %></span></div>
+      </div>
+    </div>
+
+    <div class="order-info-grid">
+      <div class="subcard">
+        <div class="subcard-head"><%= t("account.orders.show.shipping_address") %></div>
+        <div class="info-body">
+          <% address = @order.shipping_address %>
+          <div class="strong"><%= address[:recipient] %></div>
+          <div><%= address[:street] %>, <%= address[:number] %><% if address[:complement].present? %> — <%= address[:complement] %><% end %></div>
+          <div><%= address[:neighborhood] %></div>
+          <div><%= address[:city] %> — <%= address[:state] %> · CEP <%= number_to_cep(address[:zip]) %></div>
+        </div>
+      </div>
+      <div class="subcard">
+        <div class="subcard-head"><%= t("account.orders.show.payment") %></div>
+        <div class="info-body">
+          <div class="strong"><%= order_payment_method_label(@order.payment_method) %></div>
+          <div><%= t("account.orders.show.payment_status.#{@order.payment_status}") %></div>
+        </div>
+      </div>
+    </div>
+
+    <% if @order.shipping_visible? %>
+      <div class="subcard" style="margin-bottom:0;">
+        <div class="subcard-head"><%= t("account.orders.show.tracking") %></div>
+        <div class="track-list">
+          <% events = @order.tracking_events.sort_by(&:occurred_at).reverse %>
+          <% events.each_with_index do |event, index| %>
+            <div class="track-item<%= ' current' if index.zero? %>">
+              <span class="track-dot"></span>
+              <div class="track-body">
+                <div>
+                  <div class="desc"><%= event.description %></div>
+                  <div class="meta"><%= event.code %>/<%= event.event_type %></div>
+                </div>
+                <div class="time"><%= l(event.occurred_at, format: :short) %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @order.cancellable? %>
+      <div class="panel-actions">
+        <button type="button" class="btn-ghost danger" disabled
+                data-bs-toggle="tooltip" data-bs-title="<%= t("account.orders.show.cancel_soon") %>">
+          <%= t("account.orders.show.cancel") %>
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -2,6 +2,8 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable, :confirmable,
          :recoverable, :rememberable, :validatable, :lockable
 
+  has_many :addresses, dependent: :destroy
+
   before_validation :normalize_cpf
 
   validates :full_name, presence: true
@@ -10,6 +12,10 @@ class User < ApplicationRecord
 
   def first_name
     full_name.to_s.split(/\s+/).first
+  end
+
+  def default_address
+    addresses.find_by(default: true)
   end
 
   private

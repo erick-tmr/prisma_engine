@@ -1,4 +1,21 @@
 pt-BR:
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      long: "%d de %B de %Y"
+      short: "%d/%m"
+    day_names: [domingo, segunda-feira, terça-feira, quarta-feira, quinta-feira, sexta-feira, sábado]
+    abbr_day_names: [dom, seg, ter, qua, qui, sex, sáb]
+    month_names: [~, janeiro, fevereiro, março, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro]
+    abbr_month_names: [~, jan, fev, mar, abr, mai, jun, jul, ago, set, out, nov, dez]
+    order: [day, month, year]
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"
+      long: "%d de %B de %Y, %H:%M"
+      short: "%d/%m %H:%M"
+    am: am
+    pm: pm
   auth:
     page_title:
       sign_in: "Entrar — Prisma Games"
@@ -6,25 +23,46 @@ pt-BR:
       forgot_password: "Recuperar acesso — Prisma Games"
       reset_password: "Definir nova senha — Prisma Games"
       resend_confirmation: "Reenviar e-mail de confirmação — Prisma Games"
+    switch:
+      sign_in: "Entrar"
+      sign_up: "Criar conta"
     sign_in:
-      heading: "Já sou cliente"
       submit: "Entrar"
       forgot_password: "Esqueci minha senha"
       no_account: "Ainda não tem cadastro?"
       sign_up: "Criar conta"
       resend_confirmation: "Reenviar e-mail de confirmação"
     sign_up:
-      heading: "Sou novo por aqui"
       submit: "Criar conta"
       has_account: "Já tem cadastro?"
       sign_in: "Entrar"
+      terms_html: 'Ao criar a conta, você concorda com os <a href="#">Termos de uso</a> e a <a href="#">Política de privacidade</a>.'
     passwords:
       new_heading: "Recuperar acesso"
       new_lede: "Informe o e-mail do seu cadastro e enviaremos um link para definir uma nova senha."
       new_submit: "Enviar link de recuperação"
       edit_heading: "Definir nova senha"
+      edit_lede: "Escolha uma nova senha para concluir a recuperação."
       edit_submit: "Salvar nova senha"
+      back_to_sign_in: "Voltar para o login"
+      remembered: "Lembrou a senha?"
     confirmations:
+      page_title: "Confirme seu e-mail — Prisma Games"
+      heading: "Confirme seu e-mail"
+      lede_known: "Falta um passo. Enviamos um link de confirmação para:"
+      lede_unknown: "Informe o e-mail do seu cadastro e enviaremos outro link."
+      steps:
+        one_title: "Abra sua caixa de entrada"
+        one_hint: "Procure por um e-mail da Prisma Games."
+        two_title: "Clique no link de confirmação"
+        two_hint: "Ele ativa sua conta na hora."
+        three_title: "Pronto — já pode entrar e comprar"
+        three_hint: "Acompanhe pedidos e salve seus endereços."
+      resend_hint: "Não recebeu em alguns minutos? Confira a caixa de spam ou reenvie o link."
+      resend_submit: "Reenviar e-mail de confirmação"
+      wrong_email: "E-mail errado?"
+      back_to_sign_up: "Voltar ao cadastro"
+      to_sign_in: "Ir para o login"
       new_heading: "Reenviar e-mail de confirmação"
       new_lede: "Não recebeu o e-mail de confirmação? Informe seu endereço e enviaremos outro."
       new_submit: "Reenviar instruções"
@@ -37,19 +75,141 @@ pt-BR:
       password_confirmation: "Confirmar senha"
       current_password: "Senha atual"
       remember_me: "Mantenha-me conectado"
+    placeholders:
+      full_name: "Seu nome completo"
+  forms:
+    errors_heading: "Não foi possível salvar. Corrija os campos abaixo:"
   mailer:
     support_email: "vininess@hotmail.com"
     help_footer_html: 'Precisa de ajuda? Escreva para <a href="mailto:%{email}">%{email}</a>.'
     help_footer: "Precisa de ajuda? Escreva para %{email}."
   account:
     greeting_html: "Olá, %{name}"
-    short_label: "Conta"
-    sign_in: "Entrar"
-    sign_up: "Cadastrar"
+    short_label: "Minha conta"
     sign_out: "Sair"
     drawer:
       heading: "Sua conta"
       my_account: "Minha conta"
+    layout:
+      heading: "Minha conta"
+      greeting: "Olá, %{name} — bem-vindo de volta."
+    sidebar:
+      heading: "Minha conta"
+    sections:
+      profile: "Perfil"
+      password: "Senha"
+      addresses: "Endereços"
+      orders: "Pedidos"
+      sign_out: "Sair"
+    profile:
+      page_title: "Meu perfil — Prisma Games"
+      heading: "Meus dados"
+      lede: "Atualize seu e-mail e celular. Nome e CPF não podem ser alterados — fale com a gente se houver algum erro."
+      full_name_locked: "Bloqueado"
+      cpf_locked: "Bloqueado"
+      email_change_hint: "Ao trocar o e-mail, enviaremos um link de confirmação para o novo endereço."
+      email_pending_html: "Aguardando confirmação do novo e-mail: <strong>%{email}</strong>. Acesse o link enviado para concluir a troca."
+      submit: "Salvar alterações"
+      updated: "Dados atualizados."
+      saved_note: "Seus dados são protegidos"
+      full_name_label: "Nome completo"
+      cpf_label: "CPF"
+      email_label: "E-mail"
+      phone_label: "Celular"
+      phone_optional: "(opcional)"
+    password:
+      page_title: "Alterar senha — Prisma Games"
+      heading: "Alterar senha"
+      lede: "Informe sua senha atual e escolha uma nova."
+      current_label: "Senha atual"
+      new_label: "Nova senha"
+      confirm_label: "Confirmar senha"
+      submit: "Salvar nova senha"
+      updated: "Senha alterada com sucesso."
+      saved_note: "Use uma senha exclusiva"
+      min_length: "Mínimo de %{count} caracteres."
+    addresses:
+      page_title: "Meus endereços — Prisma Games"
+      new_page_title: "Novo endereço — Prisma Games"
+      edit_page_title: "Editar endereço — Prisma Games"
+      heading: "Meus endereços"
+      lede: "Endereços usados para entrega dos seus pedidos."
+      new_heading: "Novo endereço"
+      new_lede: "Preencha os dados de entrega."
+      edit_heading: "Editar endereço"
+      edit_lede: "Atualize os dados de entrega."
+      add: "Adicionar endereço"
+      add_first: "Adicionar o primeiro endereço"
+      empty: "Você ainda não tem endereços cadastrados."
+      default_badge: "Padrão"
+      edit: "Editar"
+      delete: "Remover"
+      delete_confirm: "Tem certeza que deseja remover este endereço?"
+      set_default: "Tornar padrão"
+      cancel: "Cancelar"
+      submit_new: "Salvar endereço"
+      submit_edit: "Salvar alterações"
+      created: "Endereço cadastrado."
+      updated: "Endereço atualizado."
+      destroyed: "Endereço removido."
+      default_set: "Endereço definido como padrão."
+      fields:
+        zip: "CEP"
+        street: "Logradouro"
+        number: "Número"
+        complement: "Complemento (opcional)"
+        neighborhood: "Bairro"
+        city: "Cidade"
+        state: "UF"
+    orders:
+      page_title: "Meus pedidos — Prisma Games"
+      show_page_title: "Pedido %{number} — Prisma Games"
+      heading: "Meus pedidos"
+      lede: "Acompanhe o status e o histórico das suas compras."
+      empty: "Você ainda não fez nenhum pedido."
+      states:
+        aguardando_pagamento:
+          label: "Aguardando pagamento"
+          description: "O pedido foi criado e encontra-se aguardando pagamento."
+        pagamento_confirmado:
+          label: "Pagamento confirmado"
+          description: "O seu pedido está aguardando para entrar em produção, de acordo com a ordem de chegada."
+        aguardando_componentes:
+          label: "Aguardando componentes"
+          description: "Estamos com falta de alguns componentes para produção do seu pedido."
+        em_producao:
+          label: "Em produção"
+          description: "Seu pedido está em produção e em breve será enviado para os correios."
+        problema_na_producao:
+          label: "Problema na produção"
+          description: "Tive problemas com a produção, entre em contato para esclarecimentos."
+        etiqueta_emitida:
+          label: "Etiqueta emitida"
+          description: "Etiqueta dos Correios emitida, seu pedido será enviado em breve."
+        enviado:
+          label: "Enviado"
+          description: "Seu pedido foi enviado aos correios."
+        entregue:
+          label: "Entregue"
+          description: "Seu pedido foi entregue."
+      show:
+        placed_on: "Feito em %{date}"
+        back: "Voltar para pedidos"
+        items: "Itens"
+        quantity:
+          one: "%{count} unidade"
+          other: "%{count} unidades"
+        subtotal: "Subtotal"
+        shipping: "Frete"
+        total: "Total"
+        shipping_address: "Endereço de entrega"
+        payment: "Pagamento"
+        payment_status:
+          paid: "Pago"
+          pending: "Pagamento pendente"
+        tracking: "Rastreamento"
+        cancel: "Cancelar pedido"
+        cancel_soon: "Em breve."
   activerecord:
     attributes:
       user:
@@ -60,9 +220,23 @@ pt-BR:
         password: "Senha"
         password_confirmation: "Confirmar senha"
         current_password: "Senha atual"
+      address:
+        zip: "CEP"
+        street: "Logradouro"
+        number: "Número"
+        complement: "Complemento"
+        neighborhood: "Bairro"
+        city: "Cidade"
+        state: "UF"
     errors:
       models:
         user:
           attributes:
             cpf:
               invalid: "não é válido"
+        address:
+          attributes:
+            zip:
+              invalid_format: "deve conter 8 dígitos"
+            state:
+              not_in_list: "não é uma UF válida"

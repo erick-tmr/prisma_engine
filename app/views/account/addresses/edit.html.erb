@@ -1,0 +1,16 @@
+<% content_for :title, t("account.addresses.edit_page_title") %>
+
+<div class="account-card account-panel">
+  <div class="panel-head">
+    <h2><span class="rainbow-bar" aria-hidden="true"></span> <%= t("account.addresses.edit_heading") %></h2>
+    <p><%= t("account.addresses.edit_lede") %></p>
+  </div>
+
+  <div class="panel-body">
+    <%= render "form",
+          address: @address,
+          form_url: account_address_path(@address),
+          form_method: :patch,
+          submit_label: t("account.addresses.submit_edit") %>
+  </div>
+</div>

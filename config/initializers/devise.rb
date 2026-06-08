@@ -190,8 +190,11 @@ Devise.setup do |config|
   # config.rememberable_options = {}
 
   # ==> Configuration for :validatable
-  # Range for password length.
-  config.password_length = 6..128
+  # Range for password length. 8-char floor follows the NIST SP 800-63B / OWASP
+  # ASVS line: a real entropy gain over Devise's 6-char default, while staying
+  # below the threshold where forced complexity rules backfire into "Senha1!"
+  # patterns. Forced complexity is intentionally absent for the same reason.
+  config.password_length = 8..128
 
   # Email regex used to validate email formats. It simply asserts that
   # one (and only one) @ exists in the given string. This is mainly

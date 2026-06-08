@@ -1,0 +1,13 @@
+<% if record.errors.any? %>
+  <div class="pg-alert pg-alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill pg-alert-ic"></i>
+    <div class="pg-alert-body">
+      <strong><%= t("forms.errors_heading") %></strong>
+      <ul class="pg-alert-list">
+        <% record.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+<% end %>
