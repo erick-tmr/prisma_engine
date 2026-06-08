@@ -68,10 +68,11 @@
   <script>
     $(function () {
       $('[data-receiver-self]').on('change', function () {
-        if (!this.checked) return;
         var $form = $(this).closest('form');
-        $form.find('[name="address[receiver_name]"]').val($form.data('user-name'));
-        $form.find('[name="address[receiver_cpf]"]').val($form.data('user-cpf'));
+        var name = this.checked ? $form.data('user-name') : '';
+        var cpf  = this.checked ? $form.data('user-cpf')  : '';
+        $form.find('[name="address[receiver_name]"]').val(name);
+        $form.find('[name="address[receiver_cpf]"]').val(cpf);
       });
 
       $('[data-mask-cep]').each(function () {
