@@ -1305,7 +1305,6 @@ body.site-drawer-locked {
 
 .addr-receiver-notice { margin-bottom: 14px; }
 .addr-receiver-self { margin-bottom: 18px; }
-.pg-alert + .addr-receiver-notice { margin-top: 18px; }
 
 @media (max-width: 560px) {
   .addr-form-grid .col-receiver-name,
@@ -2000,6 +1999,7 @@ body.site-drawer-locked {
   background: #fff;
 }
 
+.pg-alert { margin-bottom: 18px; }
 .pg-alert + .pg-alert { margin-top: 10px; }
 
 .pg-alert-ic {
