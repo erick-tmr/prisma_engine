@@ -40,3 +40,36 @@
     <%= link_to t("account.addresses.cancel"), account_addresses_path, class: "order-back", style: "margin:0;" %>
   </div>
 <% end %>
+
+<% content_for :scripts do %>
+  <script>
+    $(function () {
+      $('[data-mask-cep]').each(function () {
+        var $cep = $(this);
+        // Treat any CEP already in the field on page load (edit flow) as the
+        // baseline — don't refetch unless the customer actually changes it.
+        var last = $cep.val().replace(/\D/g, '');
+        if (last.length !== 8) last = null;
+
+        $cep.on('blur', function () {
+          var digits = $cep.val().replace(/\D/g, '');
+          if (digits.length !== 8 || digits === last) return;
+
+          var $form = $cep.closest('form');
+          $.getJSON('/minha-conta/enderecos/cep/' + digits)
+            .done(function (data) {
+              last = digits;
+              // Always replace — a sparse response (town-wide CEP) would
+              // otherwise leave stale values from the previous CEP behind.
+              ['street', 'neighborhood', 'city', 'state'].forEach(function (field) {
+                var $input = $form.find('[name="address[' + field + ']"]');
+                if ($input.length) $input.val(data[field] || '');
+              });
+              var $number = $form.find('[name="address[number]"]');
+              if ($number.length && !$number.val()) $number.trigger('focus');
+            });
+        });
+      });
+    });
+  </script>
+<% end %>

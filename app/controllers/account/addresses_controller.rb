@@ -40,6 +40,20 @@ module Account
       redirect_to account_addresses_path, notice: t("account.addresses.default_set")
     end
 
+    # Autofill endpoint hit by the address form on CEP blur. Returns a JSON Hash
+    # with whichever of {street, neighborhood, city, state} Correios knows for
+    # this CEP. Empty fields stay empty so the JS can't overwrite typed values.
+    def lookup_cep
+      cep = params[:cep].to_s.gsub(/\D/, "")
+      return head :unprocessable_entity unless cep.match?(/\A\d{8}\z/)
+
+      render json: Shipping::CepLookup.call(cep)
+    rescue Correios::Api::InvalidObjectError
+      head :not_found
+    rescue Correios::Api::Error
+      head :bad_gateway
+    end
+
     private
 
     def set_address
