@@ -17,7 +17,7 @@ gem "stimulus-rails"
 
 # Authentication: Devise + pt-BR upstream translations
 gem "devise", "~> 5.0", ">= 5.0.4"
-gem "devise-i18n", "~> 1.14"
+gem "devise-i18n", "~> 1.16"
 
 # Password hashing (pulled by Devise, pinned for explicit lockfile visibility)
 gem "bcrypt", "~> 3.1.7"

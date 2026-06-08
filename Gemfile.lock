@@ -137,8 +137,8 @@ GEM
       railties (>= 7.0)
       responders
       warden (~> 1.2.3)
-    devise-i18n (1.15.0)
-      devise (>= 4.9.0)
+    devise-i18n (1.16.0)
+      devise (>= 5.0.0)
       rails-i18n
     docile (1.4.1)
     dotenv (3.2.0)
@@ -501,7 +501,7 @@ DEPENDENCIES
   debug
   derailed_benchmarks
   devise (~> 5.0, >= 5.0.4)
-  devise-i18n (~> 1.14)
+  devise-i18n (~> 1.16)
   dotenv (~> 3.1)
   faraday (~> 2.14)
   friendly_id (~> 5.5)
