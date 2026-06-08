@@ -88,11 +88,13 @@ class UserTest < ActiveSupport::TestCase
     user = users(:confirmed)
     user.addresses.create!(
       zip: "12345678", street: "X", number: "1", neighborhood: "Y",
-      city: "Z", state: "SP"
+      city: "Z", state: "SP",
+      receiver_name: "Maria", receiver_cpf: "52998224725"
     )
     second = user.addresses.create!(
       zip: "12345678", street: "Outra", number: "2", neighborhood: "Y",
-      city: "Z", state: "SP"
+      city: "Z", state: "SP",
+      receiver_name: "Maria", receiver_cpf: "52998224725"
     )
     second.mark_default!
     assert_equal second, user.default_address

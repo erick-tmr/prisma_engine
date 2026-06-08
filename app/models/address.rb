@@ -9,11 +9,14 @@ class Address < ApplicationRecord
   belongs_to :user
 
   before_validation :normalize_zip
+  before_validation :normalize_receiver_cpf
   before_create :mark_default_when_first
 
   validates :zip, presence: true, format: { with: /\A\d{8}\z/, message: :invalid_format }
   validates :street, :number, :neighborhood, :city, presence: true
   validates :state, presence: true, inclusion: { in: UF_LIST, message: :not_in_list }
+  validates :receiver_name, presence: true
+  validates :receiver_cpf, presence: true, cpf: true
 
   scope :default_first, -> { order(default: :desc, id: :asc) }
 
@@ -30,6 +33,10 @@ class Address < ApplicationRecord
 
   def normalize_zip
     self.zip = zip.to_s.gsub(/\D/, "").presence
+  end
+
+  def normalize_receiver_cpf
+    self.receiver_cpf = receiver_cpf.to_s.gsub(/\D/, "").presence
   end
 
   def mark_default_when_first

@@ -1293,6 +1293,8 @@ body.site-drawer-locked {
   grid-template-columns: repeat(12, 1fr);
   gap: 18px 22px;
 }
+.addr-form-grid .col-receiver-name { grid-column: span 8; }
+.addr-form-grid .col-receiver-cpf { grid-column: span 4; }
 .addr-form-grid .col-zip { grid-column: span 4; }
 .addr-form-grid .col-street { grid-column: span 8; }
 .addr-form-grid .col-number { grid-column: span 4; }
@@ -1301,7 +1303,13 @@ body.site-drawer-locked {
 .addr-form-grid .col-city { grid-column: span 4; }
 .addr-form-grid .col-state { grid-column: span 3; }
 
+.addr-receiver-notice { margin-bottom: 14px; }
+.addr-receiver-self { margin-bottom: 18px; }
+.pg-alert + .addr-receiver-notice { margin-top: 18px; }
+
 @media (max-width: 560px) {
+  .addr-form-grid .col-receiver-name,
+  .addr-form-grid .col-receiver-cpf,
   .addr-form-grid .col-zip,
   .addr-form-grid .col-street,
   .addr-form-grid .col-number,
@@ -1361,6 +1369,18 @@ body.site-drawer-locked {
   font-size: 13.5px;
   color: var(--pg-muted);
   line-height: 1.5;
+}
+
+.addr-card .addr-receiver {
+  font-size: 12.5px;
+  color: var(--pg-muted);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.addr-card .addr-receiver strong {
+  color: var(--pg-ink);
+  font-weight: 600;
 }
 
 .addr-card-actions {

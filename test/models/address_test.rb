@@ -9,7 +9,9 @@ class AddressTest < ActiveSupport::TestCase
       complement: "Apto 12",
       neighborhood: "Centro",
       city: "São Paulo",
-      state: "SP"
+      state: "SP",
+      receiver_name: "Maria Receptora",
+      receiver_cpf: "52998224725"
     }.merge(overrides)
   end
 
@@ -74,6 +76,31 @@ class AddressTest < ActiveSupport::TestCase
   test "state must be a valid Brazilian UF" do
     assert_not build_address(state: "XX").valid?
     assert build_address(state: "RJ").valid?
+  end
+
+  test "receiver_name is required" do
+    assert_not build_address(receiver_name: nil).valid?
+  end
+
+  test "receiver_cpf is required" do
+    assert_not build_address(receiver_cpf: nil).valid?
+  end
+
+  test "receiver_cpf is normalized to digits before validation" do
+    address = build_address(receiver_cpf: "529.982.247-25")
+    address.valid?
+    assert_equal "52998224725", address.receiver_cpf
+  end
+
+  test "receiver_cpf with only formatting characters normalizes to nil and fails presence" do
+    address = build_address(receiver_cpf: "...-..")
+    assert_not address.valid?
+    assert_nil address.receiver_cpf
+    assert_includes address.errors.attribute_names, :receiver_cpf
+  end
+
+  test "receiver_cpf with invalid mod-11 check digits is rejected" do
+    assert_not build_address(receiver_cpf: "11111111111").valid?
   end
 
   test "the first address for a user is automatically default" do

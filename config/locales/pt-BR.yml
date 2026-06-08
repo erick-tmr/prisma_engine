@@ -153,7 +153,12 @@ pt-BR:
       updated: "Endereço atualizado."
       destroyed: "Endereço removido."
       default_set: "Endereço definido como padrão."
+      receiver_notice_html: "Os Correios exigem o <strong>CPF do destinatário</strong> para entrega. Você pode enviar para outra pessoa — informe o nome e CPF de quem vai receber."
+      for_label: "Para:"
       fields:
+        receiver_name: "Nome do destinatário"
+        receiver_cpf: "CPF do destinatário"
+        receiver_self: "Eu sou o destinatário"
         zip: "CEP"
         street: "Logradouro"
         number: "Número"
@@ -228,6 +233,8 @@ pt-BR:
         neighborhood: "Bairro"
         city: "Cidade"
         state: "UF"
+        receiver_name: "Nome do destinatário"
+        receiver_cpf: "CPF do destinatário"
     errors:
       models:
         user:
@@ -240,3 +247,5 @@ pt-BR:
               invalid_format: "deve conter 8 dígitos"
             state:
               not_in_list: "não é uma UF válida"
+            receiver_cpf:
+              invalid: "não é válido"

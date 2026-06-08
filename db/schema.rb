@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_112126) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_010000) do
     t.boolean "default", default: false, null: false
     t.string "neighborhood", null: false
     t.string "number", null: false
+    t.string "receiver_cpf", null: false
+    t.string "receiver_name", null: false
     t.string "state", null: false
     t.string "street", null: false
     t.datetime "updated_at", null: false

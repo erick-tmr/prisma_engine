@@ -12,7 +12,9 @@ class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
       complement: "Conj. 12",
       neighborhood: "Bela Vista",
       city: "São Paulo",
-      state: "SP"
+      state: "SP",
+      receiver_name: "Maria Receptora",
+      receiver_cpf: "52998224725"
     }.merge(overrides)
   end
 
@@ -59,6 +61,28 @@ class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "input[name='address[zip]']"
     assert_select "select[name='address[state]']"
+    assert_select "input[name='address[receiver_name]']"
+    assert_select "input[name='address[receiver_cpf]']"
+    assert_select "input#receiver-self[type=checkbox]"
+    assert_match(/CPF do destinat[áa]rio/i, response.body)
+  end
+
+  test "creating an address persists the receiver name and normalized CPF" do
+    sign_in users(:confirmed)
+    post account_addresses_path,
+         params: { address: valid_attrs(receiver_cpf: "529.982.247-25") }
+    address = users(:confirmed).addresses.last
+    assert_equal "Maria Receptora", address.receiver_name
+    assert_equal "52998224725", address.receiver_cpf
+  end
+
+  test "the receiver line shows on the index card" do
+    sign_in users(:confirmed)
+    users(:confirmed).addresses.create!(valid_attrs)
+    get account_addresses_path
+    assert_match(/Para:/, response.body)
+    assert_match(/Maria Receptora/, response.body)
+    assert_match(/529\.982\.247-25/, response.body)
   end
 
   test "GET edit pre-fills the address" do
