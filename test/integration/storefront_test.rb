@@ -6,6 +6,12 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "home page still renders when no GameOfTheMonth is set for the current month" do
+    GameOfTheMonth.destroy_all
+    get root_path
+    assert_response :success
+  end
+
   test "catalog index lists products and filters by term" do
     get products_path
     assert_response :success
