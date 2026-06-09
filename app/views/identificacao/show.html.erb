@@ -1,0 +1,28 @@
+<% content_for :title, "Identificação — Prisma Games" %>
+
+<div class="account-wrap">
+  <div class="account-head">
+    <div class="account-avatar"><%= current_user.first_name.to_s.first&.upcase || "P" %></div>
+    <div class="account-head-text">
+      <h1>Pronto, <%= current_user.first_name %>!</h1>
+      <p>Identificação concluída. O checkout será habilitado em breve.</p>
+    </div>
+  </div>
+
+  <div class="account-card account-panel">
+    <div class="panel-head">
+      <h2><i class="bi bi-shield-check"></i> Identificação concluída</h2>
+      <p>
+        Você está logado e seu carrinho está pronto. O próximo passo é o
+        checkout (pagamento e entrega), que estará disponível em breve. Por
+        enquanto, você pode revisar seu pedido ou voltar a comprar.
+      </p>
+    </div>
+    <div class="panel-body">
+      <div class="panel-actions" style="border-top: 0; padding-top: 0; margin-top: 0;">
+        <%= link_to "Voltar ao carrinho", "/carrinho", class: "btn-prisma" %>
+        <%= link_to "Continuar comprando", products_path, class: "btn-ghost" %>
+      </div>
+    </div>
+  </div>
+</div>

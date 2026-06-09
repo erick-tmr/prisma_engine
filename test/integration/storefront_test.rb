@@ -49,16 +49,7 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_match(/Todos os jogos/, response.body)
   end
 
-  test "cart placeholder show and create both 200" do
-    get "/carrinho"
-    assert_response :success
-    post cart_items_path, params: { product_id: products(:yellow).id }
-    assert_redirected_to "/carrinho"
-    follow_redirect!
-    assert_match(/Carrinho ainda não está conectado/, response.body)
-  end
-
-  test "every static page route renders" do
+test "every static page route renders" do
     [
       perguntas_frequentes_path,
       recomendacao_de_jogos_path,

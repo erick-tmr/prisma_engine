@@ -1,0 +1,41 @@
+require "test_helper"
+
+class ProductsAddToCartTest < ActionDispatch::IntegrationTest
+  test "PDP renders a pill group per ProductOption group_name with defaults selected" do
+    get product_path(slug: products(:yellow).slug)
+    assert_response :success
+
+    assert_select "[data-pdp-form]" do
+      assert_select ".pdp-variants .vgroup", count: 2 # Idioma + Caixa
+      assert_select "input[name='option_ids[]'][data-variant-group='Idioma']"
+      assert_select "input[name='option_ids[]'][data-variant-group='Caixa']"
+      # First option per group is preselected
+      assert_select ".vgroup", text: /Idioma/i do
+        assert_select ".vpill.sel", text: /Português BR/
+      end
+      assert_select ".vgroup", text: /Caixa/i do
+        assert_select ".vpill.sel", text: /Com caixa/
+      end
+    end
+  end
+
+  test "PDP for a product with no options skips the variants block but still adds to cart" do
+    get product_path(slug: products(:metroid).slug)
+    assert_response :success
+    assert_select ".pdp-variants", count: 0
+
+    post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1 }
+    assert_redirected_to "/carrinho"
+  end
+
+  test "POST cart_items rejects foreign option_ids that do not belong to the product" do
+    foreign = product_options(:yellow_idioma_pt) # belongs to yellow, not metroid
+    post cart_items_path, params: {
+      product_id: products(:metroid).id, quantity: 1, option_ids: [ foreign.id ]
+    }
+    assert_redirected_to "/carrinho"
+    follow_redirect!
+    # The foreign id should be filtered, so the metroid line has no options
+    assert_select ".cart-item", count: 1
+  end
+end

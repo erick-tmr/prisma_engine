@@ -40,8 +40,13 @@ Rails.application.routes.draw do
   get  "/produtos/:slug",    to: "categories#show", as: :category
   get  "/produto/:slug",     to: "products#show", as: :product
 
-  get  "/carrinho",          to: "cart#show"
-  post "/carrinho/items",    to: "cart#create", as: :cart_items
+  get    "/carrinho",            to: "cart#show"
+  post   "/carrinho/items",      to: "cart_items#create",  as: :cart_items
+  patch  "/carrinho/items/:id",  to: "cart_items#update",  as: :cart_item
+  delete "/carrinho/items/:id",  to: "cart_items#destroy"
+  post   "/carrinho/finalizar",  to: "cart#finalize",      as: :cart_finalize
+
+  get  "/identificacao", to: "identificacao#show", as: :identificacao
 
   get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes
   get  "/pagina/recomendacao-de-jogos", to: "pages#recomendacao_de_jogos", as: :recomendacao_de_jogos

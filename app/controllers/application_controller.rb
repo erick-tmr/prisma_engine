@@ -12,7 +12,17 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  helper_method :current_cart, :current_cart_count
+
   private
+
+  def current_cart
+    @current_cart ||= Cart::Bag.from_cookie(cookies.signed[:cart])
+  end
+
+  def current_cart_count
+    current_cart.total_quantity
+  end
 
   def render_not_found
     render "products/not_found", status: :not_found
