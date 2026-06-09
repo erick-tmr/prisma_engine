@@ -61,7 +61,7 @@ module Account
     end
 
     def address_params
-      params.expect(address: %i[zip street number complement neighborhood city state])
+      params.expect(address: %i[zip street number complement neighborhood city state receiver_name receiver_cpf])
     end
   end
 end

@@ -22,6 +22,11 @@
       <div class="addr-grid">
         <% @addresses.each do |address| %>
           <div class="addr-card<%= ' is-default' if address.default? %>">
+            <div class="addr-receiver">
+              <%= t("account.addresses.for_label") %>
+              <strong><%= address.receiver_name %></strong>
+              · CPF <%= format_cpf(address.receiver_cpf) %>
+            </div>
             <div class="addr-card-head">
               <strong><%= address.street %>, <%= address.number %></strong>
               <% if address.default? %>

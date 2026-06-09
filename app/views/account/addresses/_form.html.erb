@@ -1,7 +1,30 @@
-<%= form_with model: address, url: form_url, method: form_method, html: { novalidate: true } do |f| %>
+<%= form_with model: address, url: form_url, method: form_method,
+              html: { novalidate: true,
+                      data: { user_name: current_user.full_name,
+                              user_cpf: format_cpf(current_user.cpf) } } do |f| %>
   <%= render "shared/form_errors", record: address %>
 
+  <div class="alert alert-light addr-receiver-notice small">
+    <%= t("account.addresses.receiver_notice_html") %>
+  </div>
+
+  <div class="form-check addr-receiver-self">
+    <%= check_box_tag :receiver_self, "1", false,
+                      class: "form-check-input", id: "receiver-self",
+                      data: { "receiver-self": true } %>
+    <%= label_tag :receiver_self, t("account.addresses.fields.receiver_self"),
+                  class: "form-check-label" %>
+  </div>
+
   <div class="addr-form-grid">
+    <div class="field col-receiver-name">
+      <%= f.label :receiver_name, t("account.addresses.fields.receiver_name"), class: "field-label" %>
+      <%= f.text_field :receiver_name, class: "field-input", required: true %>
+    </div>
+    <div class="field col-receiver-cpf">
+      <%= f.label :receiver_cpf, t("account.addresses.fields.receiver_cpf"), class: "field-label" %>
+      <%= f.text_field :receiver_cpf, class: "field-input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
+    </div>
     <div class="field col-zip">
       <%= f.label :zip, t("account.addresses.fields.zip"), class: "field-label" %>
       <%= f.text_field :zip, class: "field-input", required: true, data: { "mask-cep": true }, inputmode: "numeric", placeholder: "00000-000" %>
@@ -44,6 +67,14 @@
 <% content_for :scripts do %>
   <script>
     $(function () {
+      $('[data-receiver-self]').on('change', function () {
+        var $form = $(this).closest('form');
+        var name = this.checked ? $form.data('user-name') : '';
+        var cpf  = this.checked ? $form.data('user-cpf')  : '';
+        $form.find('[name="address[receiver_name]"]').val(name);
+        $form.find('[name="address[receiver_cpf]"]').val(cpf);
+      });
+
       $('[data-mask-cep]').each(function () {
         var $cep = $(this);
         // Treat any CEP already in the field on page load (edit flow) as the
