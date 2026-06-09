@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_08_112126) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_09_100030) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_112126) do
     t.index ["user_id"], name: "index_addresses_on_user_id"
   end
 
+  create_table "brindes", force: :cascade do |t|
+    t.string "caption"
+    t.datetime "created_at", null: false
+    t.bigint "game_of_the_month_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_of_the_month_id"], name: "index_brindes_on_game_of_the_month_id"
+  end
+
   create_table "categories", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -77,6 +86,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_112126) do
     t.index ["slug", "sluggable_type", "scope"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type_and_scope", unique: true
     t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
     t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
+  end
+
+  create_table "game_of_the_month_products", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "game_of_the_month_id", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "product_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_of_the_month_id", "product_id"], name: "index_gotm_products_on_month_and_product", unique: true
+    t.index ["game_of_the_month_id"], name: "index_game_of_the_month_products_on_game_of_the_month_id"
+    t.index ["product_id"], name: "index_game_of_the_month_products_on_product_id"
+  end
+
+  create_table "game_of_the_months", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "month", null: false
+    t.text "note"
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
+    t.index ["year", "month"], name: "index_game_of_the_months_on_year_and_month", unique: true
+    t.check_constraint "month >= 1 AND month <= 12", name: "game_of_the_months_month_range"
   end
 
   create_table "product_options", force: :cascade do |t|
@@ -222,6 +252,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_112126) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "users"
+  add_foreign_key "brindes", "game_of_the_months"
+  add_foreign_key "game_of_the_month_products", "game_of_the_months"
+  add_foreign_key "game_of_the_month_products", "products"
   add_foreign_key "product_options", "products"
   add_foreign_key "product_photos", "products"
   add_foreign_key "product_tags", "products"

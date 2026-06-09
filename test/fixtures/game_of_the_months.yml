@@ -1,0 +1,12 @@
+# `current_month` uses today's calendar year/month so GameOfTheMonth.current always
+# resolves to it under fixture load. `past_month` is fixed historical data exercising
+# the for_month archive lookup.
+current_month:
+  year:  <%= Date.current.year %>
+  month: <%= Date.current.month %>
+  note: Especial Pokémon
+
+past_month:
+  year: 2025
+  month: 3
+  note: Especial Metroid
