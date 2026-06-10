@@ -6,12 +6,12 @@ module Correios
       URL = "#{Correios::Api::BASE_URL}/prazo/v1/nacional".freeze
 
       setup do
-        @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-cartao"
+        @prev_token = ENV["CORREIOS_API_TOKEN"]
+        ENV["CORREIOS_API_TOKEN"] = "test-api"
       end
 
       teardown do
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
+        ENV["CORREIOS_API_TOKEN"] = @prev_token
       end
 
       test "POSTs a batched request with one parametrosPrazo per service code" do
@@ -34,7 +34,7 @@ module Correios
 
         assert_requested(:post, URL) do |req|
           body = JSON.parse(req.body)
-          assert_equal "Bearer test-cartao", req.headers["Authorization"]
+          assert_equal "Bearer test-api", req.headers["Authorization"]
           assert_equal 2, body["parametrosPrazo"].length
           first = body["parametrosPrazo"].first
           assert_equal "03220", first["coProduto"]
@@ -65,6 +65,16 @@ module Correios
           Correios::Api::Prazo.fetch(cep_origem: "37600000", cep_destino: "01310100",
                                      service_codes: [ "03220" ])
         end
+      end
+
+      test "raises Error when the body is not JSON" do
+        stub_request(:post, URL).to_return(status: 200, body: "<html>oops</html>")
+        error = assert_raises(Correios::Api::Error) do
+          Correios::Api::Prazo.fetch(cep_origem: "37600000", cep_destino: "01310100",
+                                     service_codes: [ "03220" ])
+        end
+        refute_kind_of Correios::Api::TransientError,     error
+        refute_kind_of Correios::Api::InvalidObjectError, error
       end
     end
   end

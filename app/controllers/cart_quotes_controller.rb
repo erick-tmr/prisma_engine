@@ -19,6 +19,10 @@ class CartQuotesController < ApplicationController
     render_error(:unprocessable_entity, "CEP inválido.")
   rescue Correios::Api::TransientError
     render_error(:service_unavailable, "Correios indisponível. Tente novamente em instantes.")
+  rescue Correios::Api::Error
+    # Auth/config errors (401, 403, malformed body) — the shopper can't fix
+    # this. Surface a generic "unavailable" so they don't think their CEP is wrong.
+    render_error(:service_unavailable, "Correios indisponível. Tente novamente em instantes.")
   end
 
   private

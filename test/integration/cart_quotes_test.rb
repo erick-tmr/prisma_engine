@@ -7,16 +7,13 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
 
   setup do
     Rails.cache.clear
-    @prev_api_token    = ENV["CORREIOS_API_TOKEN"]
-    @prev_cartao_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-    ENV["CORREIOS_API_TOKEN"]        = "test-api"
-    ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-cartao"
+    @prev_api_token = ENV["CORREIOS_API_TOKEN"]
+    ENV["CORREIOS_API_TOKEN"] = "test-api"
     stub_cep
   end
 
   teardown do
-    ENV["CORREIOS_API_TOKEN"]        = @prev_api_token
-    ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_cartao_token
+    ENV["CORREIOS_API_TOKEN"] = @prev_api_token
     Rails.cache.clear
   end
 
@@ -101,7 +98,37 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
   test "returns 503 when Correios is unavailable" do
     add_yellow_to_cart
     stub_request(:post, PRECO_URL).to_return(status: 503, body: "down")
-    # prazo stub still set up — preco fails first, raises Transient
+    stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
+
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    assert_response :service_unavailable
+    assert_match(/Correios indisponível/, response.parsed_body["error"])
+  end
+
+  test "falls back to zero brindes weight when no GOTM is set for the current month" do
+    GameOfTheMonth.destroy_all
+    post cart_items_path, params: {
+      product_id: products(:yellow).id, quantity: 1,
+      option_ids: [ product_options(:yellow_caixa_com).id ]
+    }
+    stub_preco_prazo(all_eligible: true)
+
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    assert_response :success
+    # Without a current GOTM, brindes contribute 0g: yellow 22 + caixa 38 = 60g.
+    assert_requested(:post, PRECO_URL) do |req|
+      JSON.parse(req.body)["parametrosProduto"].all? { |p| p["psObjeto"] == "60" }
+    end
+  end
+
+  test "auth failures surface as 503 not 'CEP inválido'" do
+    # 401 used to silently degrade to InvalidObjectError → \"CEP inválido.\",
+    # which was misleading when the shopper's CEP was fine and the token was
+    # the issue. Now it surfaces as a genuine unavailability.
+    add_yellow_to_cart
+    stub_request(:post, PRECO_URL).to_return(status: 401, body: "unauthorized")
     stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
 
     post cart_quote_path, params: { cep: "01310-100" }, as: :json

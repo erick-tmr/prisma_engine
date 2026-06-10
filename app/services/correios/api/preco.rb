@@ -6,7 +6,7 @@ module Correios
     # single batched POST.
     #
     #   POST {base}/preco/v1/nacional
-    #   Authorization: Bearer <CORREIOS_CARTAO_API_TOKEN>
+    #   Authorization: Bearer <CORREIOS_API_TOKEN>   # the contrato token, same as Cep/Tracking
     #
     # Returns the parsed JSON Array exactly as Correios sends it. Mapping
     # (price parsing, eligibility check by coProduto, currency formatting)
@@ -18,6 +18,12 @@ module Correios
     # codes to surface that as a domain-level "ineligible" flag.
     class Preco
       include Correios::Api::Client
+
+      # Validation-style 4xx returns Correios maps to "permanent business error" —
+      # bad CEP, bad weight, malformed payload. Everything else (401/403/429/5xx)
+      # falls through to raise_for_status which classifies auth as Error and
+      # rate-limit/outage as TransientError.
+      PERMANENT_REJECTIONS = [ 400, 422 ].freeze
 
       # :reek:LongParameterList — keyword args document the request shape directly;
       # bundling them into a Value Object would add indirection without clarity.
@@ -37,9 +43,7 @@ module Correios
 
       def fetch
         response = post
-        # 429 stays a TransientError (handled by raise_for_status); other 4xx
-        # are permanent "Correios rejected this CEP / weight / payload" cases.
-        if response.status.between?(400, 499) && response.status != 429
+        if PERMANENT_REJECTIONS.include?(response.status)
           raise Correios::Api::InvalidObjectError, "preco rejected: #{response.body}"
         end
         raise_for_status(response)
@@ -54,7 +58,7 @@ module Correios
         connection.post("preco/v1/nacional") do |req|
           req.headers["Accept"]        = "application/json"
           req.headers["Content-Type"]  = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_CARTAO_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_API_TOKEN']}"
           req.body = body.to_json
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error

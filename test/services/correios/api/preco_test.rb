@@ -6,12 +6,12 @@ module Correios
       URL = "#{Correios::Api::BASE_URL}/preco/v1/nacional".freeze
 
       setup do
-        @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-cartao"
+        @prev_token = ENV["CORREIOS_API_TOKEN"]
+        ENV["CORREIOS_API_TOKEN"] = "test-api"
       end
 
       teardown do
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
+        ENV["CORREIOS_API_TOKEN"] = @prev_token
       end
 
       test "POSTs a batched request with one parametrosProduto per service code" do
@@ -37,7 +37,7 @@ module Correios
         assert_requested(:post, URL) do |req|
           headers = req.headers
           body    = JSON.parse(req.body)
-          assert_equal "Bearer test-cartao", headers["Authorization"]
+          assert_equal "Bearer test-api", headers["Authorization"]
           assert_equal "application/json", headers["Accept"]
           assert_equal 2, body["parametrosProduto"].length
           first = body["parametrosProduto"].first

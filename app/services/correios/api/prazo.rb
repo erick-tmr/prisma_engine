@@ -6,7 +6,7 @@ module Correios
     # a single batched POST.
     #
     #   POST {base}/prazo/v1/nacional
-    #   Authorization: Bearer <CORREIOS_CARTAO_API_TOKEN>
+    #   Authorization: Bearer <CORREIOS_API_TOKEN>   # the contrato token, same as Cep/Tracking
     #
     # Returns the parsed JSON Array exactly as Correios sends it. We only
     # consume `prazoEntrega` (business days) downstream; the response also
@@ -14,6 +14,9 @@ module Correios
     # now.
     class Prazo
       include Correios::Api::Client
+
+      # Same rule as Preco — only domain-validation rejections are "permanent".
+      PERMANENT_REJECTIONS = [ 400, 422 ].freeze
 
       def self.fetch(cep_origem:, cep_destino:, service_codes:)
         new(cep_origem: cep_origem, cep_destino: cep_destino, service_codes: service_codes).fetch
@@ -27,7 +30,7 @@ module Correios
 
       def fetch
         response = post
-        if response.status.between?(400, 499) && response.status != 429
+        if PERMANENT_REJECTIONS.include?(response.status)
           raise Correios::Api::InvalidObjectError, "prazo rejected: #{response.body}"
         end
         raise_for_status(response)
@@ -42,7 +45,7 @@ module Correios
         connection.post("prazo/v1/nacional") do |req|
           req.headers["Accept"]        = "application/json"
           req.headers["Content-Type"]  = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_CARTAO_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_API_TOKEN']}"
           req.body = body.to_json
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
