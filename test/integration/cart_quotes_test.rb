@@ -52,9 +52,10 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     assert_match(/Mini Envios aceita pacotes de até 300g/, mini["message"])
   end
 
-  test "package weight sent to Correios includes the GOTM brindes mass per line × qty" do
+  test "package weight sent to Correios includes the GOTM brindes mass per line × qty plus the caixa+flyer overhead" do
     # Yellow is the fixture GOTM (brindes sum to 15g). 2x yellow with Com caixa
-    # → unit 60g + brindes 15g = 75g each, × 2 = 150g.
+    # → unit 60g + brindes 15g = 75g each, × 2 = 150g contents.
+    # Plus 52g caixa + flyer overhead = 202g total package weight.
     post cart_items_path, params: {
       product_id: products(:yellow).id, quantity: 2,
       option_ids: [ product_options(:yellow_caixa_com).id ]
@@ -65,7 +66,7 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
 
     assert_requested(:post, PRECO_URL) do |req|
       body = JSON.parse(req.body)
-      body["parametrosProduto"].all? { |p| p["psObjeto"] == "150" }
+      body["parametrosProduto"].all? { |p| p["psObjeto"] == "202" }
     end
   end
 
@@ -117,16 +118,16 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
 
     assert_response :success
-    # Without a current GOTM, brindes contribute 0g: yellow 22 + caixa 38 = 60g.
+    # Without a current GOTM, brindes contribute 0g. Yellow 22 + caixa 38 = 60g
+    # contents, + 52g caixa+flyer overhead = 112g.
     assert_requested(:post, PRECO_URL) do |req|
-      JSON.parse(req.body)["parametrosProduto"].all? { |p| p["psObjeto"] == "60" }
+      JSON.parse(req.body)["parametrosProduto"].all? { |p| p["psObjeto"] == "112" }
     end
   end
 
-  test "auth failures surface as 503 not 'CEP inválido'" do
-    # 401 used to silently degrade to InvalidObjectError → \"CEP inválido.\",
-    # which was misleading when the shopper's CEP was fine and the token was
-    # the issue. Now it surfaces as a genuine unavailability.
+  test "auth failures surface as 503 with the unexpected-error message" do
+    # 401 used to silently degrade to InvalidObjectError → \"CEP inválido.\".
+    # Now it surfaces as a genuine service-side problem.
     add_yellow_to_cart
     stub_request(:post, PRECO_URL).to_return(status: 401, body: "unauthorized")
     stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
@@ -134,7 +135,66 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
 
     assert_response :service_unavailable
-    assert_match(/Correios indisponível/, response.parsed_body["error"])
+    assert_match(/Erro inesperado/, response.parsed_body["error"])
+  end
+
+  test "every service returning a CEP txErro produces a 422 CEP inválido response" do
+    add_yellow_to_cart
+    stub_request(:post, PRECO_URL).to_return(status: 200, body: [
+      { "coProduto" => "03220", "nuRequisicao" => "03220",
+        "txErro"    => "ERP-005: CEP inexistente (00000000). --> UF DESTINO" },
+      { "coProduto" => "03298", "nuRequisicao" => "03298",
+        "txErro"    => "ERP-005: CEP inexistente." },
+      { "coProduto" => "04227", "nuRequisicao" => "04227",
+        "txErro"    => "ERP-005: CEP inexistente." }
+    ].to_json, headers: { "Content-Type" => "application/json" })
+    stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
+
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    assert_response :unprocessable_entity
+    assert_equal "CEP inválido.", response.parsed_body["error"]
+  end
+
+  test "a mix of CEP and non-CEP txErro with no eligible services returns the unexpected-error message" do
+    add_yellow_to_cart
+    stub_request(:post, PRECO_URL).to_return(status: 200, body: [
+      { "coProduto" => "03220", "nuRequisicao" => "03220",
+        "txErro"    => "ERP-005: CEP inexistente." },
+      { "coProduto" => "03298", "nuRequisicao" => "03298",
+        "txErro"    => "ERR-XX: serviço indisponível na origem." },
+      { "coProduto" => "04227", "nuRequisicao" => "04227",
+        "txErro"    => "ERR-YY: regra de coleta." }
+    ].to_json, headers: { "Content-Type" => "application/json" })
+    stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
+
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    assert_response :service_unavailable
+    assert_match(/Erro inesperado/, response.parsed_body["error"])
+  end
+
+  test "a single-service CEP txErro alongside eligible services renders 200 with that row marked ineligible" do
+    add_yellow_to_cart
+    stub_request(:post, PRECO_URL).to_return(status: 200, body: [
+      { "coProduto" => "03220", "nuRequisicao" => "03220",
+        "txErro"    => "ERP-005: CEP inexistente." },
+      { "coProduto" => "03298", "nuRequisicao" => "03298", "pcFinal" => "20,84" },
+      { "coProduto" => "04227", "nuRequisicao" => "04227", "pcFinal" => "11,15" }
+    ].to_json, headers: { "Content-Type" => "application/json" })
+    stub_request(:post, PRAZO_URL).to_return(status: 200, body: [
+      { "coProduto" => "03220", "nuRequisicao" => "03220", "prazoEntrega" => 2 },
+      { "coProduto" => "03298", "nuRequisicao" => "03298", "prazoEntrega" => 7 },
+      { "coProduto" => "04227", "nuRequisicao" => "04227", "prazoEntrega" => 9 }
+    ].to_json, headers: { "Content-Type" => "application/json" })
+
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    assert_response :success
+    sedex = response.parsed_body["services"].first
+    refute sedex["eligible"]
+    assert_equal "invalid_cep", sedex["reason"]
+    assert_equal "CEP não atendido por este serviço.", sedex["message"]
   end
 
   private

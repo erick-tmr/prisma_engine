@@ -25,4 +25,10 @@ module Shipping
   # out of `Shipping::CreatePrePostagem::SENDER` so both pré-postagem and the
   # price/prazo quote flows read from one place.
   ORIGIN_CEP = "37600000".freeze
+
+  # Caixa + flyer included with every order. Independent of cart contents —
+  # one outer shipping box per shipment, plus the printed flyer that goes in
+  # it. Applied on top of `Cart::Bag#total_weight_grams` (which is the
+  # weight of the *contents*) when we ask Correios for a quote.
+  PACKAGE_OVERHEAD_GRAMS = 52
 end

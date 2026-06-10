@@ -69,6 +69,13 @@ module Shipping
     # inputs we need to produce one service row.
     def build_service(key, code, preco, prazo)
       common = { key: key, label: SERVICE_LABELS.fetch(key) }
+      tx_erro = preco && preco["txErro"]
+      # Correios returns 200 with a per-row txErro field when the request was
+      # accepted but the service itself can't be priced (bad CEP, coverage
+      # gaps, vendor errors). Bucket those so the controller can dispatch
+      # "all services failed for CEP" → 422 vs "something else" → 503.
+      return common.merge(eligible: false, reason: classify_error(tx_erro)) if tx_erro
+
       if eligible?(code, preco, prazo)
         common.merge(
           eligible:        true,
@@ -89,6 +96,14 @@ module Shipping
     # :reek:ControlParameter — the method exists exactly to branch on the key.
     def ineligibility_reason(key)
       key == :mini_envios ? :too_heavy : :unavailable
+    end
+
+    # CEP-related txErro phrases ("CEP inexistente", "CEP inválido") all carry
+    # the substring "CEP". Anything else is an API-level issue the shopper
+    # can't fix from the cart, so we tag it for the "unexpected error" path.
+    # :reek:ControlParameter — the method exists exactly to branch on the message.
+    def classify_error(tx_erro)
+      tx_erro.match?(/CEP/i) ? :invalid_cep : :api_error
     end
 
     # Correios returns BR-decimal strings like "19,84". Convert to integer
