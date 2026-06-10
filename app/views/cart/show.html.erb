@@ -40,17 +40,12 @@
         </div>
       <% else %>
         <div class="cart-empty">
-          <i class="bi bi-cart-x"></i>
+          <div class="cart-empty-art"><i class="bi bi-controller"></i></div>
           <h3>Seu carrinho está vazio</h3>
-          <p>Que tal um clássico do Game Boy para começar?</p>
-          <div style="display:inline-flex;gap:10px;">
-            <%= link_to products_path, class: "cart-btn cart-btn-dark" do %>
-              <i class="bi bi-grid"></i> Ver catálogo
-            <% end %>
-            <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="cart-btn cart-btn-wa">
-              <i class="bi bi-whatsapp"></i> WhatsApp
-            </a>
-          </div>
+          <p>Os clássicos do Game Boy estão esperando. Dê uma olhada no catálogo e escolha o seu próximo jogo.</p>
+          <%= link_to products_path, class: "cart-btn cart-btn-dark" do %>
+            <i class="bi bi-grid" style="font-size:13px"></i> Ver catálogo
+          <% end %>
         </div>
       <% end %>
     </section>
@@ -117,6 +112,21 @@
       </section>
     </aside>
   </div>
+
+  <% if @lines.any? %>
+    <div class="cart-mobile-bar" data-mobile-bar>
+      <div class="mb-info">
+        <span class="mb-lbl">Total</span>
+        <span class="mb-amt" data-mb-total><%= @cart.subtotal_formatted %></span>
+      </div>
+      <%= button_to cart_finalize_path,
+                    method: :post,
+                    class: "cart-btn cart-btn-dark",
+                    form: { data: { turbo: false } } do %>
+        <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
+      <% end %>
+    </div>
+  <% end %>
 </div>
 
 <%
@@ -276,6 +286,8 @@
       methodEl.textContent = '';
     }
     totalEl.textContent = money(total);
+    var mbTotalEl = document.querySelector('[data-mb-total]');
+    if (mbTotalEl) mbTotalEl.textContent = money(total);
   }
 
   function selectShip(el, opts) {

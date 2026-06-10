@@ -7,7 +7,24 @@ class CartTest < ActionDispatch::IntegrationTest
     get "/carrinho"
     assert_response :success
     assert_match(/Seu carrinho está vazio/, response.body)
+    assert_select ".cart-empty-art i.bi-controller"
+    assert_select ".cart-empty a", text: /Ver catálogo/
+    # WhatsApp button is gone from the empty state (the layout's nav-strip social
+    # icon doesn't count; scope the assertion to .cart-empty).
+    assert_select ".cart-empty a[href*='wa.me']", count: 0
+    # Mobile bar isn't rendered when the cart is empty
+    assert_select "[data-mobile-bar]", count: 0
     assert_select "[data-cart-count]", text: "0"
+  end
+
+  test "mobile sticky bar is rendered with the current subtotal when the cart has items" do
+    post cart_items_path, params: {
+      product_id: products(:yellow).id, quantity: 2,
+      option_ids: [ product_options(:yellow_caixa_com).id ]
+    }
+    get "/carrinho"
+    # 19000 unit (18000 + 1000 delta) * 2 = 38000
+    assert_select "[data-mobile-bar] [data-mb-total]", text: /R\$ 380\.00/
   end
 
   test "adding a product writes a signed cart cookie and bumps the header counter" do
