@@ -112,6 +112,17 @@ module Cart
       HasMoney.format(subtotal_cents)
     end
 
+    # Total package weight for shipping quotes. The brindes contribution scales
+    # by line quantity per the spec: a customer buying 2× a GOTM game gets 2×
+    # the brindes mass. Caller supplies the GOTM product ids + the brindes-set
+    # weight so the bag stays AR-free beyond what `lines` already loads.
+    def total_weight_grams(gotm_product_ids:, brindes_weight_grams:)
+      lines.sum do |line|
+        extra = gotm_product_ids.include?(line.product.id) ? brindes_weight_grams : 0
+        (line.weight_grams + extra) * line.quantity
+      end
+    end
+
     private
 
     def lookup_products

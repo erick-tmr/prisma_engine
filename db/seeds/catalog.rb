@@ -35,14 +35,16 @@ def infer_tag_slugs(name)
   slugs.uniq
 end
 
-# Default option set seeded on every product. Deltas are 0: the mechanism is
-# proven without inventing prices not present in the source data.
+# Default option set seeded on every product. Price deltas are 0: the mechanism
+# is proven without inventing prices not present in the source data. Weight
+# deltas follow the spec — "Com caixa" adds the 38g caixa + berço; everything
+# else matches the base PCB+shell weight (22g) and stays at 0.
 default_options = [
-  { group_name: "Idioma", name: "Português BR", price_delta_cents: 0, position: 0 },
-  { group_name: "Idioma", name: "Inglês",       price_delta_cents: 0, position: 1 },
-  { group_name: "Idioma", name: "Japonês",      price_delta_cents: 0, position: 2 },
-  { group_name: "Caixa",  name: "Com caixa",    price_delta_cents: 0, position: 3 },
-  { group_name: "Caixa",  name: "Sem caixa",    price_delta_cents: 0, position: 4 }
+  { group_name: "Idioma", name: "Português BR", price_delta_cents: 0, weight_delta_grams: 0,  position: 0 },
+  { group_name: "Idioma", name: "Inglês",       price_delta_cents: 0, weight_delta_grams: 0,  position: 1 },
+  { group_name: "Idioma", name: "Japonês",      price_delta_cents: 0, weight_delta_grams: 0,  position: 2 },
+  { group_name: "Caixa",  name: "Com caixa",    price_delta_cents: 0, weight_delta_grams: 38, position: 3 },
+  { group_name: "Caixa",  name: "Sem caixa",    price_delta_cents: 0, weight_delta_grams: 0,  position: 4 }
 ]
 
 raw = YAML.safe_load_file(Rails.root.join("config/products.yml"))
@@ -56,19 +58,23 @@ raw.fetch("products").each do |entry|
     price_cents:       (BigDecimal(entry["price_brl"].to_s) * 100).to_i,
     currency:          "BRL",
     published:         true,
+    weight_grams:      22, # PCB + shell baseline; cart adds 38g when "Com caixa" is selected.
     legacy_image_path: entry["image"]
   )
   product.save!
 
   default_options.each do |attrs|
-    ProductOption.find_or_create_by!(
+    option = ProductOption.find_or_initialize_by(
       product:    product,
       group_name: attrs[:group_name],
       name:       attrs[:name]
-    ) do |opt|
-      opt.price_delta_cents = attrs[:price_delta_cents]
-      opt.position          = attrs[:position]
-    end
+    )
+    option.assign_attributes(
+      price_delta_cents:  attrs[:price_delta_cents],
+      weight_delta_grams: attrs[:weight_delta_grams],
+      position:           attrs[:position]
+    )
+    option.save!
   end
 
   infer_tag_slugs(product.name).each do |tag_slug|

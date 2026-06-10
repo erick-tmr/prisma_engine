@@ -186,4 +186,37 @@ class Cart::BagTest < ActiveSupport::TestCase
     bag.add(product: yellow, quantity: 1, option_ids: [])
     refute bag.empty?
   end
+
+  test "total_weight_grams multiplies line weight by quantity, ignoring brindes when no line is GOTM" do
+    bag = Cart::Bag.new
+    bag.add(product: yellow, quantity: 3, option_ids: [ product_options(:yellow_caixa_com).id ])
+    # (22 + 38) * 3 = 180
+    assert_equal 180, bag.total_weight_grams(gotm_product_ids: Set.new, brindes_weight_grams: 15)
+  end
+
+  test "total_weight_grams adds brindes weight only for GOTM lines, scaled by quantity" do
+    bag = Cart::Bag.new
+    bag.add(product: yellow, quantity: 2, option_ids: [ product_options(:yellow_caixa_com).id ])
+    bag.add(product: products(:metroid), quantity: 1, option_ids: [])
+    # GOTM (yellow): (60 + 15) * 2 = 150
+    # Non-GOTM (metroid): 22 * 1 = 22
+    total = bag.total_weight_grams(
+      gotm_product_ids:     Set.new([ products(:yellow).id ]),
+      brindes_weight_grams: 15
+    )
+    assert_equal 172, total
+  end
+
+  test "total_weight_grams handles the franchise case (every GOTM line accrues brindes)" do
+    bag = Cart::Bag.new
+    bag.add(product: yellow, quantity: 1, option_ids: [])              # GOTM
+    bag.add(product: products(:placeholder), quantity: 2, option_ids: []) # also GOTM
+    # yellow: (22 + 15) * 1 = 37
+    # placeholder: (22 + 15) * 2 = 74
+    total = bag.total_weight_grams(
+      gotm_product_ids:     Set.new([ products(:yellow).id, products(:placeholder).id ]),
+      brindes_weight_grams: 15
+    )
+    assert_equal 111, total
+  end
 end

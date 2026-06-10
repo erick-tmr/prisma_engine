@@ -6,6 +6,7 @@ yellow:
   price_cents: 18000
   currency: BRL
   published: true
+  weight_grams: 22
   legacy_image_path: /images/test-yellow.jpg
 
 metroid:
@@ -15,6 +16,7 @@ metroid:
   price_cents: 18000
   currency: BRL
   published: true
+  weight_grams: 22
 
 placeholder:
   category: gb_color
@@ -23,6 +25,7 @@ placeholder:
   price_cents: 18000
   currency: BRL
   published: true
+  weight_grams: 22
 
 hidden:
   category: gb_color
@@ -31,3 +34,4 @@ hidden:
   price_cents: 0
   currency: BRL
   published: false
+  weight_grams: 22

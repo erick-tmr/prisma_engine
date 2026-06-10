@@ -13,6 +13,9 @@ class Product < ApplicationRecord
 
   validates :name, presence: true
   validates :price_cents, numericality: { greater_than_or_equal_to: 0 }
+  validates :weight_grams,
+            presence: true,
+            numericality: { only_integer: true, greater_than: 0 }
 
   scope :published, -> { where(published: true) }
   scope :for_category, ->(slug) { joins(:category).where(categories: { slug: slug }) }

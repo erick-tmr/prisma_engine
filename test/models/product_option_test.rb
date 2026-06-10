@@ -36,4 +36,17 @@ class ProductOptionTest < ActiveSupport::TestCase
   test "price_delta_formatted reuses HasMoney" do
     assert_equal "R$ 10.00", product_options(:yellow_caixa_com).price_delta_formatted
   end
+
+  test "weight_delta_grams must be a non-negative integer" do
+    option = ProductOption.new(
+      product: products(:metroid), name: "Negativo", weight_delta_grams: -1
+    )
+    assert_not option.valid?
+
+    option.weight_delta_grams = 1.5
+    assert_not option.valid?
+
+    option.weight_delta_grams = 0
+    assert option.valid?
+  end
 end

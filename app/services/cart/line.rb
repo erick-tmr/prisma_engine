@@ -16,6 +16,10 @@ module Cart
       options.find { |opt| opt.group_name == group_name }
     end
 
+    def weight_grams
+      product.weight_grams + options.sum(&:weight_delta_grams)
+    end
+
     def unit_price_cents
       product.price_cents + options.sum(&:price_delta_cents)
     end

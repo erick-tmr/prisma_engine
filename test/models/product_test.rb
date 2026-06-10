@@ -5,9 +5,26 @@ class ProductTest < ActiveSupport::TestCase
     product = Product.create!(
       category: categories(:gb_color),
       name: "Kirby&#039;s Dream Land 2 🔴",
-      price_cents: 18000
+      price_cents: 18000,
+      weight_grams: 22
     )
     assert_equal "kirbys-dream-land-2", product.slug
+  end
+
+  test "weight_grams is required and must be a positive integer" do
+    product = Product.new(category: categories(:gb_color), name: "Test", price_cents: 18000)
+    assert_not product.valid?
+    assert_includes product.errors[:weight_grams], "não pode ficar em branco"
+
+    product.weight_grams = 0
+    assert_not product.valid?
+    assert_includes product.errors[:weight_grams], "deve ser maior que 0"
+
+    product.weight_grams = 22.5
+    assert_not product.valid?
+
+    product.weight_grams = 22
+    assert product.valid?
   end
 
   test "for_category returns only that category's products" do

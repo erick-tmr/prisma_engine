@@ -5,8 +5,10 @@ current_brinde_poster:
   game_of_the_month: current_month
   caption: Poster Pokémon exclusivo
   position: 0
+  weight_grams: 10
 
 current_brinde_sticker:
   game_of_the_month: current_month
   caption: Cartela de stickers
   position: 1
+  weight_grams: 5
