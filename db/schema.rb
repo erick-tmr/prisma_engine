@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_09_100030) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_090010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_100030) do
     t.bigint "game_of_the_month_id", null: false
     t.integer "position", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.integer "weight_grams", default: 0, null: false
     t.index ["game_of_the_month_id"], name: "index_brindes_on_game_of_the_month_id"
   end
 
@@ -117,6 +118,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_100030) do
     t.integer "price_delta_cents", default: 0, null: false
     t.bigint "product_id", null: false
     t.datetime "updated_at", null: false
+    t.integer "weight_delta_grams", default: 0, null: false
     t.index ["product_id", "group_name", "name"], name: "index_product_options_uniqueness", unique: true
     t.index ["product_id"], name: "index_product_options_on_product_id"
   end
@@ -151,6 +153,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_100030) do
     t.boolean "published", default: true, null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
+    t.integer "weight_grams", null: false
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["published"], name: "index_products_on_published"
     t.index ["slug"], name: "index_products_on_slug", unique: true

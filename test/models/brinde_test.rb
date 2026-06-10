@@ -22,6 +22,14 @@ class BrindeTest < ActiveSupport::TestCase
     assert_not brinde.valid?
   end
 
+  test "weight_grams must be a non-negative integer" do
+    brinde = Brinde.new(game_of_the_month: game_of_the_months(:current_month), weight_grams: -1)
+    assert_not brinde.valid?
+
+    brinde.weight_grams = 1.5
+    assert_not brinde.valid?
+  end
+
   test "in_display_order sorts by position ascending" do
     ordered = game_of_the_months(:current_month).brindes.in_display_order
     assert_equal [ 0, 1 ], ordered.pluck(:position)

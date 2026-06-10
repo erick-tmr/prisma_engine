@@ -8,4 +8,13 @@ module Shipping
     mini_envios: "04227",
     pac: "03298"
   }.freeze
+
+  # The single package size we ship today (cm). Box dimensions are uniform for
+  # the games-only catalog; revisit when other product types ship in different
+  # packaging. Read by the Correios price quote and pré-postagem flows.
+  PACKAGE_DIMENSIONS = {
+    altura_cm:      4,
+    largura_cm:     16,
+    comprimento_cm: 24
+  }.freeze
 end

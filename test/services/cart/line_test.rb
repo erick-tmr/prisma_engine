@@ -34,4 +34,27 @@ class Cart::LineTest < ActiveSupport::TestCase
     assert_equal pt, line.selected_for("Idioma")
     assert_nil line.selected_for("Etiqueta")
   end
+
+  test "weight_grams sums the product's base weight + every option's delta" do
+    line = Cart::Line.new(
+      id: "abc123",
+      product: products(:yellow), # 22g base
+      quantity: 4, # quantity is irrelevant at the line level — that's Bag's job
+      options: [
+        product_options(:yellow_idioma_pt),  # 0g
+        product_options(:yellow_caixa_com)   # +38g
+      ]
+    )
+    assert_equal 60, line.weight_grams
+  end
+
+  test "weight_grams returns just the base when no options are selected" do
+    line = Cart::Line.new(
+      id: "abc123",
+      product: products(:yellow), # 22g
+      quantity: 1,
+      options: []
+    )
+    assert_equal 22, line.weight_grams
+  end
 end

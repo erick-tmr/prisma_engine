@@ -17,6 +17,7 @@ yellow_caixa_com:
   group_name: Caixa
   name: Com caixa
   price_delta_cents: 1000
+  weight_delta_grams: 38
   position: 2
 
 yellow_caixa_sem:
@@ -24,4 +25,5 @@ yellow_caixa_sem:
   group_name: Caixa
   name: Sem caixa
   price_delta_cents: 0
+  weight_delta_grams: 0
   position: 3
