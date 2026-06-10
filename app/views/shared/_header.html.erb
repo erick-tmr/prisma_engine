@@ -42,7 +42,7 @@
           <%= link_to "/carrinho", class: "btn btn-link text-dark site-cart p-0 text-nowrap d-inline-flex align-items-center gap-1", title: "Carrinho" do %>
             <i class="bi bi-handbag fs-5 lh-1"></i>
             <span class="d-none d-lg-inline">Carrinho</span>
-            <span class="cart-counter" data-cart-count>0</span>
+            <span class="cart-counter" data-cart-count><%= current_cart_count %></span>
           <% end %>
         </div>
       </div>

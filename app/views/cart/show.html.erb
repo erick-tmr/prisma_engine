@@ -1,18 +1,356 @@
 <% content_for :title, "Carrinho — Prisma Games" %>
 
-<div class="container py-4">
-  <h1 class="h3 mb-4">Carrinho</h1>
+<div class="cart-page">
+  <nav class="cart-breadcrumb" aria-label="breadcrumb">
+    <%= link_to "Início", root_path %><i class="bi bi-chevron-right"></i>
+    <%= link_to "Catálogo", products_path %><i class="bi bi-chevron-right"></i>
+    <span class="cur">Carrinho</span>
+  </nav>
 
-  <div class="alert alert-light border text-center py-5">
-    <i class="bi bi-cart3" style="font-size: 3rem; opacity: 0.4;"></i>
-    <h2 class="h5 mt-3 mb-2">Seu carrinho está vazio</h2>
-    <p class="text-muted small mb-4">
-      A integração com checkout ainda não foi conectada nesta versão.
-      Para fazer um pedido agora, fale conosco no WhatsApp.
-    </p>
-    <%= link_to "Ver catálogo", products_path, class: "btn btn-outline-dark btn-sm mr-2" %>
-    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success btn-sm">
-      <i class="bi bi-whatsapp"></i> Falar no WhatsApp
-    </a>
+  <div class="cart-head">
+    <h1>Seu carrinho</h1>
+    <%
+      qty = @cart.total_quantity
+      qty_word = qty == 1 ? "item" : "itens"
+    %>
+    <span data-head-count><%= qty %> <%= qty_word %></span>
   </div>
+
+  <div class="cart-grid">
+    <section class="cart-card" aria-label="Itens do carrinho">
+      <div class="cart-card-head">
+        <i class="bi bi-bag-check" style="font-size:18px"></i>
+        <h2>Itens</h2>
+        <span class="count" data-list-count>
+          <%= @lines.length %> <%= @lines.length == 1 ? "produto" : "produtos" %>
+        </span>
+      </div>
+
+      <% if @lines.any? %>
+        <div data-items>
+          <% @lines.each do |line| %>
+            <%= render "cart/line", line: line, is_gotm: @gotm_product_ids.include?(line.product.id) %>
+          <% end %>
+        </div>
+
+        <div class="cart-item-foot">
+          <%= link_to products_path do %>
+            <i class="bi bi-arrow-left" style="font-size:13px"></i> Continuar comprando
+          <% end %>
+        </div>
+      <% else %>
+        <div class="cart-empty">
+          <div class="cart-empty-art"><i class="bi bi-controller"></i></div>
+          <h3>Seu carrinho está vazio</h3>
+          <p>Os clássicos do Game Boy estão esperando. Dê uma olhada no catálogo e escolha o seu próximo jogo.</p>
+          <%= link_to products_path, class: "cart-btn cart-btn-dark" do %>
+            <i class="bi bi-grid" style="font-size:13px"></i> Ver catálogo
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+
+    <aside class="cart-rail">
+      <section class="cart-card" aria-label="Calcular frete">
+        <div class="rainbow-top"></div>
+        <div class="cart-card-head">
+          <i class="bi bi-truck" style="font-size:18px"></i>
+          <h2>Calcular frete e prazo</h2>
+        </div>
+        <div class="frete-body">
+          <p class="frete-lead">Informe seu CEP para ver as opções de envio dos Correios e o prazo de entrega.</p>
+          <div class="cep-row">
+            <input class="cep-input" data-cep inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP">
+            <button type="button" class="cart-btn cart-btn-calc" data-calc>Calcular</button>
+          </div>
+          <div class="cep-err" data-cep-err>CEP inválido. Digite os 8 números.</div>
+
+          <div class="frete-dest" data-dest>
+            <i class="bi bi-geo-alt-fill"></i>
+            <span>Entrega para <strong data-dest-city></strong></span>
+            <a href="#" data-dest-change>alterar</a>
+          </div>
+
+          <div class="ship-opts" data-ship-opts></div>
+        </div>
+      </section>
+
+      <section class="cart-card" aria-label="Resumo do pedido">
+        <div class="cart-card-head">
+          <i class="bi bi-receipt" style="font-size:18px"></i>
+          <h2>Resumo do pedido</h2>
+        </div>
+        <div class="sum-body">
+          <div class="sum-line">
+            <span class="muted">Subtotal <span data-sub-qty>(<%= qty %> <%= qty_word %>)</span></span>
+            <span class="val tnum" data-subtotal data-subtotal-cents="<%= @cart.subtotal_cents %>">
+              <%= @cart.subtotal_formatted %>
+            </span>
+          </div>
+          <div class="sum-line">
+            <span class="muted">Frete <span data-ship-method style="font-weight:600;color:var(--pg-ink)"></span></span>
+            <span class="val tnum" data-shipping style="color:var(--pg-muted);font-weight:500">a calcular</span>
+          </div>
+
+          <hr class="sum-div">
+
+          <div class="sum-total">
+            <span class="lbl">Total</span>
+            <span class="amt tnum" data-total><%= @cart.subtotal_formatted %></span>
+          </div>
+
+          <div class="cta-stack">
+            <%= button_to cart_finalize_path,
+                          method: :post,
+                          class: "cart-btn cart-btn-dark",
+                          form: { data: { turbo: false } },
+                          disabled: @lines.empty? do %>
+              <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
+            <% end %>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <% if @lines.any? %>
+    <div class="cart-mobile-bar" data-mobile-bar>
+      <div class="mb-info">
+        <span class="mb-lbl">Total</span>
+        <span class="mb-amt" data-mb-total><%= @cart.subtotal_formatted %></span>
+      </div>
+      <%= button_to cart_finalize_path,
+                    method: :post,
+                    class: "cart-btn cart-btn-dark",
+                    form: { data: { turbo: false } } do %>
+        <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
+      <% end %>
+    </div>
+  <% end %>
 </div>
+
+<%
+  # WEIGHT_GRAMS_PLACEHOLDER: products don't carry weight yet; the mock
+  # quote uses a flat 200g/unit. Swap with line.product.weight_grams when
+  # that column lands.
+  line_weights = @lines.map { |l| { id: l.id, qty: l.quantity, weight: 200 } }
+%>
+
+<% content_for :scripts do %>
+<script>
+(function(){
+  /* ============================================================
+     Cart line interactions — variant pills + stepper
+     ============================================================ */
+  function bindLine(item) {
+    item.querySelector('[data-edit-toggle]')?.addEventListener('click', function () {
+      item.classList.toggle('editing');
+    });
+
+    var variantForm = item.querySelector('[data-variant-form]');
+    if (variantForm) {
+      variantForm.querySelectorAll('.vpill').forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          var group = pill.dataset.vgroup;
+          var optId = pill.dataset.vopt;
+          var hidden = variantForm.querySelector('input[data-variant-group="' + CSS.escape(group) + '"]');
+          if (hidden) hidden.value = optId;
+          pill.parentElement.querySelectorAll('.vpill').forEach(function (p) {
+            p.classList.toggle('sel', p === pill);
+          });
+          variantForm.requestSubmit();
+        });
+      });
+    }
+
+    var stepperForm = item.querySelector('[data-stepper-form]');
+    if (stepperForm) {
+      var input = stepperForm.querySelector('[data-qty]');
+      var dec   = stepperForm.querySelector('[data-dec]');
+      var inc   = stepperForm.querySelector('[data-inc]');
+      var clamp = function (n) { return Math.max(1, Math.min(99, n)); };
+      dec?.addEventListener('click', function () {
+        if (dec.disabled) return;
+        input.value = clamp(parseInt(input.value, 10) - 1);
+        stepperForm.requestSubmit();
+      });
+      inc?.addEventListener('click', function () {
+        input.value = clamp(parseInt(input.value, 10) + 1);
+        stepperForm.requestSubmit();
+      });
+      input.addEventListener('change', function () {
+        input.value = clamp(parseInt(input.value, 10) || 1);
+        stepperForm.requestSubmit();
+      });
+    }
+  }
+  document.querySelectorAll('.cart-item').forEach(bindLine);
+
+  /* ============================================================
+     CEP shipping calculator — design's distance-tier mock.
+     Replace `quote()` with a real backend call when the Correios
+     integration lands; the rest of this block stays.
+     ============================================================ */
+  var BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  var money = function (c) { return BRL.format(c / 100); };
+
+  var FREE_SHIP_FLOOR = 60000;
+  var LINE_WEIGHTS = <%= raw line_weights.to_json %>;
+  var SUBTOTAL = parseInt(document.querySelector('[data-subtotal]')?.dataset.subtotalCents || '0', 10);
+
+  var REGIONS = {
+    '0': { city: 'São Paulo, SP',       tier: 2 },
+    '1': { city: 'Campinas, SP',        tier: 2 },
+    '2': { city: 'Rio de Janeiro, RJ',  tier: 2 },
+    '3': { city: 'Belo Horizonte, MG',  tier: 1 },
+    '4': { city: 'Salvador, BA',        tier: 3 },
+    '5': { city: 'Recife, PE',          tier: 4 },
+    '6': { city: 'Fortaleza, CE',       tier: 5 },
+    '7': { city: 'Brasília, DF',        tier: 3 },
+    '8': { city: 'Curitiba, PR',        tier: 2 },
+    '9': { city: 'Porto Alegre, RS',    tier: 3 }
+  };
+  var PREFIX = {
+    '372': { city: 'Itajubá, MG',                tier: 0 },
+    '375': { city: 'Pouso Alegre, MG',           tier: 0 },
+    '370': { city: 'Varginha, MG',               tier: 0 },
+    '01':  { city: 'São Paulo (Centro), SP',     tier: 2 },
+    '04':  { city: 'São Paulo (Zona Sul), SP',   tier: 2 },
+    '20':  { city: 'Rio de Janeiro (Centro), RJ', tier: 2 },
+    '70':  { city: 'Brasília (Plano Piloto), DF', tier: 3 }
+  };
+  function resolveCep(digits) {
+    if (PREFIX[digits.slice(0, 3)]) return PREFIX[digits.slice(0, 3)];
+    if (PREFIX[digits.slice(0, 2)]) return PREFIX[digits.slice(0, 2)];
+    return REGIONS[digits[0]] || REGIONS['0'];
+  }
+  function totalWeight() {
+    return LINE_WEIGHTS.reduce(function (s, l) { return s + l.qty * l.weight; }, 0);
+  }
+  function quote(tier, weightG) {
+    var extraKg = Math.max(0, Math.ceil(weightG / 1000) - 1);
+    var opts = [
+      { method: 'sedex', label: 'SEDEX',
+        price: 2600 + tier * 620 + extraKg * 450,
+        eta: [1 + Math.floor(tier / 2), 2 + tier] },
+      { method: 'pac', label: 'PAC',
+        price: 1700 + tier * 400 + extraKg * 300,
+        eta: [4 + tier, 6 + tier * 2] }
+    ];
+    if (weightG <= 300) {
+      opts.push({ method: 'mini', label: 'Mini Envios',
+        price: 1100 + tier * 230 + extraKg * 200,
+        eta: [6 + tier, 9 + tier * 2] });
+    }
+    opts.forEach(function (o) { o.price = Math.round(o.price / 10) * 10; });
+    return opts;
+  }
+
+  var cepInput = document.querySelector('[data-cep]');
+  var cepErr   = document.querySelector('[data-cep-err]');
+  var destBox  = document.querySelector('[data-dest]');
+  var destCity = document.querySelector('[data-dest-city]');
+  var shipOpts = document.querySelector('[data-ship-opts]');
+  var shipping = null;
+
+  function maskCep(v) {
+    v = v.replace(/\D/g, '').slice(0, 8);
+    return v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
+  }
+  cepInput?.addEventListener('input', function (e) {
+    e.target.value = maskCep(e.target.value);
+    e.target.classList.remove('err');
+    cepErr.classList.remove('show');
+  });
+
+  function renderSummary() {
+    var shipCents = shipping ? shipping.price : 0;
+    var total = SUBTOTAL + shipCents;
+    var shipEl   = document.querySelector('[data-shipping]');
+    var methodEl = document.querySelector('[data-ship-method]');
+    var totalEl  = document.querySelector('[data-total]');
+    if (shipping) {
+      if (shipping.price === 0) {
+        shipEl.textContent = 'Grátis';
+        shipEl.style.color = 'var(--pg-green)';
+      } else {
+        shipEl.textContent = money(shipping.price);
+        shipEl.style.color = 'var(--pg-ink)';
+      }
+      shipEl.style.fontWeight = '600';
+      methodEl.textContent = '· ' + shipping.label;
+    } else {
+      shipEl.textContent = 'a calcular';
+      shipEl.style.color = 'var(--pg-muted)';
+      shipEl.style.fontWeight = '500';
+      methodEl.textContent = '';
+    }
+    totalEl.textContent = money(total);
+    var mbTotalEl = document.querySelector('[data-mb-total]');
+    if (mbTotalEl) mbTotalEl.textContent = money(total);
+  }
+
+  function selectShip(el, opts) {
+    shipOpts.querySelectorAll('.ship-opt').forEach(function (o) { o.classList.remove('sel'); });
+    el.classList.add('sel');
+    var o = opts.find(function (x) { return x.method === el.dataset.opt; });
+    shipping = { method: o.method, label: o.label, price: o.price };
+    renderSummary();
+  }
+
+  function recompute(digits) {
+    var region = resolveCep(digits);
+    var opts = quote(region.tier, totalWeight());
+    if (SUBTOTAL >= FREE_SHIP_FLOOR) {
+      opts.forEach(function (o) { if (o.method === 'pac') { o.price = 0; o.free = true; } });
+    }
+    destCity.textContent = region.city;
+    destBox.classList.add('show');
+    shipOpts.innerHTML = opts.map(function (o) {
+      var etaText = o.eta[0] === o.eta[1]
+        ? o.eta[0] + ' dia' + (o.eta[0] > 1 ? 's' : '')
+        : o.eta[0] + '–' + o.eta[1] + ' dias úteis';
+      var fast = o.method === 'sedex' ? '<span class="tag">Mais rápido</span>' : '';
+      var priceHtml = o.free
+        ? '<span class="ship-price free">Grátis</span>'
+        : '<span class="ship-price">' + money(o.price) + '</span>';
+      return '<label class="ship-opt" data-opt="' + o.method + '">'
+        + '<span class="ship-radio"></span>'
+        + '<span class="ship-info">'
+        +   '<span class="ship-name">' + o.label + fast + '</span>'
+        +   '<span class="ship-eta"><i class="bi bi-clock" style="font-size:11px"></i> Entrega em ' + etaText + '</span>'
+        + '</span>'
+        + priceHtml
+        + '</label>';
+    }).join('');
+    shipOpts.classList.add('show');
+    shipping = null;
+    var def = shipOpts.querySelector('[data-opt="pac"]') || shipOpts.querySelector('[data-opt]');
+    shipOpts.querySelectorAll('[data-opt]').forEach(function (el) {
+      el.addEventListener('click', function () { selectShip(el, opts); });
+    });
+    if (def) selectShip(def, opts);
+  }
+
+  document.querySelector('[data-calc]')?.addEventListener('click', function () {
+    var digits = (cepInput.value || '').replace(/\D/g, '');
+    if (digits.length !== 8) {
+      cepInput.classList.add('err');
+      cepErr.classList.add('show');
+      shipOpts.classList.remove('show');
+      destBox.classList.remove('show');
+      return;
+    }
+    recompute(digits);
+  });
+  cepInput?.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.querySelector('[data-calc]').click();
+  });
+  document.querySelector('[data-dest-change]')?.addEventListener('click', function (e) {
+    e.preventDefault();
+    cepInput.focus();
+    cepInput.select();
+  });
+})();
+</script>
+<% end %>

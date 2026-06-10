@@ -32,8 +32,36 @@
         <p class="h3 mb-0"><%= @product.price_formatted %></p>
       </div>
 
-      <%= form_with url: cart_items_path, method: :post, local: true do %>
+      <%= form_with url: cart_items_path, method: :post, local: true, data: { pdp_form: true } do %>
         <%= hidden_field_tag :product_id, @product.id %>
+
+        <% grouped_options = @product.product_options.in_display_order.group_by(&:group_name) %>
+        <% if grouped_options.any? %>
+          <div class="pdp-variants">
+            <% grouped_options.each do |group_name, opts| %>
+              <% default = opts.first %>
+              <%= hidden_field_tag "option_ids[]", default.id, data: { variant_group: group_name } %>
+              <div class="vgroup">
+                <div class="vgroup-label"><i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %></div>
+                <div class="vpills">
+                  <% opts.each do |opt| %>
+                    <%
+                      is_sel = opt.id == default.id
+                      flag = variant_option_flag(opt.name)
+                      delta_label = opt.price_delta_cents.positive? ? "+#{HasMoney.format(opt.price_delta_cents)}" : nil
+                    %>
+                    <button type="button" class="vpill<%= ' sel' if is_sel %>"
+                            data-vgroup="<%= group_name %>" data-vopt="<%= opt.id %>">
+                      <%= opt.name %><%= " #{flag}" if flag %>
+                      <% if delta_label %><span class="vdelta"><%= delta_label %></span><% end %>
+                    </button>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
         <div class="form-row align-items-end">
           <div class="col-4 col-md-3 mb-2">
             <label for="quantity" class="small text-muted mb-1">Quantidade</label>
@@ -45,6 +73,22 @@
             </button>
           </div>
         </div>
+      <% end %>
+
+      <% content_for :scripts do %>
+        <script>
+          document.querySelectorAll('[data-pdp-form] .vpill').forEach(function (pill) {
+            pill.addEventListener('click', function () {
+              var group  = pill.dataset.vgroup;
+              var optId  = pill.dataset.vopt;
+              var hidden = pill.closest('form').querySelector('input[data-variant-group="' + CSS.escape(group) + '"]');
+              if (hidden) hidden.value = optId;
+              pill.parentElement.querySelectorAll('.vpill').forEach(function (p) {
+                p.classList.toggle('sel', p === pill);
+              });
+            });
+          });
+        </script>
       <% end %>
 
       <a href="https://wa.me/5535920001100?text=<%= u("Olá! Tenho interesse em #{@product.title}") %>" target="_blank" rel="noopener" class="btn btn-success btn-block mb-3">
