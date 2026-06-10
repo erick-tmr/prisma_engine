@@ -10,7 +10,7 @@ class CartQuotesController < ApplicationController
   }.freeze
 
   UNEXPECTED_ERROR_MESSAGE =
-    "Erro inesperado. Tente novamente em instantes ou entre em contato com o suporte."
+    "Erro inesperado. Tente novamente em instantes ou entre em contato no WhatsApp."
 
   def create
     cep = normalize_cep(params[:cep])
