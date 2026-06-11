@@ -8,6 +8,9 @@ detectors:
     enabled: false        # don't demand a descriptive comment on every class/module
   TooManyStatements:
     max_statements: 8     # controller actions run a few lines; reek's default is 5
+  LongParameterList:
+    max_params: 4         # 4 keyword args is a clean request shape, not a smell —
+                          # 5+ is where the smell genuinely lives (cf. Sandi Metz)
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms
   UtilityFunction:

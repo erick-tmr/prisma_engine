@@ -65,8 +65,6 @@ module Shipping
       end
     end
 
-    # :reek:LongParameterList — local plumbing; the four bits are the per-service
-    # inputs we need to produce one service row.
     def build_service(key, code, preco, prazo)
       common = { key: key, label: SERVICE_LABELS.fetch(key) }
       tx_erro = preco && preco["txErro"]

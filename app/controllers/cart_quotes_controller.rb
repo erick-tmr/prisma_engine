@@ -19,8 +19,7 @@ class CartQuotesController < ApplicationController
     cart = ready_cart
     return render_error(:unprocessable_entity, "Seu carrinho está vazio.") unless cart
 
-    response = quote_response(cart, cep)
-    render_quote_result(response)
+    render_quote_result(quote_response(cart, cep))
   rescue Correios::Api::InvalidObjectError
     render_error(:unprocessable_entity, "CEP inválido.")
   rescue Correios::Api::TransientError

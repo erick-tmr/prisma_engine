@@ -25,8 +25,6 @@ module Correios
       # rate-limit/outage as TransientError.
       PERMANENT_REJECTIONS = [ 400, 422 ].freeze
 
-      # :reek:LongParameterList — keyword args document the request shape directly;
-      # bundling them into a Value Object would add indirection without clarity.
       def self.fetch(cep_origem:, cep_destino:, weight_grams:, service_codes:)
         new(cep_origem: cep_origem,
             cep_destino: cep_destino,
