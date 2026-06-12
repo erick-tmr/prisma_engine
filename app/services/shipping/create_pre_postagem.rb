@@ -8,7 +8,8 @@ module Shipping
   # inputs arrive in the PrePostagemRequest. Delegates the HTTP to
   # Correios::Api::PrePostagem and the persistence to Shipping::ShipmentFactory.
   class CreatePrePostagem
-    # The store. Hardcoded until seller settings exist.
+    # The store. Hardcoded until seller settings exist. The CEP lives in
+    # `Shipping::ORIGIN_CEP` so the price/prazo quote can reuse it.
     SENDER = {
       nome: "Prisma Games",
       dddCelular: "35",
@@ -16,12 +17,12 @@ module Shipping
       email: "vininess@hotmail.com",
       cpfCnpj: "43773766000111",
       endereco: {
-        cep: "37600000",
+        cep:        Shipping::ORIGIN_CEP,
         logradouro: "Rua José Cláudio Venturelli",
-        numero: "156",
-        bairro: "Vila Mariana",
-        cidade: "Cambuí",
-        uf: "MG"
+        numero:     "156",
+        bairro:     "Vila Mariana",
+        cidade:     "Cambuí",
+        uf:         "MG"
       }
     }.freeze
 

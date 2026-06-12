@@ -129,13 +129,6 @@
   <% end %>
 </div>
 
-<%
-  # WEIGHT_GRAMS_PLACEHOLDER: products don't carry weight yet; the mock
-  # quote uses a flat 200g/unit. Swap with line.product.weight_grams when
-  # that column lands.
-  line_weights = @lines.map { |l| { id: l.id, qty: l.quantity, weight: 200 } }
-%>
-
 <% content_for :scripts do %>
 <script>
 (function(){
@@ -187,70 +180,21 @@
   document.querySelectorAll('.cart-item').forEach(bindLine);
 
   /* ============================================================
-     CEP shipping calculator — design's distance-tier mock.
-     Replace `quote()` with a real backend call when the Correios
-     integration lands; the rest of this block stays.
+     CEP shipping calculator — live Correios prices + prazos.
+     Calls POST /carrinho/frete, which orchestrates the batched
+     /preco + /prazo requests, caches for 5 minutes, and returns the
+     eligible + ineligible service list. Subtotal stays server-rendered.
      ============================================================ */
   var BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   var money = function (c) { return BRL.format(c / 100); };
-
-  var FREE_SHIP_FLOOR = 60000;
-  var LINE_WEIGHTS = <%= raw line_weights.to_json %>;
   var SUBTOTAL = parseInt(document.querySelector('[data-subtotal]')?.dataset.subtotalCents || '0', 10);
-
-  var REGIONS = {
-    '0': { city: 'São Paulo, SP',       tier: 2 },
-    '1': { city: 'Campinas, SP',        tier: 2 },
-    '2': { city: 'Rio de Janeiro, RJ',  tier: 2 },
-    '3': { city: 'Belo Horizonte, MG',  tier: 1 },
-    '4': { city: 'Salvador, BA',        tier: 3 },
-    '5': { city: 'Recife, PE',          tier: 4 },
-    '6': { city: 'Fortaleza, CE',       tier: 5 },
-    '7': { city: 'Brasília, DF',        tier: 3 },
-    '8': { city: 'Curitiba, PR',        tier: 2 },
-    '9': { city: 'Porto Alegre, RS',    tier: 3 }
-  };
-  var PREFIX = {
-    '372': { city: 'Itajubá, MG',                tier: 0 },
-    '375': { city: 'Pouso Alegre, MG',           tier: 0 },
-    '370': { city: 'Varginha, MG',               tier: 0 },
-    '01':  { city: 'São Paulo (Centro), SP',     tier: 2 },
-    '04':  { city: 'São Paulo (Zona Sul), SP',   tier: 2 },
-    '20':  { city: 'Rio de Janeiro (Centro), RJ', tier: 2 },
-    '70':  { city: 'Brasília (Plano Piloto), DF', tier: 3 }
-  };
-  function resolveCep(digits) {
-    if (PREFIX[digits.slice(0, 3)]) return PREFIX[digits.slice(0, 3)];
-    if (PREFIX[digits.slice(0, 2)]) return PREFIX[digits.slice(0, 2)];
-    return REGIONS[digits[0]] || REGIONS['0'];
-  }
-  function totalWeight() {
-    return LINE_WEIGHTS.reduce(function (s, l) { return s + l.qty * l.weight; }, 0);
-  }
-  function quote(tier, weightG) {
-    var extraKg = Math.max(0, Math.ceil(weightG / 1000) - 1);
-    var opts = [
-      { method: 'sedex', label: 'SEDEX',
-        price: 2600 + tier * 620 + extraKg * 450,
-        eta: [1 + Math.floor(tier / 2), 2 + tier] },
-      { method: 'pac', label: 'PAC',
-        price: 1700 + tier * 400 + extraKg * 300,
-        eta: [4 + tier, 6 + tier * 2] }
-    ];
-    if (weightG <= 300) {
-      opts.push({ method: 'mini', label: 'Mini Envios',
-        price: 1100 + tier * 230 + extraKg * 200,
-        eta: [6 + tier, 9 + tier * 2] });
-    }
-    opts.forEach(function (o) { o.price = Math.round(o.price / 10) * 10; });
-    return opts;
-  }
 
   var cepInput = document.querySelector('[data-cep]');
   var cepErr   = document.querySelector('[data-cep-err]');
   var destBox  = document.querySelector('[data-dest]');
   var destCity = document.querySelector('[data-dest-city]');
   var shipOpts = document.querySelector('[data-ship-opts]');
+  var calcBtn  = document.querySelector('[data-calc]');
   var shipping = null;
 
   function maskCep(v) {
@@ -263,6 +207,14 @@
     cepErr.classList.remove('show');
   });
 
+  function showCepError(msg) {
+    cepInput.classList.add('err');
+    cepErr.textContent = msg;
+    cepErr.classList.add('show');
+    shipOpts.classList.remove('show');
+    destBox.classList.remove('show');
+  }
+
   function renderSummary() {
     var shipCents = shipping ? shipping.price : 0;
     var total = SUBTOTAL + shipCents;
@@ -270,13 +222,8 @@
     var methodEl = document.querySelector('[data-ship-method]');
     var totalEl  = document.querySelector('[data-total]');
     if (shipping) {
-      if (shipping.price === 0) {
-        shipEl.textContent = 'Grátis';
-        shipEl.style.color = 'var(--pg-green)';
-      } else {
-        shipEl.textContent = money(shipping.price);
-        shipEl.style.color = 'var(--pg-ink)';
-      }
+      shipEl.textContent = money(shipping.price);
+      shipEl.style.color = 'var(--pg-ink)';
       shipEl.style.fontWeight = '600';
       methodEl.textContent = '· ' + shipping.label;
     } else {
@@ -290,61 +237,86 @@
     if (mbTotalEl) mbTotalEl.textContent = money(total);
   }
 
-  function selectShip(el, opts) {
+  function selectShip(el, services) {
     shipOpts.querySelectorAll('.ship-opt').forEach(function (o) { o.classList.remove('sel'); });
     el.classList.add('sel');
-    var o = opts.find(function (x) { return x.method === el.dataset.opt; });
-    shipping = { method: o.method, label: o.label, price: o.price };
+    var s = services.find(function (x) { return String(x.key) === el.dataset.opt; });
+    shipping = { method: s.key, label: s.label, price: s.price_cents };
     renderSummary();
   }
 
-  function recompute(digits) {
-    var region = resolveCep(digits);
-    var opts = quote(region.tier, totalWeight());
-    if (SUBTOTAL >= FREE_SHIP_FLOOR) {
-      opts.forEach(function (o) { if (o.method === 'pac') { o.price = 0; o.free = true; } });
-    }
-    destCity.textContent = region.city;
+  function renderQuote(data) {
+    destCity.textContent = data.destination.city + ', ' + data.destination.state;
     destBox.classList.add('show');
-    shipOpts.innerHTML = opts.map(function (o) {
-      var etaText = o.eta[0] === o.eta[1]
-        ? o.eta[0] + ' dia' + (o.eta[0] > 1 ? 's' : '')
-        : o.eta[0] + '–' + o.eta[1] + ' dias úteis';
-      var fast = o.method === 'sedex' ? '<span class="tag">Mais rápido</span>' : '';
-      var priceHtml = o.free
-        ? '<span class="ship-price free">Grátis</span>'
-        : '<span class="ship-price">' + money(o.price) + '</span>';
-      return '<label class="ship-opt" data-opt="' + o.method + '">'
-        + '<span class="ship-radio"></span>'
-        + '<span class="ship-info">'
-        +   '<span class="ship-name">' + o.label + fast + '</span>'
-        +   '<span class="ship-eta"><i class="bi bi-clock" style="font-size:11px"></i> Entrega em ' + etaText + '</span>'
-        + '</span>'
-        + priceHtml
-        + '</label>';
+    shipOpts.innerHTML = data.services.map(function (s) {
+      if (s.eligible) {
+        var fast = s.key === 'sedex' ? '<span class="tag">Mais rápido</span>' : '';
+        return '<label class="ship-opt" data-opt="' + s.key + '">'
+          + '<span class="ship-radio"></span>'
+          + '<span class="ship-info">'
+          +   '<span class="ship-name">' + s.label + fast + '</span>'
+          +   '<span class="ship-eta"><i class="bi bi-clock" style="font-size:11px"></i> Entrega em ' + s.business_days + ' dias úteis</span>'
+          + '</span>'
+          + '<span class="ship-price">' + money(s.price_cents) + '</span>'
+          + '</label>';
+      } else {
+        return '<div class="ship-opt disabled" data-opt-disabled="' + s.key + '">'
+          + '<span class="ship-radio"></span>'
+          + '<span class="ship-info">'
+          +   '<span class="ship-name">' + s.label + '</span>'
+          +   '<span class="ship-eta">' + s.message + '</span>'
+          + '</span>'
+          + '</div>';
+      }
     }).join('');
     shipOpts.classList.add('show');
     shipping = null;
-    var def = shipOpts.querySelector('[data-opt="pac"]') || shipOpts.querySelector('[data-opt]');
     shipOpts.querySelectorAll('[data-opt]').forEach(function (el) {
-      el.addEventListener('click', function () { selectShip(el, opts); });
+      el.addEventListener('click', function () { selectShip(el, data.services); });
     });
-    if (def) selectShip(def, opts);
+    var def = shipOpts.querySelector('[data-opt="pac"]')
+           || shipOpts.querySelector('[data-opt="sedex"]')
+           || shipOpts.querySelector('[data-opt]');
+    if (def) selectShip(def, data.services);
+    else renderSummary();
   }
 
-  document.querySelector('[data-calc]')?.addEventListener('click', function () {
+  async function fetchQuote(digits) {
+    var token = document.querySelector('meta[name="csrf-token"]')?.content;
+    calcBtn.disabled = true;
+    try {
+      var res = await fetch('<%= cart_quote_path %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept':       'application/json',
+          'X-CSRF-Token': token || ''
+        },
+        body: JSON.stringify({ cep: digits })
+      });
+      var data = await res.json();
+      if (!res.ok) {
+        showCepError(data.error || 'Erro ao calcular frete.');
+        return;
+      }
+      renderQuote(data);
+    } catch (e) {
+      showCepError('Não foi possível calcular o frete. Tente novamente.');
+    } finally {
+      calcBtn.disabled = false;
+    }
+  }
+
+  calcBtn?.addEventListener('click', function () {
     var digits = (cepInput.value || '').replace(/\D/g, '');
     if (digits.length !== 8) {
-      cepInput.classList.add('err');
-      cepErr.classList.add('show');
-      shipOpts.classList.remove('show');
-      destBox.classList.remove('show');
+      showCepError('CEP inválido. Digite os 8 números.');
       return;
     }
-    recompute(digits);
+    fetchQuote(digits);
   });
   cepInput?.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') document.querySelector('[data-calc]').click();
+    if (e.key === 'Enter') calcBtn.click();
   });
   document.querySelector('[data-dest-change]')?.addEventListener('click', function (e) {
     e.preventDefault();

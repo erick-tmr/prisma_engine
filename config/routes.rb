@@ -45,6 +45,7 @@ Rails.application.routes.draw do
   patch  "/carrinho/items/:id",  to: "cart_items#update",  as: :cart_item
   delete "/carrinho/items/:id",  to: "cart_items#destroy"
   post   "/carrinho/finalizar",  to: "cart#finalize",      as: :cart_finalize
+  post   "/carrinho/frete",      to: "cart_quotes#create", as: :cart_quote
 
   get  "/identificacao", to: "identificacao#show", as: :identificacao
 
