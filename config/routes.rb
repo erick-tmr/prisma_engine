@@ -48,6 +48,7 @@ Rails.application.routes.draw do
   post   "/carrinho/frete",      to: "cart_quotes#create", as: :cart_quote
 
   get  "/identificacao", to: "identificacao#show", as: :identificacao
+  get  "/checkout",      to: "checkout#show",      as: :checkout
 
   get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes
   get  "/pagina/recomendacao-de-jogos", to: "pages#recomendacao_de_jogos", as: :recomendacao_de_jogos
