@@ -241,11 +241,33 @@
     if (mbTotalEl) mbTotalEl.textContent = money(total);
   }
 
+  /* Carry the chosen frete into the checkout step: stash the selected
+     service on the "Finalizar compra" forms so cart#finalize can remember it
+     in the session and the checkout screen pre-selects the same option.
+     Passing null removes it (a fresh quote deselects everything first). */
+  function rememberShipping(serviceKey) {
+    document.querySelectorAll('form[action$="<%= cart_finalize_path %>"]').forEach(function (form) {
+      var input = form.querySelector('input[name="shipping_service"]');
+      if (!serviceKey) {
+        if (input) input.remove();
+        return;
+      }
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'shipping_service';
+        form.appendChild(input);
+      }
+      input.value = serviceKey;
+    });
+  }
+
   function selectShip(el, services) {
     shipOpts.querySelectorAll('.ship-opt').forEach(function (o) { o.classList.remove('sel'); });
     el.classList.add('sel');
     var s = services.find(function (x) { return String(x.key) === el.dataset.opt; });
     shipping = { method: s.key, label: s.label, price: s.price_cents };
+    rememberShipping(s.key);
     renderSummary();
   }
 
@@ -279,6 +301,7 @@
     }).join('');
     shipOpts.classList.add('show');
     shipping = null;
+    rememberShipping(null);
     shipOpts.querySelectorAll('[data-opt]').forEach(function (el) {
       el.addEventListener('click', function () { selectShip(el, data.services); });
     });
