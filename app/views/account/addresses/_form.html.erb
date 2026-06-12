@@ -1,7 +1,8 @@
 <%= form_with model: address, url: form_url, method: form_method,
               html: { novalidate: true,
                       data: { user_name: current_user.full_name,
-                              user_cpf: format_cpf(current_user.cpf) } } do |f| %>
+                              user_cpf: format_cpf(current_user.cpf),
+                              cep_lookup_url: "#{account_addresses_path}/cep" } } do |f| %>
   <%= render "shared/form_errors", record: address %>
 
   <div class="alert alert-light addr-receiver-notice small">
@@ -65,42 +66,5 @@
 <% end %>
 
 <% content_for :scripts do %>
-  <script>
-    $(function () {
-      $('[data-receiver-self]').on('change', function () {
-        var $form = $(this).closest('form');
-        var name = this.checked ? $form.data('user-name') : '';
-        var cpf  = this.checked ? $form.data('user-cpf')  : '';
-        $form.find('[name="address[receiver_name]"]').val(name);
-        $form.find('[name="address[receiver_cpf]"]').val(cpf);
-      });
-
-      $('[data-mask-cep]').each(function () {
-        var $cep = $(this);
-        // Treat any CEP already in the field on page load (edit flow) as the
-        // baseline — don't refetch unless the customer actually changes it.
-        var last = $cep.val().replace(/\D/g, '');
-        if (last.length !== 8) last = null;
-
-        $cep.on('blur', function () {
-          var digits = $cep.val().replace(/\D/g, '');
-          if (digits.length !== 8 || digits === last) return;
-
-          var $form = $cep.closest('form');
-          $.getJSON('/minha-conta/enderecos/cep/' + digits)
-            .done(function (data) {
-              last = digits;
-              // Always replace — a sparse response (town-wide CEP) would
-              // otherwise leave stale values from the previous CEP behind.
-              ['street', 'neighborhood', 'city', 'state'].forEach(function (field) {
-                var $input = $form.find('[name="address[' + field + ']"]');
-                if ($input.length) $input.val(data[field] || '');
-              });
-              var $number = $form.find('[name="address[number]"]');
-              if ($number.length && !$number.val()) $number.trigger('focus');
-            });
-        });
-      });
-    });
-  </script>
+  <%= javascript_include_tag "storefront/address_form", type: "module" %>
 <% end %>

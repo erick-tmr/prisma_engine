@@ -51,7 +51,8 @@
     </section>
 
     <aside class="cart-rail">
-      <section class="cart-card" aria-label="Calcular frete">
+      <section class="cart-card" aria-label="Calcular frete"
+               data-cart-shipping data-quote-url="<%= cart_quote_path %>">
         <div class="rainbow-top"></div>
         <div class="cart-card-head">
           <i class="bi bi-truck" style="font-size:18px"></i>
@@ -103,7 +104,7 @@
             <%= button_to cart_finalize_path,
                           method: :post,
                           class: "cart-btn cart-btn-dark",
-                          form: { data: { turbo: false } },
+                          form: { data: { turbo: false, finalize_form: true } },
                           disabled: @lines.empty? do %>
               <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
             <% end %>
@@ -122,7 +123,7 @@
       <%= button_to cart_finalize_path,
                     method: :post,
                     class: "cart-btn cart-btn-dark",
-                    form: { data: { turbo: false } } do %>
+                    form: { data: { turbo: false, finalize_form: true } } do %>
         <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
       <% end %>
     </div>
@@ -130,230 +131,5 @@
 </div>
 
 <% content_for :scripts do %>
-<script>
-(function(){
-  /* ============================================================
-     Cart line interactions — variant pills + stepper
-     ============================================================ */
-  function bindLine(item) {
-    item.querySelector('[data-edit-toggle]')?.addEventListener('click', function () {
-      item.classList.toggle('editing');
-    });
-
-    var variantForm = item.querySelector('[data-variant-form]');
-    if (variantForm) {
-      variantForm.querySelectorAll('.vpill').forEach(function (pill) {
-        pill.addEventListener('click', function () {
-          var group = pill.dataset.vgroup;
-          var optId = pill.dataset.vopt;
-          var hidden = variantForm.querySelector('input[data-variant-group="' + CSS.escape(group) + '"]');
-          if (hidden) hidden.value = optId;
-          pill.parentElement.querySelectorAll('.vpill').forEach(function (p) {
-            p.classList.toggle('sel', p === pill);
-          });
-          variantForm.requestSubmit();
-        });
-      });
-    }
-
-    var stepperForm = item.querySelector('[data-stepper-form]');
-    if (stepperForm) {
-      var input = stepperForm.querySelector('[data-qty]');
-      var dec   = stepperForm.querySelector('[data-dec]');
-      var inc   = stepperForm.querySelector('[data-inc]');
-      var clamp = function (n) { return Math.max(1, Math.min(99, n)); };
-      dec?.addEventListener('click', function () {
-        if (dec.disabled) return;
-        input.value = clamp(parseInt(input.value, 10) - 1);
-        stepperForm.requestSubmit();
-      });
-      inc?.addEventListener('click', function () {
-        input.value = clamp(parseInt(input.value, 10) + 1);
-        stepperForm.requestSubmit();
-      });
-      input.addEventListener('change', function () {
-        input.value = clamp(parseInt(input.value, 10) || 1);
-        stepperForm.requestSubmit();
-      });
-    }
-  }
-  document.querySelectorAll('.cart-item').forEach(bindLine);
-
-  /* ============================================================
-     CEP shipping calculator — live Correios prices + prazos.
-     Calls POST /carrinho/frete, which orchestrates the batched
-     /preco + /prazo requests, caches for 5 minutes, and returns the
-     eligible + ineligible service list. Subtotal stays server-rendered.
-     ============================================================ */
-  var BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-  var money = function (c) { return BRL.format(c / 100); };
-  var SUBTOTAL = parseInt(document.querySelector('[data-subtotal]')?.dataset.subtotalCents || '0', 10);
-
-  var cepInput = document.querySelector('[data-cep]');
-  var cepErr   = document.querySelector('[data-cep-err]');
-  var destBox  = document.querySelector('[data-dest]');
-  var destCity = document.querySelector('[data-dest-city]');
-  var shipOpts = document.querySelector('[data-ship-opts]');
-  var calcBtn  = document.querySelector('[data-calc]');
-  var shipping = null;
-
-  function maskCep(v) {
-    v = v.replace(/\D/g, '').slice(0, 8);
-    return v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
-  }
-  function clearCepError() {
-    cepInput.classList.remove('err');
-    cepErr.classList.remove('show');
-  }
-
-  cepInput?.addEventListener('input', function (e) {
-    e.target.value = maskCep(e.target.value);
-    clearCepError();
-  });
-
-  function showCepError(msg) {
-    cepInput.classList.add('err');
-    cepErr.textContent = msg;
-    cepErr.classList.add('show');
-    shipOpts.classList.remove('show');
-    destBox.classList.remove('show');
-  }
-
-  function renderSummary() {
-    var shipCents = shipping ? shipping.price : 0;
-    var total = SUBTOTAL + shipCents;
-    var shipEl   = document.querySelector('[data-shipping]');
-    var methodEl = document.querySelector('[data-ship-method]');
-    var totalEl  = document.querySelector('[data-total]');
-    if (shipping) {
-      shipEl.textContent = money(shipping.price);
-      shipEl.style.color = 'var(--pg-ink)';
-      shipEl.style.fontWeight = '600';
-      methodEl.textContent = '· ' + shipping.label;
-    } else {
-      shipEl.textContent = 'a calcular';
-      shipEl.style.color = 'var(--pg-muted)';
-      shipEl.style.fontWeight = '500';
-      methodEl.textContent = '';
-    }
-    totalEl.textContent = money(total);
-    var mbTotalEl = document.querySelector('[data-mb-total]');
-    if (mbTotalEl) mbTotalEl.textContent = money(total);
-  }
-
-  /* Carry the chosen frete into the checkout step: stash the selected
-     service on the "Finalizar compra" forms so cart#finalize can remember it
-     in the session and the checkout screen pre-selects the same option.
-     Passing null removes it (a fresh quote deselects everything first). */
-  function rememberShipping(serviceKey) {
-    document.querySelectorAll('form[action$="<%= cart_finalize_path %>"]').forEach(function (form) {
-      var input = form.querySelector('input[name="shipping_service"]');
-      if (!serviceKey) {
-        if (input) input.remove();
-        return;
-      }
-      if (!input) {
-        input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'shipping_service';
-        form.appendChild(input);
-      }
-      input.value = serviceKey;
-    });
-  }
-
-  function selectShip(el, services) {
-    shipOpts.querySelectorAll('.ship-opt').forEach(function (o) { o.classList.remove('sel'); });
-    el.classList.add('sel');
-    var s = services.find(function (x) { return String(x.key) === el.dataset.opt; });
-    shipping = { method: s.key, label: s.label, price: s.price_cents };
-    rememberShipping(s.key);
-    renderSummary();
-  }
-
-  function renderQuote(data) {
-    // A successful quote clears any prior error (e.g. a retry after the
-    // Correios API was briefly unavailable) — the input handler only clears
-    // it on keystroke, so re-calculating the same CEP wouldn't otherwise.
-    clearCepError();
-    destCity.textContent = data.destination.city + ', ' + data.destination.state;
-    destBox.classList.add('show');
-    shipOpts.innerHTML = data.services.map(function (s) {
-      if (s.eligible) {
-        var fast = s.key === 'sedex' ? '<span class="tag">Mais rápido</span>' : '';
-        return '<label class="ship-opt" data-opt="' + s.key + '">'
-          + '<span class="ship-radio"></span>'
-          + '<span class="ship-info">'
-          +   '<span class="ship-name">' + s.label + fast + '</span>'
-          +   '<span class="ship-eta"><i class="bi bi-clock" style="font-size:11px"></i> Entrega em ' + s.business_days + ' dias úteis</span>'
-          + '</span>'
-          + '<span class="ship-price">' + money(s.price_cents) + '</span>'
-          + '</label>';
-      } else {
-        return '<div class="ship-opt disabled" data-opt-disabled="' + s.key + '">'
-          + '<span class="ship-radio"></span>'
-          + '<span class="ship-info">'
-          +   '<span class="ship-name">' + s.label + '</span>'
-          +   '<span class="ship-eta">' + s.message + '</span>'
-          + '</span>'
-          + '</div>';
-      }
-    }).join('');
-    shipOpts.classList.add('show');
-    shipping = null;
-    rememberShipping(null);
-    shipOpts.querySelectorAll('[data-opt]').forEach(function (el) {
-      el.addEventListener('click', function () { selectShip(el, data.services); });
-    });
-    var def = shipOpts.querySelector('[data-opt="pac"]')
-           || shipOpts.querySelector('[data-opt="sedex"]')
-           || shipOpts.querySelector('[data-opt]');
-    if (def) selectShip(def, data.services);
-    else renderSummary();
-  }
-
-  async function fetchQuote(digits) {
-    var token = document.querySelector('meta[name="csrf-token"]')?.content;
-    calcBtn.disabled = true;
-    try {
-      var res = await fetch('<%= cart_quote_path %>', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept':       'application/json',
-          'X-CSRF-Token': token || ''
-        },
-        body: JSON.stringify({ cep: digits })
-      });
-      var data = await res.json();
-      if (!res.ok) {
-        showCepError(data.error || 'Erro ao calcular frete.');
-        return;
-      }
-      renderQuote(data);
-    } catch (e) {
-      showCepError('Não foi possível calcular o frete. Tente novamente.');
-    } finally {
-      calcBtn.disabled = false;
-    }
-  }
-
-  calcBtn?.addEventListener('click', function () {
-    var digits = (cepInput.value || '').replace(/\D/g, '');
-    if (digits.length !== 8) {
-      showCepError('CEP inválido. Digite os 8 números.');
-      return;
-    }
-    fetchQuote(digits);
-  });
-  cepInput?.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') calcBtn.click();
-  });
-  document.querySelector('[data-dest-change]')?.addEventListener('click', function (e) {
-    e.preventDefault();
-    cepInput.focus();
-    cepInput.select();
-  });
-})();
-</script>
+  <%= javascript_include_tag "storefront/cart", type: "module" %>
 <% end %>

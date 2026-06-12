@@ -236,6 +236,62 @@ jobs:
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
 
+  test_js:
+    name: JS unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Run JS unit tests (Vitest, with coverage gate)
+        run: |
+          mkdir -p tmp
+          npm run test:js 2>&1 | tee tmp/js-test.log
+
+      - name: Summarize JS test failures on failure
+        if: failure()
+        run: |
+          {
+            echo "## JS unit test failures (Vitest)"
+            echo '```'
+            tail -60 tmp/js-test.log 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Surface the coverage totals (the run already failed above if a metric
+      # dropped below the 100% threshold in vitest.config.js).
+      - name: JS coverage summary
+        if: ${{ !cancelled() }}
+        run: |
+          S=tmp/js-coverage/coverage-summary.json
+          {
+            echo "## JS coverage (Vitest)"
+            if [ -f "$S" ]; then
+              echo "| Lines | Branches | Functions | Statements |"
+              echo "|------:|---------:|----------:|-----------:|"
+              jq -r '.total | "| \(.lines.pct)% | \(.branches.pct)% | \(.functions.pct)% | \(.statements.pct)% |"' "$S"
+            else
+              echo "(no coverage summary produced)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload JS coverage summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: js-coverage
+          path: tmp/js-coverage/coverage-summary.json
+          if-no-files-found: warn
+
   coverage:
     name: Coverage (changed lines)
     runs-on: ubuntu-latest
@@ -502,7 +558,7 @@ jobs:
     # always() so the comment still posts (with the uncovered lines) when the
     # blocking coverage gate fails.
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: [ coverage, code_quality, semgrep_diff ]
+    needs: [ coverage, code_quality, semgrep_diff, test_js ]
     permissions:
       contents: read
       pull-requests: write   # required for the sticky comment
@@ -517,12 +573,20 @@ jobs:
           LR=artifacts/coverage/.last_run.json
           LINE=$(jq -r '.result.line' "$LR" 2>/dev/null || echo "?")
           BRANCH=$(jq -r '.result.branch' "$LR" 2>/dev/null || echo "?")
+          JS=artifacts/js-coverage/coverage-summary.json
           {
             echo "## CI quality summary"
             echo ""
-            echo "### Coverage"
+            echo "### Coverage — Ruby (SimpleCov)"
             echo "- Total line coverage: **${LINE}%**"
             echo "- Total branch coverage: **${BRANCH}%**"
+            echo ""
+            echo "### Coverage — JS (Vitest, storefront modules)"
+            if [ -f "$JS" ]; then
+              jq -r '.total | "- Lines: **\(.lines.pct)%** · Branches: **\(.branches.pct)%** · Functions: **\(.functions.pct)%** · Statements: **\(.statements.pct)%**"' "$JS"
+            else
+              echo "- (no JS coverage summary)"
+            fi
             echo ""
             echo "Changed lines (undercover):"
             echo '```'
