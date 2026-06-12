@@ -106,16 +106,16 @@ class CartTest < ActionDispatch::IntegrationTest
     assert_select ".chip-edicao", count: 0
   end
 
-  test "finalize bounces a guest to login and remembers the identificacao return path" do
+  test "finalize bounces a guest to login and remembers the checkout return path" do
     post cart_finalize_path
     assert_redirected_to new_user_session_path
-    assert_equal identificacao_path, session["user_return_to"]
+    assert_equal checkout_path, session["user_return_to"]
   end
 
-  test "finalize sends a signed-in user straight to identificacao" do
+  test "finalize sends a signed-in user straight to checkout" do
     sign_in users(:confirmed)
     post cart_finalize_path
-    assert_redirected_to identificacao_path
+    assert_redirected_to checkout_path
   end
 
   test "subtotal reflects the option delta on the line" do
