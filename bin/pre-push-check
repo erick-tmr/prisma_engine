@@ -100,6 +100,15 @@ else
   step "undercover (coverage of changed lines)"
   bundle exec undercover --compare origin/main
   ok "undercover"
+
+  step "js unit tests (vitest)"
+  if command -v npm >/dev/null 2>&1; then
+    [ -d node_modules ] || npm ci
+    npm run test:js
+    ok "js unit tests"
+  else
+    printf '  (skipped — npm not installed)\n'
+  fi
 fi
 
 printf '\n\033[1;32m✓ All pre-push checks passed — safe to push.\033[0m\n'

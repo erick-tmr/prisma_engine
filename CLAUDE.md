@@ -8,13 +8,15 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - `bin/setup` — fresh-machine setup. Needs `cmake` for `rugged` (undercover): `brew install cmake` / `sudo apt-get install -y cmake pkg-config`.
 - `bin/share-dev` — public Cloudflare Tunnel for client previews; reads `SHARE_AUTH_*` from `.env`.
 - `bin/pre-push-check` — local CI gauntlet; must pass before push. `SKIP_TESTS=1` for docs-only pushes.
+- `npm run test:js` — Vitest+jsdom unit tests for storefront ES modules (`test/javascript/*.test.js`). Node pinned in `.node-version`; `npm install` first. `pre-push-check` runs it too.
 
 ## Stack invariants
 
 - Storefront is **Bootstrap + jQuery via CDN** (jsDelivr / cdnjs / code.jquery.com). Tailwind was tried and dropped (CSS reset + class collisions). Do not reintroduce.
 - `app/views/layouts/application.html.erb` does **not** emit `javascript_importmap_tags`, Turbo, or Stimulus. Those gems exist for future admin work; dormant on the storefront.
+- Page JS that warrants unit tests lives in `app/javascript/storefront/*.js` as **self-contained native ES modules**, loaded per-page via `javascript_include_tag "storefront/<name>", type: "module"` in `content_for :scripts` — served by Propshaft, **not** importmap (which stays dormant per above). They read config from `data-*` attributes (no ERB interpolation inside the JS) and self-init via a guarded DOM check, so the same file the browser runs is what the tests import.
 - Images live under `public/images/` (vendored). No `cdn-meloja.*`, `prismagames.com.br`, or `a.meloja.com.br` URLs may appear in `app/` or `public/`.
-- `/carrinho` and `/identificacao` are placeholder views — `create` actions are flash-and-redirect no-ops until checkout lands.
+- `/checkout` (delivery + payment) is the post-cart step — `cart#finalize` routes there (guests log in first). It's a template-first pass: address/payment data are still client-side mocks pending real wiring.
 - Postgres is bound to `127.0.0.1:5432` in `compose.yaml` (so a LAN-shared `bin/dev` doesn't expose the DB). Do not switch to `0.0.0.0`.
 
 ## Conventions
@@ -48,7 +50,7 @@ No business rules in `Api::*`. No HTTP in the domain. A new vendor (or a vendor 
 
 ## CI gates
 
-One workflow (`.github/workflows/ci.yml`). **Blocking**: rubocop, brakeman, bundler-audit, importmap audit, tests + system-tests, SimpleCov 100% line + branch floor, undercover (changed-line coverage), semgrep `(new findings)`, gitleaks, dependency review (moderate+ CVEs). **Advisory**: reek findings, reported in the sticky `ci-quality` PR comment. Brakeman + Semgrep findings also surface under **Security ▸ Code scanning**. The 100% SimpleCov floor + undercover together enforce both "every changed line is tested" and "no coverage regressions." Mark genuinely un-testable Ruby lines with `# :nocov:`.
+One workflow (`.github/workflows/ci.yml`). **Blocking**: rubocop, brakeman, bundler-audit, importmap audit, tests + system-tests, SimpleCov 100% line + branch floor, undercover (changed-line coverage), JS unit tests (Vitest), semgrep `(new findings)`, gitleaks, dependency review (moderate+ CVEs). **Advisory**: reek findings, reported in the sticky `ci-quality` PR comment. Brakeman + Semgrep findings also surface under **Security ▸ Code scanning**. The 100% SimpleCov floor + undercover together enforce both "every changed line is tested" and "no coverage regressions." Mark genuinely un-testable Ruby lines with `# :nocov:`. The 100% floor is **Ruby-only** — JS coverage (Vitest) is report-only, no floor. The `JS unit tests` job is new; add it to main's required-checks list to make it blocking.
 
 ## Gotchas
 

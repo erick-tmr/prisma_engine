@@ -236,6 +236,37 @@ jobs:
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
 
+  test_js:
+    name: JS unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Run JS unit tests (Vitest)
+        run: |
+          mkdir -p tmp
+          npm run test:js 2>&1 | tee tmp/js-test.log
+
+      - name: Summarize JS test failures on failure
+        if: failure()
+        run: |
+          {
+            echo "## JS unit test failures (Vitest)"
+            echo '```'
+            tail -60 tmp/js-test.log 2>/dev/null || echo "(no output captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   coverage:
     name: Coverage (changed lines)
     runs-on: ubuntu-latest
