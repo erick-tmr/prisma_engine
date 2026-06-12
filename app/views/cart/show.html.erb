@@ -201,10 +201,14 @@
     v = v.replace(/\D/g, '').slice(0, 8);
     return v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
   }
+  function clearCepError() {
+    cepInput.classList.remove('err');
+    cepErr.classList.remove('show');
+  }
+
   cepInput?.addEventListener('input', function (e) {
     e.target.value = maskCep(e.target.value);
-    e.target.classList.remove('err');
-    cepErr.classList.remove('show');
+    clearCepError();
   });
 
   function showCepError(msg) {
@@ -246,6 +250,10 @@
   }
 
   function renderQuote(data) {
+    // A successful quote clears any prior error (e.g. a retry after the
+    // Correios API was briefly unavailable) — the input handler only clears
+    // it on keystroke, so re-calculating the same CEP wouldn't otherwise.
+    clearCepError();
     destCity.textContent = data.destination.city + ', ' + data.destination.state;
     destBox.classList.add('show');
     shipOpts.innerHTML = data.services.map(function (s) {
