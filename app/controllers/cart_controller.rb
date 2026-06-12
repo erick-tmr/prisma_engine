@@ -20,6 +20,7 @@ class CartController < ApplicationController
   # that's the third line of defence — we should fail first, in our own code,
   # with a friendly message.
   def finalize
+    remember_shipping_choice
     if user_signed_in?
       redirect_to checkout_path
     else
@@ -30,6 +31,19 @@ class CartController < ApplicationController
   end
 
   private
+
+  # Bridge the cart's client-side frete pick to the checkout screen, which
+  # reads it back to pre-select the same service. Whitelisted against our
+  # known services so a hand-edited form can't stash arbitrary input; the
+  # binding re-validation against a fresh quote still happens at order time.
+  def remember_shipping_choice
+    service = params[:shipping_service].to_s
+    if Shipping::SERVICES.keys.any? { |key| key.to_s == service }
+      session["checkout_shipping_service"] = service
+    else
+      session.delete("checkout_shipping_service")
+    end
+  end
 
   def cart_cookie_value(cart)
     { value: cart.to_cookie, expires: 30.days.from_now }

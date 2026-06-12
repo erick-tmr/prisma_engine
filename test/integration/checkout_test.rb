@@ -24,4 +24,12 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_match(/Etapas do checkout/, response.body)
     assert_no_match(/data-toggle="drawer"/, response.body)
   end
+
+  test "GET /checkout pre-selects the shipping service chosen on the cart" do
+    sign_in users(:confirmed)
+    post cart_finalize_path, params: { shipping_service: "pac" }
+    get checkout_path
+    assert_response :success
+    assert_match(/data-preselected="pac"/, response.body)
+  end
 end

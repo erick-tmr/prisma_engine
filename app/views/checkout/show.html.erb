@@ -141,7 +141,7 @@
           <div class="step-body">
             <div class="step-error"><i class="bi bi-exclamation-circle-fill"></i> Escolha uma forma de envio para continuar.</div>
             <p class="ship-dest"><i class="bi bi-geo-alt-fill"></i> Enviando para <strong data-ship-dest>São Paulo, SP · CEP 04534-003</strong></p>
-            <div class="ship-opts" data-ship-opts>
+            <div class="ship-opts" data-ship-opts data-preselected="<%= @selected_shipping_service %>">
               <%# shipping options injected by JS %>
             </div>
           </div>
@@ -270,7 +270,7 @@
   const SHIP_OPTS = [
     { method:'sedex', label:'SEDEX',       icon:'bi-lightning-charge-fill', price:3840, eta:'2 a 4 dias úteis', fast:true },
     { method:'pac',   label:'PAC',         icon:'bi-truck',                 price:2500, eta:'6 a 10 dias úteis' },
-    { method:'mini',  label:'Mini Envios', icon:'bi-envelope',              price:1560, eta:'8 a 13 dias úteis' },
+    { method:'mini_envios', label:'Mini Envios', icon:'bi-envelope',         price:1560, eta:'8 a 13 dias úteis' },
   ];
 
   const shipWrap = $('[data-ship-opts]');
@@ -425,9 +425,14 @@
   }
   $$('[data-pay-btn]').forEach(b=> b.addEventListener('click', payClicked));
 
-  /* ---- init: fresh-arrival state (no shipping selected yet) ---- */
+  /* ---- init: pre-select the frete chosen on the cart, if any ---- */
   renderShipOpts();
-  renderSummary();
+  const preselected = shipWrap.dataset.preselected;
+  if(preselected && SHIP_OPTS.some(o=>o.method===preselected)){
+    selectShip(preselected);
+  } else {
+    renderSummary();
+  }
 })();
 </script>
 <% end %>

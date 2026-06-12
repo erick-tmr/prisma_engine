@@ -118,6 +118,18 @@ class CartTest < ActionDispatch::IntegrationTest
     assert_redirected_to checkout_path
   end
 
+  test "finalize remembers a valid chosen shipping service for checkout" do
+    sign_in users(:confirmed)
+    post cart_finalize_path, params: { shipping_service: "sedex" }
+    assert_equal "sedex", session["checkout_shipping_service"]
+  end
+
+  test "finalize ignores an unknown shipping service" do
+    sign_in users(:confirmed)
+    post cart_finalize_path, params: { shipping_service: "bogus" }
+    assert_nil session["checkout_shipping_service"]
+  end
+
   test "subtotal reflects the option delta on the line" do
     post cart_items_path, params: {
       product_id: products(:yellow).id, quantity: 2,

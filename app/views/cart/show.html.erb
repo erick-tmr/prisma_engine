@@ -201,10 +201,14 @@
     v = v.replace(/\D/g, '').slice(0, 8);
     return v.length > 5 ? v.slice(0, 5) + '-' + v.slice(5) : v;
   }
+  function clearCepError() {
+    cepInput.classList.remove('err');
+    cepErr.classList.remove('show');
+  }
+
   cepInput?.addEventListener('input', function (e) {
     e.target.value = maskCep(e.target.value);
-    e.target.classList.remove('err');
-    cepErr.classList.remove('show');
+    clearCepError();
   });
 
   function showCepError(msg) {
@@ -237,15 +241,41 @@
     if (mbTotalEl) mbTotalEl.textContent = money(total);
   }
 
+  /* Carry the chosen frete into the checkout step: stash the selected
+     service on the "Finalizar compra" forms so cart#finalize can remember it
+     in the session and the checkout screen pre-selects the same option.
+     Passing null removes it (a fresh quote deselects everything first). */
+  function rememberShipping(serviceKey) {
+    document.querySelectorAll('form[action$="<%= cart_finalize_path %>"]').forEach(function (form) {
+      var input = form.querySelector('input[name="shipping_service"]');
+      if (!serviceKey) {
+        if (input) input.remove();
+        return;
+      }
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'shipping_service';
+        form.appendChild(input);
+      }
+      input.value = serviceKey;
+    });
+  }
+
   function selectShip(el, services) {
     shipOpts.querySelectorAll('.ship-opt').forEach(function (o) { o.classList.remove('sel'); });
     el.classList.add('sel');
     var s = services.find(function (x) { return String(x.key) === el.dataset.opt; });
     shipping = { method: s.key, label: s.label, price: s.price_cents };
+    rememberShipping(s.key);
     renderSummary();
   }
 
   function renderQuote(data) {
+    // A successful quote clears any prior error (e.g. a retry after the
+    // Correios API was briefly unavailable) — the input handler only clears
+    // it on keystroke, so re-calculating the same CEP wouldn't otherwise.
+    clearCepError();
     destCity.textContent = data.destination.city + ', ' + data.destination.state;
     destBox.classList.add('show');
     shipOpts.innerHTML = data.services.map(function (s) {
@@ -271,6 +301,7 @@
     }).join('');
     shipOpts.classList.add('show');
     shipping = null;
+    rememberShipping(null);
     shipOpts.querySelectorAll('[data-opt]').forEach(function (el) {
       el.addEventListener('click', function () { selectShip(el, data.services); });
     });
