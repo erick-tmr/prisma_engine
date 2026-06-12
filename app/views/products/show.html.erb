@@ -76,19 +76,7 @@
       <% end %>
 
       <% content_for :scripts do %>
-        <script>
-          document.querySelectorAll('[data-pdp-form] .vpill').forEach(function (pill) {
-            pill.addEventListener('click', function () {
-              var group  = pill.dataset.vgroup;
-              var optId  = pill.dataset.vopt;
-              var hidden = pill.closest('form').querySelector('input[data-variant-group="' + CSS.escape(group) + '"]');
-              if (hidden) hidden.value = optId;
-              pill.parentElement.querySelectorAll('.vpill').forEach(function (p) {
-                p.classList.toggle('sel', p === pill);
-              });
-            });
-          });
-        </script>
+        <%= javascript_include_tag "storefront/pdp", type: "module" %>
       <% end %>
 
       <a href="https://wa.me/5535920001100?text=<%= u("Olá! Tenho interesse em #{@product.title}") %>" target="_blank" rel="noopener" class="btn btn-success btn-block mb-3">
