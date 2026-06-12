@@ -1,6 +1,6 @@
 # Prisma Engine
 
-Brazilian retro-game ecommerce. Rails 8 + PostgreSQL, Bootstrap 4 + jQuery storefront ported from prismagames.com.br. Architecture, domain decisions, and state machines live in `docs/architecture.md` — this file is the working contract.
+Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefront ported from prismagames.com.br. Architecture, domain decisions, and state machines live in `docs/architecture.md` — this file is the working contract.
 
 ## Commands
 
@@ -11,7 +11,7 @@ Brazilian retro-game ecommerce. Rails 8 + PostgreSQL, Bootstrap 4 + jQuery store
 
 ## Stack invariants
 
-- Storefront is **Bootstrap 4.6 + jQuery via CDN** (jsDelivr / cdnjs / code.jquery.com). Tailwind was tried and dropped (CSS reset + class collisions). Do not reintroduce.
+- Storefront is **Bootstrap + jQuery via CDN** (jsDelivr / cdnjs / code.jquery.com). Tailwind was tried and dropped (CSS reset + class collisions). Do not reintroduce.
 - `app/views/layouts/application.html.erb` does **not** emit `javascript_importmap_tags`, Turbo, or Stimulus. Those gems exist for future admin work; dormant on the storefront.
 - Images live under `public/images/` (vendored). No `cdn-meloja.*`, `prismagames.com.br`, or `a.meloja.com.br` URLs may appear in `app/` or `public/`.
 - `/carrinho` and `/identificacao` are placeholder views — `create` actions are flash-and-redirect no-ops until checkout lands.
@@ -52,6 +52,6 @@ One workflow (`.github/workflows/ci.yml`). **Blocking**: rubocop, brakeman, bund
 
 ## Gotchas
 
-- Rails 8 checks pending migrations on every dev request → DB must be running (`docker compose up -d` before `bin/dev`).
+- Rails checks pending migrations on every dev request → DB must be running (`docker compose up -d` before `bin/dev`).
 - `tmp/snapshot/` is a frozen reference of the live site used during the port. Gitignored; do not commit.
 - `.env.example` is the only `.env*` that ships in the repo (`.gitignore` carves it out).
