@@ -1,5 +1,5 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { maskCep, money, createCartShipping } from "../../app/javascript/storefront/cart.js";
+import { maskCep, money, createCartShipping, bindCartLines } from "../../app/javascript/storefront/cart.js";
 
 // Mirrors the data hooks in app/views/cart/show.html.erb: the frete card
 // (the [data-cart-shipping] root), the summary card, and the two "Finalizar
@@ -138,6 +138,73 @@ describe("createCartShipping", () => {
     expect(document.querySelectorAll('[data-finalize-form] input[name="shipping_service"]').length).toBe(0);
   });
 
+  it("renderQuote with no eligible option selects nothing and leaves the summary uncalculated", () => {
+    cart.renderQuote({
+      destination: { city: "Itajubá", state: "MG" },
+      services: [
+        { key: "sedex", label: "SEDEX", eligible: false, message: "Não atendido." },
+        { key: "pac", label: "PAC", eligible: false, message: "Não atendido." },
+      ],
+    });
+    expect(root.querySelectorAll("[data-opt]").length).toBe(0);
+    expect(cart.shipping).toBeNull();
+    expect(document.querySelector("[data-shipping]").textContent).toBe("a calcular");
+  });
+
+  describe("bindEvents", () => {
+    beforeEach(() => { cart.bindEvents(); });
+    afterEach(() => { vi.restoreAllMocks(); });
+
+    it("masks the CEP and clears any error as you type", () => {
+      const input = root.querySelector("[data-cep]");
+      cart.showCepError("CEP inválido.");
+      input.value = "01310100";
+      input.dispatchEvent(new window.Event("input", { bubbles: true }));
+      expect(input.value).toBe("01310-100");
+      expect(root.querySelector("[data-cep-err]").classList.contains("show")).toBe(false);
+    });
+
+    it("rejects a short CEP on Calcular without calling the server", () => {
+      const fetchMock = vi.fn();
+      vi.stubGlobal("fetch", fetchMock);
+      root.querySelector("[data-cep]").value = "123";
+      root.querySelector("[data-calc]").dispatchEvent(new window.Event("click", { bubbles: true }));
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(root.querySelector("[data-cep-err]").textContent).toBe("CEP inválido. Digite os 8 números.");
+    });
+
+    it("rejects an empty CEP on Calcular", () => {
+      const fetchMock = vi.fn();
+      vi.stubGlobal("fetch", fetchMock);
+      root.querySelector("[data-cep]").value = "";
+      root.querySelector("[data-calc]").dispatchEvent(new window.Event("click", { bubbles: true }));
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("quotes a valid CEP on Calcular", () => {
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => QUOTE });
+      vi.stubGlobal("fetch", fetchMock);
+      root.querySelector("[data-cep]").value = "01310-100";
+      root.querySelector("[data-calc]").dispatchEvent(new window.Event("click", { bubbles: true }));
+      expect(fetchMock).toHaveBeenCalledOnce();
+    });
+
+    it("Enter on the CEP field fires Calcular", () => {
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => QUOTE });
+      vi.stubGlobal("fetch", fetchMock);
+      const input = root.querySelector("[data-cep]");
+      input.value = "01310-100";
+      input.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      expect(fetchMock).toHaveBeenCalledOnce();
+    });
+
+    it("focuses the CEP field when 'alterar' is clicked", () => {
+      const input = root.querySelector("[data-cep]");
+      root.querySelector("[data-dest-change]").dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+      expect(document.activeElement).toBe(input);
+    });
+  });
+
   describe("fetchQuote", () => {
     afterEach(() => { vi.restoreAllMocks(); });
 
@@ -168,5 +235,95 @@ describe("createCartShipping", () => {
       expect(err.classList.contains("show")).toBe(true);
       expect(err.textContent).toBe("Correios indisponível. Tente novamente em instantes.");
     });
+
+    it("shows a generic error when the request throws", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
+      await cart.fetchQuote("01310100");
+      expect(root.querySelector("[data-cep-err]").textContent).toBe(
+        "Não foi possível calcular o frete. Tente novamente."
+      );
+    });
+
+    it("falls back to a generic message when the error response carries none", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
+      await cart.fetchQuote("01310100");
+      expect(root.querySelector("[data-cep-err]").textContent).toBe("Erro ao calcular frete.");
+    });
+
+    it("sends an empty CSRF header when no token meta is present", async () => {
+      document.head.innerHTML = "";
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => QUOTE });
+      vi.stubGlobal("fetch", fetchMock);
+      await cart.fetchQuote("01310100");
+      expect(fetchMock.mock.calls[0][1].headers["X-CSRF-Token"]).toBe("");
+    });
+  });
+});
+
+describe("bindCartLines", () => {
+  let submit;
+
+  beforeEach(() => {
+    submit = vi.spyOn(window.HTMLFormElement.prototype, "requestSubmit").mockImplementation(() => {});
+    document.body.innerHTML = `
+      <div class="cart-item">
+        <button data-edit-toggle></button>
+        <form data-variant-form>
+          <input type="hidden" data-variant-group="lang" value="">
+          <button class="vpill" data-vgroup="lang" data-vopt="pt"></button>
+          <button class="vpill sel" data-vgroup="lang" data-vopt="en"></button>
+        </form>
+        <form data-stepper-form>
+          <input data-qty value="2">
+          <button data-dec></button>
+          <button data-inc></button>
+        </form>
+      </div>`;
+    bindCartLines(document);
+  });
+
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  it("toggles the edit state", () => {
+    const item = document.querySelector(".cart-item");
+    document.querySelector("[data-edit-toggle]").dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(item.classList.contains("editing")).toBe(true);
+  });
+
+  it("selecting a variant pill updates the hidden input and submits", () => {
+    document.querySelector('.vpill[data-vopt="pt"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(document.querySelector('input[data-variant-group="lang"]').value).toBe("pt");
+    expect(document.querySelector('.vpill[data-vopt="pt"]').classList.contains("sel")).toBe(true);
+    expect(document.querySelector('.vpill[data-vopt="en"]').classList.contains("sel")).toBe(false);
+    expect(submit).toHaveBeenCalled();
+  });
+
+  it("the stepper clamps to 1..99 and submits on each change", () => {
+    const qty = document.querySelector("[data-qty]");
+    document.querySelector("[data-inc]").dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(qty.value).toBe("3");
+    qty.value = "1";
+    document.querySelector("[data-dec]").dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(qty.value).toBe("1"); // clamped, not 0
+    qty.value = "500";
+    qty.dispatchEvent(new window.Event("change", { bubbles: true }));
+    expect(qty.value).toBe("99"); // clamped down
+    expect(submit).toHaveBeenCalled();
+  });
+
+  it("a disabled decrement button does nothing", () => {
+    const qty = document.querySelector("[data-qty]");
+    const dec = document.querySelector("[data-dec]");
+    dec.disabled = true;
+    qty.value = "5";
+    dec.dispatchEvent(new window.Event("click", { bubbles: true }));
+    expect(qty.value).toBe("5");
+  });
+
+  it("a non-numeric quantity falls back to 1", () => {
+    const qty = document.querySelector("[data-qty]");
+    qty.value = "abc";
+    qty.dispatchEvent(new window.Event("change", { bubbles: true }));
+    expect(qty.value).toBe("1");
   });
 });

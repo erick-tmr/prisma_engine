@@ -79,6 +79,7 @@ export function createCartShipping(root) {
   const shipOpts = root.querySelector("[data-ship-opts]");
   const calcBtn = root.querySelector("[data-calc]");
   const quoteUrl = root.dataset.quoteUrl;
+  /* v8 ignore next -- [data-subtotal] is always server-rendered; the "0" guards an impossible nil */
   const subtotal = parseInt(doc.querySelector("[data-subtotal]")?.dataset.subtotalCents || "0", 10);
   let shipping = null;
 
@@ -242,9 +243,13 @@ export function createCartShipping(root) {
 }
 
 // ── Browser auto-init (inert under a test import: no [data-cart-shipping]) ───
+// Bootstrap glue — excluded from coverage (the exported functions above carry
+// the logic and are unit-tested directly).
 
+/* v8 ignore start */
 if (typeof document !== "undefined") {
   const root = document.querySelector("[data-cart-shipping]");
   if (root) createCartShipping(root).bindEvents();
   bindCartLines(document);
 }
+/* v8 ignore stop */
