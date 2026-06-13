@@ -258,6 +258,24 @@ describe("createCartShipping", () => {
       expect(fetchMock.mock.calls[0][1].headers["X-CSRF-Token"]).toBe("");
     });
   });
+
+  describe("restore", () => {
+    it("renders a cached quote and re-selects the remembered service", () => {
+      cart.restore(QUOTE, "sedex");
+      expect(root.querySelector('[data-opt="sedex"]').classList.contains("sel")).toBe(true);
+      expect(cart.shipping.method).toBe("sedex");
+    });
+
+    it("keeps the default selection when the remembered service is no longer offered", () => {
+      cart.restore(QUOTE, "mini_envios");
+      expect(cart.shipping.method).toBe("pac");
+    });
+
+    it("renders without forcing a selection when no service is remembered", () => {
+      cart.restore(QUOTE, "");
+      expect(cart.shipping.method).toBe("pac");
+    });
+  });
 });
 
 describe("bindCartLines", () => {

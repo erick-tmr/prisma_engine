@@ -235,9 +235,17 @@ export function createCartShipping(root) {
     });
   }
 
+  function restore(quote, serviceKey) {
+    renderQuote(quote);
+    if (serviceKey) {
+      const el = shipOpts.querySelector('[data-opt="' + serviceKey + '"]');
+      if (el) selectShip(el, quote.services);
+    }
+  }
+
   return {
     clearCepError, showCepError, renderSummary, rememberShipping,
-    selectShip, renderQuote, fetchQuote, bindEvents,
+    selectShip, renderQuote, fetchQuote, bindEvents, restore,
     get shipping() { return shipping; }
   };
 }
@@ -249,7 +257,13 @@ export function createCartShipping(root) {
 /* v8 ignore start */
 if (typeof document !== "undefined") {
   const root = document.querySelector("[data-cart-shipping]");
-  if (root) createCartShipping(root).bindEvents();
+  if (root) {
+    const shipping = createCartShipping(root);
+    shipping.bindEvents();
+    if (root.dataset.initialQuote) {
+      shipping.restore(JSON.parse(root.dataset.initialQuote), root.dataset.initialService);
+    }
+  }
   bindCartLines(document);
 }
 /* v8 ignore stop */

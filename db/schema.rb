@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_090010) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_180435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -108,6 +108,44 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_090010) do
     t.integer "year", null: false
     t.index ["year", "month"], name: "index_game_of_the_months_on_year_and_month", unique: true
     t.check_constraint "month >= 1 AND month <= 12", name: "game_of_the_months_month_range"
+  end
+
+  create_table "order_items", force: :cascade do |t|
+    t.jsonb "chosen_options", default: [], null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "order_id", null: false
+    t.string "photo_path"
+    t.bigint "product_id"
+    t.integer "quantity", null: false
+    t.integer "unit_price_cents", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["product_id"], name: "index_order_items_on_product_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "number", null: false
+    t.string "ship_city", null: false
+    t.string "ship_complement"
+    t.string "ship_neighborhood", null: false
+    t.string "ship_number", null: false
+    t.string "ship_receiver_cpf", null: false
+    t.string "ship_receiver_name", null: false
+    t.string "ship_state", null: false
+    t.string "ship_street", null: false
+    t.string "ship_zip", null: false
+    t.integer "shipping_cents", null: false
+    t.string "shipping_service", null: false
+    t.string "status", default: "awaiting_payment", null: false
+    t.integer "subtotal_cents", null: false
+    t.integer "total_cents", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["number"], name: "index_orders_on_number", unique: true
+    t.index ["user_id", "created_at"], name: "index_orders_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
   create_table "product_options", force: :cascade do |t|
@@ -258,6 +296,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_090010) do
   add_foreign_key "brindes", "game_of_the_months"
   add_foreign_key "game_of_the_month_products", "game_of_the_months"
   add_foreign_key "game_of_the_month_products", "products"
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "order_items", "products", on_delete: :nullify
+  add_foreign_key "orders", "users"
   add_foreign_key "product_options", "products"
   add_foreign_key "product_photos", "products"
   add_foreign_key "product_tags", "products"

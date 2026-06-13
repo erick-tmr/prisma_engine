@@ -5,3 +5,7 @@ if (!globalThis.CSS) globalThis.CSS = {};
 if (typeof globalThis.CSS.escape !== "function") {
   globalThis.CSS.escape = (value) => String(value).replace(/[^\w-]/g, (ch) => "\\" + ch);
 }
+
+if (typeof globalThis.Element !== "undefined" && !globalThis.Element.prototype.scrollIntoView) {
+  globalThis.Element.prototype.scrollIntoView = () => {};
+}

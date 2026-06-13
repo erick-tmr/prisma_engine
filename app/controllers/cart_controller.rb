@@ -1,4 +1,6 @@
 class CartController < ApplicationController
+  QUOTE_TTL = 30.minutes.to_i
+
   def show
     @cart = current_cart
     if @cart.cleanup!
@@ -6,8 +8,8 @@ class CartController < ApplicationController
       flash.now[:alert] = "Um item do seu carrinho não está mais disponível e foi removido."
     end
     @lines = @cart.lines
-    gotm = GameOfTheMonth.current.first
-    @gotm_product_ids = gotm ? gotm.products.pluck(:id).to_set : Set.new
+    @gotm_product_ids = current_gotm_product_ids
+    @initial_quote = restored_quote
   end
 
   # Checkout — the redirect target below — accepts a customer-chosen shipping
@@ -47,5 +49,20 @@ class CartController < ApplicationController
 
   def cart_cookie_value(cart)
     { value: cart.to_cookie, expires: 30.days.from_now }
+  end
+
+  def current_gotm_product_ids
+    gotm = GameOfTheMonth.current.first
+    gotm ? gotm.products.pluck(:id).to_set : Set.new
+  end
+
+  def restored_quote
+    cached = session["cart_quote"]
+    return unless cached
+
+    age = Time.current.to_i - cached["at"].to_i
+    return unless age <= QUOTE_TTL && cached["weight"].to_i == Shipping::PackageWeight.call(@cart)
+
+    { "response" => cached["response"], "service" => session["checkout_shipping_service"] }
   end
 end
