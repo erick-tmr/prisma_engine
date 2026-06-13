@@ -9,30 +9,30 @@ class Order < ApplicationRecord
   accepts_nested_attributes_for :order_items
 
   STATUSES = %w[
-    aguardando_pagamento
-    pagamento_confirmado
-    aguardando_componentes
-    em_producao
-    problema_na_producao
-    etiqueta_emitida
-    enviado
-    entregue
+    awaiting_payment
+    payment_confirmed
+    awaiting_components
+    in_production
+    production_issue
+    label_issued
+    shipped
+    delivered
   ].freeze
 
-  enum :status, STATUSES.index_with(&:itself), default: "aguardando_pagamento", validate: true
+  enum :status, STATUSES.index_with(&:itself), default: "awaiting_payment", validate: true
 
   TRANSITIONS = {
-    "aguardando_pagamento"   => %w[pagamento_confirmado],
-    "pagamento_confirmado"   => %w[aguardando_componentes em_producao],
-    "aguardando_componentes" => %w[em_producao],
-    "em_producao"            => %w[etiqueta_emitida problema_na_producao],
-    "problema_na_producao"   => %w[em_producao],
-    "etiqueta_emitida"       => %w[enviado],
-    "enviado"                => %w[entregue],
-    "entregue"               => []
+    "awaiting_payment"    => %w[payment_confirmed],
+    "payment_confirmed"   => %w[awaiting_components in_production],
+    "awaiting_components" => %w[in_production],
+    "in_production"       => %w[label_issued production_issue],
+    "production_issue"    => %w[in_production],
+    "label_issued"        => %w[shipped],
+    "shipped"             => %w[delivered],
+    "delivered"           => []
   }.freeze
 
-  CANCELLABLE_STATUSES = %w[aguardando_pagamento pagamento_confirmado].freeze
+  CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed].freeze
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :shipping_cents, :total_cents,
@@ -65,7 +65,7 @@ class Order < ApplicationRecord
   end
 
   def confirm_payment!
-    transition_to!("pagamento_confirmado")
+    transition_to!("payment_confirmed")
   end
 
   private

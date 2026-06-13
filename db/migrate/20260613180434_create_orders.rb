@@ -4,7 +4,7 @@ class CreateOrders < ActiveRecord::Migration[8.1]
       t.references :user, null: false, foreign_key: true
 
       t.string :number, null: false
-      t.string :status, null: false, default: "aguardando_pagamento"
+      t.string :status, null: false, default: "awaiting_payment"
 
       t.integer :subtotal_cents, null: false
       t.integer :shipping_cents, null: false

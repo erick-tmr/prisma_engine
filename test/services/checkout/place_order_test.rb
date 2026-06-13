@@ -50,7 +50,7 @@ module Checkout
       assert_equal 2_084, order.shipping_cents
       assert_equal 40_084, order.total_cents
       assert_equal "pac", order.shipping_service
-      assert order.aguardando_pagamento?
+      assert order.awaiting_payment?
 
       assert_equal "São Paulo", order.ship_city
       assert_equal "01310100", order.ship_zip

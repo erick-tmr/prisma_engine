@@ -26,7 +26,7 @@ class OrderTest < ActiveSupport::TestCase
   test "a fully-populated record is valid and starts awaiting payment" do
     order = build_order
     assert order.valid?, order.errors.full_messages.to_sentence
-    assert order.aguardando_pagamento?
+    assert order.awaiting_payment?
   end
 
   test "create generates a PG-YYYYMMDD#### number with today's date" do
@@ -105,31 +105,31 @@ class OrderTest < ActiveSupport::TestCase
     assert order.cancellable?
     order.confirm_payment!
     assert order.cancellable?
-    order.transition_to!("em_producao")
+    order.transition_to!("in_production")
     assert_not order.cancellable?
   end
 
-  test "confirm_payment! advances to pagamento_confirmado" do
+  test "confirm_payment! advances to payment_confirmed" do
     order = build_order
     order.save!
     order.confirm_payment!
-    assert order.pagamento_confirmado?
+    assert order.payment_confirmed?
   end
 
   test "transition_to! follows the lifecycle graph, accepting a symbol" do
     order = build_order
     order.save!
     order.confirm_payment!
-    order.transition_to!(:em_producao)
-    assert order.em_producao?
+    order.transition_to!(:in_production)
+    assert order.in_production?
   end
 
   test "transition_to! refuses an edge not in the graph" do
     order = build_order
     order.save!
-    error = assert_raises(Order::InvalidTransition) { order.transition_to!("entregue") }
-    assert_match "aguardando_pagamento → entregue", error.message
-    assert order.reload.aguardando_pagamento?
+    error = assert_raises(Order::InvalidTransition) { order.transition_to!("delivered") }
+    assert_match "awaiting_payment → delivered", error.message
+    assert order.reload.awaiting_payment?
   end
 
   test "destroying an order destroys its line items" do

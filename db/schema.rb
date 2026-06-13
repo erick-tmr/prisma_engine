@@ -138,7 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_180435) do
     t.string "ship_zip", null: false
     t.integer "shipping_cents", null: false
     t.string "shipping_service", null: false
-    t.string "status", default: "aguardando_pagamento", null: false
+    t.string "status", default: "awaiting_payment", null: false
     t.integer "subtotal_cents", null: false
     t.integer "total_cents", null: false
     t.datetime "updated_at", null: false
