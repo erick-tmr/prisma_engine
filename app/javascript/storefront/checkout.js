@@ -1,10 +1,3 @@
-// Checkout page behaviour, extracted from the inline view script so it can be unit
-// tested (see test/javascript/checkout.test.js). Self-contained native ES module
-// loaded via `javascript_include_tag "storefront/checkout", type: "module"` — no
-// importmap, no build step. The browser runs the guarded auto-init at the bottom;
-// tests import createCheckout and drive it against a jsdom fixture. Keep in sync
-// with app/views/checkout/show.html.erb's data hooks.
-
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const INSTALLMENTS = 12;
 
@@ -12,11 +5,6 @@ export function money(cents) {
   return BRL.format(cents / 100);
 }
 
-// Wires the checkout: selecting a saved address re-quotes Correios (reusing the
-// cart quote endpoint against that address' CEP), the chosen service fills the
-// hidden shipping_service input, and the pay button is gated on a service being
-// picked. Resolves all collaborators from the owning document — they sit in
-// sibling cards (address step, shipping step, summary rail, mobile bar).
 export function createCheckout(doc) {
   const shipOpts = doc.querySelector("[data-ship-opts]");
   const quoteUrl = shipOpts.dataset.quoteUrl;
@@ -28,7 +16,7 @@ export function createCheckout(doc) {
   const shipFlag = doc.querySelector("[data-ship-flag]");
   const shipDest = doc.querySelector("[data-ship-dest]");
   const overlay = doc.querySelector("[data-redirect]");
-  /* v8 ignore next -- [data-subtotal] is always server-rendered; the "0" guards an impossible nil */
+  /* v8 ignore next */
   const subtotal = parseInt(doc.querySelector("[data-subtotal]")?.dataset.subtotalCents || "0", 10);
   let shipping = null;
 
@@ -183,7 +171,7 @@ export function createCheckout(doc) {
   };
 }
 
-/* v8 ignore start -- browser bootstrap; the exported functions above are unit-tested */
+/* v8 ignore start */
 if (typeof document !== "undefined" && document.querySelector("[data-ship-opts]")) {
   createCheckout(document).init();
 }

@@ -22,7 +22,6 @@ module Checkout
       Rails.cache.clear
     end
 
-    # 2× Pokemon Yellow with the "Com caixa" option (+R$10,00, +38g).
     def populated_cart
       Cart::Bag.new.add(
         product: products(:yellow), quantity: 2,
@@ -47,8 +46,8 @@ module Checkout
 
       assert result.success?
       order = result.order
-      assert_equal 38_000, order.subtotal_cents          # (18000 + 1000) × 2
-      assert_equal 2_084, order.shipping_cents           # PAC pcFinal 20,84 re-quoted
+      assert_equal 38_000, order.subtotal_cents
+      assert_equal 2_084, order.shipping_cents
       assert_equal 40_084, order.total_cents
       assert_equal "pac", order.shipping_service
       assert order.aguardando_pagamento?
@@ -97,7 +96,7 @@ module Checkout
     end
 
     test "fails when the chosen service comes back ineligible for the parcel" do
-      stub_preco_prazo(all_eligible: false) # Mini Envios swapped to 04960 → ineligible
+      stub_preco_prazo(all_eligible: false)
       result = place(shipping_service: "mini_envios")
       assert_not result.success?
       assert_equal :shipping_unavailable, result.error

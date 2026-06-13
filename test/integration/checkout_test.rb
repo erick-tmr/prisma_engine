@@ -41,8 +41,8 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match(/Entrega e pagamento/, response.body)
-    assert_match(/Cliente Confirmado/, response.body)        # saved address receiver
-    assert_match(/Pokemon Yellow Version/, response.body)    # real cart item
+    assert_match(/Cliente Confirmado/, response.body)
+    assert_match(/Pokemon Yellow Version/, response.body)
     assert_select "form#checkout-form[action=?]", checkout_create_path
     assert_select "input[name=address_id][value=?]", @address.id.to_s
   end
@@ -90,7 +90,6 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     assert_equal "Pedido #{order.number} criado.", flash[:notice]
     assert_equal "pac", order.shipping_service
-    # Cart cookie is cleared → a follow-up quote sees an empty cart.
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
     assert_response :unprocessable_entity
   end

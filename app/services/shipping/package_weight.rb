@@ -1,9 +1,4 @@
 module Shipping
-  # Total parcel weight (grams) for a Correios quote: the cart contents — scaling
-  # any Game-of-the-Month brindes by line quantity — plus the fixed box + flyer
-  # overhead. Shared by the cart quote endpoint and checkout's server-side
-  # re-quote so both price the *same* package; if they diverged, the frete shown
-  # on the cart would differ from what the order is charged.
   module PackageWeight
     module_function
 

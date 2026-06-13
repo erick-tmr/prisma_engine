@@ -23,6 +23,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 
 - Commit signing is on (SSH ed25519). Never pass `--no-verify` or `-c commit.gpgsign=false` — fix the underlying cause if a hook fails.
 - Greenfield repo: delete unused code rather than commenting it out, renaming `_var`, or adding backwards-compat shims.
+- **No code comments unless asked.** Write self-documenting code (clear names, small methods); do not add explanatory comments. Add a comment only when the user explicitly requests one. Functional pragmas are not "comments" and must stay: `# :nocov:`, `# :reek:…`, `# rubocop:…`, `# nosemgrep:…`, `/* v8 ignore */`, and magic comments.
 - Pin every new gem with a pessimistic version constraint (`gem "foo", "~> 1.2"`). Floor at the installed minor.
 - New env vars: document in `.env.example` (committed), set the value in `.env` (gitignored).
 - `bundler-audit` + `brakeman` block on findings. Fix the cause; don't add ignores without flagging it in the PR.

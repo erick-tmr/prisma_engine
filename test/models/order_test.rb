@@ -41,8 +41,8 @@ class OrderTest < ActiveSupport::TestCase
     travel_to Time.zone.local(2026, 5, 22) do
       srand(1)
       taken = build_order
-      taken.save! # occupies srand(1)'s first draw
-      srand(1)    # rewind: the next order redraws that same first value, then a fresh one
+      taken.save!
+      srand(1)
       order = build_order
       order.save!
       assert_not_equal taken.number, order.number
@@ -52,7 +52,6 @@ class OrderTest < ActiveSupport::TestCase
   test "exhausting every draw raises rather than saving a duplicate" do
     travel_to Time.zone.local(2026, 5, 22) do
       srand(2)
-      # Occupy every number the next srand(2) run will draw, so all NUMBER_ATTEMPTS collide.
       Array.new(Order::NUMBER_ATTEMPTS) { "PG-20260522#{format('%04d', rand(10_000))}" }
         .uniq.each { |n| build_order(number: n).save! }
       srand(2)

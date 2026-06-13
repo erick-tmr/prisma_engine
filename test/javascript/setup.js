@@ -6,8 +6,6 @@ if (typeof globalThis.CSS.escape !== "function") {
   globalThis.CSS.escape = (value) => String(value).replace(/[^\w-]/g, (ch) => "\\" + ch);
 }
 
-// jsdom doesn't implement scrollIntoView (every target browser does); the
-// checkout's invalid-submit guard scrolls to the shipping step. No-op it.
 if (typeof globalThis.Element !== "undefined" && !globalThis.Element.prototype.scrollIntoView) {
   globalThis.Element.prototype.scrollIntoView = () => {};
 }

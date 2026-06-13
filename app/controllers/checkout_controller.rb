@@ -3,8 +3,6 @@ class CheckoutController < ApplicationController
 
   layout "checkout"
 
-  # Flash copy for each PlaceOrder failure. Kept here (like CartQuotesController's
-  # INELIGIBLE_MESSAGES) so the customer-facing pt-BR strings live next to the action.
   ERROR_MESSAGES = {
     empty_cart:           "Seu carrinho está vazio.",
     invalid_address:      "Selecione um endereço de entrega válido.",
@@ -12,10 +10,6 @@ class CheckoutController < ApplicationController
     shipping_error:       "Não foi possível calcular o frete agora. Tente novamente em instantes."
   }.freeze
 
-  # Delivery + payment screen, wired to the real cart, the customer's saved
-  # addresses, and a live Correios quote (the JS re-quotes cart_quote_path against
-  # the selected address CEP). `@selected_shipping_service` is the option picked on
-  # the cart (stashed by CartController#finalize) so the page opens on it.
   def show
     @cart = current_cart
     persist_cart_if_cleaned
@@ -27,9 +21,6 @@ class CheckoutController < ApplicationController
     @selected_shipping_service = session["checkout_shipping_service"]
   end
 
-  # "Confirmar e pagar": create the order from the cookie cart, clear the cart, and
-  # land on the home page. Redirecting home is the placeholder for the payment
-  # hand-off — the InfinitePay hosted redirect replaces it when payment lands.
   def create
     result = Checkout::PlaceOrder.call(
       user: current_user, cart: current_cart,
@@ -38,8 +29,6 @@ class CheckoutController < ApplicationController
 
     if result.success?
       clear_cart!
-      # Flash set separately so redirect_to only ever takes a static path helper
-      # (keeps Semgrep's avoid-redirect rule from tainting the dynamic message).
       flash[:notice] = "Pedido #{result.order.number} criado."
       redirect_to root_path
     else
@@ -48,9 +37,6 @@ class CheckoutController < ApplicationController
     end
   end
 
-  # Inline "add new address" on the checkout. Persists a real Address, then returns
-  # to checkout with it pre-selected; on validation failure, back to checkout with
-  # the reason in the flash (the customer re-enters — rare, CPF/CEP format only).
   def create_address
     address = current_user.addresses.build(address_params)
     if address.save

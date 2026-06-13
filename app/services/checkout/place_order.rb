@@ -1,14 +1,4 @@
 module Checkout
-  # Turns the cookie cart plus the shopper's chosen address and shipping service
-  # into a persisted Order, snapshotting prices / options / address so the order is
-  # a frozen historical record (catalog or address edits can't mutate it later).
-  #
-  # Shipping is re-quoted from Correios server-side: the price and eligibility come
-  # from a fresh quote against the address CEP, never from whatever the page
-  # submitted (a hand-edited DOM could post any service code or price).
-  #
-  #   Checkout::PlaceOrder.call(user:, cart:, address_id:, shipping_service:)
-  #     → Result(order:, error:)  # success? when error is nil
   class PlaceOrder
     Result = Data.define(:order, :error) do
       def success?
@@ -50,9 +40,6 @@ module Checkout
       Result.new(order: nil, error: error)
     end
 
-    # The chosen service, re-priced from a fresh Correios quote against the address
-    # CEP and the same package weight the cart quote uses. nil when the service
-    # code is unknown or Correios marks it ineligible for this parcel.
     def eligible_service(address)
       weight = Shipping::PackageWeight.call(cart)
       quote  = Shipping::Quote.call(cep_destino: address.zip, weight_grams: weight)
@@ -87,8 +74,7 @@ module Checkout
       }
     end
 
-    # :reek:FeatureEnvy — a builder: by construction it reads the line + product to
-    # freeze their values onto the snapshot, it doesn't act on its own state.
+    # :reek:FeatureEnvy
     def item_attributes(line)
       product = line.product
       {
@@ -96,16 +82,9 @@ module Checkout
         name:             product.title,
         unit_price_cents: line.unit_price_cents,
         quantity:         line.quantity,
-        chosen_options:   line.options.map { |option| option_label(option) },
+        chosen_options:   line.options.map { |opt| opt.group_name.present? ? "#{opt.group_name}: #{opt.name}" : opt.name },
         photo_path:       product.image
       }
-    end
-
-    # :reek:UtilityFunction — pure formatting of one option for the snapshot;
-    # mirrors the "Grupo: Nome" shape the account/Pedidos page already renders.
-    def option_label(option)
-      group = option.group_name
-      group.present? ? "#{group}: #{option.name}" : option.name
     end
   end
 end

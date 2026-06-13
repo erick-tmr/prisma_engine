@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { money, createCheckout } from "../../app/javascript/storefront/checkout.js";
 
-// Mirrors the data hooks in app/views/checkout/show.html.erb: the address step
-// (saved-address radios + add-form), the shipping step ([data-ship-opts]), the
-// hidden checkout form, the summary rail, the mobile bar, and the overlay.
 const DEFAULT_ADDR = {
   id: 1, default: true, selected: true, cep: "01310100", city: "São Paulo, SP",
   receiver: "Cliente", cpf: "529.982.247-25", street: "Av. Paulista, 1578",
@@ -90,12 +87,12 @@ describe("renderSummary", () => {
     expect(document.querySelector("[data-shipping]").classList.contains("pending")).toBe(true);
     expect(document.querySelector("[data-total]").textContent).toMatch(/485,00/);
 
-    co.renderQuote(QUOTE); // auto-selects the first eligible (SEDEX, 3840)
+    co.renderQuote(QUOTE);
     expect(document.querySelector("[data-shipping]").classList.contains("pending")).toBe(false);
     expect(document.querySelector("[data-ship-method]").textContent).toBe("· SEDEX");
-    expect(document.querySelector("[data-total]").textContent).toMatch(/523,40/); // 485 + 38,40
+    expect(document.querySelector("[data-total]").textContent).toMatch(/523,40/);
     expect(document.querySelector("[data-mb-total]").textContent).toMatch(/523,40/);
-    expect(document.querySelector("[data-installment]").textContent).toMatch(/43,62/); // 52340/12
+    expect(document.querySelector("[data-installment]").textContent).toMatch(/43,62/);
   });
 });
 
@@ -105,10 +102,10 @@ describe("renderQuote", () => {
     co.renderQuote(QUOTE);
     const opts = document.querySelector("[data-ship-opts]");
     expect(opts.querySelector('[data-opt="sedex"]')).not.toBeNull();
-    expect(opts.innerHTML).toContain("Mais rápido");        // sedex fast tag
+    expect(opts.innerHTML).toContain("Mais rápido");
     expect(opts.querySelector('[data-opt="pac"]')).not.toBeNull();
     expect(opts.querySelector('[data-opt-disabled="mini_envios"]')).not.toBeNull();
-    expect(opts.innerHTML).toContain("Não disponível.");    // ineligible message
+    expect(opts.innerHTML).toContain("Não disponível.");
   });
 
   it("auto-selects the cart's preselected service when present", () => {
@@ -208,7 +205,7 @@ describe("bindEvents", () => {
     expect(list.classList.contains("open")).toBe(true);
 
     form.classList.add("open");
-    btn.dispatchEvent(new Event("click")); // toggles closed → also closes the form
+    btn.dispatchEvent(new Event("click"));
     expect(list.classList.contains("open")).toBe(false);
     expect(form.classList.contains("open")).toBe(false);
   });

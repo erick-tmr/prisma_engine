@@ -13,10 +13,8 @@
     </div>
 
     <div class="co-grid">
-      <%# LEFT: steps %>
       <div class="steps">
 
-        <%# STEP 1 — ADDRESS %>
         <section class="card step<%= ' step-done' if selected %>" data-step="address" id="step-address">
           <div class="step-head">
             <span class="step-num" data-step-num>1</span>
@@ -26,7 +24,6 @@
           <div class="step-body">
             <div class="step-error"><i class="bi bi-exclamation-circle-fill"></i> Selecione ou cadastre um endereço de entrega.</div>
 
-            <%# Selected / default address %>
             <div class="addr-selected" data-addr-selected<%= ' style=display:none'.html_safe unless selected %>>
               <span class="addr-pin"><i class="bi bi-geo-alt-fill"></i></span>
               <div class="addr-body">
@@ -41,7 +38,6 @@
               <button class="addr-change" data-addr-change-btn type="button"><i class="bi bi-pencil"></i> Alterar</button>
             </div>
 
-            <%# Saved address list (revealed) %>
             <div class="addr-list<%= ' open' unless selected %>" data-addr-list>
               <% @addresses.each do |addr| %>
                 <label class="addr-opt<%= ' sel' if addr.id == selected&.id %>" data-addr-opt
@@ -67,7 +63,6 @@
               <button class="addr-add-btn" data-addr-add-btn type="button"><i class="bi bi-plus-lg"></i> Adicionar novo endereço</button>
             </div>
 
-            <%# Add-new address form (its own form; posts a real Address) %>
             <%= form_with url: checkout_address_path, method: :post, class: "addr-form", id: "addr-form",
                           html: { novalidate: true,
                                   data: { addr_form: true,
@@ -123,7 +118,6 @@
           </div>
         </section>
 
-        <%# STEP 2 — SHIPPING %>
         <section class="card step" data-step="shipping" id="step-shipping">
           <div class="step-head">
             <span class="step-num" data-step-num>2</span>
@@ -136,14 +130,12 @@
             <div class="ship-opts" data-ship-opts
                  data-preselected="<%= @selected_shipping_service %>"
                  data-quote-url="<%= cart_quote_path %>">
-              <%# shipping options injected by storefront/checkout.js from the live Correios quote %>
             </div>
           </div>
         </section>
 
       </div>
 
-      <%# RIGHT: order summary %>
       <aside class="rail">
         <section class="card">
           <div class="rainbow-top"></div>
@@ -191,10 +183,6 @@
             <p class="sum-installment">em até <b>12x</b> de <b class="tnum" data-installment></b> sem juros</p>
           </div>
 
-          <%# The pay button submits this form (address_id via the radios above,
-              shipping_service set by checkout.js). The form lives here so the rail
-              button is a plain submit; the address radios and the mobile-bar button
-              associate by the HTML form= attribute. %>
           <%= form_with url: checkout_create_path, method: :post, id: "checkout-form",
                         html: { class: "pay-foot", data: { checkout_form: true } } do |f| %>
             <%= f.hidden_field :shipping_service, value: @selected_shipping_service, data: { checkout_service: true } %>
@@ -218,7 +206,6 @@
     </div>
   </main>
 
-  <%# ============ MOBILE STICKY BAR ============ %>
   <div class="mobile-bar">
     <div class="mb-info">
       <span class="mb-lbl">Total</span>
@@ -227,7 +214,6 @@
     <button class="btn btn-dark" type="submit" form="checkout-form"><i class="bi bi-lock-fill"></i> Confirmar e pagar</button>
   </div>
 
-  <%# ============ FINALIZING INTERSTITIAL (shown by checkout.js on submit) ============ %>
   <div class="redirect-overlay" data-redirect>
     <div class="redirect-card">
       <div class="rainbow-top"></div>
