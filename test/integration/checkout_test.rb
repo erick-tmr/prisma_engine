@@ -104,6 +104,36 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "POST /checkout as JSON returns the payment + return URLs for the new-tab flow" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_links
+
+    assert_difference "Order.count", 1 do
+      post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }, as: :json
+    end
+
+    order = Order.last
+    assert_response :success
+    assert_equal CHECKOUT_URL, response.parsed_body["payment_url"]
+    assert_equal checkout_return_url(order_nsu: order.number), response.parsed_body["return_url"]
+    # cart cleared → a follow-up quote sees an empty cart
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "POST /checkout as JSON returns a 422 with the message when the link fails" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")
+
+    post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }, as: :json
+    assert_response :unprocessable_entity
+    assert_match(/não foi possível iniciar o pagamento/i, response.parsed_body["error"])
+  end
+
   test "POST /checkout keeps the order but flashes when the InfinitePay link fails" do
     sign_in @user
     add_yellow_to_cart

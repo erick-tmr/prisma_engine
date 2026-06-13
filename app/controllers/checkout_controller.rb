@@ -29,21 +29,19 @@ class CheckoutController < ApplicationController
       address_id: params[:address_id], shipping_service: params[:shipping_service]
     )
 
-    unless result.success?
-      flash[:alert] = ERROR_MESSAGES.fetch(result.error)
-      return redirect_to checkout_path
-    end
+    return render_create_failure(ERROR_MESSAGES.fetch(result.error)) unless result.success?
 
     payment_url = Payments::Checkout.start(
       result.order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url
     )
     clear_cart!
-    # Redirects to the InfinitePay hosted-checkout URL from Payments::Checkout (a trusted PSP), not user input.
-    # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
-    redirect_to payment_url, allow_other_host: true
+    respond_to do |format|
+      format.json { render json: { payment_url:, return_url: checkout_return_url(order_nsu: result.order.number) } }
+      # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
+      format.html { redirect_to payment_url, allow_other_host: true }
+    end
   rescue InfinitePay::Api::Error
-    flash[:alert] = ERROR_MESSAGES[:payment_error]
-    redirect_to checkout_path
+    render_create_failure(ERROR_MESSAGES[:payment_error])
   end
 
   def confirmation
@@ -101,6 +99,16 @@ class CheckoutController < ApplicationController
     return "failed" if @order.cancelled? || @order.payment_expired?
 
     @order.awaiting_payment? ? "pending" : "success"
+  end
+
+  def render_create_failure(message)
+    respond_to do |format|
+      format.json { render json: { error: message }, status: :unprocessable_entity }
+      format.html do
+        flash[:alert] = message
+        redirect_to checkout_path
+      end
+    end
   end
 
   def address_params
