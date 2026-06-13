@@ -65,7 +65,7 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR] } = {}) {
     <span data-total></span>
     <span data-mb-total></span>
     <span data-installment></span>
-    <div data-redirect></div>
+    <div data-redirect><span data-countdown></span></div>
   `;
   return createCheckout(document);
 }
@@ -228,14 +228,43 @@ describe("bindEvents", () => {
     expect(document.querySelector('input[value="2"]').checked).toBe(true);
   });
 
-  it("submitting with a service shows the overlay and lets the form post", () => {
+  it("submitting with a service shows the overlay, counts down, then submits the form", () => {
+    vi.useFakeTimers();
     const co = mountCheckout();
     co.bindEvents();
+    const form = document.querySelector("[data-checkout-form]");
+    const submitSpy = vi.spyOn(form, "submit").mockImplementation(() => {});
     document.querySelector("[data-checkout-service]").value = "pac";
+
     const ev = new Event("submit", { cancelable: true });
-    document.querySelector("[data-checkout-form]").dispatchEvent(ev);
-    expect(ev.defaultPrevented).toBe(false);
+    form.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(true);
     expect(document.querySelector("[data-redirect]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("[data-countdown]").textContent).toBe("5");
+
+    vi.advanceTimersByTime(1000);
+    expect(document.querySelector("[data-countdown]").textContent).toBe("4");
+    expect(submitSpy).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(4000);
+    expect(submitSpy).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it("ignores a second submit while the countdown is already running", () => {
+    vi.useFakeTimers();
+    const co = mountCheckout();
+    co.bindEvents();
+    const form = document.querySelector("[data-checkout-form]");
+    const submitSpy = vi.spyOn(form, "submit").mockImplementation(() => {});
+    document.querySelector("[data-checkout-service]").value = "pac";
+
+    form.dispatchEvent(new Event("submit", { cancelable: true }));
+    form.dispatchEvent(new Event("submit", { cancelable: true }));
+    vi.advanceTimersByTime(5000);
+
+    expect(submitSpy).toHaveBeenCalledOnce();
+    vi.useRealTimers();
   });
 
   it("submitting with no service is blocked and flags the shipping step", () => {

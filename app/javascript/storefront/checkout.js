@@ -1,5 +1,6 @@
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const INSTALLMENTS = 12;
+const REDIRECT_SECONDS = 5;
 
 export function money(cents) {
   return BRL.format(cents / 100);
@@ -19,6 +20,7 @@ export function createCheckout(doc) {
   /* v8 ignore next */
   const subtotal = parseInt(doc.querySelector("[data-subtotal]")?.dataset.subtotalCents || "0", 10);
   let shipping = null;
+  let submitting = false;
 
   function renderSummary() {
     const total = subtotal + (shipping ? shipping.price : 0);
@@ -127,6 +129,21 @@ export function createCheckout(doc) {
     fetchQuote(opt.dataset.cep);
   }
 
+  function startCountdown() {
+    const countEl = overlay.querySelector("[data-countdown]");
+    let remaining = REDIRECT_SECONDS;
+    countEl.textContent = String(remaining);
+    const timer = setInterval(function () {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(timer);
+        checkoutForm.submit();
+      } else {
+        countEl.textContent = String(remaining);
+      }
+    }, 1000);
+  }
+
   function bindEvents() {
     const addrList = doc.querySelector("[data-addr-list]");
     const addrForm = doc.querySelector("[data-addr-form]");
@@ -145,15 +162,18 @@ export function createCheckout(doc) {
     });
 
     checkoutForm.addEventListener("submit", function (e) {
-      if (serviceInput.value) {
-        overlay.classList.add("show");
+      e.preventDefault();
+      if (submitting) return;
+      if (!serviceInput.value) {
+        shipStep.classList.add("invalid");
+        shipStep.classList.remove("step-done");
+        payError.classList.add("show");
+        shipStep.scrollIntoView({ block: "center", behavior: "smooth" });
         return;
       }
-      e.preventDefault();
-      shipStep.classList.add("invalid");
-      shipStep.classList.remove("step-done");
-      payError.classList.add("show");
-      shipStep.scrollIntoView({ block: "center", behavior: "smooth" });
+      submitting = true;
+      overlay.classList.add("show");
+      startCountdown();
     });
   }
 
