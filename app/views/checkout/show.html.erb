@@ -1,4 +1,9 @@
 <% content_for :title, "Checkout — Prisma Games" %>
+<%
+  selected = @selected_address
+  fmt_cep  = ->(zip) { "#{zip[0, 5]}-#{zip[5, 3]}" }
+  count    = @cart.total_quantity
+%>
 
 <div class="checkout-page">
   <main class="page">
@@ -12,122 +17,109 @@
       <div class="steps">
 
         <%# STEP 1 — ADDRESS %>
-        <section class="card step step-done" data-step="address" id="step-address">
+        <section class="card step<%= ' step-done' if selected %>" data-step="address" id="step-address">
           <div class="step-head">
             <span class="step-num" data-step-num>1</span>
             <h2>Endereço de entrega</h2>
-            <span class="step-flag" data-addr-flag><i class="bi bi-check-circle-fill"></i> Confirmado</span>
+            <span class="step-flag" data-addr-flag<%= ' style=display:none'.html_safe unless selected %>><i class="bi bi-check-circle-fill"></i> Confirmado</span>
           </div>
           <div class="step-body">
             <div class="step-error"><i class="bi bi-exclamation-circle-fill"></i> Selecione ou cadastre um endereço de entrega.</div>
 
             <%# Selected / default address %>
-            <div class="addr-selected" data-addr-selected>
+            <div class="addr-selected" data-addr-selected<%= ' style=display:none'.html_safe unless selected %>>
               <span class="addr-pin"><i class="bi bi-geo-alt-fill"></i></span>
               <div class="addr-body">
-                <p class="addr-receiver">Entregar para <strong data-sel-receiver>João Pereira</strong> · CPF <span data-sel-cpf>123.456.789-09</span></p>
-                <p class="addr-street" data-sel-street>Rua Joaquim Floriano, 820</p>
-                <div class="addr-line" data-sel-line1>Apto 142 · Itaim Bibi</div>
-                <div class="addr-line" data-sel-line2>São Paulo — SP · CEP 04534-003</div>
-                <span class="badge-default" data-sel-badge><i class="bi bi-check-circle-fill"></i> Endereço padrão</span>
+                <% if selected %>
+                  <p class="addr-receiver">Entregar para <strong data-sel-receiver><%= selected.receiver_name %></strong> · CPF <span data-sel-cpf><%= format_cpf(selected.receiver_cpf) %></span></p>
+                  <p class="addr-street" data-sel-street><%= "#{selected.street}, #{selected.number}" %></p>
+                  <div class="addr-line" data-sel-line1><%= [ selected.complement, selected.neighborhood ].compact_blank.join(" · ") %></div>
+                  <div class="addr-line" data-sel-line2><%= "#{selected.city} — #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" %></div>
+                  <span class="badge-default" data-sel-badge<%= ' style=display:none'.html_safe unless selected.default? %>><i class="bi bi-check-circle-fill"></i> Endereço padrão</span>
+                <% end %>
               </div>
               <button class="addr-change" data-addr-change-btn type="button"><i class="bi bi-pencil"></i> Alterar</button>
             </div>
 
             <%# Saved address list (revealed) %>
-            <div class="addr-list" data-addr-list>
-              <label class="addr-opt sel" data-addr-opt
-                     data-receiver="João Pereira" data-cpf="123.456.789-09"
-                     data-street="Rua Joaquim Floriano, 820" data-line1="Apto 142 · Itaim Bibi"
-                     data-line2="São Paulo — SP · CEP 04534-003" data-default="1"
-                     data-city="São Paulo, SP" data-cep="04534-003">
-                <span class="addr-radio"></span>
-                <div class="addr-body">
-                  <p class="addr-receiver">Para <strong>João Pereira</strong> · CPF 123.456.789-09</p>
-                  <p class="addr-street">Rua Joaquim Floriano, 820 — Apto 142</p>
-                  <div class="addr-line">Itaim Bibi · São Paulo — SP · CEP 04534-003</div>
-                  <span class="badge-default"><i class="bi bi-check-circle-fill"></i> Endereço padrão</span>
-                </div>
-              </label>
-              <label class="addr-opt" data-addr-opt
-                     data-receiver="João Pereira" data-cpf="123.456.789-09"
-                     data-street="Av. Paulista, 1578" data-line1="11º andar · Bela Vista"
-                     data-line2="São Paulo — SP · CEP 01310-200" data-default="0"
-                     data-city="São Paulo, SP" data-cep="01310-200">
-                <span class="addr-radio"></span>
-                <div class="addr-body">
-                  <p class="addr-receiver">Para <strong>João Pereira</strong> · CPF 123.456.789-09</p>
-                  <p class="addr-street">Av. Paulista, 1578 — 11º andar</p>
-                  <div class="addr-line">Bela Vista · São Paulo — SP · CEP 01310-200</div>
-                </div>
-              </label>
-              <label class="addr-opt" data-addr-opt
-                     data-receiver="Maria Pereira" data-cpf="987.654.321-00"
-                     data-street="Rua das Acácias, 45" data-line1="Casa · Jardim Esperança"
-                     data-line2="Itajubá — MG · CEP 37500-100" data-default="0"
-                     data-city="Itajubá, MG" data-cep="37500-100">
-                <span class="addr-radio"></span>
-                <div class="addr-body">
-                  <p class="addr-receiver">Para <strong>Maria Pereira</strong> · CPF 987.654.321-00</p>
-                  <p class="addr-street">Rua das Acácias, 45 — Casa</p>
-                  <div class="addr-line">Jardim Esperança · Itajubá — MG · CEP 37500-100</div>
-                </div>
-              </label>
+            <div class="addr-list<%= ' open' unless selected %>" data-addr-list>
+              <% @addresses.each do |addr| %>
+                <label class="addr-opt<%= ' sel' if addr.id == selected&.id %>" data-addr-opt
+                       data-address-id="<%= addr.id %>"
+                       data-receiver="<%= addr.receiver_name %>" data-cpf="<%= format_cpf(addr.receiver_cpf) %>"
+                       data-street="<%= "#{addr.street}, #{addr.number}" %>"
+                       data-line1="<%= [ addr.complement, addr.neighborhood ].compact_blank.join(' · ') %>"
+                       data-line2="<%= "#{addr.city} — #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %>"
+                       data-default="<%= addr.default? ? '1' : '0' %>"
+                       data-city="<%= "#{addr.city}, #{addr.state}" %>" data-cep="<%= addr.zip %>">
+                  <%= radio_button_tag "address_id", addr.id, addr.id == selected&.id,
+                        form: "checkout-form", class: "visually-hidden", data: { addr_radio: true } %>
+                  <span class="addr-radio"></span>
+                  <div class="addr-body">
+                    <p class="addr-receiver">Para <strong><%= addr.receiver_name %></strong> · CPF <%= format_cpf(addr.receiver_cpf) %></p>
+                    <p class="addr-street"><%= "#{addr.street}, #{addr.number}" %><%= " — #{addr.complement}" if addr.complement.present? %></p>
+                    <div class="addr-line"><%= "#{addr.neighborhood} · #{addr.city} — #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %></div>
+                    <% if addr.default? %><span class="badge-default"><i class="bi bi-check-circle-fill"></i> Endereço padrão</span><% end %>
+                  </div>
+                </label>
+              <% end %>
 
               <button class="addr-add-btn" data-addr-add-btn type="button"><i class="bi bi-plus-lg"></i> Adicionar novo endereço</button>
             </div>
 
-            <%# Add-new address form %>
-            <div class="addr-form" data-addr-form>
+            <%# Add-new address form (its own form; posts a real Address) %>
+            <%= form_with url: checkout_address_path, method: :post, class: "addr-form", id: "addr-form",
+                          html: { novalidate: true,
+                                  data: { addr_form: true,
+                                          user_name: current_user.full_name,
+                                          user_cpf: format_cpf(current_user.cpf),
+                                          cep_lookup_url: "#{account_addresses_path}/cep" } } do |f| %>
               <label class="form-self">
-                <input type="checkbox" data-receiver-self> Eu mesmo(a) sou quem vai receber
+                <%= check_box_tag :receiver_self, "1", false, data: { receiver_self: true } %> Eu mesmo(a) sou quem vai receber
               </label>
               <div class="form-grid">
                 <div class="field co-col-4">
-                  <label class="field-label">Nome de quem vai receber</label>
-                  <input class="field-input" data-f="receiver_name" placeholder="Nome completo">
+                  <%= f.label :receiver_name, "Nome de quem vai receber", class: "field-label" %>
+                  <%= f.text_field :receiver_name, name: "address[receiver_name]", class: "field-input", required: true, placeholder: "Nome completo" %>
                 </div>
                 <div class="field co-col-2">
-                  <label class="field-label">CPF do destinatário</label>
-                  <input class="field-input" data-f="receiver_cpf" inputmode="numeric" placeholder="000.000.000-00">
+                  <%= f.label :receiver_cpf, "CPF do destinatário", class: "field-label" %>
+                  <%= f.text_field :receiver_cpf, name: "address[receiver_cpf]", class: "field-input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
                 </div>
                 <div class="field co-col-2">
-                  <label class="field-label">CEP</label>
-                  <input class="field-input" data-f="zip" inputmode="numeric" maxlength="9" placeholder="00000-000">
+                  <%= f.label :zip, "CEP", class: "field-label" %>
+                  <%= f.text_field :zip, name: "address[zip]", class: "field-input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { mask_cep: true } %>
                 </div>
                 <div class="field co-col-3">
-                  <label class="field-label">Endereço</label>
-                  <input class="field-input" data-f="street" placeholder="Rua, avenida…">
+                  <%= f.label :street, "Endereço", class: "field-label" %>
+                  <%= f.text_field :street, name: "address[street]", class: "field-input", required: true, placeholder: "Rua, avenida…" %>
                 </div>
                 <div class="field co-col-1">
-                  <label class="field-label">Número</label>
-                  <input class="field-input" data-f="number" placeholder="Nº">
+                  <%= f.label :number, "Número", class: "field-label" %>
+                  <%= f.text_field :number, name: "address[number]", class: "field-input", required: true, placeholder: "Nº" %>
                 </div>
                 <div class="field co-col-3">
-                  <label class="field-label">Complemento <span class="opt">(opcional)</span></label>
-                  <input class="field-input" data-f="complement" placeholder="Apto, bloco…">
+                  <%= f.label :complement, class: "field-label" do %>Complemento <span class="opt">(opcional)</span><% end %>
+                  <%= f.text_field :complement, name: "address[complement]", class: "field-input", placeholder: "Apto, bloco…" %>
                 </div>
                 <div class="field co-col-3">
-                  <label class="field-label">Bairro</label>
-                  <input class="field-input" data-f="neighborhood" placeholder="Bairro">
+                  <%= f.label :neighborhood, "Bairro", class: "field-label" %>
+                  <%= f.text_field :neighborhood, name: "address[neighborhood]", class: "field-input", required: true, placeholder: "Bairro" %>
                 </div>
                 <div class="field co-col-4">
-                  <label class="field-label">Cidade</label>
-                  <input class="field-input" data-f="city" placeholder="Cidade">
+                  <%= f.label :city, "Cidade", class: "field-label" %>
+                  <%= f.text_field :city, name: "address[city]", class: "field-input", required: true, placeholder: "Cidade" %>
                 </div>
                 <div class="field co-col-2">
-                  <label class="field-label">UF</label>
-                  <select class="field-input" data-f="state">
-                    <option value="" selected disabled>—</option>
-                    <% Address::UF_LIST.each do |uf| %><option><%= uf %></option><% end %>
-                  </select>
+                  <%= f.label :state, "UF", class: "field-label" %>
+                  <%= f.select :state, Address::UF_LIST, { include_blank: "—" }, name: "address[state]", class: "field-input", required: true %>
                 </div>
               </div>
               <div class="form-actions">
-                <button class="btn btn-dark btn-sm" data-addr-save type="button"><i class="bi bi-check-lg"></i> Salvar e usar</button>
+                <%= f.submit "Salvar e usar", class: "btn btn-dark btn-sm" %>
                 <button class="btn btn-ghost btn-sm" data-addr-cancel type="button">Cancelar</button>
               </div>
-            </div>
+            <% end %>
           </div>
         </section>
 
@@ -140,9 +132,11 @@
           </div>
           <div class="step-body">
             <div class="step-error"><i class="bi bi-exclamation-circle-fill"></i> Escolha uma forma de envio para continuar.</div>
-            <p class="ship-dest"><i class="bi bi-geo-alt-fill"></i> Enviando para <strong data-ship-dest>São Paulo, SP · CEP 04534-003</strong></p>
-            <div class="ship-opts" data-ship-opts data-preselected="<%= @selected_shipping_service %>">
-              <%# shipping options injected by JS %>
+            <p class="ship-dest"><i class="bi bi-geo-alt-fill"></i> Enviando para <strong data-ship-dest><%= "#{selected.city}, #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" if selected %></strong></p>
+            <div class="ship-opts" data-ship-opts
+                 data-preselected="<%= @selected_shipping_service %>"
+                 data-quote-url="<%= cart_quote_path %>">
+              <%# shipping options injected by storefront/checkout.js from the live Correios quote %>
             </div>
           </div>
         </section>
@@ -156,44 +150,34 @@
           <div class="sum-head">
             <i class="bi bi-receipt"></i>
             <h2>Resumo do pedido</h2>
-            <span class="count">2 itens</span>
+            <span class="count"><%= "#{count} #{count == 1 ? 'item' : 'itens'}" %></span>
           </div>
 
           <div class="sum-items">
-            <div class="sum-item">
-              <div class="sum-thumb">
-                <img src="/images/stores/uploads/2475313/conversions/large.jpg" alt="Pokémon Amarela">
+            <% @cart.lines.each do |line| %>
+              <div class="sum-item">
+                <div class="sum-thumb">
+                  <% if line.product.image.present? %><img src="<%= line.product.image %>" alt="<%= line.product.title %>"><% end %>
+                </div>
+                <div class="sum-item-body">
+                  <p class="sum-item-cat"><%= line.product.category_label %></p>
+                  <p class="sum-item-name"><%= line.product.title %></p>
+                  <% if line.options.any? %>
+                    <div class="sum-item-opts"><%= line.options.map { |o| (flag = variant_option_flag(o.name)) ? "#{o.name} #{flag}" : o.name }.join(" · ") %></div>
+                  <% end %>
+                </div>
+                <div class="sum-item-right">
+                  <span class="sum-item-price"><%= line.line_total_formatted %></span>
+                  <span class="sum-item-qty"><%= line.quantity %> un.</span>
+                </div>
               </div>
-              <div class="sum-item-body">
-                <p class="sum-item-cat">Game Boy Color</p>
-                <p class="sum-item-name">Pokémon — Edição Amarela (Special Pikachu)</p>
-                <div class="sum-item-opts">Inglês 🇺🇸 · Sem caixa · Etiqueta repro</div>
-              </div>
-              <div class="sum-item-right">
-                <span class="sum-item-price">R$ 180,00</span>
-                <span class="sum-item-qty">1 un.</span>
-              </div>
-            </div>
-            <div class="sum-item">
-              <div class="sum-thumb">
-                <img src="/images/stores/uploads/2475355/conversions/large.jpg" alt="Pokémon Vermelha">
-              </div>
-              <div class="sum-item-body">
-                <p class="sum-item-cat">Game Boy Color</p>
-                <p class="sum-item-name">Pokémon — Edição Vermelha</p>
-                <div class="sum-item-opts">Português 🇧🇷 · Caixa original · Etiqueta original · Jogo do Mês</div>
-              </div>
-              <div class="sum-item-right">
-                <span class="sum-item-price">R$ 305,00</span>
-                <span class="sum-item-qty">1 un.</span>
-              </div>
-            </div>
+            <% end %>
           </div>
 
           <div class="sum-totals">
             <div class="sum-line">
-              <span class="muted">Subtotal <span>(2 itens)</span></span>
-              <span class="val tnum" data-subtotal>R$ 485,00</span>
+              <span class="muted">Subtotal <span>(<%= count %>)</span></span>
+              <span class="val tnum" data-subtotal data-subtotal-cents="<%= @cart.subtotal_cents %>"><%= HasMoney.format(@cart.subtotal_cents) %></span>
             </div>
             <div class="sum-line">
               <span class="muted">Frete <span data-ship-method style="font-weight:600;color:var(--pg-ink)"></span></span>
@@ -202,12 +186,19 @@
             <hr class="sum-div">
             <div class="sum-total">
               <span class="lbl">Total</span>
-              <span class="amt tnum" data-total>R$ 485,00</span>
+              <span class="amt tnum" data-total><%= HasMoney.format(@cart.subtotal_cents) %></span>
             </div>
-            <p class="sum-installment">em até <b>12x</b> de <b class="tnum" data-installment>R$ 40,42</b> sem juros</p>
+            <p class="sum-installment">em até <b>12x</b> de <b class="tnum" data-installment></b> sem juros</p>
           </div>
 
-          <div class="pay-foot">
+          <%# The pay button submits this form (address_id via the radios above,
+              shipping_service set by checkout.js). The form lives here so the rail
+              button is a plain submit; the address radios and the mobile-bar button
+              associate by the HTML form= attribute. %>
+          <%= form_with url: checkout_create_path, method: :post, id: "checkout-form",
+                        html: { class: "pay-foot", data: { checkout_form: true } } do |f| %>
+            <%= f.hidden_field :shipping_service, value: @selected_shipping_service, data: { checkout_service: true } %>
+
             <div class="pay-note">
               <i class="bi bi-shield-lock-fill"></i>
               <span>O pagamento é processado em ambiente seguro pelo nosso parceiro. Ao confirmar, você será redirecionado para concluir com Pix ou cartão de crédito.</span>
@@ -215,15 +206,13 @@
 
             <div class="pay-error" data-pay-error><i class="bi bi-exclamation-circle-fill"></i> <span data-pay-error-msg>Escolha uma forma de envio antes de pagar.</span></div>
 
-            <button class="btn btn-dark btn-block btn-pay" data-pay-btn type="button">
-              <i class="bi bi-lock-fill"></i> Confirmar e pagar
-            </button>
+            <%= f.submit "Confirmar e pagar", class: "btn btn-dark btn-block btn-pay", data: { pay_btn: true } %>
 
             <div class="trust">
               <div><i class="bi bi-shield-check"></i> Ambiente criptografado · seus dados protegidos</div>
               <div><i class="bi bi-box-seam"></i> Enviado com rastreio pelos Correios</div>
             </div>
-          </div>
+          <% end %>
         </section>
       </aside>
     </div>
@@ -233,206 +222,25 @@
   <div class="mobile-bar">
     <div class="mb-info">
       <span class="mb-lbl">Total</span>
-      <span class="mb-amt tnum" data-mb-total>R$ 485,00</span>
+      <span class="mb-amt tnum" data-mb-total><%= HasMoney.format(@cart.subtotal_cents) %></span>
     </div>
-    <button class="btn btn-dark" data-pay-btn type="button"><i class="bi bi-lock-fill"></i> Confirmar e pagar</button>
+    <button class="btn btn-dark" type="submit" form="checkout-form"><i class="bi bi-lock-fill"></i> Confirmar e pagar</button>
   </div>
 
-  <%# ============ REDIRECT INTERSTITIAL ============ %>
+  <%# ============ FINALIZING INTERSTITIAL (shown by checkout.js on submit) ============ %>
   <div class="redirect-overlay" data-redirect>
     <div class="redirect-card">
       <div class="rainbow-top"></div>
       <div class="redirect-body">
         <div class="spinner"></div>
-        <h3>Redirecionando para o pagamento seguro…</h3>
-        <p>Estamos te levando ao ambiente de pagamento do nosso parceiro para concluir o pedido.</p>
-        <div class="redirect-url"><i class="bi bi-lock-fill"></i> <span data-redirect-url>pagamento.prismagames.com.br/…</span></div>
-        <p class="redirect-hint">Não feche nem atualize esta janela.</p>
+        <h3>Finalizando seu pedido…</h3>
+        <p>Estamos registrando seu pedido. Não feche nem atualize esta janela.</p>
       </div>
     </div>
   </div>
 </div>
 
 <% content_for :scripts do %>
-<script>
-(function(){
-  const BRL = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' });
-  const money = c => BRL.format(c/100);
-  const $  = s => document.querySelector(s);
-  const $$ = s => Array.from(document.querySelectorAll(s));
-
-  const SUBTOTAL = 48500; // cents
-  const INSTALLMENTS = 12;
-  let shipping = null;     // { method, label, price }
-
-  /* ---- Shipping quote (auto from the selected address CEP) ---- */
-  /* Mirrors the engine's Correios quote: SEDEX / PAC / Mini Envios. */
-  const SHIP_OPTS = [
-    { method:'sedex', label:'SEDEX',       icon:'bi-lightning-charge-fill', price:3840, eta:'2 a 4 dias úteis', fast:true },
-    { method:'pac',   label:'PAC',         icon:'bi-truck',                 price:2500, eta:'6 a 10 dias úteis' },
-    { method:'mini_envios', label:'Mini Envios', icon:'bi-envelope',         price:1560, eta:'8 a 13 dias úteis' },
-  ];
-
-  const shipWrap = $('[data-ship-opts]');
-  function renderShipOpts(){
-    shipWrap.innerHTML = SHIP_OPTS.map(o=>{
-      const tag = o.fast ? '<span class="tag">Mais rápido</span>' : '';
-      const price = o.price===0 ? '<span class="ship-price free">Grátis</span>' : `<span class="ship-price">${money(o.price)}</span>`;
-      return `<label class="ship-opt" data-opt="${o.method}">
-        <span class="ship-radio"></span>
-        <span class="ship-ic"><i class="bi ${o.icon}"></i></span>
-        <span class="ship-info">
-          <span class="ship-name">${o.label}${tag}</span>
-          <span class="ship-eta"><i class="bi bi-clock"></i> Entrega em ${o.eta}</span>
-        </span>
-        ${price}
-      </label>`;
-    }).join('');
-    shipWrap.querySelectorAll('[data-opt]').forEach(el=>{
-      el.addEventListener('click', ()=>selectShip(el.dataset.opt));
-    });
-  }
-
-  function selectShip(method){
-    shipping = SHIP_OPTS.find(o=>o.method===method);
-    shipWrap.querySelectorAll('.ship-opt').forEach(el=>{
-      el.classList.toggle('sel', el.dataset.opt===method);
-    });
-    // mark step 2 complete, clear any error
-    const step = $('#step-shipping');
-    step.classList.remove('invalid');
-    step.classList.add('step-done');
-    $('[data-ship-flag]').style.display = 'inline-flex';
-    $('[data-pay-error]').classList.remove('show');
-    renderSummary();
-  }
-
-  function renderSummary(){
-    const shipEl = $('[data-shipping]');
-    const methodEl = $('[data-ship-method]');
-    let total = SUBTOTAL;
-    if(shipping){
-      total += shipping.price;
-      if(shipping.price===0){ shipEl.textContent='Grátis'; shipEl.className='val free tnum'; }
-      else { shipEl.textContent = money(shipping.price); shipEl.className='val tnum'; }
-      methodEl.textContent = '· ' + shipping.label;
-    } else {
-      shipEl.textContent = 'Selecione o envio';
-      shipEl.className = 'val pending tnum';
-      methodEl.textContent = '';
-    }
-    $('[data-total]').textContent = money(total);
-    $('[data-mb-total]').textContent = money(total);
-    $('[data-installment]').textContent = money(Math.round(total/INSTALLMENTS));
-  }
-
-  /* ---- Address: change / list / add-new ---- */
-  const addrList = $('[data-addr-list]');
-  const addrForm = $('[data-addr-form]');
-
-  $('[data-addr-change-btn]').addEventListener('click', ()=>{
-    const open = addrList.classList.toggle('open');
-    if(!open) addrForm.classList.remove('open');
-  });
-
-  $$('[data-addr-opt]').forEach(opt=>{
-    opt.addEventListener('click', ()=>{
-      $$('[data-addr-opt]').forEach(o=>o.classList.remove('sel'));
-      opt.classList.add('sel');
-      // reflect into the selected/summary card
-      $('[data-sel-receiver]').textContent = opt.dataset.receiver;
-      $('[data-sel-cpf]').textContent = opt.dataset.cpf;
-      $('[data-sel-street]').textContent = opt.dataset.street;
-      $('[data-sel-line1]').textContent = opt.dataset.line1;
-      $('[data-sel-line2]').textContent = opt.dataset.line2;
-      $('[data-sel-badge]').style.display = opt.dataset.default==='1' ? 'inline-flex' : 'none';
-      // shipping destination follows the address
-      $('[data-ship-dest]').textContent = opt.dataset.city + ' · CEP ' + opt.dataset.cep;
-      // collapse list, confirm step 1
-      addrList.classList.remove('open');
-      addrForm.classList.remove('open');
-      $('#step-address').classList.remove('invalid');
-      $('#step-address').classList.add('step-done');
-    });
-  });
-
-  $('[data-addr-add-btn]').addEventListener('click', ()=>{
-    addrForm.classList.toggle('open');
-    if(addrForm.classList.contains('open')){
-      addrForm.scrollIntoView({block:'nearest', behavior:'smooth'});
-    }
-  });
-  $('[data-addr-cancel]').addEventListener('click', ()=> addrForm.classList.remove('open'));
-
-  // receiver-self fills name + cpf (mirrors the engine form behavior)
-  $('[data-receiver-self]').addEventListener('change', e=>{
-    const name = e.target.checked ? 'João Pereira' : '';
-    const cpf  = e.target.checked ? '123.456.789-09' : '';
-    addrForm.querySelector('[data-f="receiver_name"]').value = name;
-    addrForm.querySelector('[data-f="receiver_cpf"]').value = cpf;
-  });
-
-  // Save new address → adopt it as the selected address
-  $('[data-addr-save]').addEventListener('click', ()=>{
-    const g = k => (addrForm.querySelector(`[data-f="${k}"]`).value || '').trim();
-    const required = ['receiver_name','receiver_cpf','zip','street','number','neighborhood','city','state'];
-    let firstBad = null;
-    required.forEach(k=>{
-      const el = addrForm.querySelector(`[data-f="${k}"]`);
-      const bad = !el.value.trim();
-      el.style.borderColor = bad ? '#e0584b' : '';
-      el.style.boxShadow = bad ? '0 0 0 3px rgba(224,88,75,.12)' : '';
-      if(bad && !firstBad) firstBad = el;
-    });
-    if(firstBad){ firstBad.focus(); return; }
-
-    $('[data-sel-receiver]').textContent = g('receiver_name');
-    $('[data-sel-cpf]').textContent = g('receiver_cpf');
-    $('[data-sel-street]').textContent = `${g('street')}, ${g('number')}`;
-    $('[data-sel-line1]').textContent = [g('complement'), g('neighborhood')].filter(Boolean).join(' · ');
-    $('[data-sel-line2]').textContent = `${g('city')} — ${g('state')} · CEP ${g('zip')}`;
-    $('[data-sel-badge]').style.display = 'none';
-    $('[data-ship-dest]').textContent = `${g('city')}, ${g('state')} · CEP ${g('zip')}`;
-    addrForm.classList.remove('open');
-    addrList.classList.remove('open');
-    $('#step-address').classList.add('step-done');
-  });
-
-  /* ---- CEP mask in the form ---- */
-  const zipEl = addrForm.querySelector('[data-f="zip"]');
-  zipEl.addEventListener('input', e=>{
-    let v = e.target.value.replace(/\D/g,'').slice(0,8);
-    e.target.value = v.length>5 ? v.slice(0,5)+'-'+v.slice(5) : v;
-  });
-
-  /* ---- Confirm & pay → validate, then redirect interstitial ---- */
-  function payClicked(){
-    if(!shipping){
-      const step = $('#step-shipping');
-      step.classList.add('invalid');
-      step.classList.remove('step-done');
-      $('[data-pay-error]').classList.add('show');
-      step.scrollIntoView({block:'center', behavior:'smooth'});
-      return;
-    }
-    // Build the partner-generated payment URL (mock) and redirect.
-    const token = (Date.now().toString(36) + Math.random().toString(36).slice(2,8)).toUpperCase();
-    const url = 'https://pagamento.prismagames.com.br/c/' + token;
-    $('[data-redirect-url]').textContent = url.replace('https://','');
-    $('[data-redirect]').classList.add('show');
-    // In the real flow: window.location.href = generatedUrl
-    console.log('[checkout] redirecting to generated payment URL →', url);
-  }
-  $$('[data-pay-btn]').forEach(b=> b.addEventListener('click', payClicked));
-
-  /* ---- init: pre-select the frete chosen on the cart, if any ---- */
-  renderShipOpts();
-  const preselected = shipWrap.dataset.preselected;
-  if(preselected && SHIP_OPTS.some(o=>o.method===preselected)){
-    selectShip(preselected);
-  } else {
-    renderSummary();
-  }
-})();
-</script>
+  <%= javascript_include_tag "storefront/checkout", type: "module" %>
+  <%= javascript_include_tag "storefront/address_form", type: "module" %>
 <% end %>

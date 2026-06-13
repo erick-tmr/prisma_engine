@@ -55,7 +55,7 @@ class CartQuotesController < ApplicationController
   end
 
   def quote_response(cart, cep)
-    weight_grams = package_weight_for(cart)
+    weight_grams = Shipping::PackageWeight.call(cart)
     destination  = Shipping::CepLookup.call(cep)
     services     = Shipping::Quote.call(cep_destino: cep, weight_grams: weight_grams)
     {
@@ -63,15 +63,6 @@ class CartQuotesController < ApplicationController
       destination: { city: destination[:city], state: destination[:state] },
       services:    services.map { |service| serialize_service(service) }
     }
-  end
-
-  def package_weight_for(cart)
-    gotm          = GameOfTheMonth.current.first
-    gotm_ids      = gotm ? gotm.products.pluck(:id).to_set : Set.new
-    brindes_grams = gotm ? gotm.brindes.sum(:weight_grams) : 0
-    contents      = cart.total_weight_grams(gotm_product_ids: gotm_ids, brindes_weight_grams: brindes_grams)
-    # Every shipment carries the same outer box + flyer on top of the contents.
-    contents + Shipping::PACKAGE_OVERHEAD_GRAMS
   end
 
   def normalize_cep(raw)
