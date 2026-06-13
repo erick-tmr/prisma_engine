@@ -19,7 +19,7 @@ class CartQuotesController < ApplicationController
     cart = ready_cart
     return render_error(:unprocessable_entity, "Seu carrinho está vazio.") unless cart
 
-    render_quote_result(quote_response(cart, cep))
+    quote_and_render(cart, cep)
   rescue Correios::Api::InvalidObjectError
     render_error(:unprocessable_entity, "CEP inválido.")
   rescue Correios::Api::TransientError
@@ -37,9 +37,10 @@ class CartQuotesController < ApplicationController
   # the global message from the reason mix: a uniformly CEP-related failure
   # means the shopper typed a bad address; anything else is something they
   # can't fix and should call support about.
-  def render_quote_result(response)
+  def render_quote_result(response, weight)
     services = response[:services]
     if services.any? { |service| service[:eligible] }
+      remember_quote(response, weight)
       render json: response
     elsif services.all? { |service| service[:reason] == :invalid_cep }
       render_error(:unprocessable_entity, "CEP inválido.")
@@ -54,15 +55,23 @@ class CartQuotesController < ApplicationController
     cart.empty? ? nil : cart
   end
 
-  def quote_response(cart, cep)
-    weight_grams = Shipping::PackageWeight.call(cart)
-    destination  = Shipping::CepLookup.call(cep)
-    services     = Shipping::Quote.call(cep_destino: cep, weight_grams: weight_grams)
+  def quote_and_render(cart, cep)
+    weight = Shipping::PackageWeight.call(cart)
+    render_quote_result(quote_response(cep, weight), weight)
+  end
+
+  def quote_response(cep, weight)
+    destination = Shipping::CepLookup.call(cep)
+    services    = Shipping::Quote.call(cep_destino: cep, weight_grams: weight)
     {
       cep:         format_cep(cep),
       destination: { city: destination[:city], state: destination[:state] },
       services:    services.map { |service| serialize_service(service) }
     }
+  end
+
+  def remember_quote(response, weight)
+    session["cart_quote"] = { "response" => response.as_json, "weight" => weight, "at" => Time.current.to_i }
   end
 
   def normalize_cep(raw)

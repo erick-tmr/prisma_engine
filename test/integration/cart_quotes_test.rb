@@ -197,6 +197,41 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     assert_equal "CEP não atendido por este serviço.", sedex["message"]
   end
 
+  test "a successful quote is remembered and restored on the cart page within the TTL" do
+    add_yellow_to_cart
+    stub_preco_prazo(all_eligible: true)
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+    assert_response :success
+
+    get cart_path
+    assert_response :success
+    assert_match(/data-initial-quote=/, response.body)
+    assert_match(/value="01310-100"/, response.body)
+  end
+
+  test "a quote older than the 30-minute TTL is not restored" do
+    add_yellow_to_cart
+    stub_preco_prazo(all_eligible: true)
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    travel_to 31.minutes.from_now do
+      get cart_path
+      assert_response :success
+      assert_no_match(/data-initial-quote=/, response.body)
+    end
+  end
+
+  test "a remembered quote is dropped once the cart contents change" do
+    add_yellow_to_cart
+    stub_preco_prazo(all_eligible: true)
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+
+    add_yellow_to_cart # second unit → heavier parcel → stale quote
+    get cart_path
+    assert_response :success
+    assert_no_match(/data-initial-quote=/, response.body)
+  end
+
   private
 
   def add_yellow_to_cart
