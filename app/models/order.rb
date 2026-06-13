@@ -3,6 +3,7 @@ class Order < ApplicationRecord
   UnallocatableNumber = Class.new(StandardError)
 
   NUMBER_ATTEMPTS = 10
+  EXPIRY_WINDOW = 24.hours
 
   belongs_to :user
   has_many :order_items, dependent: :destroy
@@ -17,22 +18,28 @@ class Order < ApplicationRecord
     label_issued
     shipped
     delivered
+    cancelled
   ].freeze
 
   enum :status, STATUSES.index_with(&:itself), default: "awaiting_payment", validate: true
 
   TRANSITIONS = {
-    "awaiting_payment"    => %w[payment_confirmed],
+    "awaiting_payment"    => %w[payment_confirmed cancelled],
     "payment_confirmed"   => %w[awaiting_components in_production],
     "awaiting_components" => %w[in_production],
     "in_production"       => %w[label_issued production_issue],
     "production_issue"    => %w[in_production],
     "label_issued"        => %w[shipped],
     "shipped"             => %w[delivered],
-    "delivered"           => []
+    "delivered"           => [],
+    # TODO(reopen): the deferred webhook processing (Payments::PaymentUpdate) will use this
+    # edge — a paid InfinitePay webhook for an order we auto-cancelled reopens + confirms it.
+    "cancelled"           => %w[payment_confirmed]
   }.freeze
 
   CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed].freeze
+
+  scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :shipping_cents, :total_cents,
@@ -66,6 +73,18 @@ class Order < ApplicationRecord
 
   def confirm_payment!
     transition_to!("payment_confirmed")
+  end
+
+  def cancel!
+    transition_to!("cancelled")
+  end
+
+  def payment_deadline
+    created_at + EXPIRY_WINDOW
+  end
+
+  def payment_expired?
+    awaiting_payment? && payment_deadline.past?
   end
 
   private

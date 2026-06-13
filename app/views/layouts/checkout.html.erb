@@ -29,24 +29,28 @@
         <%= link_to "/carrinho", class: "co-logo", "aria-label": "Prisma Games" do %>
           <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games">
         <% end %>
-        <%= link_to "/carrinho", class: "co-back" do %>
-          <i class="bi bi-arrow-left"></i> Voltar ao carrinho
+        <% unless content_for?(:checkout_bare) %>
+          <%= link_to "/carrinho", class: "co-back" do %>
+            <i class="bi bi-arrow-left"></i> Voltar ao carrinho
+          <% end %>
         <% end %>
         <span class="co-secure"><i class="bi bi-shield-lock-fill"></i> Compra 100% segura</span>
       </div>
     </header>
 
-    <nav class="co-steps" aria-label="Etapas do checkout">
-      <div class="co-steps-inner">
-        <span class="co-step done"><span class="dot"><i class="bi bi-check-lg"></i></span><span class="lbl">Carrinho</span></span>
-        <span class="co-step-sep done"></span>
-        <span class="co-step done"><span class="dot"><i class="bi bi-check-lg"></i></span><span class="lbl">Identificação</span></span>
-        <span class="co-step-sep done"></span>
-        <span class="co-step current"><span class="dot">3</span><span class="lbl">Entrega</span></span>
-        <span class="co-step-sep"></span>
-        <span class="co-step"><span class="dot">4</span><span class="lbl">Pagamento</span></span>
-      </div>
-    </nav>
+    <% unless content_for?(:checkout_bare) %>
+      <nav class="co-steps" aria-label="Etapas do checkout">
+        <div class="co-steps-inner">
+          <span class="co-step done"><span class="dot"><i class="bi bi-check-lg"></i></span><span class="lbl">Carrinho</span></span>
+          <span class="co-step-sep done"></span>
+          <span class="co-step done"><span class="dot"><i class="bi bi-check-lg"></i></span><span class="lbl">Identificação</span></span>
+          <span class="co-step-sep done"></span>
+          <span class="co-step current"><span class="dot">3</span><span class="lbl">Entrega</span></span>
+          <span class="co-step-sep"></span>
+          <span class="co-step"><span class="dot">4</span><span class="lbl">Pagamento</span></span>
+        </div>
+      </nav>
+    <% end %>
 
     <% if flash.any? %>
       <div class="pg-flash co-flash">

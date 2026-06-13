@@ -3,6 +3,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable, :lockable
 
   has_many :addresses, dependent: :destroy
+  has_many :orders, dependent: :restrict_with_error
 
   before_validation :normalize_cpf
 

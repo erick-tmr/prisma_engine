@@ -1,0 +1,166 @@
+<% content_for :title, "Status do pagamento — Prisma Games" %>
+<% content_for :checkout_bare, true %>
+<%
+  first_name = @order.user.first_name
+  pay_label  = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }[@order.payment_method] || "Pix"
+  fmt_cep    = ->(zip) { "#{zip[0, 5]}-#{zip[5, 3]}" }
+%>
+
+<main class="pay-return state-<%= @state %> page">
+
+  <section class="card hero">
+    <div class="accent"></div>
+    <div class="hero-body">
+      <div class="hero-ic">
+        <% if @state == "success" %><i class="bi bi-check-lg"></i>
+        <% elsif @state == "failed" %><i class="bi bi-x-lg"></i>
+        <% else %><i class="bi bi-hourglass-split"></i>
+        <% end %>
+      </div>
+
+      <% if @state == "success" %>
+        <h1>Pagamento confirmado!</h1>
+        <p>Tudo certo, <b><%= first_name %></b>! Recebemos o pagamento e seu pedido já entrou na fila de separação.</p>
+      <% elsif @state == "failed" %>
+        <h1>Pedido cancelado por falta de pagamento</h1>
+        <p>Não recebemos o pagamento dentro do prazo de <b>24 horas</b>, então este pedido foi cancelado automaticamente. Nenhum valor foi cobrado — você pode refazer o pedido quando quiser.</p>
+      <% else %>
+        <h1>Pagamento em processamento</h1>
+        <p>Falta pouco, <b><%= first_name %></b>. Ainda não recebemos a confirmação do pagamento — conclua na página do nosso parceiro. Guardamos seus itens por <b>24 horas</b>.</p>
+      <% end %>
+
+      <div class="hero-meta">
+        <span class="pill"><i class="bi bi-receipt"></i> Pedido <%= @order.number %></span>
+        <span class="pill"><i class="bi bi-calendar3"></i> <%= @order.placed_at.strftime("%d/%m/%Y") %></span>
+      </div>
+
+      <% if @state == "success" %><div class="status-tag"><i class="bi bi-check-circle-fill"></i> Pagamento aprovado</div>
+      <% elsif @state == "failed" %><div class="status-tag"><i class="bi bi-x-circle-fill"></i> Cancelado por expiração do prazo</div>
+      <% else %><div class="status-tag"><i class="bi bi-clock-history"></i> Aguardando pagamento</div>
+      <% end %>
+    </div>
+  </section>
+
+  <% if @state == "pending" %>
+    <section class="card action-panel">
+      <div class="accent"></div>
+      <div class="action-body">
+        <div class="action-head"><i class="bi bi-hourglass-split"></i><h2>Conclua seu pagamento</h2></div>
+        <p class="action-sub">Volte ao ambiente seguro do parceiro para finalizar. Assim que o pagamento for confirmado, atualizamos seu pedido automaticamente.</p>
+
+        <div class="countdown" data-countdown data-deadline="<%= @order.payment_deadline.iso8601 %>">
+          <div class="cd-top"><i class="bi bi-clock-history"></i> O pedido será cancelado automaticamente em</div>
+          <div class="cd-clock">
+            <span class="cd-unit"><span class="cd-num" data-cd-h>--</span><span class="cd-lbl">horas</span></span>
+            <span class="cd-sep">:</span>
+            <span class="cd-unit"><span class="cd-num" data-cd-m>--</span><span class="cd-lbl">min</span></span>
+            <span class="cd-sep">:</span>
+            <span class="cd-unit"><span class="cd-num" data-cd-s>--</span><span class="cd-lbl">seg</span></span>
+          </div>
+          <div class="cd-deadline">Prazo final: <b><%= @order.payment_deadline.strftime("%d/%m/%Y, %Hh%M") %></b></div>
+        </div>
+
+        <%= form_with url: checkout_pay_path, method: :post do %>
+          <%= hidden_field_tag :order_nsu, @order.number %>
+          <button class="btn btn-status btn-block btn-lg" type="submit"><i class="bi bi-lock-fill"></i> Finalizar pagamento</button>
+        <% end %>
+        <div class="actions">
+          <%= link_to checkout_return_path(order_nsu: @order.number), class: "btn btn-ghost btn-md" do %>
+            <i class="bi bi-arrow-clockwise"></i> Já paguei, atualizar
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @state == "failed" %>
+    <section class="card action-panel">
+      <div class="accent"></div>
+      <div class="action-body">
+        <div class="action-head"><i class="bi bi-arrow-counterclockwise"></i><h2>Refazer pedido</h2></div>
+        <p class="action-sub">Monte o pedido novamente com os mesmos itens e conclua o pagamento dentro do prazo.</p>
+        <div class="reason-box"><i class="bi bi-clock-history"></i><span><b>Motivo:</b> o prazo de 24 horas para pagamento expirou sem confirmação. Nenhum valor foi cobrado.</span></div>
+        <%= link_to products_path, class: "btn btn-status btn-block btn-lg" do %>
+          <i class="bi bi-arrow-repeat"></i> Refazer pedido e pagar
+        <% end %>
+        <div class="actions">
+          <%= link_to checkout_path, class: "btn btn-ghost btn-md" do %><i class="bi bi-pencil"></i> Revisar entrega<% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="card">
+    <div class="sum-head">
+      <i class="bi bi-bag-check"></i>
+      <h2>Resumo do pedido</h2>
+      <span class="count"><%= @order.order_items.size %> <%= @order.order_items.size == 1 ? "item" : "itens" %></span>
+    </div>
+
+    <div class="sum-items">
+      <% @order.order_items.each do |item| %>
+        <div class="sum-item">
+          <div class="sum-thumb">
+            <% if item.photo_path.present? %><img src="<%= item.photo_path %>" alt="<%= item.name %>"><% end %>
+          </div>
+          <div class="sum-item-body">
+            <% if item.product&.category_label.present? %><p class="sum-item-cat"><%= item.product.category_label %></p><% end %>
+            <p class="sum-item-name"><%= item.name %></p>
+            <% if item.chosen_options.any? %><div class="sum-item-opts"><%= item.chosen_options.join(" · ") %></div><% end %>
+          </div>
+          <div class="sum-item-right">
+            <span class="sum-item-price tnum"><%= HasMoney.format(item.line_total_cents) %></span>
+            <span class="sum-item-qty tnum"><%= item.quantity %> un.</span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="sum-totals">
+      <div class="sum-line"><span class="muted">Subtotal</span><span class="val tnum"><%= HasMoney.format(@order.subtotal_cents) %></span></div>
+      <div class="sum-line"><span class="muted">Frete · <%= @order.shipping_service %></span><span class="val tnum"><%= HasMoney.format(@order.shipping_cents) %></span></div>
+      <hr class="sum-div">
+      <div class="sum-total"><span class="lbl">Total</span><span class="amt tnum"><%= HasMoney.format(@order.total_cents) %></span></div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-cell">
+        <p class="info-label"><i class="bi bi-truck"></i> Entrega</p>
+        <div class="info-body">
+          <div class="strong"><%= @order.ship_receiver_name %></div>
+          <div><%= "#{@order.ship_street}, #{@order.ship_number}" %><%= " — #{@order.ship_complement}" if @order.ship_complement.present? %></div>
+          <div><%= "#{@order.ship_neighborhood} · #{@order.ship_city} — #{@order.ship_state}" %></div>
+          <div>CEP <%= fmt_cep.call(@order.ship_zip) %></div>
+        </div>
+      </div>
+      <div class="info-cell">
+        <p class="info-label"><i class="bi bi-credit-card"></i> Pagamento</p>
+        <div class="info-body">
+          <div class="strong"><%= pay_label %></div>
+          <% if @order.receipt_url.present? %>
+            <div><a href="<%= @order.receipt_url %>" target="_blank" rel="noopener">Ver comprovante</a></div>
+          <% end %>
+          <% if @state == "success" %><span class="pay-status"><i class="bi bi-check-circle-fill"></i> Pago</span>
+          <% elsif @state == "failed" %><span class="pay-status"><i class="bi bi-x-circle-fill"></i> Expirado</span>
+          <% else %><span class="pay-status"><i class="bi bi-clock-history"></i> Aguardando</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <% if @state == "success" %>
+    <div class="actions">
+      <%= link_to account_orders_path, class: "btn btn-dark btn-lg" do %><i class="bi bi-box-seam"></i> Acompanhar pedido<% end %>
+      <%= link_to products_path, class: "btn btn-ghost btn-lg" do %><i class="bi bi-grid"></i> Continuar comprando<% end %>
+    </div>
+  <% end %>
+
+  <p class="support-line">
+    Precisa de ajuda com este pedido? <a href="https://wa.me/5535920001100">Falar com a Central Prisma</a>
+  </p>
+</main>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/payment_countdown", type: "module" %>
+<% end %>

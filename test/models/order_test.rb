@@ -140,4 +140,57 @@ class OrderTest < ActiveSupport::TestCase
       order.destroy!
     end
   end
+
+  test "cancel! moves an awaiting-payment order to cancelled" do
+    order = build_order
+    order.save!
+    order.cancel!
+    assert order.cancelled?
+  end
+
+  test "a cancelled order can be reopened straight to payment_confirmed" do
+    order = build_order
+    order.save!
+    order.cancel!
+    order.transition_to!("payment_confirmed")
+    assert order.payment_confirmed?
+  end
+
+  test "payment_deadline is 24h after creation" do
+    order = build_order
+    order.save!
+    assert_in_delta order.created_at + 24.hours, order.payment_deadline, 1.second
+  end
+
+  test "payment_expired? only once an awaiting order passes the 24h deadline" do
+    order = build_order
+    order.save!
+    assert_not order.payment_expired?
+    travel_to 25.hours.from_now do
+      assert order.payment_expired?
+    end
+  end
+
+  test "payment_expired? is false once the order leaves awaiting_payment" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    travel_to 25.hours.from_now do
+      assert_not order.payment_expired?
+    end
+  end
+
+  test "awaiting_payment_expired scopes to stale unpaid orders only" do
+    fresh = build_order
+    fresh.save!
+    stale = build_order
+    stale.save!
+    stale.update_column(:created_at, 25.hours.ago)
+    paid = build_order
+    paid.save!
+    paid.update_column(:created_at, 25.hours.ago)
+    paid.confirm_payment!
+
+    assert_equal [ stale.id ], Order.awaiting_payment_expired.pluck(:id)
+  end
 end
