@@ -25,7 +25,16 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     assert_select ".pdp-variants", count: 0
 
     post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1 }
-    assert_redirected_to "/carrinho"
+    assert_redirected_to product_path(products(:metroid))
+    assert_equal "Produto adicionado ao carrinho.", flash[:cart_added]
+  end
+
+  test "the add-to-cart flash stays on the product page and links to the cart" do
+    post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1 }
+    follow_redirect!
+    assert_response :success
+    assert_select ".pg-alert-success", text: /adicionado ao carrinho/i
+    assert_select ".pg-alert a.pg-alert-cta[href=?]", cart_path
   end
 
   test "POST cart_items rejects foreign option_ids that do not belong to the product" do
@@ -33,9 +42,9 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     post cart_items_path, params: {
       product_id: products(:metroid).id, quantity: 1, option_ids: [ foreign.id ]
     }
-    assert_redirected_to "/carrinho"
-    follow_redirect!
+    assert_redirected_to product_path(products(:metroid))
     # The foreign id should be filtered, so the metroid line has no options
+    get cart_path
     assert_select ".cart-item", count: 1
   end
 end

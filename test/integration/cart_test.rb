@@ -33,11 +33,13 @@ class CartTest < ActionDispatch::IntegrationTest
       quantity: 2,
       option_ids: [ product_options(:yellow_idioma_en).id, product_options(:yellow_caixa_sem).id ]
     }
-    assert_redirected_to "/carrinho"
+    assert_redirected_to product_path(products(:yellow))
     follow_redirect!
+    assert_select "[data-cart-count]", text: "2"
+
+    get "/carrinho"
     assert_select "[data-head-count]", text: /2 itens/
     assert_select "[data-list-count]", text: /1 produto/
-    assert_select "[data-cart-count]", text: "2"
     assert_select ".cart-item-title", text: /Pokemon Yellow Version/
   end
 
@@ -56,6 +58,23 @@ class CartTest < ActionDispatch::IntegrationTest
     patch cart_item_path(line_id), params: { quantity: 200 }
     follow_redirect!
     assert_select "[data-head-count]", text: /99 itens/
+  end
+
+  test "a quantity PATCH carrying shipping_service persists it to the session for checkout + re-quote" do
+    post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
+    line_id = Cart::Bag.from_cookie(JSON.parse(request.cookie_jar.signed[:cart].to_json)).items.first["id"]
+
+    patch cart_item_path(line_id), params: { quantity: 2, shipping_service: "sedex" }
+    assert_equal "sedex", session["checkout_shipping_service"]
+  end
+
+  test "a PATCH carrying an unknown shipping_service clears the remembered choice" do
+    post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
+    line_id = Cart::Bag.from_cookie(JSON.parse(request.cookie_jar.signed[:cart].to_json)).items.first["id"]
+
+    patch cart_item_path(line_id), params: { quantity: 2, shipping_service: "sedex" }
+    patch cart_item_path(line_id), params: { quantity: 3, shipping_service: "bogus" }
+    assert_nil session["checkout_shipping_service"]
   end
 
   test "updating options swaps the chosen option but keeps the same line id" do

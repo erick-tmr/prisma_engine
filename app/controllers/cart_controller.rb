@@ -1,4 +1,6 @@
 class CartController < ApplicationController
+  include RemembersShipping
+
   QUOTE_TTL = 30.minutes.to_i
 
   def show
@@ -10,6 +12,8 @@ class CartController < ApplicationController
     @lines = @cart.lines
     @gotm_product_ids = current_gotm_product_ids
     @initial_quote = restored_quote
+    @recalc_cep = recalc_cep
+    @recalc_service = session["checkout_shipping_service"]
   end
 
   # Checkout — the redirect target below — accepts a customer-chosen shipping
@@ -34,19 +38,6 @@ class CartController < ApplicationController
 
   private
 
-  # Bridge the cart's client-side frete pick to the checkout screen, which
-  # reads it back to pre-select the same service. Whitelisted against our
-  # known services so a hand-edited form can't stash arbitrary input; the
-  # binding re-validation against a fresh quote still happens at order time.
-  def remember_shipping_choice
-    service = params[:shipping_service].to_s
-    if Shipping::SERVICES.keys.any? { |key| key.to_s == service }
-      session["checkout_shipping_service"] = service
-    else
-      session.delete("checkout_shipping_service")
-    end
-  end
-
   def cart_cookie_value(cart)
     { value: cart.to_cookie, expires: 30.days.from_now }
   end
@@ -57,12 +48,20 @@ class CartController < ApplicationController
   end
 
   def restored_quote
-    cached = session["cart_quote"]
-    return unless cached
-
-    age = Time.current.to_i - cached["at"].to_i
-    return unless age <= QUOTE_TTL && cached["weight"].to_i == Shipping::PackageWeight.call(@cart)
+    cached = fresh_quote
+    return unless cached && cached["weight"].to_i == Shipping::PackageWeight.call(@cart)
 
     { "response" => cached["response"], "service" => session["checkout_shipping_service"] }
+  end
+
+  def recalc_cep
+    return if @initial_quote
+
+    fresh_quote&.dig("response", "cep")
+  end
+
+  def fresh_quote
+    cached = session["cart_quote"]
+    cached if cached && Time.current.to_i - cached["at"].to_i <= QUOTE_TTL
   end
 end

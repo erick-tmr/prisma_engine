@@ -221,15 +221,20 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "a remembered quote is dropped once the cart contents change" do
+  test "a stale-weight quote keeps the CEP + chosen service and re-quotes instead of resetting" do
     add_yellow_to_cart
     stub_preco_prazo(all_eligible: true)
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
+    line_id = Cart::Bag.from_cookie(JSON.parse(request.cookie_jar.signed[:cart].to_json)).items.first["id"]
 
-    add_yellow_to_cart # second unit → heavier parcel → stale quote
+    # The quantity bump carries the chosen frete → heavier parcel makes the quote stale.
+    patch cart_item_path(line_id), params: { quantity: 2, shipping_service: "sedex" }
     get cart_path
     assert_response :success
-    assert_no_match(/data-initial-quote=/, response.body)
+    assert_no_match(/data-initial-quote=/, response.body)        # not restored as-is
+    assert_match(/data-recalc-cep="01310-100"/, response.body)   # re-quotes the same CEP
+    assert_match(/data-recalc-service="sedex"/, response.body)   # preserving the chosen service
+    assert_match(/value="01310-100"/, response.body)
   end
 
   private

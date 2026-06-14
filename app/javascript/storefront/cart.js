@@ -116,12 +116,13 @@ export function createCartShipping(root) {
     if (mbTotalEl) mbTotalEl.textContent = money(total);
   }
 
-  // Carry the chosen frete into the checkout step: stash the selected service
-  // on the "Finalizar compra" forms so cart#finalize remembers it in the
-  // session and the checkout screen pre-selects the same option. Passing null
+  // Carry the chosen frete to the server on every form that posts there — the
+  // "Finalizar compra" button and the per-line stepper/variant forms — so both
+  // cart#finalize and cart_items#update persist it to the session. The checkout
+  // screen and a post-reload re-quote read it back from there. Passing null
   // removes it (a fresh quote deselects everything first).
   function rememberShipping(serviceKey) {
-    doc.querySelectorAll("[data-finalize-form]").forEach(function (form) {
+    doc.querySelectorAll("[data-finalize-form], [data-stepper-form], [data-variant-form]").forEach(function (form) {
       let input = form.querySelector('input[name="shipping_service"]');
       if (!serviceKey) {
         if (input) input.remove();
@@ -186,7 +187,7 @@ export function createCartShipping(root) {
     else renderSummary();
   }
 
-  async function fetchQuote(digits) {
+  async function fetchQuote(digits, preferred) {
     const token = doc.querySelector('meta[name="csrf-token"]')?.content;
     calcBtn.disabled = true;
     try {
@@ -205,6 +206,7 @@ export function createCartShipping(root) {
         return;
       }
       renderQuote(data);
+      reselect(preferred, data.services);
     } catch (e) {
       showCepError("Não foi possível calcular o frete. Tente novamente.");
     } finally {
@@ -235,12 +237,18 @@ export function createCartShipping(root) {
     });
   }
 
+  // Re-apply a previously chosen service after a (re-)render, but only if it's
+  // still offered — otherwise the renderQuote default stands (e.g. Mini Envios
+  // dropping out once a heavier parcel makes it ineligible).
+  function reselect(serviceKey, services) {
+    if (!serviceKey) return;
+    const el = shipOpts.querySelector('[data-opt="' + serviceKey + '"]');
+    if (el) selectShip(el, services);
+  }
+
   function restore(quote, serviceKey) {
     renderQuote(quote);
-    if (serviceKey) {
-      const el = shipOpts.querySelector('[data-opt="' + serviceKey + '"]');
-      if (el) selectShip(el, quote.services);
-    }
+    reselect(serviceKey, quote.services);
   }
 
   return {
@@ -262,6 +270,8 @@ if (typeof document !== "undefined") {
     shipping.bindEvents();
     if (root.dataset.initialQuote) {
       shipping.restore(JSON.parse(root.dataset.initialQuote), root.dataset.initialService);
+    } else if (root.dataset.recalcCep) {
+      shipping.fetchQuote(root.dataset.recalcCep.replace(/\D/g, ""), root.dataset.recalcService);
     }
   }
   bindCartLines(document);

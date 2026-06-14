@@ -2022,6 +2022,16 @@ body.site-drawer-locked {
   text-decoration: underline;
 }
 
+.pg-alert-cta {
+  display: inline-block;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.pg-alert-cta .bi {
+  vertical-align: -2px;
+}
+
 .pg-alert-close {
   flex-shrink: 0;
   background: none;
