@@ -1,7 +1,3 @@
-/* Breadcrumb — shared trail rendered by shared/_breadcrumb. Chevron-separated
-   links in muted grey that darken to ink on hover, with the current page in
-   ink. Overrides Bootstrap's .breadcrumb defaults (loaded after it). */
-
 .breadcrumb {
   display: flex;
   flex-wrap: wrap;

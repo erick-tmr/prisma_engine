@@ -1,15 +1,7 @@
-// Product detail page (PDP) behaviour, extracted from the inline view script so
-// it can be unit tested (see test/javascript/pdp.test.js). Self-contained native
-// ES module loaded via `javascript_include_tag "storefront/pdp", type: "module"`
-// — no importmap, no build step. Keep in sync with app/views/products/show.html.erb.
-
-// Money is rendered the same way the server's HasMoney concern does ("R$ 0.00"),
-// so the live-updated price matches every other price on the page.
 export function formatPriceCents(cents) {
   return "R$ " + (cents / 100).toFixed(2);
 }
 
-// Unit price = the form's data-base-cents plus every selected pill's data-delta.
 export function computeUnitPriceCents(form) {
   let cents = parseInt(form.dataset.baseCents, 10) || 0;
   form.querySelectorAll(".variant-pill.is-selected[data-delta]").forEach(function (pill) {
@@ -18,14 +10,12 @@ export function computeUnitPriceCents(form) {
   return cents;
 }
 
-// Clamp a quantity into the 1..99 range the input declares.
 export function clampQty(value) {
   const n = parseInt(value, 10);
   if (!n || n < 1) return 1;
   return n > 99 ? 99 : n;
 }
 
-// Re-render the page's [data-price] from the current selection × quantity.
 export function updatePrice(form) {
   const priceEl = form.ownerDocument.querySelector("[data-price]");
   if (!priceEl) return;
@@ -34,9 +24,6 @@ export function updatePrice(form) {
   priceEl.textContent = formatPriceCents(computeUnitPriceCents(form) * qty);
 }
 
-// Variant pill selection: clicking a pill sets the matching hidden
-// `option_ids[]` field (keyed by data-variant-group), marks the pill selected
-// within its group, updates the group's selected-value label, and re-prices.
 export function bindVariantPills(scope) {
   scope.querySelectorAll("[data-pdp-form] [data-vpill]").forEach(function (pill) {
     pill.addEventListener("click", function () {
@@ -54,8 +41,6 @@ export function bindVariantPills(scope) {
   });
 }
 
-// Quantity stepper: − / + buttons and direct edits, clamped to 1..99, with the
-// − button disabled at the floor and the price kept in sync.
 export function bindStepper(scope) {
   scope.querySelectorAll("[data-pdp-form]").forEach(function (form) {
     const input = form.querySelector("[data-qty]");
@@ -76,7 +61,6 @@ export function bindStepper(scope) {
   });
 }
 
-// Gallery thumbnails: clicking a thumb swaps the main image (and its zoom link).
 export function bindGallery(scope) {
   const thumbs = scope.querySelectorAll("[data-thumb]");
   thumbs.forEach(function (thumb) {
@@ -92,7 +76,6 @@ export function bindGallery(scope) {
   });
 }
 
-// "termina em N dias e Hh" for the Jogo do Mês deadline, from milliseconds left.
 export function countdownText(ms) {
   if (ms <= 0) return "edição encerrada";
   const days = Math.floor(ms / 86400000);
@@ -101,9 +84,6 @@ export function countdownText(ms) {
   return "termina em " + hours + "h";
 }
 
-// Fill the GotM countdown text. The deadline is the last moment of the edition's
-// month (data-gotm-year / data-gotm-month, 1-indexed). `now` is injected so the
-// computation is deterministic under test.
 export function bindCountdown(scope, now) {
   scope.querySelectorAll("[data-gotm-countdown]").forEach(function (el) {
     const out = el.querySelector("[data-countdown-text]");

@@ -13,8 +13,6 @@ class ProductsController < ApplicationController
                       .includes(:category, :product_options, product_photos: { image_attachment: :blob })
                       .find(params[:slug])
 
-    # @gotm is set only when this product is the current month's pick — the view
-    # keys the whole Jogo do Mês treatment off its presence.
     gotm = GameOfTheMonth.current
                          .includes(:products, brindes: { image_attachment: :blob })
                          .first

@@ -1,7 +1,4 @@
-<%# Shared breadcrumb trail.
-    Locals:
-      crumbs  — array of [label, path] for the linked ancestors
-      current — label of the current page (rendered unlinked) %>
+<%# locals: (crumbs:, current:) %>
 <nav class="breadcrumb" aria-label="breadcrumb">
   <% crumbs.each do |label, path| %>
     <%= link_to label, path, class: "breadcrumb__link" %>

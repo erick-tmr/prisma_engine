@@ -16,9 +16,6 @@ function fire(el, type) {
   el.dispatchEvent(new window.Event(type, { bubbles: true }));
 }
 
-// Mirrors app/views/products/show.html.erb: a .buy box with a [data-price]
-// element and a [data-pdp-form] carrying base price, hidden option fields,
-// variant pills (with deltas), and a quantity stepper.
 function mountPdp() {
   document.body.innerHTML = `
     <div class="buy">
@@ -256,7 +253,6 @@ describe("bindCountdown", () => {
       <div data-gotm-countdown data-gotm-year="2026" data-gotm-month="6">
         <b data-countdown-text></b>
       </div>`;
-    // End of June 2026 is the 30th 23:59:59; two days before is the 28th.
     bindCountdown(document, new Date(2026, 5, 28, 23, 59, 59));
     expect($("[data-countdown-text]").textContent).toBe("termina em 2 dias e 0h");
   });

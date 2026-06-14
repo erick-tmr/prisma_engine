@@ -26,7 +26,6 @@
   font-size: 13px;
 }
 
-/* Right-aligned selected-option value, shown in the group label (PDP). */
 .variant-group__sel {
   margin-left: auto;
   color: var(--pg-ink);

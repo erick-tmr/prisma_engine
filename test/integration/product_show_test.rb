@@ -12,7 +12,6 @@ class ProductShowTest < ActionDispatch::IntegrationTest
   end
 
   test "an ordinary product shows no Jogo do Mês treatment" do
-    # metroid is the past month's pick, not the current one.
     get product_path(slug: products(:metroid).slug)
 
     assert_response :success
@@ -34,7 +33,6 @@ class ProductShowTest < ActionDispatch::IntegrationTest
     get product_path(slug: products(:yellow).slug)
 
     assert_response :success
-    # yellow's "Com caixa" option is +R$10 in the fixtures.
     assert_select "button.variant-pill[data-delta='1000']"
     assert_match(/\+R\$ 10\.00/, response.body)
   end
