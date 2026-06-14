@@ -96,7 +96,9 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_equal CHECKOUT_URL, response.headers["Location"]
     assert_equal "pac", order.shipping_service
     assert_requested(:post, LINKS_URL) do |req|
-      assert_equal order.number, JSON.parse(req.body)["order_nsu"]
+      body = JSON.parse(req.body)
+      assert_equal order.number, body["order_nsu"]
+      assert_equal payments_webhook_url(order.webhook_token), body["webhook_url"]
       true
     end
     # cart cleared → a follow-up quote sees an empty cart
@@ -213,6 +215,19 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_nil order.reload.external_id
   end
 
+  test "GET /checkout/retorno shows aguardando with no payment method when none is known yet" do
+    sign_in @user
+    order = create_order_for(@user)
+    assert_nil order.payment_method
+
+    get checkout_return_path, params: { order_nsu: order.number }
+
+    assert_response :success
+    assert_select ".pay-return.state-pending .pay-status", text: /Aguardando/
+    assert_select ".info-cell .strong", text: "Pix", count: 0
+    assert_no_match(/Cartão de crédito/, response.body)
+  end
+
   test "POST /checkout/retorno/pagar regenerates the link and redirects to InfinitePay" do
     sign_in @user
     order = create_order_for(@user)
@@ -222,7 +237,9 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
     assert_equal CHECKOUT_URL, response.headers["Location"]
     assert_requested(:post, LINKS_URL) do |req|
-      assert_equal order.number, JSON.parse(req.body)["order_nsu"]
+      body = JSON.parse(req.body)
+      assert_equal order.number, body["order_nsu"]
+      assert_equal payments_webhook_url(order.webhook_token), body["webhook_url"]
       true
     end
   end

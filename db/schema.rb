@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_203938) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -146,10 +146,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_203938) do
     t.integer "total_cents", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "webhook_token"
     t.index ["external_id"], name: "index_orders_on_external_id", unique: true
     t.index ["number"], name: "index_orders_on_number", unique: true
     t.index ["user_id", "created_at"], name: "index_orders_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_orders_on_user_id"
+    t.index ["webhook_token"], name: "index_orders_on_webhook_token", unique: true
   end
 
   create_table "product_options", force: :cascade do |t|

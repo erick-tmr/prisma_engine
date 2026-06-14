@@ -52,7 +52,7 @@ Rails.application.routes.draw do
   post "/checkout/endereco", to: "checkout#create_address", as: :checkout_address
   get  "/checkout/retorno",  to: "checkout#confirmation",   as: :checkout_return
   post "/checkout/retorno/pagar", to: "checkout#pay",        as: :checkout_pay
-  post "/pagamentos/webhook", to: "payments/webhooks#create", as: :payments_webhook
+  post "/pagamentos/webhook/:token", to: "payments/webhooks#create", as: :payments_webhook
 
   get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes
   get  "/pagina/recomendacao-de-jogos", to: "pages#recomendacao_de_jogos", as: :recomendacao_de_jogos

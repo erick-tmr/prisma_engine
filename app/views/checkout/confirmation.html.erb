@@ -2,7 +2,7 @@
 <% content_for :checkout_bare, true %>
 <%
   first_name = @order.user.first_name
-  pay_label  = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }[@order.payment_method] || "Pix"
+  pay_label  = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }[@order.payment_method]
   fmt_cep    = ->(zip) { "#{zip[0, 5]}-#{zip[5, 3]}" }
 %>
 
@@ -136,7 +136,7 @@
       <div class="info-cell">
         <p class="info-label"><i class="bi bi-credit-card"></i> Pagamento</p>
         <div class="info-body">
-          <div class="strong"><%= pay_label %></div>
+          <% if pay_label %><div class="strong"><%= pay_label %></div><% end %>
           <% if @order.receipt_url.present? %>
             <div><a href="<%= @order.receipt_url %>" target="_blank" rel="noopener">Ver comprovante</a></div>
           <% end %>

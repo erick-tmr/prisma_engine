@@ -9,6 +9,8 @@ class Order < ApplicationRecord
   has_many :order_items, dependent: :destroy
   accepts_nested_attributes_for :order_items
 
+  has_secure_token :webhook_token
+
   STATUSES = %w[
     awaiting_payment
     payment_confirmed
@@ -32,8 +34,6 @@ class Order < ApplicationRecord
     "label_issued"        => %w[shipped],
     "shipped"             => %w[delivered],
     "delivered"           => [],
-    # TODO(reopen): the deferred webhook processing (Payments::PaymentUpdate) will use this
-    # edge — a paid InfinitePay webhook for an order we auto-cancelled reopens + confirms it.
     "cancelled"           => %w[payment_confirmed]
   }.freeze
 

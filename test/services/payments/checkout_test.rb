@@ -71,5 +71,17 @@ module Payments
         true
       end
     end
+
+    test "omits phone_number entirely when the user has no phone" do
+      @order.user.update_columns(phone: "")
+      stub_links
+      start
+      assert_requested(:post, LINKS_URL) do |req|
+        customer = JSON.parse(req.body)["customer"]
+        assert_not customer.key?("phone_number")
+        assert_equal "Cliente Confirmado", customer["name"]
+        true
+      end
+    end
   end
 end

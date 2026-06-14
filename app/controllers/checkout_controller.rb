@@ -32,7 +32,7 @@ class CheckoutController < ApplicationController
     return render_create_failure(ERROR_MESSAGES.fetch(result.error)) unless result.success?
 
     payment_url = Payments::Checkout.start(
-      result.order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url
+      result.order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(result.order.webhook_token)
     )
     clear_cart!
     respond_to do |format|
@@ -58,7 +58,7 @@ class CheckoutController < ApplicationController
 
     # Redirects to the InfinitePay hosted-checkout URL from Payments::Checkout (a trusted PSP), not user input.
     # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
-    redirect_to Payments::Checkout.start(order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url),
+    redirect_to Payments::Checkout.start(order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token)),
                 allow_other_host: true
   rescue InfinitePay::Api::Error
     flash[:alert] = ERROR_MESSAGES[:payment_error]

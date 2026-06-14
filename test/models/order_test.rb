@@ -156,6 +156,24 @@ class OrderTest < ActiveSupport::TestCase
     assert order.payment_confirmed?
   end
 
+  test "each order gets a unique webhook_token on create" do
+    one = build_order
+    one.save!
+    two = build_order
+    two.save!
+    assert one.webhook_token.present?
+    assert_not_equal one.webhook_token, two.webhook_token
+  end
+
+  test "webhook_token is stable across the cancel/reopen lifecycle" do
+    order = build_order
+    order.save!
+    token = order.webhook_token
+    order.cancel!
+    order.confirm_payment!
+    assert_equal token, order.reload.webhook_token
+  end
+
   test "payment_deadline is 24h after creation" do
     order = build_order
     order.save!

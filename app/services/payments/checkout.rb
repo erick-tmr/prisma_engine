@@ -39,7 +39,11 @@ module Payments
     end
 
     def customer
-      { name: order.user.full_name, email: order.user.email, phone_number: format_phone(order.user.phone) }
+      base  = { name: order.user.full_name, email: order.user.email }
+      phone = format_phone(order.user.phone)
+      return base unless phone
+
+      base.merge(phone_number: phone)
     end
 
     def address
@@ -55,6 +59,8 @@ module Payments
     # :reek:UtilityFunction
     def format_phone(phone)
       digits = phone.to_s.gsub(/\D/, "")
+      return if digits.empty?
+
       digits = "55#{digits}" unless digits.start_with?("55") && digits.size >= 12
       "+#{digits}"
     end
