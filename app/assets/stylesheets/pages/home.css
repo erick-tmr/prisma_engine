@@ -2,9 +2,23 @@
    .section-title components. */
 
 .banner {
+  position: relative;
   max-width: 1320px;
   margin: 24px auto;
   padding: 0 16px;
+}
+
+/* owl.carousel.css hides .owl-carousel (display:none) until its JS adds
+   .owl-loaded, which collapses the banner to nothing and then pops it open
+   on init — a big layout shift. Defeat that: keep the carousel laid out and
+   show just the first slide up front so its aspect-ratio reserves the height
+   before owl takes over. */
+.banner .owl-carousel {
+  display: block;
+}
+
+.banner .owl-carousel:not(.owl-loaded) .banner__slot:not(:first-child) {
+  display: none;
 }
 
 .banner__slot {
@@ -24,9 +38,16 @@
   display: block;
 }
 
+/* Dots overlay the bottom of the banner (rather than sitting below it) so
+   they don't add height when owl injects them on init — keeps the banner box
+   identical before and after, for zero layout shift. */
 .banner .owl-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
   text-align: center;
-  margin-top: 10px;
+  margin: 0;
 }
 
 .banner .owl-dots .owl-dot span {
