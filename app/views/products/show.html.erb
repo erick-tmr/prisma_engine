@@ -13,7 +13,6 @@
         current: @product.title %>
 
   <div class="pdp-grid">
-    <%# ── Gallery ─────────────────────────────────────────── %>
     <div class="gallery">
       <div class="gallery-main">
         <% if main_src.present? %>
@@ -36,7 +35,6 @@
       <% end %>
     </div>
 
-    <%# ── Buy box ─────────────────────────────────────────── %>
     <div class="buy">
       <div class="buy__eyebrow">
         <span class="buy__cat"><%= @product.category_label %></span>
@@ -116,7 +114,7 @@
 
       <div class="trust">
         <div><i class="bi bi-shield-check"></i> Produzido no Brasil com garantia</div>
-        <div><i class="bi bi-battery-charging"></i> Save em FRAM + bateria nova</div>
+        <div><i class="bi bi-floppy"></i> Save em FRAM (não precisa de bateria)</div>
         <div><i class="bi bi-truck"></i> Correios · PAC, SEDEX e Mini Envios</div>
         <div><i class="bi bi-credit-card-2-front"></i> Pix ou cartão</div>
       </div>

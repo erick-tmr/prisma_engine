@@ -35,14 +35,7 @@ def infer_tag_slugs(name)
   slugs.uniq
 end
 
-# Default option set seeded on every product. Base game price is the catalog
-# price (R$175 for the regular line); the variants add value on top: "Com caixa"
-# is +R$20 (and the 38g caixa + berço), and "Com label" is +R$5. Idioma is
-# neutral. Weight deltas follow the spec — only "Com caixa" adds mass.
 default_options = [
-  # First option per group is the default selection, so the base R$175 game opens
-  # priced at base (Sem caixa / Sem label); Com caixa (+R$20) and Com label
-  # (+R$5) are the upgrades.
   { group_name: "Idioma", name: "Português BR",  price_delta_cents: 0,    weight_delta_grams: 0,  position: 0 },
   { group_name: "Idioma", name: "Inglês",        price_delta_cents: 0,    weight_delta_grams: 0,  position: 1 },
   { group_name: "Idioma", name: "Japonês",       price_delta_cents: 0,    weight_delta_grams: 0,  position: 2 },
@@ -53,11 +46,8 @@ default_options = [
 ]
 kept_options = default_options.map { |attrs| [ attrs[:group_name], attrs[:name] ] }
 
-# Baseline product copy for the storefront Descrição card. Generic but accurate
-# for every Prisma repro — editorial swaps in game-specific text per product, so
-# we only seed it when none exists (never clobber a curated description).
 default_description = <<~TEXT.strip
-  Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM com bateria nova — seu progresso dura por anos, sem risco de perder os arquivos.
+  Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM, que não precisa de bateria — seu progresso dura por anos, sem risco de perder os arquivos.
 
   Acompanha estojo rígido e etiqueta em padrão US, compatível com a linha Game Boy. Você escolhe idioma, caixa e etiqueta nas opções acima, e cada unidade é testada individualmente antes do envio.
 TEXT
@@ -93,8 +83,6 @@ raw.fetch("products").each do |entry|
     option.save!
   end
 
-  # Converge on the current option set: drop any option that isn't in the
-  # default set (a renamed group or value) so a re-seed doesn't leave orphans.
   product.product_options.reload.each do |option|
     option.destroy unless kept_options.include?([ option.group_name, option.name ])
   end
