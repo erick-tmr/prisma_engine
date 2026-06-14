@@ -1,59 +1,59 @@
 <% content_for :title, t("account.addresses.page_title") %>
 
-<div class="account-card account-panel">
-  <div class="panel-head with-action">
-    <div class="panel-head-main">
+<div class="account__card account__panel">
+  <div class="panel__head panel__head--with-action">
+    <div class="panel__head-main">
       <h2><span class="rainbow-bar" aria-hidden="true"></span> <%= t("account.addresses.heading") %></h2>
       <p><%= t("account.addresses.lede") %></p>
     </div>
-    <%= link_to new_account_address_path, class: "btn-ghost" do %>
+    <%= link_to new_account_address_path, class: "button-ghost" do %>
       <i class="bi bi-plus-lg"></i> <%= t("account.addresses.add") %>
     <% end %>
   </div>
 
-  <div class="panel-body">
+  <div class="panel__body">
     <% if @addresses.empty? %>
       <div class="empty-state">
         <i class="bi bi-geo-alt"></i>
         <p><%= t("account.addresses.empty") %></p>
-        <%= link_to t("account.addresses.add_first"), new_account_address_path, class: "btn-prisma" %>
+        <%= link_to t("account.addresses.add_first"), new_account_address_path, class: "button" %>
       </div>
     <% else %>
-      <div class="addr-grid">
+      <div class="address-grid">
         <% @addresses.each do |address| %>
-          <div class="addr-card<%= ' is-default' if address.default? %>">
-            <div class="addr-receiver">
+          <div class="address-card<%= ' address-card--default' if address.default? %>">
+            <div class="address-card__receiver">
               <%= t("account.addresses.for_label") %>
               <strong><%= address.receiver_name %></strong>
               · CPF <%= format_cpf(address.receiver_cpf) %>
             </div>
-            <div class="addr-card-head">
+            <div class="address-card__head">
               <strong><%= address.street %>, <%= address.number %></strong>
               <% if address.default? %>
-                <span class="badge-default"><i class="bi bi-check-circle-fill"></i> <%= t("account.addresses.default_badge") %></span>
+                <span class="address-card__badge"><i class="bi bi-check-circle-fill"></i> <%= t("account.addresses.default_badge") %></span>
               <% end %>
             </div>
-            <div class="addr-line">
+            <div class="address-card__line">
               <% if address.complement.present? %><%= address.complement %> · <% end %>
               <%= address.neighborhood %>
             </div>
-            <div class="addr-line">
+            <div class="address-card__line">
               <%= address.city %> — <%= address.state %> · CEP <%= number_to_cep(address.zip) %>
             </div>
-            <div class="addr-card-actions">
-              <%= link_to edit_account_address_path(address), class: "btn-ghost sm" do %>
+            <div class="address-card__actions">
+              <%= link_to edit_account_address_path(address), class: "button-ghost button-ghost--sm" do %>
                 <i class="bi bi-pencil"></i> <%= t("account.addresses.edit") %>
               <% end %>
               <% unless address.default? %>
                 <%= button_to default_account_address_path(address),
-                      method: :patch, class: "btn-ghost sm",
-                      form: { class: "account-action-form" } do %>
+                      method: :patch, class: "button-ghost button-ghost--sm",
+                      form: { class: "account__action-form" } do %>
                   <i class="bi bi-star"></i> <%= t("account.addresses.set_default") %>
                 <% end %>
               <% end %>
               <%= button_to account_address_path(address),
-                    method: :delete, class: "btn-ghost sm danger",
-                    form: { class: "account-action-form", data: { turbo_confirm: t("account.addresses.delete_confirm") } } do %>
+                    method: :delete, class: "button-ghost button-ghost--sm button-ghost--danger",
+                    form: { class: "account__action-form", data: { turbo_confirm: t("account.addresses.delete_confirm") } } do %>
                 <i class="bi bi-trash3"></i> <%= t("account.addresses.delete") %>
               <% end %>
             </div>

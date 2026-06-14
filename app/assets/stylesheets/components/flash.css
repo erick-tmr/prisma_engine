@@ -1,0 +1,97 @@
+/* Brand flash / system messages. Named .flash (not .alert) so it never
+   collides with Bootstrap's .alert, which the cookie banner relies on.
+   Rails flash keys map to variants via the pg_alert_meta helper. Dismiss
+   is wired to .flash__close in the application-layout glue. */
+
+.flash-stack {
+  max-width: 1320px;
+  margin: 18px auto 0;
+  padding: 0 16px;
+}
+
+.flash {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 13px;
+  border: 1px solid;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #fff;
+  margin-bottom: 18px;
+}
+
+.flash + .flash {
+  margin-top: 10px;
+}
+
+.flash__icon {
+  font-size: 18px;
+  line-height: 1.45;
+  flex-shrink: 0;
+}
+
+.flash__body {
+  flex: 1;
+  min-width: 0;
+  color: var(--pg-ink);
+}
+
+.flash__body strong {
+  font-weight: 700;
+}
+
+.flash__body a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.flash__cta {
+  display: inline-block;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.flash__cta .bi {
+  vertical-align: -2px;
+}
+
+.flash__close {
+  flex-shrink: 0;
+  background: none;
+  border: 0;
+  color: var(--pg-ink);
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 2px;
+  margin: -2px -2px 0 0;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  transition: opacity 0.15s ease;
+}
+
+.flash__close:hover {
+  opacity: 0.85;
+}
+
+.flash--info    { background: #e9f4f2; border-color: #c4e4df; }
+.flash--info    .flash__icon { color: #00736c; }
+
+.flash--success { background: #e6f5ed; border-color: #c7e8d6; }
+.flash--success .flash__icon { color: #1f8a5b; }
+
+.flash--warning { background: #fbf2df; border-color: #efdeb6; }
+.flash--warning .flash__icon { color: #9a7400; }
+
+.flash--danger  { background: #fceef1; border-color: #f2cdd8; }
+.flash--danger  .flash__icon { color: #b80a41; }
+
+.flash__list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.flash__list li { margin-bottom: 2px; }
+.flash__list li:last-child { margin-bottom: 0; }

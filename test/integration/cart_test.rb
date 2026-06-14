@@ -7,11 +7,11 @@ class CartTest < ActionDispatch::IntegrationTest
     get "/carrinho"
     assert_response :success
     assert_match(/Seu carrinho está vazio/, response.body)
-    assert_select ".cart-empty-art i.bi-controller"
-    assert_select ".cart-empty a", text: /Ver catálogo/
+    assert_select ".cart__empty-art i.bi-controller"
+    assert_select ".cart__empty a", text: /Ver catálogo/
     # WhatsApp button is gone from the empty state (the layout's nav-strip social
-    # icon doesn't count; scope the assertion to .cart-empty).
-    assert_select ".cart-empty a[href*='wa.me']", count: 0
+    # icon doesn't count; scope the assertion to .cart__empty).
+    assert_select ".cart__empty a[href*='wa.me']", count: 0
     # Mobile bar isn't rendered when the cart is empty
     assert_select "[data-mobile-bar]", count: 0
     assert_select "[data-cart-count]", text: "0"
@@ -40,7 +40,7 @@ class CartTest < ActionDispatch::IntegrationTest
     get "/carrinho"
     assert_select "[data-head-count]", text: /2 itens/
     assert_select "[data-list-count]", text: /1 produto/
-    assert_select ".cart-item-title", text: /Pokemon Yellow Version/
+    assert_select ".cart-item__title", text: /Pokemon Yellow Version/
   end
 
   test "adding the same product+options merges into one line" do
@@ -112,7 +112,7 @@ class CartTest < ActionDispatch::IntegrationTest
     post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
     post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1, option_ids: [] }
     get "/carrinho"
-    assert_select ".cart-item.is-gotm .chip-edicao", text: /Jogo do Mês/
+    assert_select ".cart-item.is-gotm .chip--edition", text: /Jogo do Mês/
     # Metroid is not in the current GOTM
     assert_select ".cart-item.is-gotm", count: 1
   end
@@ -122,7 +122,7 @@ class CartTest < ActionDispatch::IntegrationTest
     post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
     get "/carrinho"
     assert_response :success
-    assert_select ".chip-edicao", count: 0
+    assert_select ".chip--edition", count: 0
   end
 
   test "finalize bounces a guest to login and remembers the checkout return path" do

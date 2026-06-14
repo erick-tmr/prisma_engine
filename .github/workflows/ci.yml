@@ -552,13 +552,100 @@ jobs:
           license-check: false         # we don't enforce a license policy; skip the unknown-license noise
           comment-summary-in-pr: on-failure
 
+  lighthouse:
+    name: Lighthouse (advisory)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    # Advisory only — never blocks the PR. Scores surface in the sticky
+    # `ci-quality` comment; keep this job OFF main's required-checks list.
+    # @lhci/cli runs via pinned npx (not a project dependency) so it never
+    # reaches the blocking Dependency-review gate.
+    continue-on-error: true
+    services:
+      postgres:
+        image: postgres
+        # Match the production database.yml (user + db name) so the audit runs
+        # in real production mode without DATABASE_URL precedence gymnastics.
+        env:
+          POSTGRES_USER: prisma_engine
+          POSTGRES_PASSWORD: prisma_engine
+          POSTGRES_DB: prisma_engine_production
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+    # Audit a production-config build on localhost (the Lighthouse best practice)
+    # for representative numbers without pointing at the live server. assume_ssl
+    # already neutralizes force_ssl, so there's no http->https redirect to dodge.
+    env:
+      RAILS_ENV: production
+      RAILS_SERVE_STATIC_FILES: "true"
+      PRISMA_ENGINE_DATABASE_PASSWORD: prisma_engine
+    steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      # Production needs a SECRET_KEY_BASE to boot. The audit only serves public
+      # pages, so a throwaway per-run key is fine — generated here (not stored in
+      # the repo) so secret scanners have nothing to flag.
+      - name: Generate a throwaway SECRET_KEY_BASE
+        run: echo "SECRET_KEY_BASE=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Prepare database (schema + catalog seeds)
+        run: bin/rails db:prepare db:seed
+
+      - name: Precompile assets
+        run: bin/rails assets:precompile
+
+      # autorun boots the production server (per .lighthouserc.json), audits the
+      # storefront with the runner's Chrome, and writes reports to .lighthouseci.
+      - name: Run Lighthouse (autorun)
+        run: |
+          mkdir -p tmp
+          npx --yes @lhci/cli@0.14.0 autorun 2>&1 | tee tmp/lighthouse.log || true
+
+      - name: Summarize Lighthouse scores
+        if: ${{ !cancelled() }}
+        run: |
+          M=.lighthouseci/manifest.json
+          {
+            echo "## Lighthouse (advisory)"
+            echo ""
+            if [ -f "$M" ]; then
+              jq -r '.[] | "- **\(.url)** — Perf \((.summary.performance*100)|round) · A11y \((.summary.accessibility*100)|round) · Best-Practices \((.summary["best-practices"]*100)|round) · SEO \((.summary.seo*100)|round)"' "$M" | tee lighthouse-report.txt
+            else
+              echo "(no Lighthouse report produced — see the job log)" | tee lighthouse-report.txt
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Lighthouse report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.txt
+          if-no-files-found: warn
+
   report:
     name: PR quality report
     runs-on: ubuntu-latest
     # always() so the comment still posts (with the uncovered lines) when the
     # blocking coverage gate fails.
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: [ coverage, code_quality, semgrep_diff, test_js ]
+    needs: [ coverage, code_quality, semgrep_diff, test_js, lighthouse ]
     permissions:
       contents: read
       pull-requests: write   # required for the sticky comment
@@ -600,6 +687,9 @@ jobs:
             echo '```'
             cat artifacts/semgrep-findings/semgrep-findings.txt 2>/dev/null || echo "n/a"
             echo '```'
+            echo "### Lighthouse (advisory)"
+            cat artifacts/lighthouse-report/lighthouse-report.txt 2>/dev/null || echo "n/a"
+            echo ""
             echo "_Brakeman findings appear under **Security ▸ Code scanning**. Secret-scan and dependency-review report inline on failure._"
           } > comment.md
 

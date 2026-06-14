@@ -8,20 +8,20 @@
 <%
   grouped_options = line.product.product_options.in_display_order.group_by(&:group_name)
 %>
-<div class="cart-item<%= ' is-gotm' if is_gotm %>" data-row="<%= line.id %>">
-  <div class="cart-item-thumb">
+<div class="cart-item<%= ' is-gotm' if is_gotm %>" data-cart-item data-row="<%= line.id %>">
+  <div class="cart-item__thumb">
     <% if line.product.image.present? %>
       <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
     <% end %>
   </div>
 
   <div>
-    <p class="cart-item-cat"><%= line.product.category_label %></p>
-    <p class="cart-item-title"><%= line.product.title %></p>
+    <p class="cart-item__cat"><%= line.product.category_label %></p>
+    <p class="cart-item__title"><%= line.product.title %></p>
 
-    <div class="cart-item-meta">
+    <div class="cart-item__meta">
       <% if is_gotm %>
-        <span class="chip chip-edicao"><i class="bi bi-stars"></i>Jogo do Mês</span>
+        <span class="chip chip--edition"><i class="bi bi-stars"></i>Jogo do Mês</span>
       <% end %>
       <% grouped_options.each_key do |group_name| %>
         <% selected = line.selected_for(group_name) %>
@@ -37,19 +37,19 @@
     </div>
 
     <% if grouped_options.any? %>
-      <button type="button" class="variant-edit-btn" data-edit-toggle>
+      <button type="button" class="cart-item__edit-btn" data-edit-toggle>
         <i class="bi bi-sliders2"></i>
-        <span class="lbl-open">Editar variações</span>
-        <span class="lbl-close">Fechar variações</span>
+        <span class="cart-item__edit-open">Editar variações</span>
+        <span class="cart-item__edit-close">Fechar variações</span>
       </button>
 
-      <%= form_with url: cart_item_path(line.id), method: :patch, local: true, class: "variant-editor", data: { variant_form: true } do %>
+      <%= form_with url: cart_item_path(line.id), method: :patch, local: true, class: "cart-item__editor", data: { variant_form: true } do %>
         <% grouped_options.each do |group_name, opts| %>
           <% selected = line.selected_for(group_name) %>
           <%= hidden_field_tag "option_ids[]", selected&.id, data: { variant_group: group_name } %>
-          <div class="vgroup">
-            <div class="vgroup-label"><i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %></div>
-            <div class="vpills">
+          <div class="variant-group">
+            <div class="variant-group__label"><i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %></div>
+            <div class="variant-pills">
               <% opts.each do |opt| %>
                 <%
                   is_sel = selected&.id == opt.id
@@ -57,11 +57,12 @@
                   delta_label = opt.price_delta_cents.positive? ? "+#{HasMoney.format(opt.price_delta_cents)}" : nil
                 %>
                 <button type="button"
-                        class="vpill<%= ' sel' if is_sel %>"
+                        class="variant-pill<%= ' is-selected' if is_sel %>"
+                        data-vpill
                         data-vgroup="<%= group_name %>"
                         data-vopt="<%= opt.id %>">
                   <%= opt.name %><%= " #{flag}" if flag %>
-                  <% if delta_label %><span class="vdelta"><%= delta_label %></span><% end %>
+                  <% if delta_label %><span class="variant-pill__delta"><%= delta_label %></span><% end %>
                 </button>
               <% end %>
             </div>
@@ -70,7 +71,7 @@
       <% end %>
     <% end %>
 
-    <div class="cart-item-controls">
+    <div class="cart-item__controls">
       <%= form_with url: cart_item_path(line.id), method: :patch, local: true, class: "cart-stepper", data: { stepper_form: true } do %>
         <button type="button" data-dec aria-label="Diminuir" <%= "disabled" if line.quantity <= 1 %>><i class="bi bi-dash"></i></button>
         <input type="number" name="quantity" value="<%= line.quantity %>" min="1" max="99" data-qty aria-label="Quantidade">
@@ -79,7 +80,7 @@
 
       <%= button_to cart_item_path(line.id),
                     method: :delete,
-                    class: "cart-item-remove",
+                    class: "cart-item__remove",
                     form: { data: { turbo: false } },
                     data: { confirm: "Remover este item do carrinho?" } do %>
         <i class="bi bi-trash3"></i> Remover
@@ -87,8 +88,8 @@
     </div>
   </div>
 
-  <div class="cart-item-prices">
-    <div class="cart-item-line-total"><%= line.line_total_formatted %></div>
-    <div class="cart-item-unit"><%= line.unit_price_formatted %> / un.</div>
+  <div class="cart-item__prices">
+    <div class="cart-item__total"><%= line.line_total_formatted %></div>
+    <div class="cart-item__unit"><%= line.unit_price_formatted %> / un.</div>
   </div>
 </div>

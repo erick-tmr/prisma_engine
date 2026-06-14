@@ -25,7 +25,7 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match(/Pagamento em processamento/, response.body)        # awaiting webhook confirmation
-    assert_select ".pay-return.state-pending"
+    assert_select ".pay-return.pay-return--pending"
     assert_select "[data-countdown][data-deadline]"                  # 24h cancel countdown
     order.reload
     assert_equal "txn-123", order.external_id
@@ -42,7 +42,7 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match(/Pagamento confirmado/, response.body)
-    assert_select ".pay-return.state-success"
+    assert_select ".pay-return.pay-return--success"
   end
 
   test "GET /checkout/retorno shows the failed state for a cancelled order" do
@@ -54,7 +54,7 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match(/cancelado por falta de pagamento/i, response.body)
-    assert_select ".pay-return.state-failed"
+    assert_select ".pay-return.pay-return--failed"
   end
 
   test "GET /checkout/retorno shows the failed state once an unpaid order passes the deadline" do
@@ -66,7 +66,7 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select ".pay-return.state-failed"
+    assert_select ".pay-return.pay-return--failed"
     assert order.reload.awaiting_payment?, "the page computes failed from the deadline; the job persists the cancel"
   end
 
@@ -88,8 +88,8 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     get checkout_return_path, params: { order_nsu: order.number }
 
     assert_response :success
-    assert_select ".pay-return.state-pending .pay-status", text: /Aguardando/
-    assert_select ".info-cell .strong", text: "Pix", count: 0
+    assert_select ".pay-return.pay-return--pending .pay-return__pay-status", text: /Aguardando/
+    assert_select ".pay-return__info-cell .strong", text: "Pix", count: 0
     assert_no_match(/Cartão de crédito/, response.body)
   end
 

@@ -27,11 +27,11 @@ export function createCheckout(doc, openTab, navigate) {
     const methodEl = doc.querySelector("[data-ship-method]");
     if (shipping) {
       shipEl.textContent = money(shipping.price);
-      shipEl.classList.remove("pending");
+      shipEl.classList.remove("is-pending");
       methodEl.textContent = "· " + shipping.label;
     } else {
       shipEl.textContent = "Selecione o envio";
-      shipEl.classList.add("pending");
+      shipEl.classList.add("is-pending");
       methodEl.textContent = "";
     }
     doc.querySelector("[data-total]").textContent = money(total);
@@ -40,36 +40,36 @@ export function createCheckout(doc, openTab, navigate) {
   }
 
   function selectShip(el, services) {
-    shipOpts.querySelectorAll(".ship-opt").forEach(function (o) { o.classList.remove("sel"); });
-    el.classList.add("sel");
+    shipOpts.querySelectorAll("[data-ship-opt]").forEach(function (o) { o.classList.remove("is-selected"); });
+    el.classList.add("is-selected");
     const s = services.find(function (x) { return String(x.key) === el.dataset.opt; });
     shipping = { method: s.key, label: s.label, price: s.price_cents };
     serviceInput.value = s.key;
-    shipStep.classList.remove("invalid");
-    shipStep.classList.add("step-done");
-    shipFlag.style.display = "inline-flex";
-    payError.classList.remove("show");
+    shipStep.classList.remove("is-invalid");
+    shipStep.classList.add("is-done");
+    shipFlag.classList.add("is-visible");
+    payError.classList.remove("is-visible");
     renderSummary();
   }
 
   function renderQuote(data) {
     shipOpts.innerHTML = data.services.map(function (s) {
       if (s.eligible) {
-        const fast = s.key === "sedex" ? '<span class="tag">Mais rápido</span>' : "";
-        return '<label class="ship-opt" data-opt="' + s.key + '">'
-          + '<span class="ship-radio"></span>'
-          + '<span class="ship-info">'
-          +   '<span class="ship-name">' + s.label + fast + "</span>"
-          +   '<span class="ship-eta"><i class="bi bi-clock"></i> Entrega em ' + s.business_days + " dias úteis</span>"
+        const fast = s.key === "sedex" ? '<span class="checkout__ship-tag">Mais rápido</span>' : "";
+        return '<label class="checkout__ship-opt" data-ship-opt data-opt="' + s.key + '">'
+          + '<span class="checkout__ship-radio"></span>'
+          + '<span class="checkout__ship-info">'
+          +   '<span class="checkout__ship-name">' + s.label + fast + "</span>"
+          +   '<span class="checkout__ship-eta"><i class="bi bi-clock"></i> Entrega em ' + s.business_days + " dias úteis</span>"
           + "</span>"
-          + '<span class="ship-price">' + money(s.price_cents) + "</span>"
+          + '<span class="checkout__ship-price">' + money(s.price_cents) + "</span>"
           + "</label>";
       }
-      return '<div class="ship-opt disabled" data-opt-disabled="' + s.key + '">'
-        + '<span class="ship-radio"></span>'
-        + '<span class="ship-info">'
-        +   '<span class="ship-name">' + s.label + "</span>"
-        +   '<span class="ship-eta">' + s.message + "</span>"
+      return '<div class="checkout__ship-opt is-disabled" data-ship-opt data-opt-disabled="' + s.key + '">'
+        + '<span class="checkout__ship-radio"></span>'
+        + '<span class="checkout__ship-info">'
+        +   '<span class="checkout__ship-name">' + s.label + "</span>"
+        +   '<span class="checkout__ship-eta">' + s.message + "</span>"
         + "</span>"
         + "</div>";
     }).join("");
@@ -84,7 +84,7 @@ export function createCheckout(doc, openTab, navigate) {
   }
 
   function showShipError(msg) {
-    shipOpts.innerHTML = '<p class="ship-error"><i class="bi bi-exclamation-circle-fill"></i> ' + msg + "</p>";
+    shipOpts.innerHTML = '<p class="checkout__ship-error"><i class="bi bi-exclamation-circle-fill"></i> ' + msg + "</p>";
     shipping = null;
     serviceInput.value = "";
     renderSummary();
@@ -113,27 +113,27 @@ export function createCheckout(doc, openTab, navigate) {
     set("[data-sel-street]", opt.dataset.street);
     set("[data-sel-line1]", opt.dataset.line1);
     set("[data-sel-line2]", opt.dataset.line2);
-    doc.querySelector("[data-sel-badge]").style.display = opt.dataset.default === "1" ? "inline-flex" : "none";
+    doc.querySelector("[data-sel-badge]").classList.toggle("is-hidden", opt.dataset.default !== "1");
     shipDest.textContent = opt.dataset.city + " · CEP " + opt.dataset.cep.replace(/(\d{5})(\d{3})/, "$1-$2");
   }
 
   function selectAddress(opt) {
-    doc.querySelectorAll("[data-addr-opt]").forEach(function (o) { o.classList.remove("sel"); });
-    opt.classList.add("sel");
+    doc.querySelectorAll("[data-addr-opt]").forEach(function (o) { o.classList.remove("is-selected"); });
+    opt.classList.add("is-selected");
     opt.querySelector('input[name="address_id"]').checked = true;
     fillSelected(opt);
-    doc.querySelector("[data-addr-list]").classList.remove("open");
-    doc.querySelector("[data-addr-form]").classList.remove("open");
-    doc.querySelector("#step-address").classList.add("step-done");
+    doc.querySelector("[data-addr-list]").classList.remove("is-open");
+    doc.querySelector("[data-addr-form]").classList.remove("is-open");
+    doc.querySelector("#step-address").classList.add("is-done");
     fetchQuote(opt.dataset.cep);
   }
 
   function failPayment(payTab, message) {
     if (payTab) payTab.close();
     submitting = false;
-    overlay.classList.remove("show");
+    overlay.classList.remove("is-visible");
     doc.querySelector("[data-pay-error-msg]").textContent = message;
-    payError.classList.add("show");
+    payError.classList.add("is-visible");
   }
 
   async function startPayment(payTab) {
@@ -165,38 +165,38 @@ export function createCheckout(doc, openTab, navigate) {
     const addrForm = doc.querySelector("[data-addr-form]");
 
     doc.querySelector("[data-addr-change-btn]").addEventListener("click", function () {
-      if (!addrList.classList.toggle("open")) addrForm.classList.remove("open");
+      if (!addrList.classList.toggle("is-open")) addrForm.classList.remove("is-open");
     });
     doc.querySelectorAll("[data-addr-opt]").forEach(function (opt) {
       opt.addEventListener("click", function () { selectAddress(opt); });
     });
     doc.querySelector("[data-addr-add-btn]").addEventListener("click", function () {
-      addrForm.classList.toggle("open");
+      addrForm.classList.toggle("is-open");
     });
     doc.querySelector("[data-addr-cancel]").addEventListener("click", function () {
-      addrForm.classList.remove("open");
+      addrForm.classList.remove("is-open");
     });
 
     checkoutForm.addEventListener("submit", function (e) {
       e.preventDefault();
       if (submitting) return;
       if (!serviceInput.value) {
-        shipStep.classList.add("invalid");
-        shipStep.classList.remove("step-done");
-        payError.classList.add("show");
+        shipStep.classList.add("is-invalid");
+        shipStep.classList.remove("is-done");
+        payError.classList.add("is-visible");
         shipStep.scrollIntoView({ block: "center", behavior: "smooth" });
         return;
       }
       submitting = true;
       const payTab = openTab();
-      overlay.classList.add("show");
+      overlay.classList.add("is-visible");
       startPayment(payTab);
     });
   }
 
   function init() {
     bindEvents();
-    const selected = doc.querySelector("[data-addr-opt].sel") || doc.querySelector("[data-addr-opt]");
+    const selected = doc.querySelector("[data-addr-opt].is-selected") || doc.querySelector("[data-addr-opt]");
     if (selected) fetchQuote(selected.dataset.cep);
     else renderSummary();
   }

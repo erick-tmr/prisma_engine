@@ -12,16 +12,16 @@ function mountCart({ subtotalCents = 48500, finalizeForms = 2 } = {}) {
   document.head.innerHTML = '<meta name="csrf-token" content="test-token">';
   document.body.innerHTML = `
     <section data-cart-shipping data-quote-url="/carrinho/frete">
-      <input data-cep>
+      <input class="frete__cep" data-cep>
       <button data-calc>Calcular</button>
-      <div class="cep-err" data-cep-err>CEP inválido.</div>
-      <div class="frete-dest" data-dest>
+      <div class="frete__cep-err" data-cep-err>CEP inválido.</div>
+      <div class="frete__dest" data-dest>
         Entrega para <strong data-dest-city></strong>
         <a href="#" data-dest-change>alterar</a>
       </div>
-      <div class="ship-opts" data-ship-opts></div>
+      <div class="ship-options" data-ship-opts></div>
     </section>
-    <div class="sum-body">
+    <div class="cart-summary__body">
       <span data-subtotal data-subtotal-cents="${subtotalCents}">R$ 485,00</span>
       <span data-ship-method></span>
       <span data-shipping>a calcular</span>
@@ -70,17 +70,17 @@ describe("createCartShipping", () => {
     cart = createCartShipping(root);
   });
 
-  it("clearCepError / showCepError toggle the error classes", () => {
+  it("clearCepError / showCepError toggle the error state classes", () => {
     cart.showCepError("Correios indisponível.");
     const input = root.querySelector("[data-cep]");
     const err = root.querySelector("[data-cep-err]");
-    expect(input.classList.contains("err")).toBe(true);
-    expect(err.classList.contains("show")).toBe(true);
+    expect(input.classList.contains("is-error")).toBe(true);
+    expect(err.classList.contains("is-visible")).toBe(true);
     expect(err.textContent).toBe("Correios indisponível.");
 
     cart.clearCepError();
-    expect(input.classList.contains("err")).toBe(false);
-    expect(err.classList.contains("show")).toBe(false);
+    expect(input.classList.contains("is-error")).toBe(false);
+    expect(err.classList.contains("is-visible")).toBe(false);
   });
 
   it("renderSummary shows 'a calcular' with no selection and adds frete once selected", () => {
@@ -98,9 +98,9 @@ describe("createCartShipping", () => {
     cart.renderQuote(QUOTE);
     const opts = root.querySelector("[data-ship-opts]");
     expect(root.querySelector("[data-dest-city]").textContent).toBe("São Paulo, SP");
-    expect(opts.querySelectorAll("label.ship-opt[data-opt]").length).toBe(2);
+    expect(opts.querySelectorAll("label.ship-option[data-opt]").length).toBe(2);
     expect(opts.querySelector('[data-opt-disabled="mini_envios"]')).not.toBeNull();
-    expect(opts.querySelector('[data-opt="pac"]').classList.contains("sel")).toBe(true);
+    expect(opts.querySelector('[data-opt="pac"]').classList.contains("is-selected")).toBe(true);
     expect(cart.shipping.method).toBe("pac");
   });
 
@@ -108,8 +108,8 @@ describe("createCartShipping", () => {
   it("renderQuote clears a stale CEP error on a successful retry", () => {
     cart.showCepError("Correios indisponível. Tente novamente em instantes.");
     cart.renderQuote(QUOTE);
-    expect(root.querySelector("[data-cep]").classList.contains("err")).toBe(false);
-    expect(root.querySelector("[data-cep-err]").classList.contains("show")).toBe(false);
+    expect(root.querySelector("[data-cep]").classList.contains("is-error")).toBe(false);
+    expect(root.querySelector("[data-cep-err]").classList.contains("is-visible")).toBe(false);
   });
 
   // Regression for the checkout carry-over: the chosen service is stashed on
@@ -174,7 +174,7 @@ describe("createCartShipping", () => {
       input.value = "01310100";
       input.dispatchEvent(new window.Event("input", { bubbles: true }));
       expect(input.value).toBe("01310-100");
-      expect(root.querySelector("[data-cep-err]").classList.contains("show")).toBe(false);
+      expect(root.querySelector("[data-cep-err]").classList.contains("is-visible")).toBe(false);
     });
 
     it("rejects a short CEP on Calcular without calling the server", () => {
@@ -245,7 +245,7 @@ describe("createCartShipping", () => {
       await cart.fetchQuote("01310100");
 
       const err = root.querySelector("[data-cep-err]");
-      expect(err.classList.contains("show")).toBe(true);
+      expect(err.classList.contains("is-visible")).toBe(true);
       expect(err.textContent).toBe("Correios indisponível. Tente novamente em instantes.");
     });
 
@@ -287,7 +287,7 @@ describe("createCartShipping", () => {
   describe("restore", () => {
     it("renders a cached quote and re-selects the remembered service", () => {
       cart.restore(QUOTE, "sedex");
-      expect(root.querySelector('[data-opt="sedex"]').classList.contains("sel")).toBe(true);
+      expect(root.querySelector('[data-opt="sedex"]').classList.contains("is-selected")).toBe(true);
       expect(cart.shipping.method).toBe("sedex");
     });
 
@@ -309,12 +309,12 @@ describe("bindCartLines", () => {
   beforeEach(() => {
     submit = vi.spyOn(window.HTMLFormElement.prototype, "requestSubmit").mockImplementation(() => {});
     document.body.innerHTML = `
-      <div class="cart-item">
+      <div class="cart-item" data-cart-item>
         <button data-edit-toggle></button>
         <form data-variant-form>
           <input type="hidden" data-variant-group="lang" value="">
-          <button class="vpill" data-vgroup="lang" data-vopt="pt"></button>
-          <button class="vpill sel" data-vgroup="lang" data-vopt="en"></button>
+          <button data-vpill data-vgroup="lang" data-vopt="pt"></button>
+          <button data-vpill class="is-selected" data-vgroup="lang" data-vopt="en"></button>
         </form>
         <form data-stepper-form>
           <input data-qty value="2">
@@ -328,16 +328,16 @@ describe("bindCartLines", () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
   it("toggles the edit state", () => {
-    const item = document.querySelector(".cart-item");
+    const item = document.querySelector("[data-cart-item]");
     document.querySelector("[data-edit-toggle]").dispatchEvent(new window.Event("click", { bubbles: true }));
-    expect(item.classList.contains("editing")).toBe(true);
+    expect(item.classList.contains("is-editing")).toBe(true);
   });
 
   it("selecting a variant pill updates the hidden input and submits", () => {
-    document.querySelector('.vpill[data-vopt="pt"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    document.querySelector('[data-vpill][data-vopt="pt"]').dispatchEvent(new window.Event("click", { bubbles: true }));
     expect(document.querySelector('input[data-variant-group="lang"]').value).toBe("pt");
-    expect(document.querySelector('.vpill[data-vopt="pt"]').classList.contains("sel")).toBe(true);
-    expect(document.querySelector('.vpill[data-vopt="en"]').classList.contains("sel")).toBe(false);
+    expect(document.querySelector('[data-vpill][data-vopt="pt"]').classList.contains("is-selected")).toBe(true);
+    expect(document.querySelector('[data-vpill][data-vopt="en"]').classList.contains("is-selected")).toBe(false);
     expect(submit).toHaveBeenCalled();
   });
 

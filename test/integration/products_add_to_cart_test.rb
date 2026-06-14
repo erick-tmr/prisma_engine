@@ -6,15 +6,15 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_select "[data-pdp-form]" do
-      assert_select ".pdp-variants .vgroup", count: 2 # Idioma + Caixa
+      assert_select ".product-detail__variants .variant-group", count: 2 # Idioma + Caixa
       assert_select "input[name='option_ids[]'][data-variant-group='Idioma']"
       assert_select "input[name='option_ids[]'][data-variant-group='Caixa']"
       # First option per group is preselected
-      assert_select ".vgroup", text: /Idioma/i do
-        assert_select ".vpill.sel", text: /Português BR/
+      assert_select ".variant-group", text: /Idioma/i do
+        assert_select ".variant-pill.is-selected", text: /Português BR/
       end
-      assert_select ".vgroup", text: /Caixa/i do
-        assert_select ".vpill.sel", text: /Com caixa/
+      assert_select ".variant-group", text: /Caixa/i do
+        assert_select ".variant-pill.is-selected", text: /Com caixa/
       end
     end
   end
@@ -22,7 +22,7 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
   test "PDP for a product with no options skips the variants block but still adds to cart" do
     get product_path(slug: products(:metroid).slug)
     assert_response :success
-    assert_select ".pdp-variants", count: 0
+    assert_select ".product-detail__variants", count: 0
 
     post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1 }
     assert_redirected_to product_path(products(:metroid))
@@ -33,8 +33,8 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1 }
     follow_redirect!
     assert_response :success
-    assert_select ".pg-alert-success", text: /adicionado ao carrinho/i
-    assert_select ".pg-alert a.pg-alert-cta[href=?]", cart_path
+    assert_select ".flash--success", text: /adicionado ao carrinho/i
+    assert_select ".flash a.flash__cta[href=?]", cart_path
   end
 
   test "POST cart_items rejects foreign option_ids that do not belong to the product" do

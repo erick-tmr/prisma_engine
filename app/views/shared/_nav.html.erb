@@ -1,77 +1,75 @@
-<nav class="pg-nav-strip" aria-label="Categorias">
-  <div class="pg-nav-inner">
+<nav class="nav-strip" aria-label="Categorias">
+  <div class="nav-strip__inner">
 
-    <div class="pg-cats">
+    <div class="nav-strip__cats">
       <%= link_to category_path(slug: "game-boy-classic", category_id: 351512),
-                  class: "cat-link", title: "Game Boy", "aria-label": "Game Boy" do %>
+                  class: "nav-strip__cat", title: "Game Boy", "aria-label": "Game Boy" do %>
         <img src="/images/nav-logos/game-boy-classic.svg"
-             alt="Game Boy"
-             class="cat-logo" loading="lazy">
+             alt="Game Boy" loading="lazy">
       <% end %>
 
       <%= link_to category_path(slug: "game-boy-color", category_id: 354342),
-                  class: "cat-link", title: "Game Boy Color", "aria-label": "Game Boy Color" do %>
+                  class: "nav-strip__cat", title: "Game Boy Color", "aria-label": "Game Boy Color" do %>
         <img src="/images/nav-logos/game-boy-color.svg"
-             alt="Game Boy Color"
-             class="cat-logo" loading="lazy">
+             alt="Game Boy Color" loading="lazy">
       <% end %>
 
       <%# Add more categories here as logo SVGs are produced. For a category
-          without a logo yet, use a cat-link wrapping a <span class="cat-fallback">
-          with the short label (e.g. "DS") instead of an <img class="cat-logo">. %>
+          without a logo yet, use a nav-strip__cat wrapping a
+          <span class="nav-strip__fallback"> with the short label (e.g. "DS"). %>
     </div>
 
-    <div class="pg-right">
+    <div class="nav-strip__right">
       <%# Order: WhatsApp → Instagram → Central Prisma (LAST) %>
 
       <a href="<%= social_links[:whatsapp] %>"
          target="_blank" rel="noopener noreferrer"
-         class="pg-social pg-social-wa" aria-label="WhatsApp">
+         class="nav-strip__social nav-strip__social--wa" aria-label="WhatsApp">
         <i class="bi bi-whatsapp" aria-hidden="true"></i>
       </a>
 
       <a href="<%= social_links[:instagram] %>"
          target="_blank" rel="noopener noreferrer"
-         class="pg-social pg-social-ig" aria-label="Instagram">
+         class="nav-strip__social nav-strip__social--ig" aria-label="Instagram">
         <i class="bi bi-instagram" aria-hidden="true"></i>
       </a>
 
-      <div class="pg-links-wrap">
-        <div class="pg-links-anchor">
+      <div class="links-menu">
+        <div class="links-menu__anchor">
           <button type="button"
-                  class="pg-links-btn"
+                  class="links-menu__btn"
                   aria-haspopup="menu"
                   aria-expanded="false"
                   data-links-menu="trigger">
-            <span class="pg-pulse-dot" aria-hidden="true"></span>
+            <span class="links-menu__pulse" aria-hidden="true"></span>
             Central Prisma
-            <i class="bi bi-chevron-down pg-links-chevron pg-links-chevron-down" aria-hidden="true"></i>
-            <i class="bi bi-chevron-up pg-links-chevron pg-links-chevron-up" aria-hidden="true"></i>
+            <i class="bi bi-chevron-down links-menu__chevron links-menu__chevron--down" aria-hidden="true"></i>
+            <i class="bi bi-chevron-up links-menu__chevron links-menu__chevron--up" aria-hidden="true"></i>
           </button>
 
-          <div class="pg-links-panel" role="menu" data-links-menu="panel" hidden>
-            <div class="pg-links-section-title">
-              <i class="bi bi-youtube" style="color: var(--pg-yt);" aria-hidden="true"></i> Parceiros YouTube
+          <div class="links-menu__panel" role="menu" data-links-menu="panel" hidden>
+            <div class="links-menu__section-title">
+              <i class="bi bi-youtube links-menu__yt-ic" aria-hidden="true"></i> Parceiros YouTube
             </div>
-            <div class="pg-links-grid">
+            <div class="links-menu__grid">
               <% nav_partners.each do |p| %>
-                <%= link_to p[:url], class: "pg-links-row", target: "_blank", rel: "noopener noreferrer" do %>
-                  <span class="pg-links-av" style="background: <%= p[:gradient] %>;"><%= p[:initial] %></span>
-                  <span class="pg-links-meta">
+                <%= link_to p[:url], class: "links-menu__row", target: "_blank", rel: "noopener noreferrer" do %>
+                  <span class="partner-avatar" style="--avatar-gradient: <%= p[:gradient] %>;"><%= p[:initial] %></span>
+                  <span class="partner-meta">
                     <strong><%= p[:name] %></strong>
                     <small><%= p[:tagline] %></small>
                   </span>
-                  <i class="bi bi-youtube pg-links-yt" aria-hidden="true"></i>
+                  <i class="bi bi-youtube partner-yt" aria-hidden="true"></i>
                 <% end %>
               <% end %>
             </div>
 
             <hr>
 
-            <div class="pg-links-section-title">
+            <div class="links-menu__section-title">
               <i class="bi bi-bookmark-star" aria-hidden="true"></i> Páginas úteis
             </div>
-            <div class="pg-links-list">
+            <div class="links-menu__list">
               <%= link_to perguntas_frequentes_path do %><i class="bi bi-question-circle" aria-hidden="true"></i> Perguntas frequentes<% end %>
               <%= link_to recomendacao_de_jogos_path do %><i class="bi bi-stars" aria-hidden="true"></i> Recomendação de jogos<% end %>
               <%= link_to reviews_path do %><i class="bi bi-chat-quote" aria-hidden="true"></i> Reviews da loja<% end %>

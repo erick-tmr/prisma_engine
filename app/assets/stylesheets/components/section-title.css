@@ -1,0 +1,107 @@
+/* Homepage / category section wrapper + its centered logo title with the
+   animated rainbow bar. The .rainbow-bar primitive is shared (account
+   panels, order status banner) — its base lives here, sized per context. */
+
+.section {
+  max-width: 1320px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.section-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0 28px;
+  min-height: 80px;
+}
+
+.section-title__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.18s ease;
+}
+
+.section-title__logo:hover {
+  transform: translateY(-1px);
+}
+
+/* Bare SVG wordmark — both classic + color SVGs are calibrated to render
+   the GAME BOY caps at the same height here. */
+.section-title__logo img {
+  height: 48px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+}
+
+.section-title .rainbow-bar {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.section-title__see-all {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pg-ink);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-title__see-all i {
+  font-size: 13px;
+  transition: transform 0.18s ease;
+}
+
+.section-title__see-all:hover i {
+  transform: translateX(3px);
+}
+
+@media (max-width: 767.98px) {
+  .section-title {
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    margin: 20px 0 22px;
+  }
+  .section-title__see-all {
+    position: static;
+    transform: none;
+    top: auto;
+    right: auto;
+  }
+  .section-title__logo img {
+    height: 40px;
+    max-width: 80vw;
+  }
+}
+
+@media (max-width: 520px) {
+  /* The centered logo links to the same category, so the separate
+     "Ver tudo" link is redundant on a narrow phone. */
+  .section-title__see-all {
+    display: none;
+  }
+  .section-title__logo img {
+    height: 36px;
+  }
+}

@@ -8,21 +8,20 @@
     Game Boy Color variant). %>
 <% logo ||= slug %>
 
-<div class="block-title-wrap">
+<div class="section-title">
   <%= link_to category_path(slug: slug, category_id: category_id),
-              class: "block-title-logo", "aria-label": "Ver tudo de #{label}" do %>
-    <div class="block-title-center">
+              class: "section-title__logo", "aria-label": "Ver tudo de #{label}" do %>
+    <div class="section-title__center">
       <img src="/images/nav-logos/<%= logo %>.svg"
-           alt="<%= label %>"
-           class="cat-logo" loading="lazy">
+           alt="<%= label %>" loading="lazy">
       <span class="rainbow-bar" aria-hidden="true"></span>
     </div>
   <% end %>
 
-  <h2 class="block-title sr-only"><%= label %></h2>
+  <h2 class="sr-only"><%= label %></h2>
 
   <%= link_to category_path(slug: slug, category_id: category_id),
-              class: "ver-tudo" do %>
+              class: "section-title__see-all" do %>
     Ver tudo <i class="bi bi-arrow-right" aria-hidden="true"></i>
   <% end %>
 </div>
