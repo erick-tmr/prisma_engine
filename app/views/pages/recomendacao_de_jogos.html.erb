@@ -1,12 +1,7 @@
 <% content_for :title, "Recomendação de jogos — Prisma Games" %>
 
 <div class="container py-4">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb bg-transparent p-0 small">
-      <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
-      <li class="breadcrumb-item active" aria-current="page">Recomendação de jogos</li>
-    </ol>
-  </nav>
+  <%= render "shared/breadcrumb", crumbs: [["Início", root_path]], current: "Recomendação de jogos" %>
 
   <h1 class="h3 mb-3">Recomendação de jogos</h1>
   <p class="text-muted mb-4">

@@ -1,0 +1,35 @@
+/* Breadcrumb — shared trail rendered by shared/_breadcrumb. Chevron-separated
+   links in muted grey that darken to ink on hover, with the current page in
+   ink. Overrides Bootstrap's .breadcrumb defaults (loaded after it). */
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 18px 2px 14px;
+  font-size: 13px;
+  color: var(--pg-muted);
+  list-style: none;
+}
+
+.breadcrumb__link {
+  color: var(--pg-muted);
+  text-decoration: none;
+}
+
+.breadcrumb__link:hover,
+.breadcrumb__link:focus {
+  color: var(--pg-ink);
+}
+
+.breadcrumb__sep {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.breadcrumb__current {
+  color: var(--pg-ink);
+  font-weight: 500;
+}

@@ -3,94 +3,139 @@
   <%= stylesheet_link_tag "components/variant", "pages/product" %>
 <% end %>
 
-<div class="container">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb bg-transparent p-0 small">
-      <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
-      <li class="breadcrumb-item"><%= link_to "Catálogo", products_path %></li>
-      <li class="breadcrumb-item">
-        <%= link_to @product.category_label, category_path(slug: @product.category.slug) %>
-      </li>
-      <li class="breadcrumb-item active" aria-current="page"><%= @product.title %></li>
-    </ol>
-  </nav>
+<% photos = @product.product_photos.in_display_order.select { |p| p.image.attached? } %>
+<% main_src = photos.first ? rails_blob_path(photos.first.image, only_path: true) : @product.image %>
 
-  <div class="row">
-    <div class="col-md-6 mb-4">
-      <% if @product.image.present? %>
-        <a href="<%= @product.image %>" data-fancybox="product-gallery" class="d-block">
-          <img src="<%= @product.image %>" alt="<%= @product.title %>" class="img-fluid rounded shadow-sm">
-        </a>
+<div class="pdp">
+  <%= render "shared/breadcrumb",
+        crumbs: [["Início", root_path], ["Catálogo", products_path],
+                 [@product.category_label, category_path(slug: @product.category.slug)]],
+        current: @product.title %>
+
+  <div class="pdp-grid">
+    <%# ── Gallery ─────────────────────────────────────────── %>
+    <div class="gallery">
+      <div class="gallery-main">
+        <% if main_src.present? %>
+          <a href="<%= main_src %>" class="gallery-main__zoom" data-fancybox="product-gallery" data-main-zoom>
+            <img src="<%= main_src %>" alt="<%= @product.title %>" data-main-img>
+          </a>
+        <% end %>
+      </div>
+
+      <% if photos.size > 1 %>
+        <div class="gallery-thumbs">
+          <% photos.each_with_index do |photo, index| %>
+            <% src = rails_blob_path(photo.image, only_path: true) %>
+            <button type="button" class="thumb<%= ' is-selected' if index.zero? %>" data-thumb data-src="<%= src %>">
+              <img src="<%= src %>" alt="<%= photo.alt_text.presence || @product.title %>">
+              <% if photo.alt_text.present? %><span class="thumb__tag"><%= photo.alt_text %></span><% end %>
+            </button>
+          <% end %>
+        </div>
       <% end %>
     </div>
 
-    <div class="col-md-6">
-      <h1 class="h3 mb-2"><%= @product.title %></h1>
-      <p class="text-muted small mb-3">
-        <%= @product.category_label %>
-      </p>
-
-      <div class="bg-light p-3 rounded mb-3">
-        <p class="text-muted small mb-1">A partir de</p>
-        <p class="h3 mb-0"><%= @product.price_formatted %></p>
+    <%# ── Buy box ─────────────────────────────────────────── %>
+    <div class="buy">
+      <div class="buy__eyebrow">
+        <span class="buy__cat"><%= @product.category_label %></span>
+        <% if @gotm %>
+          <span class="mes-pill"><i class="bi bi-stars"></i> Jogo do Mês · <%= gotm_month_name(@gotm.month) %> <%= @gotm.year %></span>
+        <% end %>
       </div>
 
-      <%= form_with url: cart_items_path, method: :post, local: true, data: { pdp_form: true } do %>
+      <h1 class="buy__title"><%= @product.title %></h1>
+
+      <% if @gotm %>
+        <section class="mes-panel" aria-label="Jogo do Mês">
+          <div class="mes-panel__head">
+            <h2 class="mes-panel__title">É o Jogo do Mês na Prisma</h2>
+            <span class="mes-panel__month">Edição de <%= gotm_month_name(@gotm.month) %> · <%= @gotm.year %></span>
+          </div>
+          <p class="mes-panel__lead">Todo mês elegemos um clássico e mandamos junto um <b>kit de brindes colecionáveis</b> — sem custo extra.</p>
+          <% brindes = @gotm.brindes.in_display_order %>
+          <% if brindes.any? %>
+            <div class="mes-incl">
+              <% brindes.each do |brinde| %>
+                <span><i class="bi bi-check2"></i> <%= brinde.caption %></span>
+              <% end %>
+            </div>
+          <% end %>
+          <div class="mes-deadline" data-gotm-countdown data-gotm-year="<%= @gotm.year %>" data-gotm-month="<%= @gotm.month %>">
+            <i class="bi bi-clock-history"></i>
+            <span>Os brindes acompanham o jogo <b>enquanto for o destaque do mês</b> — <b data-countdown-text>termina em breve</b>.</span>
+          </div>
+        </section>
+      <% end %>
+
+      <div class="price-box">
+        <span class="price-now tnum" data-price><%= @product.price_formatted %></span>
+      </div>
+
+      <%= form_with url: cart_items_path, method: :post, local: true,
+            data: { pdp_form: true, base_cents: @product.price_cents } do %>
         <%= hidden_field_tag :product_id, @product.id %>
 
         <% grouped_options = @product.product_options.in_display_order.group_by(&:group_name) %>
-        <% if grouped_options.any? %>
-          <div class="product-detail__variants">
-            <% grouped_options.each do |group_name, opts| %>
-              <% default = opts.first %>
-              <%= hidden_field_tag "option_ids[]", default.id, data: { variant_group: group_name } %>
-              <div class="variant-group">
-                <div class="variant-group__label"><i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %></div>
-                <div class="variant-pills">
-                  <% opts.each do |opt| %>
-                    <%
-                      is_sel = opt.id == default.id
-                      flag = variant_option_flag(opt.name)
-                      delta_label = opt.price_delta_cents.positive? ? "+#{HasMoney.format(opt.price_delta_cents)}" : nil
-                    %>
-                    <button type="button" class="variant-pill<%= ' is-selected' if is_sel %>"
-                            data-vpill data-vgroup="<%= group_name %>" data-vopt="<%= opt.id %>">
-                      <%= opt.name %><%= " #{flag}" if flag %>
-                      <% if delta_label %><span class="variant-pill__delta"><%= delta_label %></span><% end %>
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
+        <% grouped_options.each do |group_name, opts| %>
+          <% default = opts.first %>
+          <%= hidden_field_tag "option_ids[]", default.id, data: { variant_group: group_name } %>
+          <div class="variant-group">
+            <div class="variant-group__label">
+              <i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %>
+              <span class="variant-group__sel" data-vsel="<%= group_name %>"><%= default.name %></span>
+            </div>
+            <div class="variant-pills">
+              <% opts.each do |opt| %>
+                <% delta_label = variant_delta_label(opt.price_delta_cents) %>
+                <% flag = variant_option_flag(opt.name) %>
+                <button type="button" class="variant-pill<%= ' is-selected' if opt.id == default.id %>"
+                        data-vpill data-vgroup="<%= group_name %>" data-vopt="<%= opt.id %>" data-vname="<%= opt.name %>" data-delta="<%= opt.price_delta_cents %>">
+                  <%= opt.name %><%= " #{flag}" if flag %>
+                  <% if delta_label %><span class="variant-pill__delta"><%= delta_label %></span><% end %>
+                </button>
+              <% end %>
+            </div>
           </div>
         <% end %>
 
-        <div class="form-row align-items-end">
-          <div class="col-4 col-md-3 mb-2">
-            <label for="quantity" class="small text-muted mb-1">Quantidade</label>
-            <input type="number" name="quantity" id="quantity" value="1" min="1" max="99" class="form-control" data-spinner="true">
+        <div class="buy__actions">
+          <div class="stepper">
+            <button type="button" class="stepper__btn" data-dec aria-label="Diminuir" disabled><i class="bi bi-dash"></i></button>
+            <input type="number" class="stepper__input" name="quantity" value="1" min="1" max="99" data-qty aria-label="Quantidade">
+            <button type="button" class="stepper__btn" data-inc aria-label="Aumentar"><i class="bi bi-plus"></i></button>
           </div>
-          <div class="col-8 col-md-9 mb-2">
-            <button type="submit" class="btn btn-dark btn-block">
-              <i class="bi bi-cart-plus"></i> Adicionar ao carrinho
-            </button>
-          </div>
+          <button type="submit" class="pdp-btn pdp-btn--dark"><i class="bi bi-cart-plus"></i> Adicionar ao carrinho</button>
         </div>
       <% end %>
 
-      <% content_for :scripts do %>
-        <%= javascript_include_tag "storefront/pdp", type: "module" %>
-      <% end %>
-
-      <a href="https://wa.me/5535920001100?text=<%= u("Olá! Tenho interesse em #{@product.title}") %>" target="_blank" rel="noopener" class="btn btn-success btn-block mb-3">
+      <a href="https://wa.me/5535920001100?text=<%= u("Olá! Tenho interesse em #{@product.title}") %>" target="_blank" rel="noopener" class="pdp-btn pdp-btn--wa">
         <i class="bi bi-whatsapp"></i> Tirar dúvidas no WhatsApp
       </a>
 
-      <ul class="list-unstyled small text-muted">
-        <li class="mb-1"><i class="bi bi-shield-check mr-1"></i> Produzido no Brasil com garantia.</li>
-        <li class="mb-1"><i class="bi bi-truck mr-1"></i> Envio via Correios (PAC / SEDEX / Mini Envios).</li>
-        <li class="mb-1"><i class="bi bi-credit-card-2-front mr-1"></i> Pagamento via Pix ou cartão.</li>
-      </ul>
+      <div class="trust">
+        <div><i class="bi bi-shield-check"></i> Produzido no Brasil com garantia</div>
+        <div><i class="bi bi-battery-charging"></i> Save em FRAM + bateria nova</div>
+        <div><i class="bi bi-truck"></i> Correios · PAC, SEDEX e Mini Envios</div>
+        <div><i class="bi bi-credit-card-2-front"></i> Pix ou cartão</div>
+      </div>
     </div>
   </div>
+
+  <% if @product.description.present? %>
+    <section class="descr" aria-label="Descrição do produto">
+      <h2 class="descr__title">Descrição</h2>
+      <p class="descr__sub">Tudo sobre este cartucho</p>
+      <div class="descr__body"><%= simple_format(@product.description) %></div>
+    </section>
+  <% end %>
+
+  <% if @gotm %>
+    <%= render "products/gotm_freebies", gotm: @gotm %>
+  <% end %>
 </div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/pdp", type: "module" %>
+<% end %>

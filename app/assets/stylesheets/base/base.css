@@ -15,6 +15,30 @@
   border: 0;
 }
 
+/* Links inherit their context's colour instead of Bootstrap's blue. Styled
+   components (buttons, nav, footer, breadcrumb) set their own colour and so
+   are unaffected; inline text links opt into a hover underline via .link. */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: inherit;
+}
+
+.link {
+  color: var(--pg-ink);
+  text-decoration: none;
+}
+
+.link:hover,
+.link:focus {
+  color: #000;
+  text-decoration: underline;
+}
+
 /* Tabular figures for prices / counters that need column alignment. */
 .tnum {
   font-variant-numeric: tabular-nums;

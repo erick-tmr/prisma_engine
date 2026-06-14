@@ -1,0 +1,38 @@
+<%# Game of the Month freebies showcase.
+    Local: gotm — the current GameOfTheMonth (its brindes are listed). %>
+<% brindes = gotm.brindes.in_display_order %>
+<% if brindes.any? %>
+  <section class="freebies" aria-label="Brindes do mês">
+    <div class="freebies__top rainbow-bar"></div>
+    <div class="freebies__head">
+      <span class="freebies__gift"><i class="bi bi-gift"></i></span>
+      <div class="freebies__txt">
+        <h2 class="freebies__title">Brindes do mês — inclusos sem custo</h2>
+        <p class="freebies__sub">O kit colecionável que acompanha o Jogo do Mês, enviado na mesma caixa do seu jogo.</p>
+      </div>
+      <span class="freebies__flag"><i class="bi bi-box-seam"></i> Vai na mesma caixa</span>
+    </div>
+
+    <div class="freebies__grid">
+      <% brindes.each_with_index do |brinde, index| %>
+        <article class="free-card">
+          <div class="free-card__media">
+            <span class="free-card__num"><%= index + 1 %></span>
+            <% if brinde.image.attached? %>
+              <img src="<%= rails_blob_path(brinde.image, only_path: true) %>" alt="<%= brinde.caption %>">
+            <% end %>
+          </div>
+          <div class="free-card__body">
+            <span class="free-card__title"><%= brinde.caption %></span>
+            <span class="free-card__incl"><i class="bi bi-check-circle-fill"></i> Incluso</span>
+          </div>
+        </article>
+      <% end %>
+    </div>
+
+    <div class="freebies__foot">
+      <i class="bi bi-info-circle"></i>
+      <span>Os brindes são exclusivos do Jogo do Mês e mudam a cada edição.</span>
+    </div>
+  </section>
+<% end %>

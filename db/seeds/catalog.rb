@@ -35,17 +35,31 @@ def infer_tag_slugs(name)
   slugs.uniq
 end
 
-# Default option set seeded on every product. Price deltas are 0: the mechanism
-# is proven without inventing prices not present in the source data. Weight
-# deltas follow the spec — "Com caixa" adds the 38g caixa + berço; everything
-# else matches the base PCB+shell weight (22g) and stays at 0.
+# Default option set seeded on every product. Base game price is the catalog
+# price (R$180 for the regular line); the variants add value on top: "Com caixa"
+# is +R$20 (and the 38g caixa + berço), and an "Original" etiqueta is +R$30.
+# Idioma is neutral. Weight deltas follow the spec — only "Com caixa" adds mass.
 default_options = [
-  { group_name: "Idioma", name: "Português BR", price_delta_cents: 0, weight_delta_grams: 0,  position: 0 },
-  { group_name: "Idioma", name: "Inglês",       price_delta_cents: 0, weight_delta_grams: 0,  position: 1 },
-  { group_name: "Idioma", name: "Japonês",      price_delta_cents: 0, weight_delta_grams: 0,  position: 2 },
-  { group_name: "Caixa",  name: "Com caixa",    price_delta_cents: 0, weight_delta_grams: 38, position: 3 },
-  { group_name: "Caixa",  name: "Sem caixa",    price_delta_cents: 0, weight_delta_grams: 0,  position: 4 }
+  # First option per group is the default selection, so the base R$180 game opens
+  # priced at base (Sem caixa / Repro); Com caixa (+R$20) and Original (+R$30) are
+  # the upgrades.
+  { group_name: "Idioma",   name: "Português BR", price_delta_cents: 0,    weight_delta_grams: 0,  position: 0 },
+  { group_name: "Idioma",   name: "Inglês",       price_delta_cents: 0,    weight_delta_grams: 0,  position: 1 },
+  { group_name: "Idioma",   name: "Japonês",      price_delta_cents: 0,    weight_delta_grams: 0,  position: 2 },
+  { group_name: "Caixa",    name: "Sem caixa",    price_delta_cents: 0,    weight_delta_grams: 0,  position: 3 },
+  { group_name: "Caixa",    name: "Com caixa",    price_delta_cents: 2000, weight_delta_grams: 38, position: 4 },
+  { group_name: "Etiqueta", name: "Repro",        price_delta_cents: 0,    weight_delta_grams: 0,  position: 5 },
+  { group_name: "Etiqueta", name: "Original",     price_delta_cents: 3000, weight_delta_grams: 0,  position: 6 }
 ]
+
+# Baseline product copy for the storefront Descrição card. Generic but accurate
+# for every Prisma repro — editorial swaps in game-specific text per product, so
+# we only seed it when none exists (never clobber a curated description).
+default_description = <<~TEXT.strip
+  Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM com bateria nova — seu progresso dura por anos, sem risco de perder os arquivos.
+
+  Acompanha estojo rígido e etiqueta em padrão US, compatível com a linha Game Boy. Você escolhe idioma, caixa e etiqueta nas opções acima, e cada unidade é testada individualmente antes do envio.
+TEXT
 
 raw = YAML.safe_load_file(Rails.root.join("config/products.yml"))
 raw.fetch("products").each do |entry|
@@ -61,6 +75,7 @@ raw.fetch("products").each do |entry|
     weight_grams:      22, # PCB + shell baseline; cart adds 38g when "Com caixa" is selected.
     legacy_image_path: entry["image"]
   )
+  product.description = default_description if product.description.blank?
   product.save!
 
   default_options.each do |attrs|

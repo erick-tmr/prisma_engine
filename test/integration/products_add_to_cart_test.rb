@@ -6,7 +6,7 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_select "[data-pdp-form]" do
-      assert_select ".product-detail__variants .variant-group", count: 2 # Idioma + Caixa
+      assert_select ".variant-group", count: 2 # Idioma + Caixa
       assert_select "input[name='option_ids[]'][data-variant-group='Idioma']"
       assert_select "input[name='option_ids[]'][data-variant-group='Caixa']"
       # First option per group is preselected
@@ -22,7 +22,7 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
   test "PDP for a product with no options skips the variants block but still adds to cart" do
     get product_path(slug: products(:metroid).slug)
     assert_response :success
-    assert_select ".product-detail__variants", count: 0
+    assert_select ".variant-group", count: 0
 
     post cart_items_path, params: { product_id: products(:metroid).id, quantity: 1 }
     assert_redirected_to product_path(products(:metroid))

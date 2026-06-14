@@ -1,0 +1,11 @@
+<%# Shared breadcrumb trail.
+    Locals:
+      crumbs  — array of [label, path] for the linked ancestors
+      current — label of the current page (rendered unlinked) %>
+<nav class="breadcrumb" aria-label="breadcrumb">
+  <% crumbs.each do |label, path| %>
+    <%= link_to label, path, class: "breadcrumb__link" %>
+    <i class="bi bi-chevron-right breadcrumb__sep" aria-hidden="true"></i>
+  <% end %>
+  <span class="breadcrumb__current" aria-current="page"><%= current %></span>
+</nav>

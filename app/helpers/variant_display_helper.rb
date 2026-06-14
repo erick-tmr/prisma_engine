@@ -20,4 +20,13 @@ module VariantDisplayHelper
   def variant_option_flag(option_name)
     LANGUAGE_FLAGS[option_name.to_s]
   end
+
+  # Pill price-delta label, e.g. "+R$ 20.00" / "−R$ 15.00". Nil when the option
+  # carries no delta, so callers can skip rendering the badge.
+  def variant_delta_label(price_delta_cents)
+    cents = price_delta_cents.to_i
+    return if cents.zero?
+
+    "#{cents.negative? ? '−' : '+'}#{HasMoney.format(cents.abs)}"
+  end
 end
