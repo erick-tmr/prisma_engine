@@ -14,6 +14,8 @@ class CartItemsController < ApplicationController
     )
     persist!(cart)
     flash[:cart_added] = "Produto adicionado ao carrinho."
+    # Redirects to our own product-page path for the published row looked up above, not user input.
+    # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
     redirect_to product_path(product)
   end
 
