@@ -9,6 +9,13 @@ class ProductsController < ApplicationController
     # Products are public catalog entries — there is no per-user scope to
     # narrow the find against, so the Semgrep IDOR heuristic does not apply.
     # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find
-    @product = Product.friendly.includes(:category).find(params[:slug])
+    @product = Product.friendly
+                      .includes(:category, :product_options, product_photos: { image_attachment: :blob })
+                      .find(params[:slug])
+
+    gotm = GameOfTheMonth.current
+                         .includes(:products, brindes: { image_attachment: :blob })
+                         .first
+    @gotm = gotm if gotm&.products&.include?(@product)
   end
 end

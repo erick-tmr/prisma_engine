@@ -35,17 +35,22 @@ def infer_tag_slugs(name)
   slugs.uniq
 end
 
-# Default option set seeded on every product. Price deltas are 0: the mechanism
-# is proven without inventing prices not present in the source data. Weight
-# deltas follow the spec — "Com caixa" adds the 38g caixa + berço; everything
-# else matches the base PCB+shell weight (22g) and stays at 0.
 default_options = [
-  { group_name: "Idioma", name: "Português BR", price_delta_cents: 0, weight_delta_grams: 0,  position: 0 },
-  { group_name: "Idioma", name: "Inglês",       price_delta_cents: 0, weight_delta_grams: 0,  position: 1 },
-  { group_name: "Idioma", name: "Japonês",      price_delta_cents: 0, weight_delta_grams: 0,  position: 2 },
-  { group_name: "Caixa",  name: "Com caixa",    price_delta_cents: 0, weight_delta_grams: 38, position: 3 },
-  { group_name: "Caixa",  name: "Sem caixa",    price_delta_cents: 0, weight_delta_grams: 0,  position: 4 }
+  { group_name: "Idioma", name: "Português BR",  price_delta_cents: 0,    weight_delta_grams: 0,  position: 0 },
+  { group_name: "Idioma", name: "Inglês",        price_delta_cents: 0,    weight_delta_grams: 0,  position: 1 },
+  { group_name: "Idioma", name: "Japonês",       price_delta_cents: 0,    weight_delta_grams: 0,  position: 2 },
+  { group_name: "Caixa",  name: "Sem caixa",     price_delta_cents: 0,    weight_delta_grams: 0,  position: 3 },
+  { group_name: "Caixa",  name: "Com caixa",     price_delta_cents: 2000, weight_delta_grams: 38, position: 4 },
+  { group_name: "Label",  name: "Sem label",     price_delta_cents: 0,    weight_delta_grams: 0,  position: 5 },
+  { group_name: "Label",  name: "Com label",     price_delta_cents: 500,  weight_delta_grams: 0,  position: 6 }
 ]
+kept_options = default_options.map { |attrs| [ attrs[:group_name], attrs[:name] ] }
+
+default_description = <<~TEXT.strip
+  Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM, que não precisa de bateria — seu progresso dura por anos, sem risco de perder os arquivos.
+
+  Acompanha estojo rígido e etiqueta em padrão US, compatível com a linha Game Boy. Você escolhe idioma, caixa e etiqueta nas opções acima, e cada unidade é testada individualmente antes do envio.
+TEXT
 
 raw = YAML.safe_load_file(Rails.root.join("config/products.yml"))
 raw.fetch("products").each do |entry|
@@ -61,6 +66,7 @@ raw.fetch("products").each do |entry|
     weight_grams:      22, # PCB + shell baseline; cart adds 38g when "Com caixa" is selected.
     legacy_image_path: entry["image"]
   )
+  product.description = default_description if product.description.blank?
   product.save!
 
   default_options.each do |attrs|
@@ -75,6 +81,10 @@ raw.fetch("products").each do |entry|
       position:           attrs[:position]
     )
     option.save!
+  end
+
+  product.product_options.reload.each do |option|
+    option.destroy unless kept_options.include?([ option.group_name, option.name ])
   end
 
   infer_tag_slugs(product.name).each do |tag_slug|

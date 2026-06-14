@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Prisma Games">
+  <defs>
+    <clipPath id="tile"><rect x="0" y="0" width="64" height="64" rx="14"></rect></clipPath>
+    
+    <clipPath id="rightOfFace"><polygon points="24,18 64,18 64,64 50.7,64"></polygon></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect x="0" y="0" width="64" height="64" rx="14" fill="#111214"></rect>
+
+    
+    <path d="M2 34 L14.5 34" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" opacity=".9"></path>
+
+    
+    <g clip-path="url(#rightOfFace)">
+      <rect x="18" y="19" width="46" height="4.83" fill="#ED1C24"></rect>
+      <rect x="18" y="23.83" width="46" height="4.83" fill="#F7941D"></rect>
+      <rect x="18" y="28.67" width="46" height="4.83" fill="#FFD200"></rect>
+      <rect x="18" y="33.5" width="46" height="4.83" fill="#1FA24A"></rect>
+      <rect x="18" y="38.33" width="46" height="4.83" fill="#0E8BD3"></rect>
+      <rect x="18" y="43.17" width="46" height="4.83" fill="#6D4FA1"></rect>
+    </g>
+
+    
+    <polygon points="24,18 6,49 42,49" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linejoin="round"></polygon>
+  </g>
+</svg>

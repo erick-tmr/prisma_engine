@@ -138,7 +138,7 @@
         <div class="pay-return__info-body">
           <% if pay_label %><div class="strong"><%= pay_label %></div><% end %>
           <% if @order.receipt_url.present? %>
-            <div><a href="<%= @order.receipt_url %>" target="_blank" rel="noopener">Ver comprovante</a></div>
+            <div><a href="<%= @order.receipt_url %>" class="link" target="_blank" rel="noopener">Ver comprovante</a></div>
           <% end %>
           <% if @state == "success" %><span class="pay-return__pay-status"><i class="bi bi-check-circle-fill"></i> Pago</span>
           <% elsif @state == "failed" %><span class="pay-return__pay-status"><i class="bi bi-x-circle-fill"></i> Expirado</span>
@@ -157,7 +157,7 @@
   <% end %>
 
   <p class="pay-return__support-line">
-    Precisa de ajuda com este pedido? <a href="https://wa.me/5535920001100">Falar com a Central Prisma</a>
+    Precisa de ajuda com este pedido? <a href="https://wa.me/5535920001100" class="link">Falar com a Central Prisma</a>
   </p>
 </main>
 

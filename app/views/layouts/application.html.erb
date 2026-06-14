@@ -12,9 +12,10 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <meta name="theme-color" content="#111214">
 
     <%# Warm up the CDN connections before the render-blocking CSS below. %>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -38,7 +39,7 @@
           "components/header", "components/nav-strip", "components/links-menu",
           "components/drawer", "components/footer", "components/flash",
           "components/section-title", "components/product-card", "components/chip",
-          "components/button", "components/field",
+          "components/button", "components/field", "components/breadcrumb",
           "data-turbo-track": "reload" %>
 
     <%= yield :head %>

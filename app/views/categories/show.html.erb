@@ -2,13 +2,9 @@
 
 <div class="container">
   <header class="mb-4">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb bg-transparent p-0 small">
-        <li class="breadcrumb-item"><%= link_to "Início", root_path %></li>
-        <li class="breadcrumb-item"><%= link_to "Catálogo", products_path %></li>
-        <li class="breadcrumb-item active" aria-current="page"><%= @label %></li>
-      </ol>
-    </nav>
+    <%= render "shared/breadcrumb",
+          crumbs: [["Início", root_path], ["Catálogo", products_path]],
+          current: @label %>
     <h1 class="h3 mb-1"><%= @label %></h1>
     <p class="text-muted small mb-0"><%= pluralize(@products.size, "produto") %> nesta categoria</p>
   </header>

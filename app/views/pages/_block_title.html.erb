@@ -1,4 +1,4 @@
-<%# locals: (slug:, category_id:, label:, logo: nil) %>
+<%# locals: (slug:, label:, logo: nil) %>
 <%# Section title: bare SVG wordmark over a logo-width rainbow bar, with
     "Ver tudo →" anchored to the right edge. The wordmark IS the visible
     title; an sr-only <h2> keeps the heading in the document outline.
@@ -9,7 +9,7 @@
 <% logo ||= slug %>
 
 <div class="section-title">
-  <%= link_to category_path(slug: slug, category_id: category_id),
+  <%= link_to category_path(slug: slug),
               class: "section-title__logo", "aria-label": "Ver tudo de #{label}" do %>
     <div class="section-title__center">
       <img src="/images/nav-logos/<%= logo %>.svg"
@@ -20,7 +20,7 @@
 
   <h2 class="sr-only"><%= label %></h2>
 
-  <%= link_to category_path(slug: slug, category_id: category_id),
+  <%= link_to category_path(slug: slug),
               class: "section-title__see-all" do %>
     Ver tudo <i class="bi bi-arrow-right" aria-hidden="true"></i>
   <% end %>
