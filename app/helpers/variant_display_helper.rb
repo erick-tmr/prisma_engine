@@ -1,8 +1,8 @@
 module VariantDisplayHelper
   GROUP_ICONS = {
-    "Idioma"   => "bi-translate",
-    "Caixa"    => "bi-box2",
-    "Etiqueta" => "bi-tag"
+    "Idioma" => "bi-translate",
+    "Caixa"  => "bi-box2",
+    "Label"  => "bi-tag"
   }.freeze
   GROUP_ICON_FALLBACK = "bi-sliders2".freeze
 

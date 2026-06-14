@@ -36,21 +36,22 @@ def infer_tag_slugs(name)
 end
 
 # Default option set seeded on every product. Base game price is the catalog
-# price (R$180 for the regular line); the variants add value on top: "Com caixa"
-# is +R$20 (and the 38g caixa + berço), and an "Original" etiqueta is +R$30.
-# Idioma is neutral. Weight deltas follow the spec — only "Com caixa" adds mass.
+# price (R$175 for the regular line); the variants add value on top: "Com caixa"
+# is +R$20 (and the 38g caixa + berço), and "With label" is +R$5. Idioma is
+# neutral. Weight deltas follow the spec — only "Com caixa" adds mass.
 default_options = [
-  # First option per group is the default selection, so the base R$180 game opens
-  # priced at base (Sem caixa / Repro); Com caixa (+R$20) and Original (+R$30) are
-  # the upgrades.
-  { group_name: "Idioma",   name: "Português BR", price_delta_cents: 0,    weight_delta_grams: 0,  position: 0 },
-  { group_name: "Idioma",   name: "Inglês",       price_delta_cents: 0,    weight_delta_grams: 0,  position: 1 },
-  { group_name: "Idioma",   name: "Japonês",      price_delta_cents: 0,    weight_delta_grams: 0,  position: 2 },
-  { group_name: "Caixa",    name: "Sem caixa",    price_delta_cents: 0,    weight_delta_grams: 0,  position: 3 },
-  { group_name: "Caixa",    name: "Com caixa",    price_delta_cents: 2000, weight_delta_grams: 38, position: 4 },
-  { group_name: "Etiqueta", name: "Repro",        price_delta_cents: 0,    weight_delta_grams: 0,  position: 5 },
-  { group_name: "Etiqueta", name: "Original",     price_delta_cents: 3000, weight_delta_grams: 0,  position: 6 }
+  # First option per group is the default selection, so the base R$175 game opens
+  # priced at base (Sem caixa / Without label); Com caixa (+R$20) and With label
+  # (+R$5) are the upgrades.
+  { group_name: "Idioma", name: "Português BR",  price_delta_cents: 0,    weight_delta_grams: 0,  position: 0 },
+  { group_name: "Idioma", name: "Inglês",        price_delta_cents: 0,    weight_delta_grams: 0,  position: 1 },
+  { group_name: "Idioma", name: "Japonês",       price_delta_cents: 0,    weight_delta_grams: 0,  position: 2 },
+  { group_name: "Caixa",  name: "Sem caixa",     price_delta_cents: 0,    weight_delta_grams: 0,  position: 3 },
+  { group_name: "Caixa",  name: "Com caixa",     price_delta_cents: 2000, weight_delta_grams: 38, position: 4 },
+  { group_name: "Label",  name: "Without label", price_delta_cents: 0,    weight_delta_grams: 0,  position: 5 },
+  { group_name: "Label",  name: "With label",    price_delta_cents: 500,  weight_delta_grams: 0,  position: 6 }
 ]
+managed_group_names = default_options.map { |attrs| attrs[:group_name] }.uniq
 
 # Baseline product copy for the storefront Descrição card. Generic but accurate
 # for every Prisma repro — editorial swaps in game-specific text per product, so
@@ -91,6 +92,10 @@ raw.fetch("products").each do |entry|
     )
     option.save!
   end
+
+  # Converge on the current option set: drop options for groups this seed no
+  # longer defines (e.g. a renamed group) so a re-seed doesn't leave orphans.
+  product.product_options.where.not(group_name: managed_group_names).destroy_all
 
   infer_tag_slugs(product.name).each do |tag_slug|
     tag = Tag.find_or_create_by!(name: tag_slug)

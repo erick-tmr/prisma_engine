@@ -3,168 +3,168 @@ products:
     short_id: "1041693"
     slug: "pokemon-yellow-version"
     title: "Pokemon - Yellow Version"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2475313/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1045017-0"
     short_id: "1045017"
     slug: "pokemon-blue-version"
     title: "Pokemon - Blue Version"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2475346/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1052270-0"
     short_id: "1052270"
     slug: "game-boy-classiccolor-pedidos"
     title: "- Game Boy Classic/Color (Pedidos)"
-    price_brl: 160.00
+    price_brl: 175.00
     image: "/images/stores/uploads/6305352/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1088265-0"
     short_id: "1088265"
     slug: "pokemon-red-version"
     title: "Pokemon - Red Version"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2475355/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1088287-0"
     short_id: "1088287"
     slug: "pokemon-brown-version-romhack"
     title: "Pokemon - Brown Version (RomHack)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2475409/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1088294-0"
     short_id: "1088294"
     slug: "pokemon-hack-red-version"
     title: "Pokemon (Hack) - Red++ Version"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2475445/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1088299-0"
     short_id: "1088299"
     slug: "pokemon-green-version"
     title: "Pokemon - Green Version"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2475454/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1170635-0"
     short_id: "1170635"
     slug: "pokemon-blue-kaizo-romhack"
     title: "Pokemon - Blue Kaizo (RomHack)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2690731/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1170639-0"
     short_id: "1170639"
     slug: "pokemon-red-battle-factory-romhack"
     title: "Pokemon - Red Battle Factory (RomHack)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2690742/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1290501-0"
     short_id: "1290501"
     slug: "the-legend-of-zelda-oracle-of-ages"
     title: "The Legend of Zelda - Oracle of Ages"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2993107/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1290516-0"
     short_id: "1290516"
     slug: "the-legend-of-zelda-oracle-of-seasons"
     title: "The Legend of Zelda - Oracle of Seasons"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2993196/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1290520-0"
     short_id: "1290520"
     slug: "pokemon-yellow-legacy-romhack"
     title: "Pokemon - Yellow Legacy (RomHack)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/2993202/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1338689-0"
     short_id: "1338689"
     slug: "metroid-ii-return-of-samus"
     title: "Metroid II - Return of Samus"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3105612/conversions/large.jpg"
     category: "game-boy-classic"
   - id: "1402284-0"
     short_id: "1402284"
     slug: "survival-kids"
     title: "Survival Kids"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3265985/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1402289-0"
     short_id: "1402289"
     slug: "pokemon-pinball"
     title: "Pokemon Pinball (Sem Rumble)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3266035/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1402300-0"
     short_id: "1402300"
     slug: "kirbys-dream-land"
     title: "Kirby's Dream Land"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3266054/conversions/large.jpg"
     category: "game-boy-classic"
   - id: "1402307-0"
     short_id: "1402307"
     slug: "kirbys-dream-land-2"
     title: "Kirby's Dream Land 2"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3266068/conversions/large.jpg"
     category: "game-boy-classic"
   - id: "1510516-0"
     short_id: "1510516"
     slug: "pokemon-gold-patch-rtc"
     title: "Pokemon - Gold (Patch RTC)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3516818/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1510546-0"
     short_id: "1510546"
     slug: "pokemon-silver-patch-rtc"
     title: "Pokemon - Silver (Patch RTC)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3516859/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1544374-0"
     short_id: "1544374"
     slug: "pokemon-crystal-patch-rtc-gs-ball-event"
     title: "Pokemon - Crystal (Patch RTC + GS Ball Event)"
-    price_brl: 200.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3588588/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1544380-0"
     short_id: "1544380"
     slug: "donkey-kong-land"
     title: "Donkey Kong Land"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3588599/conversions/large.jpg"
     category: "game-boy-color"
   - id: "1623191-0"
     short_id: "1623191"
     slug: "pokemon-trading-card-game"
     title: "Pokemon - Trading Card Game"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/3740446/conversions/large.jpg"
     category: "game-boy-color"
   - id: "2501145-0"
     short_id: "2501145"
     slug: "resident-evil-gaiden"
     title: "Resident Evil Gaiden"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/6079624/conversions/large.jpg"
     category: "game-boy-color"
   - id: "2581296-0"
     short_id: "2581296"
     slug: "pokemon-hacks-pedidos"
     title: "- Pokemon Hacks (Pedidos)"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/6305251/conversions/large.jpg"
     category: "game-boy-color"
   - id: "2581424-0"
@@ -178,6 +178,6 @@ products:
     short_id: "2590722"
     slug: "metal-gear-solid-jogo-do-mes"
     title: "Metal Gear Solid"
-    price_brl: 180.00
+    price_brl: 175.00
     image: "/images/stores/uploads/6332251/conversions/large.jpg"
     category: "game-boy-color"
