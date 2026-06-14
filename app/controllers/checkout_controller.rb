@@ -1,16 +1,9 @@
-# :reek:TooManyInstanceVariables
 class CheckoutController < ApplicationController
+  include CheckoutErrors
+
   before_action :authenticate_user!
 
   layout "checkout"
-
-  ERROR_MESSAGES = {
-    empty_cart:           "Seu carrinho está vazio.",
-    invalid_address:      "Selecione um endereço de entrega válido.",
-    shipping_unavailable: "A forma de envio escolhida não está disponível. Escolha outra.",
-    shipping_error:       "Não foi possível calcular o frete agora. Tente novamente em instantes.",
-    payment_error:        "Não foi possível iniciar o pagamento agora. Tente novamente em instantes."
-  }.freeze
 
   def show
     @cart = current_cart
@@ -33,27 +26,6 @@ class CheckoutController < ApplicationController
     start_payment(result.order)
   rescue InfinitePay::Api::Error
     render_create_failure(ERROR_MESSAGES[:payment_error])
-  end
-
-  def confirmation
-    @order = current_user.orders.find_by!(number: params[:order_nsu])
-    record_transaction if params[:transaction_nsu].present?
-    @state = payment_state
-  end
-
-  def pay
-    order = current_user.orders.find_by!(number: params[:order_nsu])
-    # Internal status-page path; order.number is a persisted value, not user input.
-    # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
-    return redirect_to checkout_return_path(order_nsu: order.number) unless order.awaiting_payment?
-
-    # Redirects to the InfinitePay hosted-checkout URL from Payments::Checkout (a trusted PSP), not user input.
-    # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
-    redirect_to Payments::Checkout.start(order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token)),
-                allow_other_host: true
-  rescue InfinitePay::Api::Error
-    flash[:alert] = ERROR_MESSAGES[:payment_error]
-    redirect_to checkout_return_path(order_nsu: params[:order_nsu])
   end
 
   def create_address
@@ -88,20 +60,6 @@ class CheckoutController < ApplicationController
   def clear_cart!
     cookies.delete(:cart)
     session.delete("checkout_shipping_service")
-  end
-
-  def record_transaction
-    @order.update!(
-      external_id:    params[:transaction_nsu],
-      receipt_url:    params[:receipt_url],
-      payment_method: params[:capture_method]
-    )
-  end
-
-  def payment_state
-    return "failed" if @order.cancelled? || @order.payment_expired?
-
-    @order.awaiting_payment? ? "pending" : "success"
   end
 
   def render_create_failure(message)

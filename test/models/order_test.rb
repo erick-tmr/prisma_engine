@@ -132,15 +132,6 @@ class OrderTest < ActiveSupport::TestCase
     assert order.reload.awaiting_payment?
   end
 
-  test "destroying an order destroys its line items" do
-    order = build_order
-    order.save!
-    order.order_items.create!(name: "Cartucho", unit_price_cents: 32_000, quantity: 1)
-    assert_difference "OrderItem.count", -1 do
-      order.destroy!
-    end
-  end
-
   test "cancel! moves an awaiting-payment order to cancelled" do
     order = build_order
     order.save!
@@ -154,6 +145,14 @@ class OrderTest < ActiveSupport::TestCase
     order.cancel!
     order.transition_to!("payment_confirmed")
     assert order.payment_confirmed?
+  end
+
+  test "an order cannot be destroyed — it is kept for history" do
+    order = build_order
+    order.save!
+    assert_not order.destroy
+    assert Order.exists?(order.id)
+    assert_match(/cannot be deleted/i, order.errors[:base].to_sentence)
   end
 
   test "each order gets a unique webhook_token on create" do

@@ -50,8 +50,8 @@ Rails.application.routes.draw do
   get  "/checkout",          to: "checkout#show",           as: :checkout
   post "/checkout",          to: "checkout#create",         as: :checkout_create
   post "/checkout/endereco", to: "checkout#create_address", as: :checkout_address
-  get  "/checkout/retorno",  to: "checkout#confirmation",   as: :checkout_return
-  post "/checkout/retorno/pagar", to: "checkout#pay",        as: :checkout_pay
+  get  "/checkout/retorno",       to: "checkout/returns#show", as: :checkout_return
+  post "/checkout/retorno/pagar", to: "checkout/returns#pay",  as: :checkout_pay
   post "/pagamentos/webhook/:token", to: "payments/webhooks#create", as: :payments_webhook
 
   get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes

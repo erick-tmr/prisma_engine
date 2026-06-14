@@ -48,6 +48,7 @@ class Order < ApplicationRecord
   validates :shipping_service, inclusion: { in: Shipping::SERVICES.keys.map(&:to_s) }
 
   before_validation :assign_number, on: :create
+  before_destroy :prevent_destroy
 
   def placed_at
     created_at
@@ -89,6 +90,11 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def prevent_destroy
+    errors.add(:base, "Orders are kept for history and cannot be deleted; cancel instead.")
+    throw :abort
+  end
 
   def assign_number
     return if number.present?
