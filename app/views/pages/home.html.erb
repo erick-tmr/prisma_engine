@@ -1,6 +1,9 @@
 <% content_for :title, "Prisma Games — Game Boy ❤️" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "pages/home" %>
+<% end %>
 
-<section class="pg-banner-wrap">
+<section class="banner">
   <div class="owl-carousel owl-theme"
        data-loop="true"
        data-nav="false"
@@ -11,19 +14,19 @@
        data-items-md="1"
        data-items-lg="1"
        data-items-xl="1">
-    <div class="banner-slot">
-      <img src="/images/stores/uploads/2475313/conversions/large.jpg" alt="Banner Pokémon Yellow" loading="eager">
+    <div class="banner__slot">
+      <img src="/images/stores/uploads/2475313/conversions/large.jpg" alt="Banner Pokémon Yellow" width="1200" height="600" loading="eager">
     </div>
-    <div class="banner-slot">
-      <img src="/images/stores/uploads/2690742/conversions/large.jpg" alt="Banner Game Boy Color" loading="lazy">
+    <div class="banner__slot">
+      <img src="/images/stores/uploads/2690742/conversions/large.jpg" alt="Banner Game Boy Color" width="1200" height="600" loading="lazy">
     </div>
-    <div class="banner-slot">
-      <img src="/images/stores/uploads/2475445/conversions/large.jpg" alt="Banner Pokémon Hack" loading="lazy">
+    <div class="banner__slot">
+      <img src="/images/stores/uploads/2475445/conversions/large.jpg" alt="Banner Pokémon Hack" width="1200" height="600" loading="lazy">
     </div>
   </div>
 </section>
 
-<section class="pg-section">
+<section class="section">
   <%= render "block_title", slug: "game-boy-classic", category_id: 351512,
                             label: "Game Boy Classic" %>
   <div class="row">
@@ -33,7 +36,7 @@
   </div>
 </section>
 
-<section class="pg-section">
+<section class="section">
   <%= render "block_title", slug: "game-boy-color", category_id: 354342,
                             label: "Game Boy Color",
                             logo: "game-boy-color-horizontal" %>

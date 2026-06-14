@@ -1,36 +1,39 @@
 <% content_for :title, t("auth.page_title.forgot_password") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "pages/auth" %>
+<% end %>
 
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-brand">
-      <div class="auth-prism" aria-hidden="true">
-        <span class="ray-soft"></span>
-        <span class="ray-line"></span>
+<div class="auth">
+  <div class="auth__card">
+    <div class="auth__brand">
+      <div class="auth__prism" aria-hidden="true">
+        <span class="auth__ray auth__ray--soft"></span>
+        <span class="auth__ray auth__ray--line"></span>
       </div>
-      <span class="auth-wordmark">Prisma Games</span>
+      <span class="auth__wordmark">Prisma Games</span>
     </div>
 
-    <div class="auth-form-side">
-      <%= link_to new_session_path(resource_name), class: "order-back", style: "margin-bottom:22px;" do %>
+    <div class="auth__form-side">
+      <%= link_to new_session_path(resource_name), class: "account-back" do %>
         <i class="bi bi-arrow-left"></i> <%= t("auth.passwords.back_to_sign_in") %>
       <% end %>
 
-      <h1 class="auth-heading"><%= t("auth.passwords.new_heading") %></h1>
-      <p class="auth-sub"><%= t("auth.passwords.new_lede") %></p>
+      <h1 class="auth__heading"><%= t("auth.passwords.new_heading") %></h1>
+      <p class="auth__sub"><%= t("auth.passwords.new_lede") %></p>
 
-      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "auth-form", novalidate: true }) do |f| %>
+      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "auth__form", novalidate: true }) do |f| %>
         <div class="field">
-          <%= f.label :email, t("auth.fields.email"), class: "field-label" %>
-          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "field-input", required: true, placeholder: "voce@email.com" %>
+          <%= f.label :email, t("auth.fields.email"), class: "field__label" %>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "field__input", required: true, placeholder: "voce@email.com" %>
         </div>
 
-        <%= f.submit t("auth.passwords.new_submit"), class: "btn-prisma block", style: "margin-top:6px;" %>
+        <%= f.submit t("auth.passwords.new_submit"), class: "button button--block auth__submit" %>
       <% end %>
 
-      <div class="auth-foot">
+      <div class="auth__foot">
         <%= t("auth.passwords.remembered") %>
         <%= link_to t("auth.sign_in.submit"), new_session_path(resource_name) %>
-        <span class="auth-foot-sep">·</span>
+        <span class="auth__foot-sep">·</span>
         <%= link_to t("auth.sign_in.sign_up"), new_registration_path(resource_name) %>
       </div>
     </div>

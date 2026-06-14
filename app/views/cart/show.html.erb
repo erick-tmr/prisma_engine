@@ -1,13 +1,16 @@
 <% content_for :title, "Carrinho — Prisma Games" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "components/variant", "pages/cart" %>
+<% end %>
 
-<div class="cart-page">
-  <nav class="cart-breadcrumb" aria-label="breadcrumb">
+<div class="cart">
+  <nav class="cart__breadcrumb" aria-label="breadcrumb">
     <%= link_to "Início", root_path %><i class="bi bi-chevron-right"></i>
     <%= link_to "Catálogo", products_path %><i class="bi bi-chevron-right"></i>
-    <span class="cur">Carrinho</span>
+    <span class="cart__breadcrumb-current">Carrinho</span>
   </nav>
 
-  <div class="cart-head">
+  <div class="cart__head">
     <h1>Seu carrinho</h1>
     <%
       qty = @cart.total_quantity
@@ -16,10 +19,10 @@
     <span data-head-count><%= qty %> <%= qty_word %></span>
   </div>
 
-  <div class="cart-grid">
-    <section class="cart-card" aria-label="Itens do carrinho">
-      <div class="cart-card-head">
-        <i class="bi bi-bag-check" style="font-size:18px"></i>
+  <div class="cart__grid">
+    <section class="cart__card" aria-label="Itens do carrinho">
+      <div class="cart__card-head">
+        <i class="bi bi-bag-check"></i>
         <h2>Itens</h2>
         <span class="count" data-list-count>
           <%= @lines.length %> <%= @lines.length == 1 ? "produto" : "produtos" %>
@@ -33,81 +36,81 @@
           <% end %>
         </div>
 
-        <div class="cart-item-foot">
+        <div class="cart__item-foot">
           <%= link_to products_path do %>
-            <i class="bi bi-arrow-left" style="font-size:13px"></i> Continuar comprando
+            <i class="bi bi-arrow-left"></i> Continuar comprando
           <% end %>
         </div>
       <% else %>
-        <div class="cart-empty">
-          <div class="cart-empty-art"><i class="bi bi-controller"></i></div>
+        <div class="cart__empty">
+          <div class="cart__empty-art"><i class="bi bi-controller"></i></div>
           <h3>Seu carrinho está vazio</h3>
           <p>Os clássicos do Game Boy estão esperando. Dê uma olhada no catálogo e escolha o seu próximo jogo.</p>
-          <%= link_to products_path, class: "cart-btn cart-btn-dark" do %>
-            <i class="bi bi-grid" style="font-size:13px"></i> Ver catálogo
+          <%= link_to products_path, class: "cart-btn cart-btn--dark" do %>
+            <i class="bi bi-grid"></i> Ver catálogo
           <% end %>
         </div>
       <% end %>
     </section>
 
-    <aside class="cart-rail">
-      <section class="cart-card" aria-label="Calcular frete"
+    <aside class="cart__rail">
+      <section class="cart__card" aria-label="Calcular frete"
                data-cart-shipping data-quote-url="<%= cart_quote_path %>"
                <% if @quote.initial %>data-initial-quote="<%= @quote.initial["response"].to_json %>" data-initial-service="<%= @quote.initial["service"] %>"<% elsif @quote.recalc_cep %>data-recalc-cep="<%= @quote.recalc_cep %>" data-recalc-service="<%= @quote.recalc_service %>"<% end %>>
-        <div class="rainbow-top"></div>
-        <div class="cart-card-head">
-          <i class="bi bi-truck" style="font-size:18px"></i>
+        <div class="rainbow-bar rainbow-bar--top"></div>
+        <div class="cart__card-head">
+          <i class="bi bi-truck"></i>
           <h2>Calcular frete e prazo</h2>
         </div>
-        <div class="frete-body">
-          <p class="frete-lead">Informe seu CEP para ver as opções de envio dos Correios e o prazo de entrega.</p>
-          <div class="cep-row">
-            <input class="cep-input" data-cep inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP" value="<%= @quote.initial ? @quote.initial["response"]["cep"] : @quote.recalc_cep %>">
-            <button type="button" class="cart-btn cart-btn-calc" data-calc>Calcular</button>
+        <div class="frete__body">
+          <p class="frete__lead">Informe seu CEP para ver as opções de envio dos Correios e o prazo de entrega.</p>
+          <div class="frete__cep-row">
+            <input class="frete__cep" data-cep inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP" value="<%= @quote.initial ? @quote.initial["response"]["cep"] : @quote.recalc_cep %>">
+            <button type="button" class="cart-btn cart-btn--calc" data-calc>Calcular</button>
           </div>
-          <div class="cep-err" data-cep-err>CEP inválido. Digite os 8 números.</div>
+          <div class="frete__cep-err" data-cep-err>CEP inválido. Digite os 8 números.</div>
 
-          <div class="frete-dest" data-dest>
+          <div class="frete__dest" data-dest>
             <i class="bi bi-geo-alt-fill"></i>
             <span>Entrega para <strong data-dest-city></strong></span>
             <a href="#" data-dest-change>alterar</a>
           </div>
 
-          <div class="ship-opts" data-ship-opts></div>
+          <div class="ship-options" data-ship-opts></div>
         </div>
       </section>
 
-      <section class="cart-card" aria-label="Resumo do pedido">
-        <div class="cart-card-head">
-          <i class="bi bi-receipt" style="font-size:18px"></i>
+      <section class="cart__card" aria-label="Resumo do pedido">
+        <div class="cart__card-head">
+          <i class="bi bi-receipt"></i>
           <h2>Resumo do pedido</h2>
         </div>
-        <div class="sum-body">
-          <div class="sum-line">
+        <div class="cart-summary__body">
+          <div class="cart-summary__line">
             <span class="muted">Subtotal <span data-sub-qty>(<%= qty %> <%= qty_word %>)</span></span>
             <span class="val tnum" data-subtotal data-subtotal-cents="<%= @cart.subtotal_cents %>">
               <%= @cart.subtotal_formatted %>
             </span>
           </div>
-          <div class="sum-line">
-            <span class="muted">Frete <span data-ship-method style="font-weight:600;color:var(--pg-ink)"></span></span>
-            <span class="val tnum" data-shipping style="color:var(--pg-muted);font-weight:500">a calcular</span>
+          <div class="cart-summary__line">
+            <span class="muted">Frete <span class="cart-summary__method" data-ship-method></span></span>
+            <span class="val tnum is-pending" data-shipping>a calcular</span>
           </div>
 
-          <hr class="sum-div">
+          <hr class="cart-summary__divider">
 
-          <div class="sum-total">
+          <div class="cart-summary__total">
             <span class="lbl">Total</span>
             <span class="amt tnum" data-total><%= @cart.subtotal_formatted %></span>
           </div>
 
-          <div class="cta-stack">
+          <div class="cart-summary__cta">
             <%= button_to cart_finalize_path,
                           method: :post,
-                          class: "cart-btn cart-btn-dark",
+                          class: "cart-btn cart-btn--dark",
                           form: { data: { turbo: false, finalize_form: true } },
                           disabled: @lines.empty? do %>
-              <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
+              <i class="bi bi-lock-fill"></i> Finalizar compra
             <% end %>
           </div>
         </div>
@@ -116,16 +119,16 @@
   </div>
 
   <% if @lines.any? %>
-    <div class="cart-mobile-bar" data-mobile-bar>
-      <div class="mb-info">
-        <span class="mb-lbl">Total</span>
-        <span class="mb-amt" data-mb-total><%= @cart.subtotal_formatted %></span>
+    <div class="cart__mobile-bar" data-mobile-bar>
+      <div class="cart__mb-info">
+        <span class="cart__mb-label">Total</span>
+        <span class="cart__mb-amount" data-mb-total><%= @cart.subtotal_formatted %></span>
       </div>
       <%= button_to cart_finalize_path,
                     method: :post,
-                    class: "cart-btn cart-btn-dark",
+                    class: "cart-btn cart-btn--dark",
                     form: { data: { turbo: false, finalize_form: true } } do %>
-        <i class="bi bi-lock-fill" style="font-size:13px"></i> Finalizar compra
+        <i class="bi bi-lock-fill"></i> Finalizar compra
       <% end %>
     </div>
   <% end %>

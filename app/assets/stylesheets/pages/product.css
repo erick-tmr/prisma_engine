@@ -1,0 +1,15 @@
+/* Product detail page. Most layout is Bootstrap; the variant block reuses
+   the shared .variant-* component, sized a touch larger here. */
+
+.product-detail__variants {
+  margin: 0 0 16px;
+}
+
+.product-detail__variants .variant-group {
+  margin-bottom: 14px;
+}
+
+.product-detail__variants .variant-pills .variant-pill {
+  font-size: 13px;
+  padding: 8px 13px;
+}

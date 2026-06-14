@@ -5,42 +5,42 @@
   count    = @cart.total_quantity
 %>
 
-<div class="checkout-page">
-  <main class="page">
-    <div class="co-title">
+<div class="checkout">
+  <main class="checkout__page">
+    <div class="checkout__title">
       <h1>Entrega e pagamento</h1>
       <span>Confira os dados, escolha o envio e finalize com segurança.</span>
     </div>
 
-    <div class="co-grid">
-      <div class="steps">
+    <div class="checkout__grid">
+      <div class="checkout__steps">
 
-        <section class="card step<%= ' step-done' if selected %>" data-step="address" id="step-address">
-          <div class="step-head">
-            <span class="step-num" data-step-num>1</span>
+        <section class="checkout__card checkout__step<%= ' is-done' if selected %>" data-step="address" id="step-address">
+          <div class="checkout__step-head">
+            <span class="checkout__step-num" data-step-num>1</span>
             <h2>Endereço de entrega</h2>
-            <span class="step-flag" data-addr-flag<%= ' style=display:none'.html_safe unless selected %>><i class="bi bi-check-circle-fill"></i> Confirmado</span>
+            <span class="checkout__step-flag<%= ' is-visible' if selected %>" data-addr-flag><i class="bi bi-check-circle-fill"></i> Confirmado</span>
           </div>
-          <div class="step-body">
-            <div class="step-error"><i class="bi bi-exclamation-circle-fill"></i> Selecione ou cadastre um endereço de entrega.</div>
+          <div class="checkout__step-body">
+            <div class="checkout__step-error"><i class="bi bi-exclamation-circle-fill"></i> Selecione ou cadastre um endereço de entrega.</div>
 
-            <div class="addr-selected" data-addr-selected<%= ' style=display:none'.html_safe unless selected %>>
-              <span class="addr-pin"><i class="bi bi-geo-alt-fill"></i></span>
-              <div class="addr-body">
+            <div class="checkout__addr-selected<%= ' is-visible' if selected %>" data-addr-selected>
+              <span class="checkout__addr-pin"><i class="bi bi-geo-alt-fill"></i></span>
+              <div class="checkout__addr-body">
                 <% if selected %>
-                  <p class="addr-receiver">Entregar para <strong data-sel-receiver><%= selected.receiver_name %></strong> · CPF <span data-sel-cpf><%= format_cpf(selected.receiver_cpf) %></span></p>
-                  <p class="addr-street" data-sel-street><%= "#{selected.street}, #{selected.number}" %></p>
-                  <div class="addr-line" data-sel-line1><%= [ selected.complement, selected.neighborhood ].compact_blank.join(" · ") %></div>
-                  <div class="addr-line" data-sel-line2><%= "#{selected.city} — #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" %></div>
-                  <span class="badge-default" data-sel-badge<%= ' style=display:none'.html_safe unless selected.default? %>><i class="bi bi-check-circle-fill"></i> Endereço padrão</span>
+                  <p class="checkout__addr-receiver">Entregar para <strong data-sel-receiver><%= selected.receiver_name %></strong> · CPF <span data-sel-cpf><%= format_cpf(selected.receiver_cpf) %></span></p>
+                  <p class="checkout__addr-street" data-sel-street><%= "#{selected.street}, #{selected.number}" %></p>
+                  <div class="checkout__addr-line" data-sel-line1><%= [ selected.complement, selected.neighborhood ].compact_blank.join(" · ") %></div>
+                  <div class="checkout__addr-line" data-sel-line2><%= "#{selected.city} — #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" %></div>
+                  <span class="checkout__badge<%= ' is-hidden' unless selected.default? %>" data-sel-badge><i class="bi bi-check-circle-fill"></i> Endereço padrão</span>
                 <% end %>
               </div>
-              <button class="addr-change" data-addr-change-btn type="button"><i class="bi bi-pencil"></i> Alterar</button>
+              <button class="checkout__addr-change" data-addr-change-btn type="button"><i class="bi bi-pencil"></i> Alterar</button>
             </div>
 
-            <div class="addr-list<%= ' open' unless selected %>" data-addr-list>
+            <div class="checkout__addr-list<%= ' is-open' unless selected %>" data-addr-list>
               <% @addresses.each do |addr| %>
-                <label class="addr-opt<%= ' sel' if addr.id == selected&.id %>" data-addr-opt
+                <label class="checkout__addr-opt<%= ' is-selected' if addr.id == selected&.id %>" data-addr-opt
                        data-address-id="<%= addr.id %>"
                        data-receiver="<%= addr.receiver_name %>" data-cpf="<%= format_cpf(addr.receiver_cpf) %>"
                        data-street="<%= "#{addr.street}, #{addr.number}" %>"
@@ -50,84 +50,84 @@
                        data-city="<%= "#{addr.city}, #{addr.state}" %>" data-cep="<%= addr.zip %>">
                   <%= radio_button_tag "address_id", addr.id, addr.id == selected&.id,
                         form: "checkout-form", class: "visually-hidden", data: { addr_radio: true } %>
-                  <span class="addr-radio"></span>
-                  <div class="addr-body">
-                    <p class="addr-receiver">Para <strong><%= addr.receiver_name %></strong> · CPF <%= format_cpf(addr.receiver_cpf) %></p>
-                    <p class="addr-street"><%= "#{addr.street}, #{addr.number}" %><%= " — #{addr.complement}" if addr.complement.present? %></p>
-                    <div class="addr-line"><%= "#{addr.neighborhood} · #{addr.city} — #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %></div>
-                    <% if addr.default? %><span class="badge-default"><i class="bi bi-check-circle-fill"></i> Endereço padrão</span><% end %>
+                  <span class="checkout__addr-radio"></span>
+                  <div class="checkout__addr-body">
+                    <p class="checkout__addr-receiver">Para <strong><%= addr.receiver_name %></strong> · CPF <%= format_cpf(addr.receiver_cpf) %></p>
+                    <p class="checkout__addr-street"><%= "#{addr.street}, #{addr.number}" %><%= " — #{addr.complement}" if addr.complement.present? %></p>
+                    <div class="checkout__addr-line"><%= "#{addr.neighborhood} · #{addr.city} — #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %></div>
+                    <% if addr.default? %><span class="checkout__badge"><i class="bi bi-check-circle-fill"></i> Endereço padrão</span><% end %>
                   </div>
                 </label>
               <% end %>
 
-              <button class="addr-add-btn" data-addr-add-btn type="button"><i class="bi bi-plus-lg"></i> Adicionar novo endereço</button>
+              <button class="checkout__addr-add" data-addr-add-btn type="button"><i class="bi bi-plus-lg"></i> Adicionar novo endereço</button>
             </div>
 
-            <%= form_with url: checkout_address_path, method: :post, class: "addr-form", id: "addr-form",
+            <%= form_with url: checkout_address_path, method: :post, class: "checkout__addr-form", id: "addr-form",
                           html: { novalidate: true,
                                   data: { addr_form: true,
                                           user_name: current_user.full_name,
                                           user_cpf: format_cpf(current_user.cpf),
                                           cep_lookup_url: "#{account_addresses_path}/cep" } } do |f| %>
-              <label class="form-self">
+              <label class="checkout__form-self">
                 <%= check_box_tag :receiver_self, "1", false, data: { receiver_self: true } %> Eu mesmo(a) sou quem vai receber
               </label>
-              <div class="form-grid">
-                <div class="field co-col-4">
-                  <%= f.label :receiver_name, "Nome de quem vai receber", class: "field-label" %>
-                  <%= f.text_field :receiver_name, name: "address[receiver_name]", class: "field-input", required: true, placeholder: "Nome completo" %>
+              <div class="checkout__form-grid">
+                <div class="field checkout__col--4">
+                  <%= f.label :receiver_name, "Nome de quem vai receber", class: "field__label" %>
+                  <%= f.text_field :receiver_name, name: "address[receiver_name]", class: "field__input", required: true, placeholder: "Nome completo" %>
                 </div>
-                <div class="field co-col-2">
-                  <%= f.label :receiver_cpf, "CPF do destinatário", class: "field-label" %>
-                  <%= f.text_field :receiver_cpf, name: "address[receiver_cpf]", class: "field-input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
+                <div class="field checkout__col--2">
+                  <%= f.label :receiver_cpf, "CPF do destinatário", class: "field__label" %>
+                  <%= f.text_field :receiver_cpf, name: "address[receiver_cpf]", class: "field__input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
                 </div>
-                <div class="field co-col-2">
-                  <%= f.label :zip, "CEP", class: "field-label" %>
-                  <%= f.text_field :zip, name: "address[zip]", class: "field-input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { mask_cep: true } %>
+                <div class="field checkout__col--2">
+                  <%= f.label :zip, "CEP", class: "field__label" %>
+                  <%= f.text_field :zip, name: "address[zip]", class: "field__input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { mask_cep: true } %>
                 </div>
-                <div class="field co-col-3">
-                  <%= f.label :street, "Endereço", class: "field-label" %>
-                  <%= f.text_field :street, name: "address[street]", class: "field-input", required: true, placeholder: "Rua, avenida…" %>
+                <div class="field checkout__col--3">
+                  <%= f.label :street, "Endereço", class: "field__label" %>
+                  <%= f.text_field :street, name: "address[street]", class: "field__input", required: true, placeholder: "Rua, avenida…" %>
                 </div>
-                <div class="field co-col-1">
-                  <%= f.label :number, "Número", class: "field-label" %>
-                  <%= f.text_field :number, name: "address[number]", class: "field-input", required: true, placeholder: "Nº" %>
+                <div class="field checkout__col--1">
+                  <%= f.label :number, "Número", class: "field__label" %>
+                  <%= f.text_field :number, name: "address[number]", class: "field__input", required: true, placeholder: "Nº" %>
                 </div>
-                <div class="field co-col-3">
-                  <%= f.label :complement, class: "field-label" do %>Complemento <span class="opt">(opcional)</span><% end %>
-                  <%= f.text_field :complement, name: "address[complement]", class: "field-input", placeholder: "Apto, bloco…" %>
+                <div class="field checkout__col--3">
+                  <%= f.label :complement, class: "field__label" do %>Complemento <span class="opt">(opcional)</span><% end %>
+                  <%= f.text_field :complement, name: "address[complement]", class: "field__input", placeholder: "Apto, bloco…" %>
                 </div>
-                <div class="field co-col-3">
-                  <%= f.label :neighborhood, "Bairro", class: "field-label" %>
-                  <%= f.text_field :neighborhood, name: "address[neighborhood]", class: "field-input", required: true, placeholder: "Bairro" %>
+                <div class="field checkout__col--3">
+                  <%= f.label :neighborhood, "Bairro", class: "field__label" %>
+                  <%= f.text_field :neighborhood, name: "address[neighborhood]", class: "field__input", required: true, placeholder: "Bairro" %>
                 </div>
-                <div class="field co-col-4">
-                  <%= f.label :city, "Cidade", class: "field-label" %>
-                  <%= f.text_field :city, name: "address[city]", class: "field-input", required: true, placeholder: "Cidade" %>
+                <div class="field checkout__col--4">
+                  <%= f.label :city, "Cidade", class: "field__label" %>
+                  <%= f.text_field :city, name: "address[city]", class: "field__input", required: true, placeholder: "Cidade" %>
                 </div>
-                <div class="field co-col-2">
-                  <%= f.label :state, "UF", class: "field-label" %>
-                  <%= f.select :state, Address::UF_LIST, { include_blank: "—" }, name: "address[state]", class: "field-input", required: true %>
+                <div class="field checkout__col--2">
+                  <%= f.label :state, "UF", class: "field__label" %>
+                  <%= f.select :state, Address::UF_LIST, { include_blank: "—" }, name: "address[state]", class: "field__input", required: true %>
                 </div>
               </div>
-              <div class="form-actions">
-                <%= f.submit "Salvar e usar", class: "btn btn-dark btn-sm" %>
-                <button class="btn btn-ghost btn-sm" data-addr-cancel type="button">Cancelar</button>
+              <div class="checkout__form-actions">
+                <%= f.submit "Salvar e usar", class: "checkout__btn checkout__btn--dark checkout__btn--sm" %>
+                <button class="checkout__btn checkout__btn--ghost checkout__btn--sm" data-addr-cancel type="button">Cancelar</button>
               </div>
             <% end %>
           </div>
         </section>
 
-        <section class="card step" data-step="shipping" id="step-shipping">
-          <div class="step-head">
-            <span class="step-num" data-step-num>2</span>
+        <section class="checkout__card checkout__step" data-step="shipping" id="step-shipping">
+          <div class="checkout__step-head">
+            <span class="checkout__step-num" data-step-num>2</span>
             <h2>Forma de envio</h2>
-            <span class="step-flag" data-ship-flag style="display:none"><i class="bi bi-check-circle-fill"></i> Selecionado</span>
+            <span class="checkout__step-flag" data-ship-flag><i class="bi bi-check-circle-fill"></i> Selecionado</span>
           </div>
-          <div class="step-body">
-            <div class="step-error"><i class="bi bi-exclamation-circle-fill"></i> Escolha uma forma de envio para continuar.</div>
-            <p class="ship-dest"><i class="bi bi-geo-alt-fill"></i> Enviando para <strong data-ship-dest><%= "#{selected.city}, #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" if selected %></strong></p>
-            <div class="ship-opts" data-ship-opts
+          <div class="checkout__step-body">
+            <div class="checkout__step-error"><i class="bi bi-exclamation-circle-fill"></i> Escolha uma forma de envio para continuar.</div>
+            <p class="checkout__ship-dest"><i class="bi bi-geo-alt-fill"></i> Enviando para <strong data-ship-dest><%= "#{selected.city}, #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" if selected %></strong></p>
+            <div class="checkout__ship-opts" data-ship-opts
                  data-preselected="<%= @selected_shipping_service %>"
                  data-quote-url="<%= cart_quote_path %>">
             </div>
@@ -136,67 +136,67 @@
 
       </div>
 
-      <aside class="rail">
-        <section class="card">
-          <div class="rainbow-top"></div>
-          <div class="sum-head">
+      <aside class="checkout__rail">
+        <section class="checkout__card">
+          <div class="rainbow-bar rainbow-bar--top"></div>
+          <div class="checkout__sum-head">
             <i class="bi bi-receipt"></i>
             <h2>Resumo do pedido</h2>
             <span class="count"><%= "#{count} #{count == 1 ? 'item' : 'itens'}" %></span>
           </div>
 
-          <div class="sum-items">
+          <div class="checkout__sum-items">
             <% @cart.lines.each do |line| %>
-              <div class="sum-item">
-                <div class="sum-thumb">
+              <div class="checkout__sum-item">
+                <div class="checkout__sum-thumb">
                   <% if line.product.image.present? %><img src="<%= line.product.image %>" alt="<%= line.product.title %>"><% end %>
                 </div>
-                <div class="sum-item-body">
-                  <p class="sum-item-cat"><%= line.product.category_label %></p>
-                  <p class="sum-item-name"><%= line.product.title %></p>
+                <div class="checkout__sum-item-body">
+                  <p class="checkout__sum-item-cat"><%= line.product.category_label %></p>
+                  <p class="checkout__sum-item-name"><%= line.product.title %></p>
                   <% if line.options.any? %>
-                    <div class="sum-item-opts"><%= line.options.map { |o| (flag = variant_option_flag(o.name)) ? "#{o.name} #{flag}" : o.name }.join(" · ") %></div>
+                    <div class="checkout__sum-item-opts"><%= line.options.map { |o| (flag = variant_option_flag(o.name)) ? "#{o.name} #{flag}" : o.name }.join(" · ") %></div>
                   <% end %>
                 </div>
-                <div class="sum-item-right">
-                  <span class="sum-item-price"><%= line.line_total_formatted %></span>
-                  <span class="sum-item-qty"><%= line.quantity %> un.</span>
+                <div class="checkout__sum-item-right">
+                  <span class="checkout__sum-item-price"><%= line.line_total_formatted %></span>
+                  <span class="checkout__sum-item-qty"><%= line.quantity %> un.</span>
                 </div>
               </div>
             <% end %>
           </div>
 
-          <div class="sum-totals">
-            <div class="sum-line">
+          <div class="checkout__sum-totals">
+            <div class="checkout__sum-line">
               <span class="muted">Subtotal <span>(<%= count %>)</span></span>
               <span class="val tnum" data-subtotal data-subtotal-cents="<%= @cart.subtotal_cents %>"><%= HasMoney.format(@cart.subtotal_cents) %></span>
             </div>
-            <div class="sum-line">
-              <span class="muted">Frete <span data-ship-method style="font-weight:600;color:var(--pg-ink)"></span></span>
-              <span class="val pending tnum" data-shipping>Selecione o envio</span>
+            <div class="checkout__sum-line">
+              <span class="muted">Frete <span class="checkout__sum-method" data-ship-method></span></span>
+              <span class="val is-pending tnum" data-shipping>Selecione o envio</span>
             </div>
-            <hr class="sum-div">
-            <div class="sum-total">
+            <hr class="checkout__sum-divider">
+            <div class="checkout__sum-total">
               <span class="lbl">Total</span>
               <span class="amt tnum" data-total><%= HasMoney.format(@cart.subtotal_cents) %></span>
             </div>
-            <p class="sum-installment">em até <b>12x</b> de <b class="tnum" data-installment></b> sem juros</p>
+            <p class="checkout__sum-installment">em até <b>12x</b> de <b class="tnum" data-installment></b> sem juros</p>
           </div>
 
           <%= form_with url: checkout_create_path, method: :post, id: "checkout-form",
-                        html: { class: "pay-foot", data: { checkout_form: true } } do |f| %>
+                        html: { class: "checkout__pay-foot", data: { checkout_form: true } } do |f| %>
             <%= f.hidden_field :shipping_service, value: @selected_shipping_service, data: { checkout_service: true } %>
 
-            <div class="pay-note">
+            <div class="checkout__pay-note">
               <i class="bi bi-shield-lock-fill"></i>
               <span>O pagamento é processado em ambiente seguro pelo nosso parceiro. Ao confirmar, você será redirecionado para concluir com Pix ou cartão de crédito.</span>
             </div>
 
-            <div class="pay-error" data-pay-error><i class="bi bi-exclamation-circle-fill"></i> <span data-pay-error-msg>Escolha uma forma de envio antes de pagar.</span></div>
+            <div class="checkout__pay-error" data-pay-error><i class="bi bi-exclamation-circle-fill"></i> <span data-pay-error-msg>Escolha uma forma de envio antes de pagar.</span></div>
 
-            <%= f.submit "Confirmar e pagar", class: "btn btn-dark btn-block btn-pay", data: { pay_btn: true } %>
+            <%= f.submit "Confirmar e pagar", class: "checkout__btn checkout__btn--dark checkout__btn--block checkout__btn--pay", data: { pay_btn: true } %>
 
-            <div class="trust">
+            <div class="checkout__trust">
               <div><i class="bi bi-shield-check"></i> Ambiente criptografado · seus dados protegidos</div>
               <div><i class="bi bi-box-seam"></i> Enviado com rastreio pelos Correios</div>
             </div>
@@ -206,19 +206,19 @@
     </div>
   </main>
 
-  <div class="mobile-bar">
-    <div class="mb-info">
-      <span class="mb-lbl">Total</span>
-      <span class="mb-amt tnum" data-mb-total><%= HasMoney.format(@cart.subtotal_cents) %></span>
+  <div class="checkout__mobile-bar">
+    <div class="checkout__mb-info">
+      <span class="checkout__mb-label">Total</span>
+      <span class="checkout__mb-amount tnum" data-mb-total><%= HasMoney.format(@cart.subtotal_cents) %></span>
     </div>
-    <button class="btn btn-dark" type="submit" form="checkout-form"><i class="bi bi-lock-fill"></i> Confirmar e pagar</button>
+    <button class="checkout__btn checkout__btn--dark" type="submit" form="checkout-form"><i class="bi bi-lock-fill"></i> Confirmar e pagar</button>
   </div>
 
-  <div class="redirect-overlay" data-redirect>
-    <div class="redirect-card">
-      <div class="rainbow-top"></div>
-      <div class="redirect-body">
-        <div class="spinner"></div>
+  <div class="checkout__redirect" data-redirect>
+    <div class="checkout__redirect-card">
+      <div class="rainbow-bar rainbow-bar--top"></div>
+      <div class="checkout__redirect-body">
+        <div class="checkout__spinner"></div>
         <h3>Abrindo o pagamento…</h3>
         <p>O pagamento abre em uma nova aba. Conclua por lá — esta página acompanha o status do pedido.</p>
       </div>

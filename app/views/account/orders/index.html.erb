@@ -1,31 +1,31 @@
 <% content_for :title, t("account.orders.page_title") %>
 
-<div class="account-card account-panel">
-  <div class="panel-head">
+<div class="account__card account__panel">
+  <div class="panel__head">
     <h2><span class="rainbow-bar" aria-hidden="true"></span> <%= t("account.orders.heading") %></h2>
     <p><%= t("account.orders.lede") %></p>
   </div>
 
-  <div class="panel-body">
+  <div class="panel__body">
     <% if @orders.empty? %>
       <div class="empty-state">
         <i class="bi bi-bag"></i>
         <p><%= t("account.orders.empty") %></p>
       </div>
     <% else %>
-      <div class="order-list">
+      <div class="orders">
         <% @orders.each do |order| %>
-          <%= link_to account_order_path(order), class: "order-row" do %>
-            <div class="order-row-id">
+          <%= link_to account_order_path(order), class: "orders__row" do %>
+            <div class="orders__row-id">
               <span class="num">#<%= order.number %></span>
               <span class="date"><%= l(order.placed_at.to_date, format: :long) %></span>
             </div>
-            <div class="order-row-right">
-              <span class="status-pill status-<%= order.status %>">
+            <div class="orders__row-right">
+              <span class="status-pill status-pill--<%= order.status %>">
                 <%= t("account.orders.states.#{order.status}.label") %>
               </span>
-              <span class="order-row-total"><%= format_brl(order.total_cents) %></span>
-              <i class="bi bi-chevron-right order-row-chev"></i>
+              <span class="orders__row-total"><%= format_brl(order.total_cents) %></span>
+              <i class="bi bi-chevron-right orders__row-chev"></i>
             </div>
           <% end %>
         <% end %>

@@ -1,37 +1,37 @@
 <% content_for :title, t("account.password.page_title") %>
 
-<div class="account-card account-panel">
-  <div class="panel-head">
+<div class="account__card account__panel">
+  <div class="panel__head">
     <h2><span class="rainbow-bar" aria-hidden="true"></span> <%= t("account.password.heading") %></h2>
     <p><%= t("account.password.lede") %></p>
   </div>
 
-  <div class="panel-body">
+  <div class="panel__body">
     <%= form_with model: current_user, url: account_password_path, method: :patch, html: { novalidate: true } do |f| %>
       <%= render "shared/form_errors", record: current_user %>
 
-      <div class="field-grid single">
+      <div class="field-grid field-grid--single">
         <div class="field">
-          <%= f.label :current_password, t("account.password.current_label"), class: "field-label" %>
-          <%= f.password_field :current_password, autocomplete: "current-password", class: "field-input", required: true, placeholder: "••••••••" %>
+          <%= f.label :current_password, t("account.password.current_label"), class: "field__label" %>
+          <%= f.password_field :current_password, autocomplete: "current-password", class: "field__input", required: true, placeholder: "••••••••" %>
         </div>
       </div>
 
-      <div class="field-grid" style="margin-top: 18px;">
+      <div class="field-grid field-grid--spaced">
         <div class="field">
-          <%= f.label :password, t("account.password.new_label"), class: "field-label" %>
-          <%= f.password_field :password, autocomplete: "new-password", class: "field-input", required: true, minlength: Devise.password_length.min, placeholder: "••••••••" %>
-          <span class="field-hint"><%= t("account.password.min_length", count: Devise.password_length.min) %></span>
+          <%= f.label :password, t("account.password.new_label"), class: "field__label" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "field__input", required: true, minlength: Devise.password_length.min, placeholder: "••••••••" %>
+          <span class="field__hint"><%= t("account.password.min_length", count: Devise.password_length.min) %></span>
         </div>
         <div class="field">
-          <%= f.label :password_confirmation, t("account.password.confirm_label"), class: "field-label" %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "field-input", required: true, placeholder: "••••••••" %>
+          <%= f.label :password_confirmation, t("account.password.confirm_label"), class: "field__label" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "field__input", required: true, placeholder: "••••••••" %>
         </div>
       </div>
 
-      <div class="panel-actions">
-        <%= f.submit t("account.password.submit"), class: "btn-prisma" %>
-        <span class="saved-note"><i class="bi bi-shield-lock"></i> <%= t("account.password.saved_note") %></span>
+      <div class="panel__actions">
+        <%= f.submit t("account.password.submit"), class: "button" %>
+        <span class="panel__saved-note"><i class="bi bi-shield-lock"></i> <%= t("account.password.saved_note") %></span>
       </div>
     <% end %>
   </div>

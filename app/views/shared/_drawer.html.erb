@@ -1,33 +1,33 @@
-<aside id="site-drawer" class="site-drawer" aria-hidden="true">
-  <div class="site-drawer-header d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
-    <%= link_to root_path, class: "site-drawer-brand" do %>
+<aside id="site-drawer" class="drawer" aria-hidden="true">
+  <div class="drawer__header d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+    <%= link_to root_path, class: "drawer__brand" do %>
       <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games" height="36">
     <% end %>
-    <button type="button" class="btn btn-link text-dark p-0 site-drawer-close"
+    <button type="button" class="btn btn-link text-dark p-0 drawer__close"
             aria-label="Fechar menu">
       <i class="bi bi-x-lg"></i>
     </button>
   </div>
 
-  <nav class="site-drawer-body" aria-label="Categorias">
+  <nav class="drawer__body" aria-label="Categorias">
     <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Catálogo</div>
     <ul class="list-unstyled mb-0">
       <li>
-        <%= link_to products_path, class: "site-drawer-link" do %>
+        <%= link_to products_path, class: "drawer__link" do %>
           <i class="bi bi-grid me-2"></i> Todos os jogos
           <span class="badge text-bg-secondary ms-auto"><%= Product.published.count %></span>
         <% end %>
       </li>
       <li>
         <%= link_to category_path(slug: "game-boy-classic"),
-              class: "site-drawer-link" do %>
+              class: "drawer__link" do %>
           <i class="bi bi-controller me-2"></i> Game Boy Classic
           <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("game-boy-classic").published.count %></span>
         <% end %>
       </li>
       <li>
         <%= link_to category_path(slug: "game-boy-color"),
-              class: "site-drawer-link" do %>
+              class: "drawer__link" do %>
           <i class="bi bi-palette me-2"></i> Game Boy Color
           <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("game-boy-color").published.count %></span>
         <% end %>
@@ -37,22 +37,22 @@
     <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Conteúdo</div>
     <ul class="list-unstyled mb-0">
       <li>
-        <%= link_to recomendacao_de_jogos_path, class: "site-drawer-link" do %>
+        <%= link_to recomendacao_de_jogos_path, class: "drawer__link" do %>
           <i class="bi bi-bookmark-star me-2"></i> Recomendação de jogos
         <% end %>
       </li>
       <li>
-        <%= link_to reviews_path, class: "site-drawer-link" do %>
+        <%= link_to reviews_path, class: "drawer__link" do %>
           <i class="bi bi-chat-quote me-2"></i> Reviews
         <% end %>
       </li>
       <li>
-        <%= link_to perguntas_frequentes_path, class: "site-drawer-link" do %>
+        <%= link_to perguntas_frequentes_path, class: "drawer__link" do %>
           <i class="bi bi-question-circle me-2"></i> Perguntas frequentes
         <% end %>
       </li>
       <li>
-        <%= link_to direitos_path, class: "site-drawer-link" do %>
+        <%= link_to direitos_path, class: "drawer__link" do %>
           <i class="bi bi-shield-check me-2"></i> Direitos do consumidor
         <% end %>
       </li>
@@ -63,13 +63,13 @@
       <% nav_partners.each do |p| %>
         <li>
           <a href="<%= p[:url] %>" target="_blank" rel="noopener noreferrer"
-             class="site-drawer-link">
-            <span class="pg-links-av me-2" style="background: <%= p[:gradient] %>;"><%= p[:initial] %></span>
-            <span class="pg-links-meta">
+             class="drawer__link">
+            <span class="partner-avatar me-2" style="--avatar-gradient: <%= p[:gradient] %>;"><%= p[:initial] %></span>
+            <span class="partner-meta">
               <strong><%= p[:name] %></strong>
               <small><%= p[:tagline] %></small>
             </span>
-            <i class="bi bi-youtube pg-links-yt" aria-hidden="true"></i>
+            <i class="bi bi-youtube partner-yt" aria-hidden="true"></i>
           </a>
         </li>
       <% end %>
@@ -79,30 +79,30 @@
     <ul class="list-unstyled mb-0">
       <% if user_signed_in? %>
         <li>
-          <%= link_to account_profile_path, class: "site-drawer-link" do %>
+          <%= link_to account_profile_path, class: "drawer__link" do %>
             <i class="bi bi-person me-2"></i> <%= t("account.drawer.my_account") %>
           <% end %>
         </li>
       <% else %>
         <li>
-          <%= link_to new_user_session_path, class: "site-drawer-link" do %>
+          <%= link_to new_user_session_path, class: "drawer__link" do %>
             <i class="bi bi-person me-2"></i> <%= t("account.short_label") %>
           <% end %>
         </li>
       <% end %>
       <li>
-        <%= link_to "/carrinho", class: "site-drawer-link" do %>
+        <%= link_to "/carrinho", class: "drawer__link" do %>
           <i class="bi bi-handbag me-2"></i> Carrinho
         <% end %>
       </li>
     </ul>
   </nav>
 
-  <div class="site-drawer-footer p-3 border-top">
+  <div class="drawer__footer p-3 border-top">
     <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success w-100">
       <i class="bi bi-whatsapp me-1"></i> Falar no WhatsApp
     </a>
   </div>
 </aside>
 
-<div class="site-drawer-backdrop" data-drawer-dismiss="true" aria-hidden="true"></div>
+<div class="drawer__backdrop" data-drawer-dismiss="true" aria-hidden="true"></div>

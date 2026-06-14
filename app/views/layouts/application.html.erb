@@ -16,15 +16,35 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <%# Warm up the CDN connections before the render-blocking CSS below. %>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://code.jquery.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://code.jquery.com">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/assets/owl.carousel.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/owl.carousel@2.3.4/dist/assets/owl.theme.default.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Wruczek/Bootstrap-Cookie-Alert/cookiealert.css">
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+
+    <%# Non-critical CSS: load async so it doesn't block first paint. %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Wruczek/Bootstrap-Cookie-Alert/cookiealert.css" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Wruczek/Bootstrap-Cookie-Alert/cookiealert.css">
+    </noscript>
+
+    <%= stylesheet_link_tag "base/tokens", "base/base", "base/animations",
+          "components/header", "components/nav-strip", "components/links-menu",
+          "components/drawer", "components/footer", "components/flash",
+          "components/section-title", "components/product-card", "components/chip",
+          "components/button", "components/field",
+          "data-turbo-track": "reload" %>
 
     <%= yield :head %>
   </head>
@@ -36,20 +56,20 @@
 
     <main class="wrapper py-3">
       <% if flash.any? %>
-        <div class="pg-flash">
+        <div class="flash-stack">
           <% flash.each do |key, value| %>
             <% meta = pg_alert_meta(key) %>
-            <div class="pg-alert pg-alert-<%= meta[:variant] %>" role="alert">
-              <i class="bi <%= meta[:icon] %> pg-alert-ic"></i>
-              <div class="pg-alert-body">
+            <div class="flash flash--<%= meta[:variant] %>" role="alert">
+              <i class="bi <%= meta[:icon] %> flash__icon"></i>
+              <div class="flash__body">
                 <%= value %>
                 <% if key.to_s == "cart_added" %>
-                  <%= link_to cart_path, class: "pg-alert-cta" do %>
+                  <%= link_to cart_path, class: "flash__cta" do %>
                     Ver carrinho <i class="bi bi-arrow-right-short"></i>
                   <% end %>
                 <% end %>
               </div>
-              <button type="button" class="pg-alert-close" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+              <button type="button" class="flash__close" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
             </div>
           <% end %>
         </div>
@@ -73,17 +93,17 @@
 
     <script>
       $(function () {
-        $('.pg-links-wrap').each(function () {
+        $('.links-menu').each(function () {
           var $wrap    = $(this);
           var $trigger = $wrap.find('[data-links-menu="trigger"]');
           var $panel   = $wrap.find('[data-links-menu="panel"]');
 
-          function open()  { $wrap.addClass('open');    $panel.prop('hidden', false); $trigger.attr('aria-expanded', 'true'); }
-          function close() { $wrap.removeClass('open'); $panel.prop('hidden', true);  $trigger.attr('aria-expanded', 'false'); }
+          function open()  { $wrap.addClass('is-open');    $panel.prop('hidden', false); $trigger.attr('aria-expanded', 'true'); }
+          function close() { $wrap.removeClass('is-open'); $panel.prop('hidden', true);  $trigger.attr('aria-expanded', 'false'); }
 
           $trigger.on('click', function (e) {
             e.stopPropagation();
-            $wrap.hasClass('open') ? close() : open();
+            $wrap.hasClass('is-open') ? close() : open();
           });
           $(document).on('click', function (e) {
             if (!$wrap.is(e.target) && $wrap.has(e.target).length === 0) close();
@@ -94,27 +114,27 @@
         });
 
         var $drawer = $('#site-drawer');
-        var $backdrop = $('.site-drawer-backdrop');
+        var $backdrop = $('.drawer__backdrop');
 
         function openDrawer() {
-          $drawer.addClass('open').attr('aria-hidden', 'false');
-          $backdrop.addClass('open');
-          $('body').addClass('site-drawer-locked');
+          $drawer.addClass('is-open').attr('aria-hidden', 'false');
+          $backdrop.addClass('is-open');
+          $('body').addClass('is-drawer-locked');
         }
 
         function closeDrawer() {
-          $drawer.removeClass('open').attr('aria-hidden', 'true');
-          $backdrop.removeClass('open');
-          $('body').removeClass('site-drawer-locked');
+          $drawer.removeClass('is-open').attr('aria-hidden', 'true');
+          $backdrop.removeClass('is-open');
+          $('body').removeClass('is-drawer-locked');
         }
 
         $('[data-toggle="drawer"]').on('click', function (e) {
           e.preventDefault();
           openDrawer();
         });
-        $('.site-drawer-close, [data-drawer-dismiss]').on('click', closeDrawer);
+        $('.drawer__close, [data-drawer-dismiss]').on('click', closeDrawer);
         $(document).on('keydown', function (e) {
-          if (e.key === 'Escape' && $drawer.hasClass('open')) closeDrawer();
+          if (e.key === 'Escape' && $drawer.hasClass('is-open')) closeDrawer();
         });
 
         $('.owl-carousel').each(function () {
@@ -143,10 +163,10 @@
         $('[data-mask-phone]').mask('(00) 00000-0000');
         $('[data-mask-cep]').mask('00000-000');
 
-        // .pg-alert is our brand flash; Bootstrap's data-bs-dismiss looks for
+        // .flash is our brand flash; Bootstrap's data-bs-dismiss looks for
         // .alert, so dismiss is wired directly here.
-        $(document).on('click', '.pg-alert-close', function () {
-          var $a = $(this).closest('.pg-alert');
+        $(document).on('click', '.flash__close', function () {
+          var $a = $(this).closest('.flash');
           $a.css({ transition: 'opacity .15s ease', opacity: 0 });
           setTimeout(function () { $a.remove(); }, 150);
         });

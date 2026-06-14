@@ -21,21 +21,21 @@ export function money(cents) {
 // ── Cart line interactions (variant pills + quantity stepper) ───────────────
 
 export function bindCartLines(scope) {
-  scope.querySelectorAll(".cart-item").forEach(function (item) {
+  scope.querySelectorAll("[data-cart-item]").forEach(function (item) {
     item.querySelector("[data-edit-toggle]")?.addEventListener("click", function () {
-      item.classList.toggle("editing");
+      item.classList.toggle("is-editing");
     });
 
     const variantForm = item.querySelector("[data-variant-form]");
     if (variantForm) {
-      variantForm.querySelectorAll(".vpill").forEach(function (pill) {
+      variantForm.querySelectorAll("[data-vpill]").forEach(function (pill) {
         pill.addEventListener("click", function () {
           const hidden = variantForm.querySelector(
             'input[data-variant-group="' + CSS.escape(pill.dataset.vgroup) + '"]'
           );
           if (hidden) hidden.value = pill.dataset.vopt;
-          pill.parentElement.querySelectorAll(".vpill").forEach(function (p) {
-            p.classList.toggle("sel", p === pill);
+          pill.parentElement.querySelectorAll("[data-vpill]").forEach(function (p) {
+            p.classList.toggle("is-selected", p === pill);
           });
           variantForm.requestSubmit();
         });
@@ -84,16 +84,16 @@ export function createCartShipping(root) {
   let shipping = null;
 
   function clearCepError() {
-    cepInput.classList.remove("err");
-    cepErr.classList.remove("show");
+    cepInput.classList.remove("is-error");
+    cepErr.classList.remove("is-visible");
   }
 
   function showCepError(msg) {
-    cepInput.classList.add("err");
+    cepInput.classList.add("is-error");
     cepErr.textContent = msg;
-    cepErr.classList.add("show");
-    shipOpts.classList.remove("show");
-    destBox.classList.remove("show");
+    cepErr.classList.add("is-visible");
+    shipOpts.classList.remove("is-visible");
+    destBox.classList.remove("is-visible");
   }
 
   function renderSummary() {
@@ -102,13 +102,11 @@ export function createCartShipping(root) {
     const methodEl = doc.querySelector("[data-ship-method]");
     if (shipping) {
       shipEl.textContent = money(shipping.price);
-      shipEl.style.color = "var(--pg-ink)";
-      shipEl.style.fontWeight = "600";
+      shipEl.classList.remove("is-pending");
       methodEl.textContent = "· " + shipping.label;
     } else {
       shipEl.textContent = "a calcular";
-      shipEl.style.color = "var(--pg-muted)";
-      shipEl.style.fontWeight = "500";
+      shipEl.classList.add("is-pending");
       methodEl.textContent = "";
     }
     doc.querySelector("[data-total]").textContent = money(total);
@@ -134,8 +132,8 @@ export function createCartShipping(root) {
   }
 
   function selectShip(el, services) {
-    shipOpts.querySelectorAll(".ship-opt").forEach(function (o) { o.classList.remove("sel"); });
-    el.classList.add("sel");
+    shipOpts.querySelectorAll("[data-ship-opt]").forEach(function (o) { o.classList.remove("is-selected"); });
+    el.classList.add("is-selected");
     const s = services.find(function (x) { return String(x.key) === el.dataset.opt; });
     shipping = { method: s.key, label: s.label, price: s.price_cents };
     rememberShipping(s.key);
@@ -148,28 +146,28 @@ export function createCartShipping(root) {
     // on keystroke, so re-calculating the same CEP wouldn't otherwise.
     clearCepError();
     destCity.textContent = data.destination.city + ", " + data.destination.state;
-    destBox.classList.add("show");
+    destBox.classList.add("is-visible");
     shipOpts.innerHTML = data.services.map(function (s) {
       if (s.eligible) {
-        const fast = s.key === "sedex" ? '<span class="tag">Mais rápido</span>' : "";
-        return '<label class="ship-opt" data-opt="' + s.key + '">'
-          + '<span class="ship-radio"></span>'
-          + '<span class="ship-info">'
-          +   '<span class="ship-name">' + s.label + fast + "</span>"
-          +   '<span class="ship-eta"><i class="bi bi-clock" style="font-size:11px"></i> Entrega em ' + s.business_days + " dias úteis</span>"
+        const fast = s.key === "sedex" ? '<span class="ship-option__tag">Mais rápido</span>' : "";
+        return '<label class="ship-option" data-ship-opt data-opt="' + s.key + '">'
+          + '<span class="ship-option__radio"></span>'
+          + '<span class="ship-option__info">'
+          +   '<span class="ship-option__name">' + s.label + fast + "</span>"
+          +   '<span class="ship-option__eta"><i class="bi bi-clock"></i> Entrega em ' + s.business_days + " dias úteis</span>"
           + "</span>"
-          + '<span class="ship-price">' + money(s.price_cents) + "</span>"
+          + '<span class="ship-option__price">' + money(s.price_cents) + "</span>"
           + "</label>";
       }
-      return '<div class="ship-opt disabled" data-opt-disabled="' + s.key + '">'
-        + '<span class="ship-radio"></span>'
-        + '<span class="ship-info">'
-        +   '<span class="ship-name">' + s.label + "</span>"
-        +   '<span class="ship-eta">' + s.message + "</span>"
+      return '<div class="ship-option is-disabled" data-ship-opt data-opt-disabled="' + s.key + '">'
+        + '<span class="ship-option__radio"></span>'
+        + '<span class="ship-option__info">'
+        +   '<span class="ship-option__name">' + s.label + "</span>"
+        +   '<span class="ship-option__eta">' + s.message + "</span>"
         + "</span>"
         + "</div>";
     }).join("");
-    shipOpts.classList.add("show");
+    shipOpts.classList.add("is-visible");
     shipping = null;
     rememberShipping(null);
     shipOpts.querySelectorAll("[data-opt]").forEach(function (el) {

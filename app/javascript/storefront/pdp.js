@@ -7,14 +7,14 @@
 // `option_ids[]` field (keyed by data-variant-group) and marks the pill as
 // selected within its group.
 export function bindVariantPills(scope) {
-  scope.querySelectorAll("[data-pdp-form] .vpill").forEach(function (pill) {
+  scope.querySelectorAll("[data-pdp-form] [data-vpill]").forEach(function (pill) {
     pill.addEventListener("click", function () {
       const hidden = pill.closest("form").querySelector(
         'input[data-variant-group="' + CSS.escape(pill.dataset.vgroup) + '"]'
       );
       if (hidden) hidden.value = pill.dataset.vopt;
-      pill.parentElement.querySelectorAll(".vpill").forEach(function (p) {
-        p.classList.toggle("sel", p === pill);
+      pill.parentElement.querySelectorAll("[data-vpill]").forEach(function (p) {
+        p.classList.toggle("is-selected", p === pill);
       });
     });
   });

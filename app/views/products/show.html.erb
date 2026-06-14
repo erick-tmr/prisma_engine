@@ -1,4 +1,7 @@
 <% content_for :title, "#{@product.title} — Prisma Games" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "components/variant", "pages/product" %>
+<% end %>
 
 <div class="container">
   <nav aria-label="breadcrumb">
@@ -37,23 +40,23 @@
 
         <% grouped_options = @product.product_options.in_display_order.group_by(&:group_name) %>
         <% if grouped_options.any? %>
-          <div class="pdp-variants">
+          <div class="product-detail__variants">
             <% grouped_options.each do |group_name, opts| %>
               <% default = opts.first %>
               <%= hidden_field_tag "option_ids[]", default.id, data: { variant_group: group_name } %>
-              <div class="vgroup">
-                <div class="vgroup-label"><i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %></div>
-                <div class="vpills">
+              <div class="variant-group">
+                <div class="variant-group__label"><i class="bi <%= variant_group_icon(group_name) %>"></i><%= group_name %></div>
+                <div class="variant-pills">
                   <% opts.each do |opt| %>
                     <%
                       is_sel = opt.id == default.id
                       flag = variant_option_flag(opt.name)
                       delta_label = opt.price_delta_cents.positive? ? "+#{HasMoney.format(opt.price_delta_cents)}" : nil
                     %>
-                    <button type="button" class="vpill<%= ' sel' if is_sel %>"
-                            data-vgroup="<%= group_name %>" data-vopt="<%= opt.id %>">
+                    <button type="button" class="variant-pill<%= ' is-selected' if is_sel %>"
+                            data-vpill data-vgroup="<%= group_name %>" data-vopt="<%= opt.id %>">
                       <%= opt.name %><%= " #{flag}" if flag %>
-                      <% if delta_label %><span class="vdelta"><%= delta_label %></span><% end %>
+                      <% if delta_label %><span class="variant-pill__delta"><%= delta_label %></span><% end %>
                     </button>
                   <% end %>
                 </div>

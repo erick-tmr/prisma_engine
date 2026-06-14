@@ -1,0 +1,28 @@
+/* Top header. Layout uses Bootstrap utilities; these are the brand bits. */
+
+.header__drawer-toggle i {
+  font-size: 1.6rem;
+}
+
+.header__cart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.header__cart-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  background: var(--pg-primary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}

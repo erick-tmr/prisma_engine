@@ -1,0 +1,163 @@
+/* Dark category logo strip (below the header), with social actions. */
+
+.nav-strip {
+  background: #2b2f36;
+  padding: 14px 0;
+}
+
+.nav-strip__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-strip__cats {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.nav-strip__cat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 8px;
+  transition: transform 0.18s ease;
+}
+
+.nav-strip__cat:hover {
+  transform: translateY(-1px);
+}
+
+.nav-strip__cat img {
+  height: 100%;
+  width: auto;
+  max-width: 170px;
+  display: block;
+  object-fit: contain;
+
+  /* Neon: 1px sharp white outline + soft outer glow. The 4-direction
+     drop-shadow stack traces the actual letter shapes (not the bounding
+     box) since drop-shadow operates on the SVG alpha mask. */
+  filter:
+    drop-shadow( 1px  0   0 #fff)
+    drop-shadow(-1px  0   0 #fff)
+    drop-shadow( 0    1px 0 #fff)
+    drop-shadow( 0   -1px 0 #fff)
+    drop-shadow( 0    0   6px rgba(255, 255, 255, 0.6));
+}
+
+/* Fallback for categories without a logo SVG yet (DS, 3DS, etc.) */
+.nav-strip__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  padding: 0 6px;
+}
+
+.nav-strip__right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-strip__social {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: transform 0.18s, filter 0.18s, background 0.18s;
+}
+
+.nav-strip__social:hover {
+  transform: translateY(-1px);
+  color: #fff;
+  filter: brightness(1.05);
+}
+
+.nav-strip__social--wa i {
+  color: var(--pg-whatsapp);
+}
+
+.nav-strip__social--ig {
+  background: linear-gradient(45deg, var(--pg-ig-2), var(--pg-ig-3), var(--pg-ig-4));
+  border-color: transparent;
+}
+
+/* Mobile: the strip is a single flex row built for desktop. On phones the
+   logos can't all fit, so the rail scrolls sideways instead of clipping; a
+   right-edge fade + a peeking next logo hint there's more. */
+@media (max-width: 767.98px) {
+  .nav-strip__inner {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .nav-strip__cats {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    gap: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+            mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  }
+  .nav-strip__cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-strip__cat {
+    height: 44px;
+    padding: 0 4px;
+    scroll-snap-align: start;
+  }
+  .nav-strip__cat img {
+    max-width: 130px;
+  }
+
+  .nav-strip__right {
+    gap: 8px;
+  }
+  .nav-strip__social {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-strip__cat {
+    height: 40px;
+  }
+  .nav-strip__cat img {
+    max-width: 110px;
+  }
+  .nav-strip__social {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+}

@@ -26,7 +26,7 @@ const ALL_INELIGIBLE = {
 };
 
 function addrOpt(a) {
-  return `<label class="addr-opt${a.selected ? " sel" : ""}" data-addr-opt
+  return `<label class="checkout__addr-opt${a.selected ? " is-selected" : ""}" data-addr-opt
     data-address-id="${a.id}" data-receiver="${a.receiver}" data-cpf="${a.cpf}"
     data-street="${a.street}" data-line1="${a.line1}" data-line2="${a.line2}"
     data-default="${a.default ? "1" : "0"}" data-city="${a.city}" data-cep="${a.cep}">
@@ -42,29 +42,29 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = t
   document.head.innerHTML = '<meta name="csrf-token" content="test-token">';
   document.body.innerHTML = `
     <section id="step-address">
-      <div class="addr-selected">
+      <div class="checkout__addr-selected">
         <span data-sel-receiver></span><span data-sel-cpf></span><span data-sel-street></span>
         <span data-sel-line1></span><span data-sel-line2></span><span data-sel-badge></span>
       </div>
       <button data-addr-change-btn type="button">Alterar</button>
-      <div class="addr-list" data-addr-list>
+      <div class="checkout__addr-list" data-addr-list>
         ${addresses.map(addrOpt).join("")}
         <button data-addr-add-btn type="button">Adicionar</button>
       </div>
       <form data-addr-form id="addr-form"><button data-addr-cancel type="button">Cancelar</button></form>
     </section>
     <section id="step-shipping">
-      <span class="step-flag" data-ship-flag style="display:none"></span>
+      <span class="checkout__step-flag" data-ship-flag></span>
       <strong data-ship-dest></strong>
-      <div class="ship-opts" data-ship-opts data-preselected="${preselected}" data-quote-url="/carrinho/frete"></div>
+      <div class="checkout__ship-opts" data-ship-opts data-preselected="${preselected}" data-quote-url="/carrinho/frete"></div>
     </section>
     <form id="checkout-form" action="/checkout" data-checkout-form>
       <input type="hidden" name="shipping_service" data-checkout-service>
-      <div class="pay-error" data-pay-error><span data-pay-error-msg></span></div>
+      <div class="checkout__pay-error" data-pay-error><span data-pay-error-msg></span></div>
       <button type="submit" data-pay-btn>Confirmar e pagar</button>
     </form>
     <span data-subtotal data-subtotal-cents="48500"></span>
-    <span class="pending" data-shipping>Selecione o envio</span>
+    <span class="is-pending" data-shipping>Selecione o envio</span>
     <span data-ship-method></span>
     <span data-total></span>
     <span data-mb-total></span>
@@ -91,11 +91,11 @@ describe("renderSummary", () => {
     const co = mountCheckout();
     co.renderSummary();
     expect(document.querySelector("[data-shipping]").textContent).toBe("Selecione o envio");
-    expect(document.querySelector("[data-shipping]").classList.contains("pending")).toBe(true);
+    expect(document.querySelector("[data-shipping]").classList.contains("is-pending")).toBe(true);
     expect(document.querySelector("[data-total]").textContent).toMatch(/485,00/);
 
     co.renderQuote(QUOTE);
-    expect(document.querySelector("[data-shipping]").classList.contains("pending")).toBe(false);
+    expect(document.querySelector("[data-shipping]").classList.contains("is-pending")).toBe(false);
     expect(document.querySelector("[data-ship-method]").textContent).toBe("· SEDEX");
     expect(document.querySelector("[data-total]").textContent).toMatch(/523,40/);
     expect(document.querySelector("[data-mb-total]").textContent).toMatch(/523,40/);
@@ -141,8 +141,8 @@ describe("renderQuote", () => {
     co.renderQuote(QUOTE);
     document.querySelector('[data-opt="pac"]').dispatchEvent(new Event("click"));
     expect(co.shipping.method).toBe("pac");
-    expect(document.querySelector("#step-shipping").classList.contains("step-done")).toBe(true);
-    expect(document.querySelector("[data-ship-flag]").style.display).toBe("inline-flex");
+    expect(document.querySelector("#step-shipping").classList.contains("is-done")).toBe(true);
+    expect(document.querySelector("[data-ship-flag]").classList.contains("is-visible")).toBe(true);
   });
 });
 
@@ -186,7 +186,7 @@ describe("selectAddress", () => {
     co.selectAddress(document.querySelector('[data-address-id="1"]'));
 
     expect(document.querySelector("[data-sel-receiver]").textContent).toBe("Cliente");
-    expect(document.querySelector("[data-sel-badge]").style.display).toBe("inline-flex");
+    expect(document.querySelector("[data-sel-badge]").classList.contains("is-hidden")).toBe(false);
     expect(document.querySelector("[data-ship-dest]").textContent).toContain("CEP 01310-100");
     expect(document.querySelector('input[value="1"]').checked).toBe(true);
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ cep: "01310100" });
@@ -196,7 +196,7 @@ describe("selectAddress", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => QUOTE }));
     const co = mountCheckout({ addresses: [DEFAULT_ADDR, OTHER_ADDR] });
     co.selectAddress(document.querySelector('[data-address-id="2"]'));
-    expect(document.querySelector("[data-sel-badge]").style.display).toBe("none");
+    expect(document.querySelector("[data-sel-badge]").classList.contains("is-hidden")).toBe(true);
   });
 });
 
@@ -209,12 +209,12 @@ describe("bindEvents", () => {
     const btn = document.querySelector("[data-addr-change-btn]");
 
     btn.dispatchEvent(new Event("click"));
-    expect(list.classList.contains("open")).toBe(true);
+    expect(list.classList.contains("is-open")).toBe(true);
 
-    form.classList.add("open");
+    form.classList.add("is-open");
     btn.dispatchEvent(new Event("click"));
-    expect(list.classList.contains("open")).toBe(false);
-    expect(form.classList.contains("open")).toBe(false);
+    expect(list.classList.contains("is-open")).toBe(false);
+    expect(form.classList.contains("is-open")).toBe(false);
   });
 
   it("the add button opens the form and cancel closes it", () => {
@@ -222,9 +222,9 @@ describe("bindEvents", () => {
     co.bindEvents();
     const form = document.querySelector("[data-addr-form]");
     document.querySelector("[data-addr-add-btn]").dispatchEvent(new Event("click"));
-    expect(form.classList.contains("open")).toBe(true);
+    expect(form.classList.contains("is-open")).toBe(true);
     document.querySelector("[data-addr-cancel]").dispatchEvent(new Event("click"));
-    expect(form.classList.contains("open")).toBe(false);
+    expect(form.classList.contains("is-open")).toBe(false);
   });
 
   it("clicking a saved option selects that address", () => {
@@ -250,7 +250,7 @@ describe("bindEvents", () => {
     form.dispatchEvent(ev);
     expect(ev.defaultPrevented).toBe(true);
     expect(openTab).toHaveBeenCalledOnce();
-    expect(document.querySelector("[data-redirect]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("[data-redirect]").classList.contains("is-visible")).toBe(true);
 
     await flush();
 
@@ -288,8 +288,8 @@ describe("bindEvents", () => {
 
     await flush();
     expect(payTab.close).toHaveBeenCalledOnce();
-    expect(document.querySelector("[data-redirect]").classList.contains("show")).toBe(false);
-    expect(document.querySelector("[data-pay-error]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("[data-redirect]").classList.contains("is-visible")).toBe(false);
+    expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
     expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Não foi possível iniciar o pagamento/);
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -303,7 +303,7 @@ describe("bindEvents", () => {
 
     await flush();
     expect(payTab.close).not.toHaveBeenCalled();
-    expect(document.querySelector("[data-pay-error]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
     expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Não foi possível iniciar o pagamento/);
   });
 
@@ -332,8 +332,8 @@ describe("bindEvents", () => {
     const ev = new Event("submit", { cancelable: true });
     document.querySelector("[data-checkout-form]").dispatchEvent(ev);
     expect(ev.defaultPrevented).toBe(true);
-    expect(document.querySelector("#step-shipping").classList.contains("invalid")).toBe(true);
-    expect(document.querySelector("[data-pay-error]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("#step-shipping").classList.contains("is-invalid")).toBe(true);
+    expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
   });
 });
 

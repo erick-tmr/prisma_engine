@@ -1,9 +1,9 @@
 <% if record.errors.any? %>
-  <div class="pg-alert pg-alert-danger" role="alert">
-    <i class="bi bi-exclamation-octagon-fill pg-alert-ic"></i>
-    <div class="pg-alert-body">
+  <div class="flash flash--danger" role="alert">
+    <i class="bi bi-exclamation-octagon-fill flash__icon"></i>
+    <div class="flash__body">
       <strong><%= t("forms.errors_heading") %></strong>
-      <ul class="pg-alert-list">
+      <ul class="flash__list">
         <% record.errors.full_messages.each do |msg| %>
           <li><%= msg %></li>
         <% end %>
