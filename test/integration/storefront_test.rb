@@ -65,4 +65,13 @@ test "every static page route renders" do
     get "/pagina/desconhecido"
     assert_response :not_found
   end
+
+  test "cookie banner renders until the acceptCookies cookie is present" do
+    get root_path
+    assert_select ".cookiealert"
+
+    cookies[:acceptCookies] = "true"
+    get root_path
+    assert_select ".cookiealert", false, "accepted users should not get the banner at all"
+  end
 end
