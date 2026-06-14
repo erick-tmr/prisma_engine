@@ -348,10 +348,8 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
-  background: var(--pg-rainbow);
-  background-size: 200% 100%;
-  animation: rainbow-slide 3s linear infinite;
+  width: 5px;
+  background: var(--pg-rainbow-edge);
 }
 .order-detail__status-banner .sb-text { display: flex; flex-direction: column; gap: 6px; }
 .order-detail__status-banner .sb-text p { margin: 0; font-size: 14px; color: var(--pg-ink); line-height: 1.5; }

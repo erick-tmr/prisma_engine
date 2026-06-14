@@ -164,7 +164,7 @@
   top: 0;
   bottom: 0;
   width: 5px;
-  background: linear-gradient(180deg, #b80a41 0%, #daac06 34%, #00938a 67%, #4e4ba8 100%);
+  background: var(--pg-rainbow-edge);
 }
 
 .mes-panel__head {
