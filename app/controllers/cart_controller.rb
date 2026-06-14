@@ -3,6 +3,8 @@ class CartController < ApplicationController
 
   QUOTE_TTL = 30.minutes.to_i
 
+  Quote = Data.define(:initial, :recalc_cep, :recalc_service)
+
   def show
     @cart = current_cart
     if @cart.cleanup!
@@ -11,9 +13,7 @@ class CartController < ApplicationController
     end
     @lines = @cart.lines
     @gotm_product_ids = current_gotm_product_ids
-    @initial_quote = restored_quote
-    @recalc_cep = recalc_cep
-    @recalc_service = session["checkout_shipping_service"]
+    @quote = build_quote
   end
 
   # Checkout — the redirect target below — accepts a customer-chosen shipping
@@ -47,17 +47,20 @@ class CartController < ApplicationController
     gotm ? gotm.products.pluck(:id).to_set : Set.new
   end
 
+  def build_quote
+    initial = restored_quote
+    Quote.new(
+      initial:        initial,
+      recalc_cep:     initial ? nil : fresh_quote&.dig("response", "cep"),
+      recalc_service: session["checkout_shipping_service"]
+    )
+  end
+
   def restored_quote
     cached = fresh_quote
     return unless cached && cached["weight"].to_i == Shipping::PackageWeight.call(@cart)
 
     { "response" => cached["response"], "service" => session["checkout_shipping_service"] }
-  end
-
-  def recalc_cep
-    return if @initial_quote
-
-    fresh_quote&.dig("response", "cep")
   end
 
   def fresh_quote

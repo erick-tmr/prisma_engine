@@ -1,23 +1,27 @@
 module Payments
-  # nosemgrep: ruby.lang.security.missing-csrf-protection.missing-csrf-protection
-  class WebhooksController < ActionController::Base
-    skip_forgery_protection
-
+  class WebhooksController < ActionController::API
     def create
-      Payments::WebhookCapture.record(
-        headers: request.headers.env.select { |key, _| key.start_with?("HTTP_", "CONTENT_") },
-        body:    request.raw_post
-      )
-
-      # SECURITY: InfinitePay sends no signature, so the per-order webhook_token in the URL is
-      # the authenticator — only our POST /links for this order ever transmits it. It rides in
-      # the path, so it appears in access logs; impact is bounded (it only confirms that one
-      # order, to its known total, idempotently). Don't log the token in our own lines.
       order = Order.find_by(webhook_token: params[:token])
-      return head :unauthorized unless order
+      unless order
+        Rails.logger.warn("Payments webhook rejected: unrecognized token")
+        return head :unauthorized
+      end
 
-      Payments::PaymentUpdate.call(order: order, payload: JSON.parse(request.raw_post))
+      ActiveRecord::Base.transaction do
+        order.payment_webhook_events.create!(headers: captured_headers, payload: payload)
+        Payments::PaymentUpdate.call(order: order, payload: payload)
+      end
       head :ok
+    end
+
+    private
+
+    def payload
+      @payload ||= JSON.parse(request.raw_post)
+    end
+
+    def captured_headers
+      request.headers.env.select { |key, _| key.start_with?("HTTP_", "CONTENT_") }
     end
   end
 end

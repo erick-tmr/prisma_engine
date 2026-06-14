@@ -49,11 +49,6 @@ Rails.application.config.middleware.insert_before(
   ActionDispatch::HostAuthorization, BlockDevIntrospection
 )
 
-# Basic auth guards every path so the public preview isn't world-open, EXCEPT the
-# InfinitePay webhook: it's an inbound server-to-server POST with no preview
-# credentials, so it must bypass auth to be reachable through the tunnel. The
-# endpoint is capture-only (appends the raw payload to a log file) and CSRF-exempt;
-# authenticating the payload itself is a follow-up (see Payments::WebhooksController).
 class PreviewBasicAuth
   EXEMPT = %w[/pagamentos/webhook].freeze
 

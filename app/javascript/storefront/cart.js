@@ -116,11 +116,6 @@ export function createCartShipping(root) {
     if (mbTotalEl) mbTotalEl.textContent = money(total);
   }
 
-  // Carry the chosen frete to the server on every form that posts there — the
-  // "Finalizar compra" button and the per-line stepper/variant forms — so both
-  // cart#finalize and cart_items#update persist it to the session. The checkout
-  // screen and a post-reload re-quote read it back from there. Passing null
-  // removes it (a fresh quote deselects everything first).
   function rememberShipping(serviceKey) {
     doc.querySelectorAll("[data-finalize-form], [data-stepper-form], [data-variant-form]").forEach(function (form) {
       let input = form.querySelector('input[name="shipping_service"]');
@@ -237,9 +232,6 @@ export function createCartShipping(root) {
     });
   }
 
-  // Re-apply a previously chosen service after a (re-)render, but only if it's
-  // still offered — otherwise the renderQuote default stands (e.g. Mini Envios
-  // dropping out once a heavier parcel makes it ineligible).
   function reselect(serviceKey, services) {
     if (!serviceKey) return;
     const el = shipOpts.querySelector('[data-opt="' + serviceKey + '"]');

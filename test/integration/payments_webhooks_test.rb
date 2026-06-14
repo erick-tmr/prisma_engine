@@ -33,26 +33,26 @@ class PaymentsWebhooksTest < ActionDispatch::IntegrationTest
     assert_equal "tx-confirm", @order.external_id
   end
 
-  test "captures the raw payload to disk" do
-    slug = "slug-#{SecureRandom.hex(6)}"
-    webhook(@order.webhook_token, paid_payload("invoice_slug" => slug))
+  test "captures the webhook to the database for auditing" do
+    webhook(@order.webhook_token, paid_payload("invoice_slug" => "uXnT2kndIV"))
 
     assert_response :ok
-    line = File.readlines(Payments::WebhookCapture.path).find { |entry| entry.include?(slug) }
-    assert line, "expected a captured webhook line containing #{slug}"
-    captured = JSON.parse(line)
-    assert_equal slug, JSON.parse(captured["body"])["invoice_slug"]
-    assert captured["received_at"].present?
+    event = @order.payment_webhook_events.last
+    assert_not_nil event
+    assert_equal "uXnT2kndIV", event.payload["invoice_slug"]
+    assert event.headers["CONTENT_TYPE"].present?
   end
 
-  test "an unknown token is rejected with 401 and confirms nothing" do
-    webhook("nope-#{SecureRandom.hex(4)}", paid_payload)
+  test "an unknown token is rejected with 401 and captures + confirms nothing" do
+    assert_no_difference "PaymentWebhookEvent.count" do
+      webhook("nope-#{SecureRandom.hex(4)}", paid_payload)
+    end
 
     assert_response :unauthorized
     assert @order.reload.awaiting_payment?
   end
 
-  test "a replayed webhook is an idempotent no-op" do
+  test "a replayed webhook is an idempotent no-op but still captures each delivery" do
     body = paid_payload("transaction_nsu" => "tx-once")
     webhook(@order.webhook_token, body)
     webhook(@order.webhook_token, body)
@@ -61,6 +61,7 @@ class PaymentsWebhooksTest < ActionDispatch::IntegrationTest
     @order.reload
     assert @order.payment_confirmed?
     assert_equal "tx-once", @order.external_id
+    assert_equal 2, @order.payment_webhook_events.count
   end
 
   test "a mismatched amount answers 200 but leaves the order awaiting payment" do

@@ -53,7 +53,7 @@
     <aside class="cart-rail">
       <section class="cart-card" aria-label="Calcular frete"
                data-cart-shipping data-quote-url="<%= cart_quote_path %>"
-               <% if @initial_quote %>data-initial-quote="<%= @initial_quote["response"].to_json %>" data-initial-service="<%= @initial_quote["service"] %>"<% elsif @recalc_cep %>data-recalc-cep="<%= @recalc_cep %>" data-recalc-service="<%= @recalc_service %>"<% end %>>
+               <% if @quote.initial %>data-initial-quote="<%= @quote.initial["response"].to_json %>" data-initial-service="<%= @quote.initial["service"] %>"<% elsif @quote.recalc_cep %>data-recalc-cep="<%= @quote.recalc_cep %>" data-recalc-service="<%= @quote.recalc_service %>"<% end %>>
         <div class="rainbow-top"></div>
         <div class="cart-card-head">
           <i class="bi bi-truck" style="font-size:18px"></i>
@@ -62,7 +62,7 @@
         <div class="frete-body">
           <p class="frete-lead">Informe seu CEP para ver as opções de envio dos Correios e o prazo de entrega.</p>
           <div class="cep-row">
-            <input class="cep-input" data-cep inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP" value="<%= @initial_quote ? @initial_quote["response"]["cep"] : @recalc_cep %>">
+            <input class="cep-input" data-cep inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP" value="<%= @quote.initial ? @quote.initial["response"]["cep"] : @quote.recalc_cep %>">
             <button type="button" class="cart-btn cart-btn-calc" data-calc>Calcular</button>
           </div>
           <div class="cep-err" data-cep-err>CEP inválido. Digite os 8 números.</div>

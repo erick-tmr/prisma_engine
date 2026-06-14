@@ -19,3 +19,6 @@ production:
   cancel_expired_orders:
     class: CancelExpiredOrdersJob
     schedule: every hour
+  purge_payment_webhook_events:
+    class: PurgePaymentWebhookEventsJob
+    schedule: "0 3 1 * *"
