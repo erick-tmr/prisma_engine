@@ -564,15 +564,22 @@ jobs:
     services:
       postgres:
         image: postgres
+        # Match the production database.yml (user + db name) so the audit runs
+        # in real production mode without DATABASE_URL precedence gymnastics.
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: prisma_engine
+          POSTGRES_PASSWORD: prisma_engine
+          POSTGRES_DB: prisma_engine_production
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+    # Audit a production-config build on localhost (the Lighthouse best practice)
+    # for representative numbers without pointing at the live server. assume_ssl
+    # already neutralizes force_ssl, so there's no http->https redirect to dodge.
     env:
-      RAILS_ENV: development
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432
+      RAILS_ENV: production
+      RAILS_SERVE_STATIC_FILES: "true"
+      PRISMA_ENGINE_DATABASE_PASSWORD: prisma_engine
     steps:
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
@@ -591,10 +598,19 @@ jobs:
           node-version-file: .node-version
           cache: npm
 
+      # Production needs a SECRET_KEY_BASE to boot. The audit only serves public
+      # pages, so a throwaway per-run key is fine — generated here (not stored in
+      # the repo) so secret scanners have nothing to flag.
+      - name: Generate a throwaway SECRET_KEY_BASE
+        run: echo "SECRET_KEY_BASE=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
       - name: Prepare database (schema + catalog seeds)
         run: bin/rails db:prepare db:seed
 
-      # autorun boots the dev server (per .lighthouserc.json), audits the
+      - name: Precompile assets
+        run: bin/rails assets:precompile
+
+      # autorun boots the production server (per .lighthouserc.json), audits the
       # storefront with the runner's Chrome, and writes reports to .lighthouseci.
       - name: Run Lighthouse (autorun)
         run: |
