@@ -1,14 +1,9 @@
 class CheckoutController < ApplicationController
+  include CheckoutErrors
+
   before_action :authenticate_user!
 
   layout "checkout"
-
-  ERROR_MESSAGES = {
-    empty_cart:           "Seu carrinho está vazio.",
-    invalid_address:      "Selecione um endereço de entrega válido.",
-    shipping_unavailable: "A forma de envio escolhida não está disponível. Escolha outra.",
-    shipping_error:       "Não foi possível calcular o frete agora. Tente novamente em instantes."
-  }.freeze
 
   def show
     @cart = current_cart
@@ -26,15 +21,11 @@ class CheckoutController < ApplicationController
       user: current_user, cart: current_cart,
       address_id: params[:address_id], shipping_service: params[:shipping_service]
     )
+    return render_create_failure(ERROR_MESSAGES.fetch(result.error)) unless result.success?
 
-    if result.success?
-      clear_cart!
-      flash[:notice] = "Pedido #{result.order.number} criado."
-      redirect_to root_path
-    else
-      flash[:alert] = ERROR_MESSAGES.fetch(result.error)
-      redirect_to checkout_path
-    end
+    start_payment(result.order)
+  rescue InfinitePay::Api::Error
+    render_create_failure(ERROR_MESSAGES[:payment_error])
   end
 
   def create_address
@@ -50,6 +41,18 @@ class CheckoutController < ApplicationController
 
   private
 
+  def start_payment(order)
+    payment_url = Payments::Checkout.start(
+      order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token)
+    )
+    clear_cart!
+    respond_to do |format|
+      format.json { render json: { payment_url:, return_url: checkout_return_url(order_nsu: order.number) } }
+      # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
+      format.html { redirect_to payment_url, allow_other_host: true }
+    end
+  end
+
   def persist_cart_if_cleaned
     cookies.signed[:cart] = { value: @cart.to_cookie, expires: 30.days.from_now } if @cart.cleanup!
   end
@@ -57,6 +60,16 @@ class CheckoutController < ApplicationController
   def clear_cart!
     cookies.delete(:cart)
     session.delete("checkout_shipping_service")
+  end
+
+  def render_create_failure(message)
+    respond_to do |format|
+      format.json { render json: { error: message }, status: :unprocessable_entity }
+      format.html do
+        flash[:alert] = message
+        redirect_to checkout_path
+      end
+    end
   end
 
   def address_params

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_180435) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,7 +126,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_180435) do
 
   create_table "orders", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "external_id"
     t.string "number", null: false
+    t.string "payment_method"
+    t.string "receipt_url"
     t.string "ship_city", null: false
     t.string "ship_complement"
     t.string "ship_neighborhood", null: false
@@ -143,9 +146,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_180435) do
     t.integer "total_cents", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.string "webhook_token"
+    t.index ["external_id"], name: "index_orders_on_external_id", unique: true
     t.index ["number"], name: "index_orders_on_number", unique: true
     t.index ["user_id", "created_at"], name: "index_orders_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_orders_on_user_id"
+    t.index ["webhook_token"], name: "index_orders_on_webhook_token", unique: true
+  end
+
+  create_table "payment_webhook_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "headers", default: {}, null: false
+    t.bigint "order_id", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_payment_webhook_events_on_order_id"
   end
 
   create_table "product_options", force: :cascade do |t|
@@ -299,6 +314,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_180435) do
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products", on_delete: :nullify
   add_foreign_key "orders", "users"
+  add_foreign_key "payment_webhook_events", "orders"
   add_foreign_key "product_options", "products"
   add_foreign_key "product_photos", "products"
   add_foreign_key "product_tags", "products"

@@ -34,7 +34,11 @@ function addrOpt(a) {
   </label>`;
 }
 
-function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR] } = {}) {
+let payTab, openTab, navigate;
+
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = true } = {}) {
   document.head.innerHTML = '<meta name="csrf-token" content="test-token">';
   document.body.innerHTML = `
     <section id="step-address">
@@ -54,9 +58,9 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR] } = {}) {
       <strong data-ship-dest></strong>
       <div class="ship-opts" data-ship-opts data-preselected="${preselected}" data-quote-url="/carrinho/frete"></div>
     </section>
-    <form id="checkout-form" data-checkout-form>
+    <form id="checkout-form" action="/checkout" data-checkout-form>
       <input type="hidden" name="shipping_service" data-checkout-service>
-      <div class="pay-error" data-pay-error></div>
+      <div class="pay-error" data-pay-error><span data-pay-error-msg></span></div>
       <button type="submit" data-pay-btn>Confirmar e pagar</button>
     </form>
     <span data-subtotal data-subtotal-cents="48500"></span>
@@ -65,9 +69,12 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR] } = {}) {
     <span data-total></span>
     <span data-mb-total></span>
     <span data-installment></span>
-    <div data-redirect><span data-countdown></span></div>
+    <div data-redirect></div>
   `;
-  return createCheckout(document);
+  payTab = { location: { href: "" }, close: vi.fn() };
+  openTab = vi.fn(() => (popup ? payTab : null));
+  navigate = vi.fn();
+  return createCheckout(document, openTab, navigate);
 }
 
 afterEach(() => { vi.restoreAllMocks(); });
@@ -228,43 +235,95 @@ describe("bindEvents", () => {
     expect(document.querySelector('input[value="2"]').checked).toBe(true);
   });
 
-  it("submitting with a service shows the overlay, counts down, then submits the form", () => {
-    vi.useFakeTimers();
+  it("submitting with a service opens a pay tab, posts the form, and sends this tab to the return page", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ payment_url: "https://pay.example/abc", return_url: "/checkout/retorno?order_nsu=PG-1" })
+    });
+    vi.stubGlobal("fetch", fetchMock);
     const co = mountCheckout();
     co.bindEvents();
-    const form = document.querySelector("[data-checkout-form]");
-    const submitSpy = vi.spyOn(form, "submit").mockImplementation(() => {});
     document.querySelector("[data-checkout-service]").value = "pac";
+    const form = document.querySelector("[data-checkout-form]");
 
     const ev = new Event("submit", { cancelable: true });
     form.dispatchEvent(ev);
     expect(ev.defaultPrevented).toBe(true);
+    expect(openTab).toHaveBeenCalledOnce();
     expect(document.querySelector("[data-redirect]").classList.contains("show")).toBe(true);
-    expect(document.querySelector("[data-countdown]").textContent).toBe("5");
 
-    vi.advanceTimersByTime(1000);
-    expect(document.querySelector("[data-countdown]").textContent).toBe("4");
-    expect(submitSpy).not.toHaveBeenCalled();
+    await flush();
 
-    vi.advanceTimersByTime(4000);
-    expect(submitSpy).toHaveBeenCalledOnce();
-    vi.useRealTimers();
+    const [url, opts] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/checkout$/);
+    expect(opts.method).toBe("POST");
+    expect(opts.headers["X-CSRF-Token"]).toBe("test-token");
+    expect(payTab.location.href).toBe("https://pay.example/abc");
+    expect(navigate).toHaveBeenCalledWith("/checkout/retorno?order_nsu=PG-1");
   });
 
-  it("ignores a second submit while the countdown is already running", () => {
-    vi.useFakeTimers();
+  it("falls back to a same-tab redirect when the pay tab is blocked", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ payment_url: "https://pay.example/abc", return_url: "/checkout/retorno?order_nsu=PG-1" })
+    }));
+    const co = mountCheckout({ popup: false });
+    co.bindEvents();
+    document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
+
+    await flush();
+    expect(navigate).toHaveBeenCalledWith("https://pay.example/abc");
+  });
+
+  it("shows the server error and closes the pay tab when the order is rejected", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Não foi possível iniciar o pagamento agora. Tente novamente em instantes." })
+    }));
     const co = mountCheckout();
     co.bindEvents();
-    const form = document.querySelector("[data-checkout-form]");
-    const submitSpy = vi.spyOn(form, "submit").mockImplementation(() => {});
     document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
+
+    await flush();
+    expect(payTab.close).toHaveBeenCalledOnce();
+    expect(document.querySelector("[data-redirect]").classList.contains("show")).toBe(false);
+    expect(document.querySelector("[data-pay-error]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Não foi possível iniciar o pagamento/);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("shows a generic error when the request itself fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
+    const co = mountCheckout({ popup: false });
+    co.bindEvents();
+    document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
+
+    await flush();
+    expect(payTab.close).not.toHaveBeenCalled();
+    expect(document.querySelector("[data-pay-error]").classList.contains("show")).toBe(true);
+    expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Não foi possível iniciar o pagamento/);
+  });
+
+  it("ignores a second submit while a payment is already in flight", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ payment_url: "https://pay.example/abc", return_url: "/checkout/retorno?order_nsu=PG-1" })
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const co = mountCheckout();
+    co.bindEvents();
+    document.querySelector("[data-checkout-service]").value = "pac";
+    const form = document.querySelector("[data-checkout-form]");
 
     form.dispatchEvent(new Event("submit", { cancelable: true }));
     form.dispatchEvent(new Event("submit", { cancelable: true }));
-    vi.advanceTimersByTime(5000);
 
-    expect(submitSpy).toHaveBeenCalledOnce();
-    vi.useRealTimers();
+    await flush();
+    expect(openTab).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 
   it("submitting with no service is blocked and flags the shipping step", () => {

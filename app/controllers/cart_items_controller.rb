@@ -1,4 +1,6 @@
 class CartItemsController < ApplicationController
+  include RemembersShipping
+
   def create
     # Products are public catalog rows, not user-scoped; an "unscoped" find
     # on a published product is the expected lookup for any shopper.
@@ -11,7 +13,9 @@ class CartItemsController < ApplicationController
       option_ids: validated_option_ids(product, params[:option_ids])
     )
     persist!(cart)
-    redirect_to "/carrinho", notice: "Produto adicionado ao carrinho."
+    flash[:cart_added] = "Produto adicionado ao carrinho."
+    # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
+    redirect_to product_path(product)
   end
 
   def update
@@ -25,6 +29,7 @@ class CartItemsController < ApplicationController
         cart.update_options(params[:id], validated_option_ids(product, params[:option_ids]))
       end
     end
+    remember_shipping_choice if params.key?(:shipping_service)
     persist!(cart)
     redirect_to "/carrinho"
   end

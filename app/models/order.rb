@@ -3,10 +3,14 @@ class Order < ApplicationRecord
   UnallocatableNumber = Class.new(StandardError)
 
   NUMBER_ATTEMPTS = 10
+  EXPIRY_WINDOW = 24.hours
 
   belongs_to :user
   has_many :order_items, dependent: :destroy
+  has_many :payment_webhook_events, dependent: :destroy
   accepts_nested_attributes_for :order_items
+
+  has_secure_token :webhook_token
 
   STATUSES = %w[
     awaiting_payment
@@ -17,22 +21,26 @@ class Order < ApplicationRecord
     label_issued
     shipped
     delivered
+    cancelled
   ].freeze
 
   enum :status, STATUSES.index_with(&:itself), default: "awaiting_payment", validate: true
 
   TRANSITIONS = {
-    "awaiting_payment"    => %w[payment_confirmed],
+    "awaiting_payment"    => %w[payment_confirmed cancelled],
     "payment_confirmed"   => %w[awaiting_components in_production],
     "awaiting_components" => %w[in_production],
     "in_production"       => %w[label_issued production_issue],
     "production_issue"    => %w[in_production],
     "label_issued"        => %w[shipped],
     "shipped"             => %w[delivered],
-    "delivered"           => []
+    "delivered"           => [],
+    "cancelled"           => %w[payment_confirmed]
   }.freeze
 
   CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed].freeze
+
+  scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :shipping_cents, :total_cents,
@@ -40,6 +48,7 @@ class Order < ApplicationRecord
   validates :shipping_service, inclusion: { in: Shipping::SERVICES.keys.map(&:to_s) }
 
   before_validation :assign_number, on: :create
+  before_destroy :prevent_destroy
 
   def placed_at
     created_at
@@ -68,7 +77,24 @@ class Order < ApplicationRecord
     transition_to!("payment_confirmed")
   end
 
+  def cancel!
+    transition_to!("cancelled")
+  end
+
+  def payment_deadline
+    created_at + EXPIRY_WINDOW
+  end
+
+  def payment_expired?
+    awaiting_payment? && payment_deadline.past?
+  end
+
   private
+
+  def prevent_destroy
+    errors.add(:base, "Orders are kept for history and cannot be deleted; cancel instead.")
+    throw :abort
+  end
 
   def assign_number
     return if number.present?

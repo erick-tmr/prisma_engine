@@ -1,6 +1,7 @@
 module ApplicationHelper
   PG_ALERT_VARIANTS = {
     "notice" => { variant: "info",    icon: "bi-info-circle-fill" },
+    "cart_added" => { variant: "success", icon: "bi-cart-check-fill" },
     "success" => { variant: "success", icon: "bi-check-circle-fill" },
     "alert" => { variant: "warning", icon: "bi-exclamation-triangle-fill" },
     "error" => { variant: "danger",  icon: "bi-exclamation-octagon-fill" }

@@ -138,6 +138,19 @@ describe("createCartShipping", () => {
     expect(document.querySelectorAll('[data-finalize-form] input[name="shipping_service"]').length).toBe(0);
   });
 
+  it("rememberShipping also stashes the service on the stepper and variant forms", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<form data-stepper-form></form><form data-variant-form></form>'
+    );
+    cart.rememberShipping("sedex");
+    ["[data-finalize-form]", "[data-stepper-form]", "[data-variant-form]"].forEach((sel) => {
+      const input = document.querySelector(sel + ' input[name="shipping_service"]');
+      expect(input).not.toBeNull();
+      expect(input.value).toBe("sedex");
+    });
+  });
+
   it("renderQuote with no eligible option selects nothing and leaves the summary uncalculated", () => {
     cart.renderQuote({
       destination: { city: "Itajubá", state: "MG" },
@@ -256,6 +269,18 @@ describe("createCartShipping", () => {
       vi.stubGlobal("fetch", fetchMock);
       await cart.fetchQuote("01310100");
       expect(fetchMock.mock.calls[0][1].headers["X-CSRF-Token"]).toBe("");
+    });
+
+    it("re-selects the preferred service after a re-quote when it is still eligible", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => QUOTE }));
+      await cart.fetchQuote("01310100", "sedex");
+      expect(cart.shipping.method).toBe("sedex");
+    });
+
+    it("keeps the default when the preferred service is no longer eligible", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => QUOTE }));
+      await cart.fetchQuote("01310100", "mini_envios");
+      expect(cart.shipping.method).toBe("pac");
     });
   });
 

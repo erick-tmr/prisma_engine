@@ -41,7 +41,14 @@
             <% meta = pg_alert_meta(key) %>
             <div class="pg-alert pg-alert-<%= meta[:variant] %>" role="alert">
               <i class="bi <%= meta[:icon] %> pg-alert-ic"></i>
-              <div class="pg-alert-body"><%= value %></div>
+              <div class="pg-alert-body">
+                <%= value %>
+                <% if key.to_s == "cart_added" %>
+                  <%= link_to cart_path, class: "pg-alert-cta" do %>
+                    Ver carrinho <i class="bi bi-arrow-right-short"></i>
+                  <% end %>
+                <% end %>
+              </div>
               <button type="button" class="pg-alert-close" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
             </div>
           <% end %>

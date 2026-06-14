@@ -49,11 +49,8 @@ Rails.application.config.middleware.insert_before(
   ActionDispatch::HostAuthorization, BlockDevIntrospection
 )
 
-# Basic auth guards every path so the public preview isn't world-open. There are
-# no exempt paths: the app makes only outbound calls to Correios (tracking is
-# polled), so nothing needs to bypass the preview credentials.
 class PreviewBasicAuth
-  EXEMPT = [].freeze
+  EXEMPT = %w[/pagamentos/webhook].freeze
 
   def initialize(app, realm, &authenticator)
     @app  = app

@@ -5,11 +5,15 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
   PRECO_URL = "#{Correios::Api::BASE_URL}/preco/v1/nacional".freeze
   PRAZO_URL = "#{Correios::Api::BASE_URL}/prazo/v1/nacional".freeze
+  LINKS_URL = "#{InfinitePay::Api::BASE_URL}/links".freeze
+  CHECKOUT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
 
   setup do
     Rails.cache.clear
     @prev_token = ENV["CORREIOS_API_TOKEN"]
+    @prev_handle = ENV["INFINITEPAY_HANDLE"]
     ENV["CORREIOS_API_TOKEN"] = "test-api"
+    ENV["INFINITEPAY_HANDLE"] = "prisma_games"
     @user = users(:confirmed)
     @address = @user.addresses.create!(
       zip: "01310100", street: "Av. Paulista", number: "1578",
@@ -20,6 +24,7 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
   teardown do
     ENV["CORREIOS_API_TOKEN"] = @prev_token
+    ENV["INFINITEPAY_HANDLE"] = @prev_handle
     Rails.cache.clear
   end
 
@@ -77,21 +82,71 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_match(/Pokemon Yellow Version/, response.body)
   end
 
-  test "POST /checkout creates the order, clears the cart, and lands home" do
+  test "POST /checkout creates the order, clears the cart, and redirects to InfinitePay" do
     sign_in @user
     add_yellow_to_cart
     stub_preco_prazo
+    stub_links
 
     assert_difference "Order.count", 1 do
       post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }
     end
 
     order = Order.last
-    assert_redirected_to root_path
-    assert_equal "Pedido #{order.number} criado.", flash[:notice]
+    assert_equal CHECKOUT_URL, response.headers["Location"]
     assert_equal "pac", order.shipping_service
+    assert_requested(:post, LINKS_URL) do |req|
+      body = JSON.parse(req.body)
+      assert_equal order.number, body["order_nsu"]
+      assert_equal payments_webhook_url(order.webhook_token), body["webhook_url"]
+      true
+    end
+    # cart cleared → a follow-up quote sees an empty cart
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
     assert_response :unprocessable_entity
+  end
+
+  test "POST /checkout as JSON returns the payment + return URLs for the new-tab flow" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_links
+
+    assert_difference "Order.count", 1 do
+      post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }, as: :json
+    end
+
+    order = Order.last
+    assert_response :success
+    assert_equal CHECKOUT_URL, response.parsed_body["payment_url"]
+    assert_equal checkout_return_url(order_nsu: order.number), response.parsed_body["return_url"]
+    # cart cleared → a follow-up quote sees an empty cart
+    post cart_quote_path, params: { cep: "01310-100" }, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "POST /checkout as JSON returns a 422 with the message when the link fails" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")
+
+    post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }, as: :json
+    assert_response :unprocessable_entity
+    assert_match(/não foi possível iniciar o pagamento/i, response.parsed_body["error"])
+  end
+
+  test "POST /checkout keeps the order but flashes when the InfinitePay link fails" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")
+
+    assert_difference "Order.count", 1 do
+      post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }
+    end
+    assert_redirected_to checkout_path
+    assert_match(/não foi possível iniciar o pagamento/i, flash[:alert])
   end
 
   test "POST /checkout with an empty cart flashes the empty-cart error" do
@@ -168,6 +223,12 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
   def add_yellow_to_cart
     post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
+  end
+
+  def stub_links
+    stub_request(:post, LINKS_URL).to_return(
+      status: 200, body: { "url" => CHECKOUT_URL }.to_json, headers: { "Content-Type" => "application/json" }
+    )
   end
 
   def stub_preco_prazo

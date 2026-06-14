@@ -1,12 +1,11 @@
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const INSTALLMENTS = 12;
-const REDIRECT_SECONDS = 5;
 
 export function money(cents) {
   return BRL.format(cents / 100);
 }
 
-export function createCheckout(doc) {
+export function createCheckout(doc, openTab, navigate) {
   const shipOpts = doc.querySelector("[data-ship-opts]");
   const quoteUrl = shipOpts.dataset.quoteUrl;
   const preselected = shipOpts.dataset.preselected;
@@ -129,19 +128,36 @@ export function createCheckout(doc) {
     fetchQuote(opt.dataset.cep);
   }
 
-  function startCountdown() {
-    const countEl = overlay.querySelector("[data-countdown]");
-    let remaining = REDIRECT_SECONDS;
-    countEl.textContent = String(remaining);
-    const timer = setInterval(function () {
-      remaining -= 1;
-      if (remaining <= 0) {
-        clearInterval(timer);
-        checkoutForm.submit();
-      } else {
-        countEl.textContent = String(remaining);
+  function failPayment(payTab, message) {
+    if (payTab) payTab.close();
+    submitting = false;
+    overlay.classList.remove("show");
+    doc.querySelector("[data-pay-error-msg]").textContent = message;
+    payError.classList.add("show");
+  }
+
+  async function startPayment(payTab) {
+    const token = doc.querySelector('meta[name="csrf-token"]').content;
+    try {
+      const res = await fetch(checkoutForm.action, {
+        method: "POST",
+        headers: { "Accept": "application/json", "X-CSRF-Token": token },
+        body: new FormData(checkoutForm)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        failPayment(payTab, data.error);
+        return;
       }
-    }, 1000);
+      if (payTab) {
+        payTab.location.href = data.payment_url;
+        navigate(data.return_url);
+      } else {
+        navigate(data.payment_url);
+      }
+    } catch (e) {
+      failPayment(payTab, "Não foi possível iniciar o pagamento. Tente novamente.");
+    }
   }
 
   function bindEvents() {
@@ -172,8 +188,9 @@ export function createCheckout(doc) {
         return;
       }
       submitting = true;
+      const payTab = openTab();
       overlay.classList.add("show");
-      startCountdown();
+      startPayment(payTab);
     });
   }
 
@@ -193,6 +210,10 @@ export function createCheckout(doc) {
 
 /* v8 ignore start */
 if (typeof document !== "undefined" && document.querySelector("[data-ship-opts]")) {
-  createCheckout(document).init();
+  createCheckout(
+    document,
+    () => window.open("", "_blank"),
+    (url) => { window.location.href = url; }
+  ).init();
 }
 /* v8 ignore stop */

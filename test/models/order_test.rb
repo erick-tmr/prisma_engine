@@ -132,12 +132,82 @@ class OrderTest < ActiveSupport::TestCase
     assert order.reload.awaiting_payment?
   end
 
-  test "destroying an order destroys its line items" do
+  test "cancel! moves an awaiting-payment order to cancelled" do
     order = build_order
     order.save!
-    order.order_items.create!(name: "Cartucho", unit_price_cents: 32_000, quantity: 1)
-    assert_difference "OrderItem.count", -1 do
-      order.destroy!
+    order.cancel!
+    assert order.cancelled?
+  end
+
+  test "a cancelled order can be reopened straight to payment_confirmed" do
+    order = build_order
+    order.save!
+    order.cancel!
+    order.transition_to!("payment_confirmed")
+    assert order.payment_confirmed?
+  end
+
+  test "an order cannot be destroyed — it is kept for history" do
+    order = build_order
+    order.save!
+    assert_not order.destroy
+    assert Order.exists?(order.id)
+    assert_match(/cannot be deleted/i, order.errors[:base].to_sentence)
+  end
+
+  test "each order gets a unique webhook_token on create" do
+    one = build_order
+    one.save!
+    two = build_order
+    two.save!
+    assert one.webhook_token.present?
+    assert_not_equal one.webhook_token, two.webhook_token
+  end
+
+  test "webhook_token is stable across the cancel/reopen lifecycle" do
+    order = build_order
+    order.save!
+    token = order.webhook_token
+    order.cancel!
+    order.confirm_payment!
+    assert_equal token, order.reload.webhook_token
+  end
+
+  test "payment_deadline is 24h after creation" do
+    order = build_order
+    order.save!
+    assert_in_delta order.created_at + 24.hours, order.payment_deadline, 1.second
+  end
+
+  test "payment_expired? only once an awaiting order passes the 24h deadline" do
+    order = build_order
+    order.save!
+    assert_not order.payment_expired?
+    travel_to 25.hours.from_now do
+      assert order.payment_expired?
     end
+  end
+
+  test "payment_expired? is false once the order leaves awaiting_payment" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    travel_to 25.hours.from_now do
+      assert_not order.payment_expired?
+    end
+  end
+
+  test "awaiting_payment_expired scopes to stale unpaid orders only" do
+    fresh = build_order
+    fresh.save!
+    stale = build_order
+    stale.save!
+    stale.update_column(:created_at, 25.hours.ago)
+    paid = build_order
+    paid.save!
+    paid.update_column(:created_at, 25.hours.ago)
+    paid.confirm_payment!
+
+    assert_equal [ stale.id ], Order.awaiting_payment_expired.pluck(:id)
   end
 end
