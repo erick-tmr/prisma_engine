@@ -19,3 +19,13 @@ unconfirmed:
   cpf: "12345678909"
   created_at: <%= 1.hour.ago.to_fs(:db) %>
   updated_at: <%= 1.hour.ago.to_fs(:db) %>
+
+# Confirmed but with no orders — exercises the order-history empty state.
+orderless:
+  email: sempedidos@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: <%= 1.day.ago.to_fs(:db) %>
+  full_name: "Cliente Sem Pedidos"
+  cpf: "10000000019"
+  created_at: <%= 3.days.ago.to_fs(:db) %>
+  updated_at: <%= 1.day.ago.to_fs(:db) %>

@@ -17,25 +17,18 @@ class AccountHelperTest < ActionView::TestCase
     assert_equal "R$ 0,00", format_brl(0)
   end
 
-  test "order_status_badge_class maps known states to Bootstrap classes" do
-    assert_equal "text-bg-success", order_status_badge_class("entregue")
-    assert_equal "text-bg-success", order_status_badge_class("enviado")
-    assert_equal "text-bg-primary", order_status_badge_class("em_producao")
-    assert_equal "text-bg-warning", order_status_badge_class("aguardando_pagamento")
-    assert_equal "text-bg-danger", order_status_badge_class("problema_na_producao")
+  test "order_payment_method_label maps the real capture methods" do
+    assert_equal "Pix", order_payment_method_label("pix")
+    assert_equal "Cartão de crédito", order_payment_method_label("credit_card")
   end
 
-  test "order_status_badge_class falls back to secondary for unknown states" do
-    assert_equal "text-bg-secondary", order_status_badge_class("unknown")
+  test "order_payment_method_label shows a pending label when no method is set yet" do
+    assert_equal "Aguardando pagamento", order_payment_method_label(nil)
+    assert_equal "Aguardando pagamento", order_payment_method_label("")
   end
 
-  test "order_payment_method_label maps the known PSPs" do
-    assert_equal "Pix", order_payment_method_label(:pix)
-    assert_equal "InfinitePay (cartão)", order_payment_method_label(:infinite_pay_card)
-  end
-
-  test "order_payment_method_label falls back to a humanized label" do
-    assert_equal "Other psp", order_payment_method_label(:other_psp)
+  test "order_payment_method_label falls back to a humanized label for the unexpected" do
+    assert_equal "Debit card", order_payment_method_label("debit_card")
   end
 
   test "format_cpf masks 11 digits as 000.000.000-00" do

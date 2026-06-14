@@ -55,6 +55,13 @@ module Shipping
       assert_equal "AD515656026BR", shipment.tracking_code
     end
 
+    test "links the shipment to a provided order" do
+      order = orders(:awaiting)
+      shipment = Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD, order: order)
+
+      assert_equal order, shipment.order
+    end
+
     test "logs an error for an unmapped status but still persists it" do
       log = capture_log do
         Shipping::ShipmentFactory.from_pre_postagem(

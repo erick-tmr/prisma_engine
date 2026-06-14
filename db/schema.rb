@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_14_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_14_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -253,6 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_130000) do
     t.datetime "last_tracked_at"
     t.string "last_tracking_status"
     t.integer "length_cm"
+    t.bigint "order_id"
     t.datetime "posted_at"
     t.datetime "posting_deadline"
     t.string "pre_post_id"
@@ -267,6 +268,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_130000) do
     t.datetime "updated_at", null: false
     t.integer "weight_grams"
     t.integer "width_cm"
+    t.index ["order_id"], name: "index_shipments_on_order_id"
     t.index ["pre_post_id"], name: "index_shipments_on_pre_post_id", unique: true
     t.index ["tracking_code"], name: "index_shipments_on_tracking_code", unique: true
     t.index ["tracking_state"], name: "index_shipments_on_tracking_state"
@@ -322,4 +324,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_130000) do
   add_foreign_key "products", "categories"
   add_foreign_key "questions", "products"
   add_foreign_key "shipment_tracking_events", "shipments"
+  add_foreign_key "shipments", "orders"
 end

@@ -57,6 +57,15 @@ module Shipping
       assert_equal "pac", shipment.service
     end
 
+    test "links the persisted shipment to a provided order" do
+      stub_create(status: 201)
+
+      order = orders(:awaiting)
+      shipment = Shipping::CreatePrePostagem.call(request_for(:sedex), order: order)
+
+      assert_equal order, shipment.order
+    end
+
     private
 
     def request_for(service)

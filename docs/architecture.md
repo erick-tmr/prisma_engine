@@ -337,7 +337,7 @@ Six customer-facing states in pt-BR. The flow is **not linear** — two branch p
 - Modeled with `aasm`. Each transition is auditable (who/when/why), triggers side effects via background jobs, and is recoverable.
 - The 2-day stuck-in-production rule and the production-report scan run as recurring jobs (same Solid Queue + `config/recurring.yml` shape as `SyncPendingShipmentsJob`).
 - 4.2 → 5 → 6 are driven by `Shipping::TrackingUpdate` interpreting rastro events (§ "Shipment tracking sync") — the order subscribes to the same final-state signals the `Shipment` already exposes.
-- Cancellation is allowed only before `em_producao` (3.2) per §0.1. Refund flow attaches to `Payment`, not the order state machine.
+- Cancellation is allowed only before `em_producao` (3.2) per §0.1. An **unpaid** order cancels straight to `cancelled`; a **paid** one enters `awaiting_refund` ("Aguardando reembolso") and waits there — InfinitePay refunds are a manual process, so an operator confirms the money was returned before moving it to `cancelled`.
 
 #### Shipment tracking sync (Correios polling) — **shipped**
 

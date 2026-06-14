@@ -28,7 +28,7 @@
     <div class="order-detail__subcard">
       <div class="order-detail__subcard-head"><%= t("account.orders.show.items") %></div>
 
-      <% @order.items.each do |item| %>
+      <% @order.order_items.each do |item| %>
         <div class="order-detail__item">
           <div class="order-detail__item-thumb d-flex align-items-center justify-content-center">
             <i class="bi bi-controller order-detail__item-icon"></i>
@@ -82,7 +82,7 @@
               <div class="order-detail__track-body">
                 <div>
                   <div class="desc"><%= event.description %></div>
-                  <div class="meta"><%= event.code %>/<%= event.event_type %></div>
+                  <div class="meta"><%= event.event_code %>/<%= event.event_type %></div>
                 </div>
                 <div class="time"><%= l(event.occurred_at, format: :short) %></div>
               </div>
@@ -94,10 +94,8 @@
 
     <% if @order.cancellable? %>
       <div class="panel__actions">
-        <button type="button" class="button-ghost button-ghost--danger" disabled
-                data-bs-toggle="tooltip" data-bs-title="<%= t("account.orders.show.cancel_soon") %>">
-          <%= t("account.orders.show.cancel") %>
-        </button>
+        <%= button_to t("account.orders.show.cancel"), cancelar_account_order_path(@order),
+              method: :post, class: "button-ghost button-ghost--danger" %>
       </div>
     <% end %>
   </div>

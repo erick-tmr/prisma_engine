@@ -87,7 +87,75 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal order.created_at, order.placed_at
   end
 
-  test "shipping_address exposes the snapshot in the MockOrder hash shape" do
+  test "to_param is the public order number, not the id" do
+    order = build_order(number: "PG-202605221234")
+    order.save!
+    assert_equal "PG-202605221234", order.to_param
+  end
+
+  test "recent_first orders by newest created_at" do
+    old = build_order
+    old.save!
+    old.update_column(:created_at, 3.days.ago)
+    fresh = build_order
+    fresh.save!
+
+    ids = Order.recent_first.pluck(:id)
+    assert_operator ids.index(fresh.id), :<, ids.index(old.id)
+  end
+
+  test "payment_status is pending while unpaid and paid once money is in" do
+    order = build_order
+    order.save!
+    assert_equal :pending, order.payment_status
+    order.confirm_payment!
+    assert_equal :paid, order.payment_status
+    order.request_refund!
+    assert_equal :paid, order.payment_status
+    order.transition_to!("cancelled")
+    assert_equal :pending, order.payment_status
+  end
+
+  test "tracking_events and shipping_visible? follow the linked shipment" do
+    order = build_order
+    order.save!
+    assert_empty order.tracking_events
+    assert_not order.shipping_visible?
+
+    shipment = Shipment.create!(tracking_code: "PG777000111BR", order: order)
+    shipment.tracking_events.create!(position: 2, event_code: "BDE", event_type: "01", occurred_at: 1.day.ago)
+    shipment.tracking_events.create!(position: 1, event_code: "PO", event_type: "01", occurred_at: 3.days.ago)
+
+    assert_equal %w[PO BDE], order.reload.tracking_events.map(&:event_code)
+    assert order.shipping_visible?
+  end
+
+  test "cancel_by_customer! cancels an unpaid order outright" do
+    order = build_order
+    order.save!
+    order.cancel_by_customer!
+    assert order.cancelled?
+  end
+
+  test "cancel_by_customer! parks a paid order in awaiting_refund" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.cancel_by_customer!
+    assert order.awaiting_refund?
+  end
+
+  test "awaiting_refund advances to cancelled but is no longer cancellable" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.request_refund!
+    assert_not order.cancellable?
+    order.transition_to!("cancelled")
+    assert order.cancelled?
+  end
+
+  test "shipping_address exposes the snapshot as a symbol-keyed hash" do
     order = build_order
     assert_equal(
       {

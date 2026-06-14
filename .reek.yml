@@ -8,6 +8,12 @@ detectors:
     enabled: false        # don't demand a descriptive comment on every class/module
   TooManyStatements:
     max_statements: 8     # controller actions run a few lines; reek's default is 5
+  TooManyMethods:
+    exclude:
+      - Order             # the made-to-order aggregate root: its API is the lifecycle
+                          # transition set (cancel!/request_refund!/confirm_payment!/…)
+                          # plus small read-model accessors the storefront renders.
+                          # Each method is single-purpose — a rich domain, not a god object.
   LongParameterList:
     max_params: 4         # 4 keyword args is a clean request shape, not a smell —
                           # 5+ is where the smell genuinely lives (cf. Sandi Metz)

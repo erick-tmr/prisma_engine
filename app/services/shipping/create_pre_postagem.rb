@@ -29,23 +29,24 @@ module Shipping
     POSTAGE_CARD_NUMBER = "0076738043".freeze # numeroCartaoPostagem — seller settings later
     OBJECT_FORMAT_PACKAGE = "2".freeze        # codigoFormatoObjetoInformado: 2 = pacote
 
-    def self.call(request)
-      new(request).call
+    def self.call(request, order: nil)
+      new(request, order: order).call
     end
 
-    def initialize(request)
+    def initialize(request, order: nil)
       @request = request
+      @order = order
     end
 
     # Returns the persisted Shipment.
     def call
       response = Correios::Api::PrePostagem.create(request_body)
-      Shipping::ShipmentFactory.from_pre_postagem(response)
+      Shipping::ShipmentFactory.from_pre_postagem(response, order: order)
     end
 
     private
 
-    attr_reader :request
+    attr_reader :request, :order
 
     def request_body
       {

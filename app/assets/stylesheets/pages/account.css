@@ -292,14 +292,16 @@
   border-radius: 50%;
   background: currentColor;
 }
-.status-pill--entregue,
-.status-pill--enviado            { background: #e4f4ec; color: #1f8a5b; }
-.status-pill--etiqueta_emitida,
-.status-pill--em_producao,
-.status-pill--pagamento_confirmado { background: #e7eefb; color: #2a5db0; }
-.status-pill--aguardando_pagamento,
-.status-pill--aguardando_componentes { background: #fbf1de; color: #9a7400; }
-.status-pill--problema_na_producao { background: #fbe3e3; color: #a31a1a; }
+.status-pill--delivered,
+.status-pill--shipped            { background: #e4f4ec; color: #1f8a5b; }
+.status-pill--label_issued,
+.status-pill--in_production,
+.status-pill--payment_confirmed  { background: #e7eefb; color: #2a5db0; }
+.status-pill--awaiting_payment,
+.status-pill--awaiting_components,
+.status-pill--awaiting_refund    { background: #fbf1de; color: #9a7400; }
+.status-pill--production_issue   { background: #fbe3e3; color: #a31a1a; }
+.status-pill--cancelled          { background: #eceef1; color: #5b6470; }
 
 /* ── Order detail ────────────────────────────────────────────────── */
 .account-back {
