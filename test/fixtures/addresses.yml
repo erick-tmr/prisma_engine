@@ -1,0 +1,17 @@
+# A single default address on the `locked` customer — exercises the dashboard
+# presenter's city/UF lookup (the address-present branch). Other customer
+# fixtures stay address-less on purpose: address_test.rb relies on
+# users(:confirmed) starting with no addresses.
+locked_home:
+  user: locked
+  receiver_name: "Cliente Bloqueado"
+  receiver_cpf: "74520183979"
+  zip: "01310100"
+  street: "Avenida Paulista"
+  number: "1500"
+  neighborhood: "Bela Vista"
+  city: "São Paulo"
+  state: "SP"
+  default: true
+  created_at: <%= 5.days.ago.to_fs(:db) %>
+  updated_at: <%= 5.days.ago.to_fs(:db) %>

@@ -21,5 +21,17 @@ module Admin
       assert_response :success
       assert_select "h1"
     end
+
+    test "the dashboard embeds the data island, real counts and the operator name" do
+      sign_in users(:admin)
+      get admin_root_path
+
+      assert_response :success
+      assert_select ".app[data-dashboard]"
+      assert_select ".sb-link[data-view=orders] .count", text: Order.count.to_s
+      assert_select ".sb-link[data-view=clients] .count", text: User.where(admin: false).count.to_s
+      assert_select ".sb-user .nm", text: users(:admin).full_name
+      assert_includes response.body, orders(:awaiting).number
+    end
   end
 end

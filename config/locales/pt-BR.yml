@@ -246,6 +246,76 @@ pt-BR:
     dashboard:
       title: "Backoffice — Prisma Games"
       heading: "Backoffice"
+      brand: "PRISMA GAMES"
+      tag: "Backoffice"
+      section: "Gestão"
+      role: "Administrador"
+      search_placeholder: "Buscar…"
+      search_aria: "Buscar"
+      menu: "Menu"
+      notifications: "Notificações"
+      signout: "Sair"
+      nav:
+        orders: "Pedidos"
+        clients: "Clientes"
+      bulk:
+        selected: "selecionados"
+        clear: "Limpar seleção"
+      views:
+        orders:
+          title: "Pedidos"
+          crumb: "Histórico de pedidos de todos os clientes"
+        clients:
+          title: "Clientes"
+          crumb: "Todos os clientes cadastrados"
+      orders:
+        heading: "Histórico de pedidos"
+        sub: "Todos os pedidos da loja, de todos os clientes."
+        export: "Exportar"
+        filters:
+          query: "Cliente ou nº do pedido"
+          query_placeholder: "Buscar por nome do cliente ou PG-…"
+          period: "Período"
+          period_any: "Qualquer data"
+          period_clear: "Limpar período"
+          status: "Status"
+          status_all: "Todos os status"
+          clear: "Limpar filtros"
+        select_all: "Selecionar todos"
+        columns:
+          order: "Pedido"
+          client: "Cliente"
+          date: "Data"
+          status: "Status"
+          total: "Total"
+        empty:
+          title: "Nenhum pedido encontrado"
+          hint: "Ajuste os filtros de período, status ou busca."
+      clients:
+        heading: "Clientes"
+        sub: "Todos os clientes cadastrados na loja."
+        search_placeholder: "Buscar cliente, e-mail, CPF…"
+        columns:
+          client: "Cliente"
+          cpf: "CPF"
+          phone: "Telefone"
+          city: "Cidade"
+          since: "Cadastro"
+          orders: "Pedidos"
+          situation: "Situação"
+        empty:
+          title: "Nenhum cliente encontrado"
+          hint: "Tente outro nome, e-mail ou CPF."
+      bulk_actions:
+        to_production: "Enviar para produção"
+        issue_label: "Emitir etiqueta Correios"
+        flag_issue: "Marcar problema"
+        refund_done: "Reembolso processado"
+        cancel: "Cancelar"
+      situations:
+        active: "Ativo"
+        pending: "Pendente"
+        locked: "Bloqueado"
   activerecord:
     attributes:
       user:
