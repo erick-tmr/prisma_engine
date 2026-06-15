@@ -18,8 +18,9 @@ module Shipping
     }.freeze
 
     test "builds a shipment from a pré-postagem payload" do
-      shipment = Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD)
+      shipment = Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD, order: orders(:awaiting))
 
+      assert_equal orders(:awaiting), shipment.order
       assert_equal "PRHelX4tO8Qsuqq0D47quwxA", shipment.pre_post_id
       assert_equal "AD515656026BR", shipment.tracking_code
       assert_equal "03220", shipment.service_code
@@ -38,11 +39,11 @@ module Shipping
     end
 
     test "is idempotent on the tracking code and updates on re-run" do
-      Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD)
+      Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD, order: orders(:awaiting))
 
       assert_no_difference -> { Shipment.count } do
         Shipping::ShipmentFactory.from_pre_postagem(
-          PAYLOAD.merge("statusAtual" => 3, "descStatusAtual" => "Postado")
+          PAYLOAD.merge("statusAtual" => 3, "descStatusAtual" => "Postado"), order: orders(:awaiting)
         )
       end
 
@@ -50,22 +51,15 @@ module Shipping
     end
 
     test "accepts a JSON string payload" do
-      shipment = Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD.to_json)
+      shipment = Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD.to_json, order: orders(:awaiting))
 
       assert_equal "AD515656026BR", shipment.tracking_code
-    end
-
-    test "links the shipment to a provided order" do
-      order = orders(:awaiting)
-      shipment = Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD, order: order)
-
-      assert_equal order, shipment.order
     end
 
     test "logs an error for an unmapped status but still persists it" do
       log = capture_log do
         Shipping::ShipmentFactory.from_pre_postagem(
-          PAYLOAD.merge("statusAtual" => 8, "descStatusAtual" => "Novo status")
+          PAYLOAD.merge("statusAtual" => 8, "descStatusAtual" => "Novo status"), order: orders(:awaiting)
         )
       end
 
@@ -78,7 +72,7 @@ module Shipping
 
     test "persists a payload without a status without logging an error" do
       log = capture_log do
-        Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD.except("statusAtual", "descStatusAtual"))
+        Shipping::ShipmentFactory.from_pre_postagem(PAYLOAD.except("statusAtual", "descStatusAtual"), order: orders(:awaiting))
       end
 
       shipment = Shipment.sole

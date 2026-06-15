@@ -253,7 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_14_140000) do
     t.datetime "last_tracked_at"
     t.string "last_tracking_status"
     t.integer "length_cm"
-    t.bigint "order_id"
+    t.bigint "order_id", null: false
     t.datetime "posted_at"
     t.datetime "posting_deadline"
     t.string "pre_post_id"

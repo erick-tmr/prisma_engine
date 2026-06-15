@@ -3,13 +3,13 @@ module Shipping
   # response returned when a pré-postagem is created. Idempotent on tracking_code,
   # so re-running with a refreshed payload updates the same shipment.
   #
-  #   Shipping::ShipmentFactory.from_pre_postagem(payload) # payload: Hash or JSON String
+  #   Shipping::ShipmentFactory.from_pre_postagem(payload, order: order) # payload: Hash or JSON String
   class ShipmentFactory
-    def self.from_pre_postagem(payload, order: nil)
+    def self.from_pre_postagem(payload, order:)
       new(payload, order: order).build
     end
 
-    def initialize(payload, order: nil)
+    def initialize(payload, order:)
       parsed = payload.is_a?(String) ? JSON.parse(payload) : payload
       @payload = parsed.deep_stringify_keys
       @order = order
@@ -18,7 +18,7 @@ module Shipping
     def build
       shipment = Shipment.find_or_initialize_by(tracking_code: payload.fetch("codigoObjeto"))
       shipment.assign_attributes(attributes)
-      shipment.order = order if order
+      shipment.order = order
       warn_unknown_status(shipment)
       shipment.save!
       shipment

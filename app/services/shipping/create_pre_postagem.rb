@@ -2,7 +2,7 @@ module Shipping
   # Use case: create a Correios pré-postagem and persist it as a Shipment.
   #
   #   request = Shipping::PrePostagemRequest.placeholder(service: :sedex)
-  #   Shipping::CreatePrePostagem.call(request)
+  #   Shipping::CreatePrePostagem.call(request, order: order)
   #
   # Owns the fixed store config (sender, postage card, object format); the variable
   # inputs arrive in the PrePostagemRequest. Delegates the HTTP to
@@ -29,11 +29,11 @@ module Shipping
     POSTAGE_CARD_NUMBER = "0076738043".freeze # numeroCartaoPostagem — seller settings later
     OBJECT_FORMAT_PACKAGE = "2".freeze        # codigoFormatoObjetoInformado: 2 = pacote
 
-    def self.call(request, order: nil)
+    def self.call(request, order:)
       new(request, order: order).call
     end
 
-    def initialize(request, order: nil)
+    def initialize(request, order:)
       @request = request
       @order = order
     end

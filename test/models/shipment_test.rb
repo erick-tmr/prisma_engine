@@ -12,27 +12,27 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "requires a tracking code" do
-    shipment = Shipment.new(tracking_code: nil)
+    shipment = Shipment.new(tracking_code: nil, order: orders(:awaiting))
 
     assert_not shipment.valid?
     assert_includes shipment.errors[:tracking_code], "não pode ficar em branco"
   end
 
   test "requires a unique tracking code" do
-    Shipment.create!(tracking_code: "AA1")
-    dup = Shipment.new(tracking_code: "AA1")
+    Shipment.create!(tracking_code: "AA1", order: orders(:awaiting))
+    dup = Shipment.new(tracking_code: "AA1", order: orders(:awaiting))
 
     assert_not dup.valid?
     assert_includes dup.errors[:tracking_code], "já está em uso"
   end
 
   test "requires a unique pre_post_id but allows many without one" do
-    Shipment.create!(tracking_code: "AA1", pre_post_id: "PR1")
-    dup = Shipment.new(tracking_code: "AA2", pre_post_id: "PR1")
+    Shipment.create!(tracking_code: "AA1", pre_post_id: "PR1", order: orders(:awaiting))
+    dup = Shipment.new(tracking_code: "AA2", pre_post_id: "PR1", order: orders(:awaiting))
     assert_not dup.valid?
 
-    Shipment.create!(tracking_code: "AA3") # pre_post_id nil
-    assert Shipment.new(tracking_code: "AA4").valid? # a second nil pre_post_id is fine
+    Shipment.create!(tracking_code: "AA3", order: orders(:awaiting)) # pre_post_id nil
+    assert Shipment.new(tracking_code: "AA4", order: orders(:awaiting)).valid? # a second nil pre_post_id is fine
   end
 
   test "starts in the pending tracking state" do
@@ -40,7 +40,7 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "mark_tracking_unavailable! stops polling and records the error" do
-    shipment = Shipment.create!(tracking_code: "A9")
+    shipment = Shipment.create!(tracking_code: "A9", order: orders(:awaiting))
 
     shipment.mark_tracking_unavailable!("SRO-019: Objeto inválido")
 
@@ -52,11 +52,11 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "awaiting_tracking keeps live shipments and drops finished or dead ones" do
-    poll_me = Shipment.create!(tracking_code: "A1")
-    in_transit = Shipment.create!(tracking_code: "A2", tracking_state: :in_transit)
-    Shipment.create!(tracking_code: "A3", tracking_state: :delivered)
-    Shipment.create!(tracking_code: "A4", tracking_state: :returned)
-    Shipment.create!(tracking_code: "A5", correios_status: 5) # cancelado
+    poll_me = Shipment.create!(tracking_code: "A1", order: orders(:awaiting))
+    in_transit = Shipment.create!(tracking_code: "A2", tracking_state: :in_transit, order: orders(:awaiting))
+    Shipment.create!(tracking_code: "A3", tracking_state: :delivered, order: orders(:awaiting))
+    Shipment.create!(tracking_code: "A4", tracking_state: :returned, order: orders(:awaiting))
+    Shipment.create!(tracking_code: "A5", correios_status: 5, order: orders(:awaiting)) # cancelado
 
     assert_equal [ poll_me.id, in_transit.id ].sort, Shipment.awaiting_tracking.pluck(:id).sort
   end
