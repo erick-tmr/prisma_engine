@@ -239,7 +239,13 @@ describe("template builders", () => {
 
   it("calendarHtml hides the right-side prev nav and wires next on the right", () => {
     const sel = { from: null, to: null };
-    expect(calendarHtml(new Date(2026, 5, 1), "L", sel, TODAY)).toContain('data-nav="prev"');
+    const left = calendarHtml(new Date(2026, 5, 1), "L", sel, TODAY);
+    expect(left).toContain('data-nav="prev"');
+    // Each calendar must be wrapped in a .dp-cal column — the CSS lays
+    // .dp-cals > .dp-cal out side by side; without the wrapper the grids
+    // collapse and overflow the popover (a layout bug jsdom can't see).
+    expect(left.startsWith('<div class="dp-cal">')).toBe(true);
+    expect(left).toContain('<div class="dp-grid">');
     const right = calendarHtml(new Date(2026, 6, 1), "R", sel, TODAY);
     expect(right).toContain('data-nav="next"');
     expect(right).toContain("dp-nav--hidden");
@@ -444,6 +450,9 @@ describe("initDashboard", () => {
   it("drives the date picker: manual range, nav, preset, apply, clear", () => {
     click($("#date-trigger"));
     expect($("#date-pop").classList.contains("open")).toBe(true);
+    // Structural contract the dual-calendar CSS layout depends on.
+    expect($("#date-pop").querySelectorAll(".dp-cals > .dp-cal")).toHaveLength(2);
+    expect($("#date-pop").querySelectorAll(".dp-cal > .dp-grid")).toHaveLength(2);
 
     // Build a manual range with `from` starting null, exercising each branch:
     const days = () => $("#date-pop").querySelectorAll(".dp-day[data-d]");

@@ -292,7 +292,7 @@ export function calendarHtml(monthDate, side, sel, today) {
   const next = `<button class="dp-nav ${side === "L" ? "dp-nav--hidden" : ""}" ${side === "R" ? 'data-nav="next"' : ""}><i class="bi bi-chevron-right"></i></button>`;
   const head = `<div class="dp-cal-head">${prev}<span class="mname">${MONTHS_LONG[monthDate.getMonth()]} ${monthDate.getFullYear()}</span>${next}</div>`;
   const dow = DOW.map((x) => `<div class="dp-dow">${x}</div>`).join("");
-  return `${head}<div class="dp-grid">${dow}${cells}</div>`;
+  return `<div class="dp-cal">${head}<div class="dp-grid">${dow}${cells}</div></div>`;
 }
 
 export function dpReadoutHtml(sel) {
