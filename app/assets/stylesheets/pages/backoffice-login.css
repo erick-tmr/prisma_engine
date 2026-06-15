@@ -1,0 +1,406 @@
+/* Backoffice login — the restricted-staff portal. Unlike the storefront auth
+   page, this is a dark console-like stage where the card itself acts as the
+   prism: a white "staff light" ray enters from the left and disperses into a
+   spectrum fan on the right, echoing the Prisma wordmark. This stylesheet is
+   linked only on admin/sessions/new, so the page-scoped body reset is safe.
+   Reuses --pg-* tokens and the global rainbow-slide keyframe (base/animations);
+   the bright dispersion spectrum is scoped here so the muted brand --pg-rainbow
+   stays untouched. */
+
+body { margin: 0; }
+
+.bo-login,
+.bo-login *,
+.bo-login *::before,
+.bo-login *::after { box-sizing: border-box; }
+
+.bo-login {
+  /* Bright spectrum echoing the wordmark dispersion (scoped to this page). */
+  --c-red: #e4322b;
+  --c-orange: #f0851f;
+  --c-yellow: #f4c20d;
+  --c-green: #2aa564;
+  --c-blue: #2f7fd1;
+  --c-violet: #6b4fb0;
+  --bo-rainbow: linear-gradient(90deg,
+    var(--c-red), var(--c-orange), var(--c-yellow),
+    var(--c-green), var(--c-blue), var(--c-violet),
+    var(--c-blue), var(--c-yellow), var(--c-red));
+
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow: hidden;
+  background: #101216;
+  color: var(--pg-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Dark stage backdrop ─────────────────────────────────────────────── */
+.bo-login__stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(1200px 800px at 50% 42%, #20242b 0%, #15181d 48%, #0c0e11 100%);
+  pointer-events: none;
+}
+/* faint grid so it reads as a console/tool, not a marketing page */
+.bo-login__stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(900px 620px at 50% 45%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(900px 620px at 50% 45%, #000 0%, transparent 78%);
+}
+
+/* ── The prism rig: ray in → card (prism) → spectrum fan out ──────────── */
+.bo-login__rig {
+  position: relative;
+  z-index: 1;
+  width: 408px;
+  max-width: 100%;
+}
+
+/* Incoming white "staff light" ray from the left */
+.bo-login__ray {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 60vw;
+  max-width: 760px;
+  height: 2px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.10) 40%,
+    rgba(255, 255, 255, 0.7) 100%);
+  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.35));
+  pointer-events: none;
+}
+.bo-login__ray::before { /* soft glow under the ray */
+  content: "";
+  position: absolute;
+  inset: -13px 0;
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.18) 100%);
+  filter: blur(13px);
+}
+
+/* Dispersed spectrum fanning out to the right of the card */
+.bo-login__fan {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 60vw;
+  max-width: 720px;
+  height: 0;
+  pointer-events: none;
+}
+.bo-login__beam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 2px;
+  transform-origin: left center;
+  opacity: 0.62;
+  filter: drop-shadow(0 0 6px currentColor);
+  animation: bo-fan-breathe 6s ease-in-out infinite;
+}
+.bo-login__beam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, currentColor 0%, rgba(0, 0, 0, 0) 88%);
+}
+/* red deviates least (flattest), violet most (steepest) */
+.bo-login__beam--r { color: var(--c-red);    transform: rotate(-1deg);   animation-delay: 0s; }
+.bo-login__beam--o { color: var(--c-orange); transform: rotate(1.6deg);  animation-delay: 0.3s; }
+.bo-login__beam--y { color: var(--c-yellow); transform: rotate(4.2deg);  animation-delay: 0.6s; }
+.bo-login__beam--g { color: var(--c-green);  transform: rotate(7deg);    animation-delay: 0.9s; }
+.bo-login__beam--b { color: var(--c-blue);   transform: rotate(9.8deg);  animation-delay: 1.2s; }
+.bo-login__beam--v { color: var(--c-violet); transform: rotate(12.6deg); animation-delay: 1.5s; }
+
+@keyframes bo-fan-breathe {
+  0%, 100% { opacity: 0.30; }
+  50%      { opacity: 0.66; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bo-login__beam { animation: none; opacity: 0.5; }
+  .bo-login__rainbow { animation: none; }
+}
+
+/* ── The card (acts as the prism) ────────────────────────────────────── */
+.bo-login__card {
+  position: relative;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 8px 22px rgba(0, 0, 0, 0.40);
+}
+
+/* signature animated rainbow bar across the top edge */
+.bo-login__rainbow {
+  height: 4px;
+  background: var(--bo-rainbow);
+  background-size: 200% 100%;
+  animation: rainbow-slide 3.4s linear infinite;
+}
+
+.bo-login__pad { padding: 30px 34px; }
+
+/* Brand row */
+.bo-login__brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.bo-login__logo { height: 30px; width: auto; display: block; }
+.bo-login__restricted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--pg-muted);
+  background: #f4f5f7;
+  border: 1px solid var(--pg-border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+.bo-login__restricted i { font-size: 11px; }
+
+.bo-login__title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+  color: var(--pg-ink);
+}
+.bo-login__subtitle {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--pg-muted);
+  margin: 0 0 22px;
+}
+
+/* Error alert (rendered only when the controller flashes a failure) */
+.bo-login__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fdecec;
+  border: 1px solid #f4c3c0;
+  color: #a01f17;
+  border-radius: 11px;
+  padding: 11px 13px;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+.bo-login__alert i { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+
+/* Fields */
+.bo-login__field { margin-bottom: 16px; }
+.bo-login__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--pg-ink);
+  margin-bottom: 7px;
+}
+.bo-login__input-wrap { position: relative; }
+.bo-login__input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--pg-border);
+  background: #fff;
+  color: var(--pg-ink);
+  font-size: 15px;
+  line-height: 1.3;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.bo-login__input::placeholder { color: #aab0b8; }
+.bo-login__input:focus {
+  outline: none;
+  border-color: var(--pg-ink);
+  box-shadow: 0 0 0 3px rgba(26, 29, 33, 0.12);
+}
+.bo-login__field--toggle .bo-login__input { padding-right: 46px; }
+.bo-login__toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--pg-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.bo-login__toggle:hover { color: var(--pg-ink); background: #f4f5f7; }
+
+.bo-login__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.bo-login__caps {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #9a6a00;
+}
+.bo-login__caps.is-visible { display: inline-flex; }
+.bo-login__caps i { font-size: 12px; }
+
+/* Meta row */
+.bo-login__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 22px;
+}
+.bo-login__remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  color: var(--pg-ink);
+  cursor: pointer;
+  user-select: none;
+}
+.bo-login__remember input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #c2c7ce;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.bo-login__remember input:checked { background: var(--pg-ink); border-color: var(--pg-ink); }
+.bo-login__remember input:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.bo-login__forgot {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pg-muted);
+  text-decoration: none;
+}
+.bo-login__forgot:hover { color: var(--pg-ink); text-decoration: underline; }
+
+/* Submit */
+.bo-login__submit {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 13px 22px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--pg-ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+.bo-login__submit:hover {
+  transform: translateY(-1px);
+  background: #000;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+}
+.bo-login__submit:active { transform: translateY(0); }
+
+/* Card foot */
+.bo-login__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--pg-border);
+}
+.bo-login__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pg-muted);
+  text-decoration: none;
+}
+.bo-login__back:hover { color: var(--pg-ink); }
+
+/* Below-card security note */
+.bo-login__secure {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.bo-login__secure i { font-size: 12px; }
+
+@media (max-width: 480px) {
+  .bo-login__pad { padding: 26px 22px; }
+  .bo-login__ray,
+  .bo-login__fan { display: none; }
+}
