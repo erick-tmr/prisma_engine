@@ -8,6 +8,7 @@ module Admin
     def create
       user = User.find_for_database_authentication(email: params.dig(:user, :email))
       if valid_admin_login?(user)
+        user.remember_me = ActiveModel::Type::Boolean.new.cast(params.dig(:user, :remember_me))
         sign_in(:user, user)
         redirect_to admin_root_path
       else

@@ -7,11 +7,16 @@
     <title><%= content_for?(:title) ? yield(:title) : "Backoffice — Prisma Games" %></title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <meta name="theme-color" content="#111214">
+
+    <%= yield :head %>
   </head>
   <body>
-    <% flash.each do |type, message| %>
-      <p class="flash flash--<%= type %>" role="alert"><%= message %></p>
-    <% end %>
     <%= yield %>
+    <%= yield :scripts %>
   </body>
 </html>

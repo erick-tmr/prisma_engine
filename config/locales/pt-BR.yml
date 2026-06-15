@@ -226,9 +226,21 @@ pt-BR:
   admin:
     sessions:
       title: "Backoffice — Prisma Games"
+      restricted: "Acesso restrito"
+      heading: "Backoffice"
+      subtitle: "Entre com sua conta de equipe para gerenciar a loja Prisma Games."
       email: "E-mail"
+      email_placeholder: "voce@prismagames.com.br"
       password: "Senha"
+      password_placeholder: "••••••••"
+      show_password: "Mostrar senha"
+      hide_password: "Ocultar senha"
+      caps_lock: "Caps Lock ativo"
+      remember: "Manter conectado"
+      forgot: "Esqueci a senha"
       submit: "Entrar"
+      back_to_store: "Voltar à loja"
+      secure_note: "Sessões monitoradas · uso interno Prisma Games"
       failure: "E-mail ou senha inválidos, ou conta sem acesso ao backoffice."
       logout: "Sair"
     dashboard:

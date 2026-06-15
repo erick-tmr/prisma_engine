@@ -1,19 +1,100 @@
 <% content_for :title, t("admin.sessions.title") %>
+<% content_for :head do %>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-login" %>
+<% end %>
 
-<main>
-  <h1><%= t("admin.sessions.title") %></h1>
+<div class="bo-login" data-bo-login>
+  <div class="bo-login__stage" aria-hidden="true"></div>
 
-  <%= form_with url: admin_session_path, method: :post do |form| %>
-    <div>
-      <%= form.label :email, t("admin.sessions.email"), for: "user_email" %>
-      <%= email_field_tag "user[email]", nil, id: "user_email", autocomplete: "email", autofocus: true, required: true %>
+  <div class="bo-login__rig">
+    <span class="bo-login__ray" aria-hidden="true"></span>
+    <div class="bo-login__fan" aria-hidden="true">
+      <span class="bo-login__beam bo-login__beam--r"></span>
+      <span class="bo-login__beam bo-login__beam--o"></span>
+      <span class="bo-login__beam bo-login__beam--y"></span>
+      <span class="bo-login__beam bo-login__beam--g"></span>
+      <span class="bo-login__beam bo-login__beam--b"></span>
+      <span class="bo-login__beam bo-login__beam--v"></span>
     </div>
 
-    <div>
-      <%= form.label :password, t("admin.sessions.password"), for: "user_password" %>
-      <%= password_field_tag "user[password]", nil, id: "user_password", autocomplete: "current-password", required: true %>
+    <div class="bo-login__card">
+      <div class="bo-login__rainbow" aria-hidden="true"></div>
+      <div class="bo-login__pad">
+
+        <div class="bo-login__brand">
+          <%= image_tag "/images/stores/uploads/2359718/prisma-games.png", alt: "Prisma Games", class: "bo-login__logo" %>
+          <span class="bo-login__restricted">
+            <i class="bi bi-shield-lock-fill"></i> <%= t("admin.sessions.restricted") %>
+          </span>
+        </div>
+
+        <h1 class="bo-login__title"><%= t("admin.sessions.heading") %></h1>
+        <p class="bo-login__subtitle"><%= t("admin.sessions.subtitle") %></p>
+
+        <% if flash[:alert].present? %>
+          <div class="bo-login__alert" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span><%= flash[:alert] %></span>
+          </div>
+        <% end %>
+
+        <%= form_with url: admin_session_path, method: :post, html: { class: "bo-login__form", novalidate: true } do %>
+          <div class="bo-login__field">
+            <%= label_tag "user_email", t("admin.sessions.email"), class: "bo-login__label" %>
+            <div class="bo-login__input-wrap">
+              <%= email_field_tag "user[email]", nil, id: "user_email", class: "bo-login__input",
+                    autocomplete: "email", autofocus: true, required: true,
+                    placeholder: t("admin.sessions.email_placeholder") %>
+            </div>
+          </div>
+
+          <div class="bo-login__field bo-login__field--toggle">
+            <div class="bo-login__label-row">
+              <%= label_tag "user_password", t("admin.sessions.password"), class: "bo-login__label" %>
+              <span class="bo-login__caps" data-bo-caps>
+                <i class="bi bi-capslock-fill"></i> <%= t("admin.sessions.caps_lock") %>
+              </span>
+            </div>
+            <div class="bo-login__input-wrap">
+              <%= password_field_tag "user[password]", nil, id: "user_password", class: "bo-login__input",
+                    autocomplete: "current-password", required: true,
+                    placeholder: t("admin.sessions.password_placeholder"), data: { bo_password: true } %>
+              <button type="button" class="bo-login__toggle" data-bo-toggle
+                      data-show-label="<%= t("admin.sessions.show_password") %>"
+                      data-hide-label="<%= t("admin.sessions.hide_password") %>"
+                      aria-label="<%= t("admin.sessions.show_password") %>"
+                      title="<%= t("admin.sessions.show_password") %>">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="bo-login__meta">
+            <label class="bo-login__remember">
+              <%= check_box_tag "user[remember_me]", "1", true %> <%= t("admin.sessions.remember") %>
+            </label>
+            <%= link_to t("admin.sessions.forgot"), new_user_password_path, class: "bo-login__forgot" %>
+          </div>
+
+          <%= submit_tag t("admin.sessions.submit"), class: "bo-login__submit" %>
+        <% end %>
+
+        <div class="bo-login__foot">
+          <%= link_to root_path, class: "bo-login__back" do %>
+            <i class="bi bi-arrow-left"></i> <%= t("admin.sessions.back_to_store") %>
+          <% end %>
+        </div>
+
+      </div>
     </div>
 
-    <%= form.submit t("admin.sessions.submit") %>
-  <% end %>
-</main>
+    <p class="bo-login__secure">
+      <i class="bi bi-shield-check"></i> <%= t("admin.sessions.secure_note") %>
+    </p>
+  </div>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "backoffice/login", type: "module" %>
+<% end %>
