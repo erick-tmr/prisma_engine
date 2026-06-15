@@ -1,0 +1,6 @@
+<% content_for :title, t("admin.dashboard.title") %>
+
+<main>
+  <h1><%= t("admin.dashboard.heading") %></h1>
+  <%= button_to t("admin.sessions.logout"), admin_logout_path, method: :delete %>
+</main>

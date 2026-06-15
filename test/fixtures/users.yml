@@ -29,3 +29,28 @@ orderless:
   cpf: "10000000019"
   created_at: <%= 3.days.ago.to_fs(:db) %>
   updated_at: <%= 1.day.ago.to_fs(:db) %>
+
+# Backoffice operator — the only confirmed fixture with admin access.
+admin:
+  email: admin@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: <%= 1.day.ago.to_fs(:db) %>
+  full_name: "Operador Backoffice"
+  cpf: "15350946056"
+  phone: "11988887777"
+  admin: true
+  created_at: <%= 3.days.ago.to_fs(:db) %>
+  updated_at: <%= 1.day.ago.to_fs(:db) %>
+
+# Admin flag set but unconfirmed — must NOT be able to log into the backoffice.
+unconfirmed_admin:
+  email: admin-pendente@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmation_token: <%= Devise.token_generator.digest(User, :confirmation_token, "raw-token-admin") %>
+  confirmation_sent_at: <%= 1.hour.ago.to_fs(:db) %>
+  full_name: "Admin Pendente"
+  cpf: "98765432100"
+  phone: "11977776666"
+  admin: true
+  created_at: <%= 1.hour.ago.to_fs(:db) %>
+  updated_at: <%= 1.hour.ago.to_fs(:db) %>

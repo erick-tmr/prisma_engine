@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title><%= content_for?(:title) ? yield(:title) : "Backoffice — Prisma Games" %></title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+  </head>
+  <body>
+    <% flash.each do |type, message| %>
+      <p class="flash flash--<%= type %>" role="alert"><%= message %></p>
+    <% end %>
+    <%= yield %>
+  </body>
+</html>
