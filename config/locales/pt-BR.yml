@@ -223,6 +223,17 @@ pt-BR:
           pending: "Pagamento pendente"
         tracking: "Rastreamento"
         cancel: "Cancelar pedido"
+  admin:
+    sessions:
+      title: "Backoffice — Prisma Games"
+      email: "E-mail"
+      password: "Senha"
+      submit: "Entrar"
+      failure: "E-mail ou senha inválidos, ou conta sem acesso ao backoffice."
+      logout: "Sair"
+    dashboard:
+      title: "Backoffice — Prisma Games"
+      heading: "Backoffice"
   activerecord:
     attributes:
       user:

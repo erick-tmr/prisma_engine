@@ -33,6 +33,13 @@ Rails.application.routes.draw do
     end
   end
 
+  scope path: "admin", module: "admin", as: :admin do
+    root to: "dashboard#index"
+    get    "entrar", to: "sessions#new",     as: :login
+    post   "entrar", to: "sessions#create",  as: :session
+    delete "sair",   to: "sessions#destroy", as: :logout
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "pages#home"

@@ -1,0 +1,19 @@
+<% content_for :title, t("admin.sessions.title") %>
+
+<main>
+  <h1><%= t("admin.sessions.title") %></h1>
+
+  <%= form_with url: admin_session_path, method: :post do |form| %>
+    <div>
+      <%= form.label :email, t("admin.sessions.email"), for: "user_email" %>
+      <%= email_field_tag "user[email]", nil, id: "user_email", autocomplete: "email", autofocus: true, required: true %>
+    </div>
+
+    <div>
+      <%= form.label :password, t("admin.sessions.password"), for: "user_password" %>
+      <%= password_field_tag "user[password]", nil, id: "user_password", autocomplete: "current-password", required: true %>
+    </div>
+
+    <%= form.submit t("admin.sessions.submit") %>
+  <% end %>
+</main>
