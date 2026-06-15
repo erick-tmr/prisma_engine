@@ -17,9 +17,10 @@ module Shipping
     test "creates a pré-postagem and persists the response as a shipment" do
       stub_create(status: 201)
 
-      shipment = Shipping::CreatePrePostagem.call(request_for(:sedex))
+      shipment = Shipping::CreatePrePostagem.call(request_for(:sedex), order: orders(:awaiting))
 
       assert shipment.persisted?
+      assert_equal orders(:awaiting), shipment.order
       assert_equal "AD515656026BR", shipment.tracking_code
       assert_equal "03220", shipment.service_code
       assert_equal "sedex", shipment.service
@@ -27,13 +28,13 @@ module Shipping
 
     test "maps the service name to its codigoServico and requires a known one" do
       assert_equal "03220", Shipping::SERVICES.fetch(:sedex)
-      assert_raises(KeyError) { Shipping::CreatePrePostagem.call(request_for(:fedex)) }
+      assert_raises(KeyError) { Shipping::CreatePrePostagem.call(request_for(:fedex), order: orders(:awaiting)) }
     end
 
     test "sends the hardcoded store sender, card number and policy flags" do
       stub_create(status: 201)
 
-      Shipping::CreatePrePostagem.call(request_for(:sedex))
+      Shipping::CreatePrePostagem.call(request_for(:sedex), order: orders(:awaiting))
 
       assert_equal "Prisma Games", @sent.dig("remetente", "nome")
       assert_equal "0076738043", @sent["numeroCartaoPostagem"]
@@ -50,7 +51,7 @@ module Shipping
       stub_create(status: 201, service: "03298")
 
       request = request_for(:pac).with(recipient: { nome: "Vinicius Nunes", endereco: { cep: "37600000" } })
-      shipment = Shipping::CreatePrePostagem.call(request)
+      shipment = Shipping::CreatePrePostagem.call(request, order: orders(:awaiting))
 
       assert_equal "03298", @sent["codigoServico"]
       assert_equal "Vinicius Nunes", @sent.dig("destinatario", "nome")

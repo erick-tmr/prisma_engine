@@ -1,0 +1,85 @@
+# Orders for users(:confirmed), one per shape the history pages render.
+# Keep the awaiting_payment order recent (< 24h) so it never leaks into
+# Order.awaiting_payment_expired and breaks order_test.rb.
+
+awaiting:
+  user: confirmed
+  number: "PG-202606140001"
+  status: awaiting_payment
+  subtotal_cents: 32000
+  shipping_cents: 2990
+  total_cents: 34990
+  shipping_service: pac
+  ship_receiver_name: "Cliente Confirmado"
+  ship_receiver_cpf: "52998224725"
+  ship_zip: "01310100"
+  ship_street: "Rua das Flores"
+  ship_number: "150"
+  ship_complement: "Apto 12"
+  ship_neighborhood: "Centro"
+  ship_city: "São Paulo"
+  ship_state: "SP"
+  created_at: <%= 1.hour.ago.to_fs(:db) %>
+  updated_at: <%= 1.hour.ago.to_fs(:db) %>
+
+confirmed_paid:
+  user: confirmed
+  number: "PG-202606120002"
+  status: payment_confirmed
+  payment_method: "pix"
+  subtotal_cents: 32000
+  shipping_cents: 2990
+  total_cents: 34990
+  shipping_service: pac
+  ship_receiver_name: "Cliente Confirmado"
+  ship_receiver_cpf: "52998224725"
+  ship_zip: "01310100"
+  ship_street: "Rua das Flores"
+  ship_number: "150"
+  ship_neighborhood: "Centro"
+  ship_city: "São Paulo"
+  ship_state: "SP"
+  created_at: <%= 2.days.ago.to_fs(:db) %>
+  updated_at: <%= 2.days.ago.to_fs(:db) %>
+
+producing:
+  user: confirmed
+  number: "PG-202606090003"
+  status: in_production
+  payment_method: "credit_card"
+  subtotal_cents: 32000
+  shipping_cents: 2990
+  total_cents: 34990
+  shipping_service: pac
+  ship_receiver_name: "Cliente Confirmado"
+  ship_receiver_cpf: "52998224725"
+  ship_zip: "01310100"
+  ship_street: "Rua das Flores"
+  ship_number: "150"
+  ship_complement: "Bloco B"
+  ship_neighborhood: "Centro"
+  ship_city: "São Paulo"
+  ship_state: "SP"
+  created_at: <%= 5.days.ago.to_fs(:db) %>
+  updated_at: <%= 5.days.ago.to_fs(:db) %>
+
+delivered:
+  user: confirmed
+  number: "PG-202605270004"
+  status: delivered
+  payment_method: "pix"
+  subtotal_cents: 32000
+  shipping_cents: 2990
+  total_cents: 34990
+  shipping_service: pac
+  ship_receiver_name: "Cliente Confirmado"
+  ship_receiver_cpf: "52998224725"
+  ship_zip: "01310100"
+  ship_street: "Rua das Flores"
+  ship_number: "150"
+  ship_complement: "Casa"
+  ship_neighborhood: "Centro"
+  ship_city: "São Paulo"
+  ship_state: "SP"
+  created_at: <%= 18.days.ago.to_fs(:db) %>
+  updated_at: <%= 12.days.ago.to_fs(:db) %>

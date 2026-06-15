@@ -6,6 +6,7 @@ class Order < ApplicationRecord
   EXPIRY_WINDOW = 24.hours
 
   belongs_to :user
+  has_one :shipment, dependent: :nullify
   has_many :order_items, dependent: :destroy
   has_many :payment_webhook_events, dependent: :destroy
   accepts_nested_attributes_for :order_items
@@ -21,6 +22,7 @@ class Order < ApplicationRecord
     label_issued
     shipped
     delivered
+    awaiting_refund
     cancelled
   ].freeze
 
@@ -28,19 +30,21 @@ class Order < ApplicationRecord
 
   TRANSITIONS = {
     "awaiting_payment"    => %w[payment_confirmed cancelled],
-    "payment_confirmed"   => %w[awaiting_components in_production],
+    "payment_confirmed"   => %w[awaiting_components in_production awaiting_refund],
     "awaiting_components" => %w[in_production],
     "in_production"       => %w[label_issued production_issue],
     "production_issue"    => %w[in_production],
     "label_issued"        => %w[shipped],
     "shipped"             => %w[delivered],
     "delivered"           => [],
+    "awaiting_refund"     => %w[cancelled],
     "cancelled"           => %w[payment_confirmed]
   }.freeze
 
   CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed].freeze
 
   scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
+  scope :recent_first, -> { order(created_at: :desc) }
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :shipping_cents, :total_cents,
@@ -49,6 +53,10 @@ class Order < ApplicationRecord
 
   before_validation :assign_number, on: :create
   before_destroy :prevent_destroy
+
+  def to_param
+    number
+  end
 
   def placed_at
     created_at
@@ -60,6 +68,18 @@ class Order < ApplicationRecord
       street: ship_street, number: ship_number, complement: ship_complement,
       neighborhood: ship_neighborhood, city: ship_city, state: ship_state, zip: ship_zip
     }
+  end
+
+  def payment_status
+    awaiting_payment? || cancelled? ? :pending : :paid
+  end
+
+  def tracking_events
+    shipment ? shipment.tracking_events.order(:position) : []
+  end
+
+  def shipping_visible?
+    tracking_events.any?
   end
 
   def cancellable?
@@ -79,6 +99,14 @@ class Order < ApplicationRecord
 
   def cancel!
     transition_to!("cancelled")
+  end
+
+  def request_refund!
+    transition_to!("awaiting_refund")
+  end
+
+  def cancel_by_customer!
+    awaiting_payment? ? cancel! : request_refund!
   end
 
   def payment_deadline

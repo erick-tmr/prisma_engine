@@ -25,6 +25,8 @@ class Shipment < ApplicationRecord
   # estornado. No point polling rastro for them.
   TERMINAL_PREPOST_STATUSES = [ 4, 5, 6 ].freeze
 
+  belongs_to :order
+
   has_many :tracking_events,
            class_name: "ShipmentTrackingEvent",
            dependent: :destroy

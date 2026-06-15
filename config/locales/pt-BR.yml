@@ -171,30 +171,40 @@ pt-BR:
       lede: "Acompanhe o status e o histórico das suas compras."
       empty: "Você ainda não fez nenhum pedido."
       states:
-        aguardando_pagamento:
+        awaiting_payment:
           label: "Aguardando pagamento"
           description: "O pedido foi criado e encontra-se aguardando pagamento."
-        pagamento_confirmado:
+        payment_confirmed:
           label: "Pagamento confirmado"
           description: "O seu pedido está aguardando para entrar em produção, de acordo com a ordem de chegada."
-        aguardando_componentes:
+        awaiting_components:
           label: "Aguardando componentes"
           description: "Estamos com falta de alguns componentes para produção do seu pedido."
-        em_producao:
+        in_production:
           label: "Em produção"
           description: "Seu pedido está em produção e em breve será enviado para os correios."
-        problema_na_producao:
+        production_issue:
           label: "Problema na produção"
           description: "Tive problemas com a produção, entre em contato para esclarecimentos."
-        etiqueta_emitida:
+        label_issued:
           label: "Etiqueta emitida"
           description: "Etiqueta dos Correios emitida, seu pedido será enviado em breve."
-        enviado:
+        shipped:
           label: "Enviado"
           description: "Seu pedido foi enviado aos correios."
-        entregue:
+        delivered:
           label: "Entregue"
           description: "Seu pedido foi entregue."
+        awaiting_refund:
+          label: "Aguardando reembolso"
+          description: "Cancelamento solicitado. Estamos processando o reembolso do seu pagamento."
+        cancelled:
+          label: "Cancelado"
+          description: "Seu pedido foi cancelado."
+      cancel:
+        cancelled: "Pedido cancelado."
+        awaiting_refund: "Cancelamento solicitado. O reembolso será processado manualmente e o pedido será encerrado assim que a devolução for concluída."
+        unavailable: "Este pedido não pode mais ser cancelado."
       show:
         placed_on: "Feito em %{date}"
         back: "Voltar para pedidos"
@@ -207,12 +217,12 @@ pt-BR:
         total: "Total"
         shipping_address: "Endereço de entrega"
         payment: "Pagamento"
+        payment_method_pending: "Aguardando pagamento"
         payment_status:
           paid: "Pago"
           pending: "Pagamento pendente"
         tracking: "Rastreamento"
         cancel: "Cancelar pedido"
-        cancel_soon: "Em breve."
   activerecord:
     attributes:
       user:

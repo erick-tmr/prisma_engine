@@ -17,7 +17,7 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
   end
 
   test "pré-postagem then polling delivers the shipment and records its events" do
-    Shipping::ShipmentFactory.from_pre_postagem(pre_post_payload)
+    Shipping::ShipmentFactory.from_pre_postagem(pre_post_payload, order: orders(:awaiting))
     code = Shipment.sole.tracking_code
 
     stub_request(:get, "#{BASE}/srorastro/v1/objetos/#{code}?resultado=T")
