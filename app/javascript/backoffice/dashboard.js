@@ -541,6 +541,10 @@ export function initDashboard(root, data, today) {
     if (statusPop.classList.contains("open")) closePop(); else openPop(statusTrigger, statusPop);
   });
   statusPop.addEventListener("click", (e) => {
+    // Keep clicks inside the popover from reaching the document outside-click
+    // handler — re-renders detach the target, which would otherwise read as
+    // an outside click and close the popover.
+    e.stopPropagation();
     const opt = e.target.closest(".opt");
     if (opt) {
       const k = opt.dataset.st;
@@ -576,6 +580,7 @@ export function initDashboard(root, data, today) {
     renderOrders();
   });
   datePop.addEventListener("click", (e) => {
+    e.stopPropagation(); // see the status popover handler — re-renders detach the target
     const preset = e.target.closest(".dp-preset");
     if (preset) {
       dp.sel = applyPreset(preset.dataset.p, today); // always yields a `to`

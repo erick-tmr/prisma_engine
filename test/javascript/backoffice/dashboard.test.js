@@ -448,6 +448,7 @@ describe("initDashboard", () => {
     // Build a manual range with `from` starting null, exercising each branch:
     const days = () => $("#date-pop").querySelectorAll(".dp-day[data-d]");
     click(days()[15]); // !from → start
+    expect($("#date-pop").classList.contains("open")).toBe(true); // re-render must not close it
     click(days()[20]); // later than from → end (else)
     click(days()[10]); // from && to set → resets to a fresh start
     click(days()[5]); // earlier than from → date < from (else if)
@@ -456,9 +457,11 @@ describe("initDashboard", () => {
     // navigate both calendars
     click($('#date-pop .dp-nav[data-nav="prev"]'));
     click($('#date-pop .dp-nav[data-nav="next"]'));
+    expect($("#date-pop").classList.contains("open")).toBe(true); // nav must not close it
 
     click($('#date-pop .dp-preset[data-p="30"]'));
     expect($("#date-pop .dp-preset.on").dataset.p).toBe("30");
+    expect($("#date-pop").classList.contains("open")).toBe(true); // preset must not close it
     expect($("#date-pop .dp-readout").textContent).toContain("→");
 
     click($("#dp-apply"));
