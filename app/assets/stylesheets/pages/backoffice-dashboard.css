@@ -343,14 +343,20 @@ body {
 .dp-preset { text-align: left; padding: 9px 11px; border-radius: 8px; border: 0; background: transparent; color: var(--pg-ink); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.12s ease; }
 .dp-preset:hover { background: #f4f5f7; }
 .dp-preset.on { background: var(--pg-ink); color: #fff; }
-.dp-cals { display: flex; gap: 20px; flex: 1; }
-.dp-cal { flex: 1; }
+/* min-width:0 lets the two calendars shrink to share the available width
+   instead of overflowing the popover (flex items default to min-width:auto,
+   which floors them at the grid's content width). */
+.dp-cals { display: flex; gap: 20px; flex: 1; min-width: 0; }
+.dp-cal { flex: 1; min-width: 0; }
 .dp-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .dp-cal-head .mname { font-size: 13.5px; font-weight: 700; }
 .dp-nav { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--pg-border); background: #fff; color: var(--pg-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
 .dp-nav:hover { color: var(--pg-ink); border-color: #cfd4da; }
 .dp-nav--hidden { visibility: hidden; }
-.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+/* minmax(0, 1fr) lets the 7 day columns shrink to fit the (already shrunk via
+   min-width:0) calendar column; plain 1fr keeps an auto/content minimum, so the
+   cells would overflow the column and spill past the popover's right edge. */
+.dp-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .dp-dow { font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--pg-muted); text-align: center; padding: 4px 0; }
 .dp-day {
   aspect-ratio: 1; border: 0; background: transparent; border-radius: 8px; cursor: pointer;
