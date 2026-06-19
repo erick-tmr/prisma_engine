@@ -80,9 +80,10 @@ group :development do
 end
 
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
+  # System (E2E) testing: Capybara drives headless Chrome through Cuprite/Ferrum
+  # (Chrome DevTools Protocol, no WebDriver) [https://github.com/rubycdp/cuprite]
   gem "capybara"
-  gem "selenium-webdriver"
+  gem "cuprite", "~> 0.17"
 
   # Stub external HTTP (Correios rastro) in tests [https://github.com/bblimke/webmock]
   gem "webmock", "~> 3.26"

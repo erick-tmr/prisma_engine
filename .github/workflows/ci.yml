@@ -212,6 +212,10 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          HEADLESS: "1"
+          # System tests drive only a few critical paths; they must not assert
+          # the SimpleCov 100% floor (the unit/integration `test` job does).
+          SKIP_COVERAGE_FLOOR: "1"
         run: |
           mkdir -p tmp
           bin/rails db:test:prepare test:system 2>&1 | tee tmp/system-test.log

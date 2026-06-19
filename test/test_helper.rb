@@ -14,7 +14,13 @@ SimpleCov.start "rails" do
   # changed line is tested" and "no regressions in existing coverage." Mark
   # genuinely untestable lines (Rails scaffold stubs, defensive guards behind
   # route constraints) with `# :nocov:` and a comment explaining why.
-  minimum_coverage line: 100, branch: 100
+  #
+  # The floor is the contract of the unit+integration run (`bin/rails test`),
+  # which alone reaches 100%. The separate `bin/rails test:system` run drives
+  # only a handful of critical paths through the whole app, so it must NOT assert
+  # the floor — CI sets SKIP_COVERAGE_FLOOR=1 on the system-test job, and local
+  # `bin/rails test:system` does the same.
+  minimum_coverage(line: 100, branch: 100) unless ENV["SKIP_COVERAGE_FLOOR"]
 
   # HTML for humans + Undercover's JSON formatter (coverage/coverage.json), which
   # the `undercover` CLI reads to flag changed lines that lack test coverage.
@@ -26,12 +32,17 @@ SimpleCov.start "rails" do
   ])
 end
 
+# System runs measure a different slice of the app than the unit run; give them
+# a distinct base name so their results never overwrite the unit/integration
+# coverage the undercover job consumes.
+SimpleCov.command_name("system") if ENV["SKIP_COVERAGE_FLOOR"]
+
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
 # No test may reach the network. Correios rastro calls are stubbed with WebMock;
-# localhost stays open for Capybara/Selenium system tests.
+# localhost stays open for Capybara/Cuprite system tests.
 require "webmock/minitest"
 WebMock.disable_net_connect!(allow_localhost: true)
 
