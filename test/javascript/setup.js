@@ -9,3 +9,10 @@ if (typeof globalThis.CSS.escape !== "function") {
 if (typeof globalThis.Element !== "undefined" && !globalThis.Element.prototype.scrollIntoView) {
   globalThis.Element.prototype.scrollIntoView = () => {};
 }
+
+// jsdom doesn't implement the Web Animations API; the backoffice dashboard uses
+// Element.animate for a row-click flash (cosmetic). Stub it so the same code path
+// runs in tests as in the browser.
+if (typeof globalThis.Element !== "undefined" && !globalThis.Element.prototype.animate) {
+  globalThis.Element.prototype.animate = () => ({ cancel() {}, finish() {} });
+}

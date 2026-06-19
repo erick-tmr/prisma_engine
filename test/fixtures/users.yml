@@ -30,6 +30,18 @@ orderless:
   created_at: <%= 3.days.ago.to_fs(:db) %>
   updated_at: <%= 1.day.ago.to_fs(:db) %>
 
+# Confirmed customer locked out by Devise — exercises the "Bloqueado" situação.
+locked:
+  email: bloqueado@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: <%= 5.days.ago.to_fs(:db) %>
+  locked_at: <%= 1.day.ago.to_fs(:db) %>
+  full_name: "Cliente Bloqueado"
+  cpf: "74520183979"
+  phone: "11955554444"
+  created_at: <%= 6.days.ago.to_fs(:db) %>
+  updated_at: <%= 1.day.ago.to_fs(:db) %>
+
 # Backoffice operator — the only confirmed fixture with admin access.
 admin:
   email: admin@example.com
