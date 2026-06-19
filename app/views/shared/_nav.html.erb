@@ -54,7 +54,7 @@
             <div class="links-menu__grid">
               <% nav_partners.each do |p| %>
                 <%= link_to p[:url], class: "links-menu__row", target: "_blank", rel: "noopener noreferrer" do %>
-                  <span class="partner-avatar" data-avatar-gradient="<%= p[:gradient] %>"><%= p[:initial] %></span>
+                  <span class="partner-avatar" style="--avatar-gradient: <%= p[:gradient] %>"><%= p[:initial] %></span>
                   <span class="partner-meta">
                     <strong><%= p[:name] %></strong>
                     <small><%= p[:tagline] %></small>

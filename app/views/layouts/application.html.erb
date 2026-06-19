@@ -70,10 +70,6 @@
 
     <%= javascript_tag nonce: true do %>
       $(function () {
-        $('[data-avatar-gradient]').each(function () {
-          this.style.setProperty('--avatar-gradient', this.dataset.avatarGradient);
-        });
-
         $('.links-menu').each(function () {
           var $wrap    = $(this);
           var $trigger = $wrap.find('[data-links-menu="trigger"]');
