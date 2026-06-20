@@ -62,6 +62,7 @@
           <div class="flash flash--<%= meta[:variant] %>" role="alert">
             <i class="bi <%= meta[:icon] %> flash__icon"></i>
             <div class="flash__body"><%= value %></div>
+            <button type="button" class="flash__close" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
           </div>
         <% end %>
       </div>
@@ -69,6 +70,7 @@
 
     <%= yield %>
 
+    <%= javascript_include_tag "storefront/flash", type: "module" %>
     <%= yield :scripts %>
   </body>
 </html>
