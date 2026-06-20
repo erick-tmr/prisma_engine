@@ -1,0 +1,17 @@
+module Shipping
+  class DownloadLabelJob < Shipping::LabelStep
+    private
+
+    def applicable?(label)
+      label.requested?
+    end
+
+    def run(order, label)
+      result = Shipping::DownloadLabel.call(label.recibo_id)
+      Order.transaction do
+        label.mark_ready!(filename: result.filename, pdf: result.pdf_base64)
+        order.transition_to!("label_issued")
+      end
+    end
+  end
+end

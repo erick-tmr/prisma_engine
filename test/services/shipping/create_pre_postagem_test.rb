@@ -61,7 +61,7 @@ module Shipping
     private
 
     def request_for(service)
-      Shipping::PrePostagemRequest.placeholder(service: service)
+      Shipping::PrePostagemRequest.from_order(orders(:awaiting)).with(service: service)
     end
 
     def stub_create(status:, service: "03220")

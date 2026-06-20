@@ -7,6 +7,7 @@ class Order < ApplicationRecord
 
   belongs_to :user
   has_one :shipment, dependent: :nullify
+  has_one :shipping_label, dependent: :destroy
   has_many :order_items, dependent: :destroy
   has_many :payment_webhook_events, dependent: :destroy
   accepts_nested_attributes_for :order_items

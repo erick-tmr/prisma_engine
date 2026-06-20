@@ -50,6 +50,7 @@ module Checkout
       assert_equal 2_084, order.shipping_cents
       assert_equal 40_084, order.total_cents
       assert_equal "pac", order.shipping_service
+      assert_equal Shipping::PackageWeight.call(populated_cart), order.shipping_weight_grams
       assert order.awaiting_payment?
 
       assert_equal "São Paulo", order.ship_city

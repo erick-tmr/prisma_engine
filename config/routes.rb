@@ -38,6 +38,7 @@ Rails.application.routes.draw do
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout
+    post   "etiquetas", to: "labels#create", as: :labels
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

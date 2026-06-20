@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -141,6 +141,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_120000) do
     t.string "ship_zip", null: false
     t.integer "shipping_cents", null: false
     t.string "shipping_service", null: false
+    t.integer "shipping_weight_grams"
     t.string "status", default: "awaiting_payment", null: false
     t.integer "subtotal_cents", null: false
     t.integer "total_cents", null: false
@@ -274,6 +275,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_120000) do
     t.index ["tracking_state"], name: "index_shipments_on_tracking_state"
   end
 
+  create_table "shipping_labels", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "error"
+    t.datetime "errored_at"
+    t.string "filename"
+    t.bigint "order_id", null: false
+    t.text "pdf_base64"
+    t.string "recibo_id"
+    t.integer "state", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_shipping_labels_on_order_id", unique: true
+  end
+
   create_table "tags", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -326,4 +340,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_120000) do
   add_foreign_key "questions", "products"
   add_foreign_key "shipment_tracking_events", "shipments"
   add_foreign_key "shipments", "orders"
+  add_foreign_key "shipping_labels", "orders"
 end

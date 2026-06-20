@@ -1,7 +1,3 @@
-# Orders for users(:confirmed), one per shape the history pages render.
-# Keep the awaiting_payment order recent (< 24h) so it never leaks into
-# Order.awaiting_payment_expired and breaks order_test.rb.
-
 awaiting:
   user: confirmed
   number: "PG-202606140001"
@@ -10,6 +6,7 @@ awaiting:
   shipping_cents: 2990
   total_cents: 34990
   shipping_service: pac
+  shipping_weight_grams: 120
   ship_receiver_name: "Cliente Confirmado"
   ship_receiver_cpf: "52998224725"
   ship_zip: "01310100"
@@ -51,6 +48,7 @@ producing:
   shipping_cents: 2990
   total_cents: 34990
   shipping_service: pac
+  shipping_weight_grams: 250
   ship_receiver_name: "Cliente Confirmado"
   ship_receiver_cpf: "52998224725"
   ship_zip: "01310100"

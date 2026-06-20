@@ -40,9 +40,12 @@ module Checkout
       Result.new(order: nil, error: error)
     end
 
+    def package_weight
+      @package_weight ||= Shipping::PackageWeight.call(cart)
+    end
+
     def eligible_service(address)
-      weight = Shipping::PackageWeight.call(cart)
-      quote  = Shipping::Quote.call(cep_destino: address.zip, weight_grams: weight)
+      quote = Shipping::Quote.call(cep_destino: address.zip, weight_grams: package_weight)
       quote.find { |service| service[:key].to_s == shipping_service && service[:eligible] }
     end
 
@@ -50,11 +53,12 @@ module Checkout
       subtotal = cart.subtotal_cents
       shipping = service[:price_cents]
       Order.create!(
-        user:             user,
-        subtotal_cents:   subtotal,
-        shipping_cents:   shipping,
-        total_cents:      subtotal + shipping,
-        shipping_service: shipping_service,
+        user:                  user,
+        subtotal_cents:        subtotal,
+        shipping_cents:        shipping,
+        total_cents:           subtotal + shipping,
+        shipping_service:      shipping_service,
+        shipping_weight_grams: package_weight,
         order_items_attributes: cart.lines.map { |line| item_attributes(line) },
         **address_snapshot(address)
       )
