@@ -5,9 +5,12 @@
    ============================================================ */
 
 /* flash banner (the admin layout renders no flash, so the page owns it) */
-.od-flash { margin-bottom: 16px; padding: 12px 16px; border-radius: 11px; font-size: 13.5px; font-weight: 600; border: 1px solid; }
+.od-flash { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 16px; border-radius: 11px; font-size: 13.5px; font-weight: 600; border: 1px solid; }
 .od-flash--ok { background: #e4f4ec; color: #1f8a5b; border-color: #b8e2cb; }
 .od-flash--alert { background: #fdecec; color: #c0392b; border-color: #f0cfcb; }
+.od-flash__msg { flex: 1; }
+.od-flash__close { flex-shrink: 0; display: inline-flex; padding: 0; border: 0; background: transparent; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; opacity: .65; }
+.od-flash__close:hover { opacity: 1; }
 
 /* back link + detail header */
 .od-back {

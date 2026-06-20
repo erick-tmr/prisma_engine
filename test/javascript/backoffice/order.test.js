@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { bindConfirm, bindMenu } from "../../../app/javascript/backoffice/order.js";
+import { bindConfirm, bindMenu, bindFlashDismiss } from "../../../app/javascript/backoffice/order.js";
 
 // Mirrors the data hooks in app/views/admin/orders/show.html.erb.
 function mount() {
@@ -55,5 +55,32 @@ describe("bindMenu", () => {
 
     toggle.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     expect(sidebar.classList.contains("show")).toBe(false);
+  });
+});
+
+describe("bindFlashDismiss", () => {
+  it("removes the flash when its close button is clicked", () => {
+    document.body.innerHTML = `
+      <div data-bo-order>
+        <div class="od-flash od-flash--ok" role="alert">
+          <span class="od-flash__msg">Pagamento confirmado.</span>
+          <button type="button" class="od-flash__close" data-flash-close></button>
+        </div>
+      </div>`;
+    const root = document.querySelector("[data-bo-order]");
+    bindFlashDismiss(root);
+
+    root.querySelector("[data-flash-close]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    expect(document.querySelector(".od-flash")).toBeNull();
+  });
+
+  it("ignores a stray close button with no flash ancestor", () => {
+    document.body.innerHTML = `<div data-bo-order><button type="button" data-flash-close></button></div>`;
+    const root = document.querySelector("[data-bo-order]");
+    bindFlashDismiss(root);
+
+    expect(() =>
+      root.querySelector("[data-flash-close]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }))
+    ).not.toThrow();
   });
 });
