@@ -1,67 +1,53 @@
-<header class="header bg-white border-bottom py-2">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-6 col-md-3 d-flex align-items-center">
-        <button class="btn btn-link text-dark p-0 me-2 header__drawer-toggle" type="button"
-                data-toggle="drawer" data-target="#site-drawer"
-                aria-controls="site-drawer" aria-expanded="false" aria-label="Abrir menu de categorias">
-          <i class="bi bi-list"></i>
-        </button>
-        <%= link_to root_path, class: "header__logo d-inline-block" do %>
-          <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games" height="48">
-        <% end %>
-      </div>
+<header class="header">
+  <div class="header__inner">
+    <button class="header__burger" type="button"
+            data-toggle="drawer" data-target="#site-drawer"
+            aria-controls="site-drawer" aria-expanded="false" aria-label="Abrir menu de categorias">
+      <i class="bi bi-list"></i>
+    </button>
 
-      <div class="col-md-5 d-none d-md-block">
-        <%= form_with url: products_path, method: :get, local: true, class: "w-100" do %>
-          <div class="input-group w-100">
-            <%= text_field_tag :term, params[:term],
-                  class: "form-control",
-                  placeholder: "Buscar jogos, hardware, acessórios…",
-                  aria: { label: "Buscar produtos" } %>
-            <button type="submit" class="btn btn-dark" aria-label="Buscar">
-              <i class="bi bi-search"></i>
-            </button>
-          </div>
-        <% end %>
-      </div>
+    <%= link_to root_path, class: "header__logo", "aria-label": "Prisma Games" do %>
+      <img src="/images/prisma-games-logo.png" alt="Prisma Games">
+    <% end %>
 
-      <div class="col-6 col-md-4">
-        <div class="d-flex justify-content-end align-items-center flex-nowrap gap-3">
-          <% if user_signed_in? %>
-            <%= link_to account_profile_path, class: "btn btn-link text-dark p-0 text-nowrap d-inline-flex align-items-center gap-1", title: t("account.short_label") do %>
-              <i class="bi bi-person fs-5 lh-1"></i>
-              <span class="d-none d-lg-inline"><%= t("account.greeting_html", name: current_user.first_name) %></span>
-            <% end %>
-          <% else %>
-            <%= link_to new_user_session_path, class: "btn btn-link text-dark p-0 text-nowrap d-inline-flex align-items-center gap-1", title: t("account.short_label") do %>
-              <i class="bi bi-person fs-5 lh-1"></i>
-              <span class="d-none d-lg-inline"><%= t("account.short_label") %></span>
-            <% end %>
-          <% end %>
-          <%= link_to "/carrinho", class: "btn btn-link text-dark header__cart p-0 text-nowrap d-inline-flex align-items-center gap-1", title: "Carrinho" do %>
-            <i class="bi bi-handbag fs-5 lh-1"></i>
-            <span class="d-none d-lg-inline">Carrinho</span>
-            <span class="header__cart-count" data-cart-count><%= current_cart_count %></span>
-          <% end %>
-        </div>
-      </div>
-    </div>
+    <%= form_with url: products_path, method: :get, local: true, class: "header__search" do %>
+      <%= text_field_tag :term, params[:term],
+            class: "header__search-input",
+            placeholder: "Buscar jogos, hardware, acessórios…",
+            aria: { label: "Buscar produtos" } %>
+      <button type="submit" class="header__search-btn" aria-label="Buscar">
+        <i class="bi bi-search"></i>
+      </button>
+    <% end %>
 
-    <div class="row d-md-none mt-2">
-      <div class="col-12">
-        <%= form_with url: products_path, method: :get, local: true, class: "w-100" do %>
-          <div class="input-group w-100">
-            <%= text_field_tag :term, params[:term],
-                  class: "form-control form-control-sm",
-                  placeholder: "Buscar produtos…",
-                  aria: { label: "Buscar produtos" } %>
-            <button type="submit" class="btn btn-dark btn-sm" aria-label="Buscar">
-              <i class="bi bi-search"></i>
-            </button>
-          </div>
+    <div class="header__actions">
+      <% if user_signed_in? %>
+        <%= link_to account_profile_path, class: "header__action", title: t("account.short_label") do %>
+          <i class="bi bi-person"></i>
+          <span class="header__action-label"><%= t("account.greeting_html", name: current_user.first_name) %></span>
         <% end %>
-      </div>
+      <% else %>
+        <%= link_to new_user_session_path, class: "header__action", title: t("account.short_label") do %>
+          <i class="bi bi-person"></i>
+          <span class="header__action-label"><%= t("account.short_label") %></span>
+        <% end %>
+      <% end %>
+
+      <%= link_to "/carrinho", class: "header__action header__cart", title: "Carrinho" do %>
+        <i class="bi bi-handbag"></i>
+        <span class="header__action-label">Carrinho</span>
+        <span class="header__cart-count" data-cart-count><%= current_cart_count %></span>
+      <% end %>
     </div>
   </div>
+
+  <%= form_with url: products_path, method: :get, local: true, class: "header__search header__search--mobile" do %>
+    <%= text_field_tag :term, params[:term],
+          class: "header__search-input",
+          placeholder: "Buscar produtos…",
+          aria: { label: "Buscar produtos" } %>
+    <button type="submit" class="header__search-btn" aria-label="Buscar">
+      <i class="bi bi-search"></i>
+    </button>
+  <% end %>
 </header>
