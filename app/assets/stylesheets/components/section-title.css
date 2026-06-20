@@ -1,7 +1,3 @@
-/* Homepage / category section wrapper + its centered logo title with the
-   animated rainbow bar. The .rainbow-bar primitive is shared (account
-   panels, order status banner) — its base lives here, sized per context. */
-
 .section {
   max-width: 1320px;
   margin: 32px auto;
@@ -36,8 +32,6 @@
   transform: translateY(-1px);
 }
 
-/* Bare SVG wordmark — both classic + color SVGs are calibrated to render
-   the GAME BOY caps at the same height here. */
 .section-title__logo img {
   height: 48px;
   width: auto;
@@ -96,8 +90,6 @@
 }
 
 @media (max-width: 520px) {
-  /* The centered logo links to the same category, so the separate
-     "Ver tudo" link is redundant on a narrow phone. */
   .section-title__see-all {
     display: none;
   }

@@ -1,6 +1,3 @@
-/* "Central Prisma" dropdown menu (nav strip, right side) + the shared
-   partner avatar/meta bits it shares with the mobile drawer. */
-
 .links-menu__anchor {
   position: relative;
 }
@@ -155,8 +152,6 @@
   }
 }
 
-/* Partner avatar + meta — shared by the Central Prisma menu rows and the
-   mobile drawer's partner list. */
 .partner-avatar {
   width: 36px;
   height: 36px;

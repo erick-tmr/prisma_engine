@@ -1,8 +1,3 @@
-/* Checkout layout chrome, the checkout page, and the payment-return page.
-   Loaded by layouts/checkout.html.erb. Form fields reuse the shared
-   .field / .field__input component; the rail cap reuses .rainbow-bar--top. */
-
-/* ── Layout chrome ─────────────────────────────────────────────── */
 .checkout-body { background: var(--pg-bg); margin: 0; }
 .checkout-strip { height: 3px; background: var(--pg-rainbow); }
 
@@ -75,7 +70,6 @@
   .checkout-steps__sep { margin: 0 8px; }
 }
 
-/* ── Checkout page ─────────────────────────────────────────────── */
 .checkout__page { max-width: 1140px; margin: 0 auto; padding: 28px 24px 80px; }
 .checkout__title { display: flex; align-items: baseline; gap: 12px; margin: 2px 0 22px; }
 .checkout__title h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
@@ -90,7 +84,6 @@
   overflow: hidden;
 }
 
-/* step card */
 .checkout__steps { display: flex; flex-direction: column; gap: 20px; }
 .checkout__step-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--pg-border); }
 .checkout__step-num {
@@ -132,7 +125,6 @@
 .checkout__step.is-invalid .checkout__step-error { display: flex; }
 .checkout__step-error i { font-size: 15px; flex-shrink: 0; }
 
-/* address book */
 .checkout__addr-selected {
   display: none;
   align-items: flex-start;
@@ -244,7 +236,6 @@
 .checkout__col--4 { grid-column: span 4; }
 .checkout__form-actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
 
-/* shipping options */
 .checkout__ship-dest { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 13px; color: #4b5563; }
 .checkout__ship-dest i { color: var(--pg-green); font-size: 15px; }
 .checkout__ship-dest strong { color: var(--pg-ink); font-weight: 600; }
@@ -282,7 +273,6 @@
 .checkout__ship-price { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 .checkout__ship-price--free { color: var(--pg-green); }
 
-/* right rail — order summary */
 .checkout__rail { position: sticky; top: 18px; display: flex; flex-direction: column; gap: 16px; }
 .checkout__sum-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--pg-border); }
 .checkout__sum-head i { font-size: 17px; }
@@ -393,7 +383,6 @@
 .checkout__trust div { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--pg-muted); }
 .checkout__trust i { font-size: 14px; color: var(--pg-green); width: 16px; text-align: center; }
 
-/* redirect interstitial */
 .checkout__redirect {
   display: none;
   position: fixed;
@@ -447,7 +436,6 @@
 .checkout__redirect-url span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .checkout__redirect-hint { margin: 18px 0 0; font-size: 11.5px; color: var(--pg-faint); }
 
-/* mobile sticky pay bar */
 .checkout__mobile-bar {
   display: none;
   position: fixed;
@@ -482,7 +470,6 @@
   .checkout__col--2, .checkout__col--3, .checkout__col--4 { grid-column: span 2; }
 }
 
-/* ── Payment return (status) page ──────────────────────────────── */
 .pay-return {
   max-width: 680px;
   margin: 0 auto;

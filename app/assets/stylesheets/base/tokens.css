@@ -1,12 +1,4 @@
-/*
- * Design tokens — the single source of truth for colour, type, spacing,
- * radius, shadow and z-index. Loaded first (before every component/page
- * file) so the custom properties resolve everywhere. Brand colour names
- * keep the historical --pg-* prefix; new scales are unprefixed.
- */
-
 :root {
-  /* Brand + semantic colours */
   --pg-ink: #1a1d21;
   --pg-primary: #007bff;
   --pg-muted: #6b7280;
@@ -25,7 +17,6 @@
   --pg-ig-3: #d62976;
   --pg-ig-4: #962fbf;
 
-  /* Signature animated rainbow (avatar, accents, section bars) */
   --pg-rainbow: linear-gradient(
     90deg,
     #b80a41, #daac06, #00938a, #4e4ba8, #00938a, #daac06, #b80a41
@@ -33,13 +24,10 @@
 
   --pg-rainbow-edge: linear-gradient(180deg, #b80a41 0%, #daac06 34%, #00938a 67%, #4e4ba8 100%);
 
-  /* Shadows */
   --pg-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
 
-  /* Product card aspect ratio */
   --pg-card-ratio: 3 / 2;
 
-  /* Spacing scale (4px base) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -49,14 +37,12 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  /* Radius scale */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-pill: 999px;
 
-  /* Type scale */
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 14px;
@@ -65,7 +51,6 @@
   --text-xl: 20px;
   --text-2xl: 24px;
 
-  /* Z-index scale */
   --z-drawer-backdrop: 1040;
   --z-drawer: 1050;
   --z-sticky-bar: 60;

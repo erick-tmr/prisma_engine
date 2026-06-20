@@ -1,7 +1,3 @@
-/* Buttons. Two blocks: .button (primary, dark) and .button-ghost
-   (secondary, outlined). Cart / checkout / payment screens carry their own
-   page-scoped button variants. */
-
 .button {
   display: inline-flex;
   align-items: center;

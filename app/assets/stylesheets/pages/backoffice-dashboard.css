@@ -1,14 +1,4 @@
-/* Backoffice dashboard — the staff workspace behind the prism login. Light,
-   dense and legible, but carrying the same identity: ink sidebar, the PRISMA
-   GAMES wordmark, the signature animated rainbow rail, and the order
-   status-pill palette. Linked only on admin/dashboard, so the page-scoped body
-   reset and `:root` spectrum are safe. Reuses --pg-* tokens (base/tokens) and
-   the global rainbow-slide keyframe (base/animations); the bright dispersion
-   spectrum is scoped here under --bo-rainbow, matching pages/backoffice-login,
-   so the muted brand --pg-rainbow stays untouched. */
-
 :root {
-  /* Bright spectrum echoing the wordmark dispersion, shared with the login. */
   --bo-rainbow: linear-gradient(90deg,
     #e4322b, #f0851f, #f4c20d, #2aa564, #2f7fd1, #6b4fb0,
     #2f7fd1, #f4c20d, #e4322b);
@@ -33,7 +23,6 @@ body {
   font-size: 14px;
 }
 
-/* signature rainbow hairline pinned to the very top of the app */
 .app-rainbow {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -47,14 +36,12 @@ body {
   .app-rainbow { animation: none; }
 }
 
-/* ── App shell ───────────────────────────────────────────────── */
 .app {
   display: grid;
   grid-template-columns: var(--sb-w) 1fr;
   min-height: 100vh;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────── */
 .sidebar {
   background: var(--pg-ink);
   color: #fff;
@@ -177,7 +164,6 @@ body {
 }
 .sb-signout:hover { background: rgba(255, 255, 255, 0.06); color: #fff; border-color: rgba(255, 255, 255, 0.28); }
 
-/* ── Main column ─────────────────────────────────────────────── */
 .main { min-width: 0; display: flex; flex-direction: column; }
 
 .topbar {
@@ -218,7 +204,6 @@ body {
 
 .content { padding: 26px 30px 60px; }
 
-/* ── Section / panel ─────────────────────────────────────────── */
 .panel { background: #fff; border: 1px solid var(--pg-border); border-radius: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
 .panel + .panel { margin-top: 22px; }
 
@@ -233,7 +218,6 @@ body {
 .panel-top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .result-count { font-size: 12.5px; color: var(--pg-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* ── Filter bar ──────────────────────────────────────────────── */
 .filters {
   display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px;
   padding: 16px 22px; border-bottom: 1px solid var(--pg-border);
@@ -295,7 +279,6 @@ body {
 }
 .btn-ghost:hover { border-color: #cfd4da; background: #f7f8fa; }
 
-/* ── Popovers (dropdown + datepicker) ────────────────────────── */
 .pop {
   position: absolute; z-index: 50; margin-top: 8px; left: 0; right: auto;
   background: #fff; border: 1px solid var(--pg-border); border-radius: 14px;
@@ -305,7 +288,6 @@ body {
 }
 .pop.open { opacity: 1; transform: none; pointer-events: auto; }
 .pop--status { width: 264px; }
-/* the period field sits on the right of the bar — hang the wide calendar leftward */
 #date-pop { left: auto; right: 0; }
 @media (max-width: 720px) {
   .dp { width: 92vw; }
@@ -315,7 +297,6 @@ body {
   #date-pop { left: 0; right: auto; }
 }
 
-/* status multiselect */
 .opt {
   display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 9px;
   font-size: 13.5px; cursor: pointer; user-select: none;
@@ -336,16 +317,12 @@ body {
 .pop-foot .pf-apply { border: 0; background: var(--pg-ink); color: #fff; }
 .pop-foot .pf-apply:hover { background: #000; }
 
-/* date range picker */
 .dp { width: 560px; padding: 14px; }
 .dp-body { display: flex; gap: 18px; }
 .dp-presets { width: 130px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--pg-border); padding-right: 12px; }
 .dp-preset { text-align: left; padding: 9px 11px; border-radius: 8px; border: 0; background: transparent; color: var(--pg-ink); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.12s ease; }
 .dp-preset:hover { background: #f4f5f7; }
 .dp-preset.on { background: var(--pg-ink); color: #fff; }
-/* min-width:0 lets the two calendars shrink to share the available width
-   instead of overflowing the popover (flex items default to min-width:auto,
-   which floors them at the grid's content width). */
 .dp-cals { display: flex; gap: 20px; flex: 1; min-width: 0; }
 .dp-cal { flex: 1; min-width: 0; }
 .dp-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -353,9 +330,6 @@ body {
 .dp-nav { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--pg-border); background: #fff; color: var(--pg-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; }
 .dp-nav:hover { color: var(--pg-ink); border-color: #cfd4da; }
 .dp-nav--hidden { visibility: hidden; }
-/* minmax(0, 1fr) lets the 7 day columns shrink to fit the (already shrunk via
-   min-width:0) calendar column; plain 1fr keeps an auto/content minimum, so the
-   cells would overflow the column and spill past the popover's right edge. */
 .dp-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .dp-dow { font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--pg-muted); text-align: center; padding: 4px 0; }
 .dp-day {
@@ -377,7 +351,6 @@ body {
 .dp-readout .ph { color: #98a0aa; font-weight: 400; }
 .dp-foot .sp { margin-left: auto; }
 
-/* ── Tables ──────────────────────────────────────────────────── */
 .tbl-wrap { overflow-x: auto; }
 table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 table.tbl thead th {
@@ -413,7 +386,6 @@ table.tbl tbody tr:last-child td { border-bottom: 0; }
 
 .row-chev { color: #c8cdd3; font-size: 14px; }
 
-/* status pills — mapped to the 10 order states */
 .pill {
   display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
   font-size: 12px; font-weight: 600; border-radius: 999px; padding: 5px 11px;
@@ -430,7 +402,6 @@ table.tbl tbody tr:last-child td { border-bottom: 0; }
 .st-awaiting_refund      { background: #fdeede; color: #b9650a; }
 .st-cancelled            { background: #f3f4f6; color: #9aa0a8; }
 
-/* client situation tags */
 .tag {
   display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
   font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 4px 10px;
@@ -443,9 +414,6 @@ table.tbl tbody tr:last-child td { border-bottom: 0; }
 
 .amount { font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* status filter colour dots — the saturated status colour (the pill tints above
-   are lighter). Driven by class, not inline style, so the page stays clean
-   under a strict style-src CSP. */
 .dotc-awaiting_payment { background: #6b7280; }
 .dotc-payment_confirmed { background: #00736c; }
 .dotc-awaiting_components { background: #9a7400; }
@@ -457,7 +425,6 @@ table.tbl tbody tr:last-child td { border-bottom: 0; }
 .dotc-awaiting_refund { background: #b9650a; }
 .dotc-cancelled { background: #9aa0a8; }
 
-/* deterministic avatar tints (hashed from the name to one of eight) */
 .who-av--0 { background: #e4322b; }
 .who-av--1 { background: #f0851f; }
 .who-av--2 { background: #caa106; }
@@ -469,7 +436,6 @@ table.tbl tbody tr:last-child td { border-bottom: 0; }
 
 .toast-leaving { opacity: 0; transform: translateY(8px); }
 
-/* ── Row selection ───────────────────────────────────────────── */
 table.tbl th.checkcol, table.tbl td.checkcol { width: 46px; padding-left: 20px; padding-right: 0; }
 .rowcheck {
   width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #c2c7ce; background: #fff;
@@ -485,7 +451,6 @@ table.tbl tbody tr.sel-row { background: #f6f7fb; }
 table.tbl tbody tr.sel-row:hover { background: #eef0f6; }
 table.tbl tbody tr.sel-row td.checkcol { box-shadow: inset 3px 0 0 var(--pg-ink); }
 
-/* ── Bulk action bar ─────────────────────────────────────────── */
 .bulkbar {
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   padding: 12px 22px; background: var(--pg-ink); color: #fff; position: relative;
@@ -516,7 +481,6 @@ table.tbl tbody tr.sel-row td.checkcol { box-shadow: inset 3px 0 0 var(--pg-ink)
 .bulk-chip.danger:hover { background: rgba(228, 50, 43, 0.30); border-color: rgba(228, 50, 43, 0.7); }
 .bulk-chip.danger .cnt { background: rgba(228, 50, 43, 0.4); }
 
-/* ── Toasts ──────────────────────────────────────────────────── */
 .toasts { position: fixed; right: 22px; bottom: 22px; z-index: 90; display: flex; flex-direction: column; gap: 10px; }
 .toast {
   display: flex; align-items: flex-start; gap: 11px; background: #fff;
@@ -533,7 +497,6 @@ table.tbl tbody tr.sel-row td.checkcol { box-shadow: inset 3px 0 0 var(--pg-ink)
 .toast .tx b { font-weight: 700; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
-/* empty state */
 .empty { text-align: center; padding: 56px 20px; color: var(--pg-muted); display: none; }
 .empty.show { display: block; }
 .empty i { font-size: 30px; color: #c8cdd3; display: block; margin-bottom: 12px; }
