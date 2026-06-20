@@ -7,7 +7,7 @@ yellow:
   currency: BRL
   published: true
   weight_grams: 22
-  legacy_image_path: /images/test-yellow.jpg
+  legacy_image_path: /images/test-cartridge.png
 
 metroid:
   category: gb_classic
@@ -17,6 +17,7 @@ metroid:
   currency: BRL
   published: true
   weight_grams: 22
+  legacy_image_path: /images/test-cartridge.png
 
 placeholder:
   category: gb_color
@@ -26,6 +27,7 @@ placeholder:
   currency: BRL
   published: true
   weight_grams: 22
+  legacy_image_path: /images/test-cartridge.png
 
 hidden:
   category: gb_color

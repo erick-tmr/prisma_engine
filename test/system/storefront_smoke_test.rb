@@ -9,10 +9,14 @@ class StorefrontSmokeTest < ApplicationSystemTestCase
     assert_title "Prisma Games"
   end
 
-  test "the catalog lists published products" do
+  test "the catalog lists published products with loaded images" do
     visit products_path
 
     assert_selector ".product-card", minimum: 1
     assert_text products(:yellow).title
+
+    image = find(".product-card__thumb img", match: :first)
+    assert image.evaluate_script("this.complete && this.naturalWidth > 0"),
+           "expected the product image to load, not 404/broken"
   end
 end
