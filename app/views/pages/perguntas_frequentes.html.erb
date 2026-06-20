@@ -1,46 +1,278 @@
 <% content_for :title, "Perguntas frequentes — Prisma Games" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "pages/faq" %>
+<% end %>
 
-<div class="container py-4">
+<div class="faq-page">
   <%= render "shared/breadcrumb", crumbs: [["Início", root_path]], current: "Perguntas frequentes" %>
 
-  <h1 class="h3 mb-3">Perguntas frequentes</h1>
-  <p class="text-muted mb-4">
-    Respostas rápidas sobre disponibilidade, prazo, frete, pagamento e suporte.
-  </p>
+  <section class="faq-hero">
+    <div class="faq-hero__intro">
+      <span class="faq-hero__eyebrow"><i class="bi bi-life-preserver"></i> Central de ajuda</span>
+      <h1>Perguntas frequentes</h1>
+      <p>
+        Tudo o que mais perguntam sobre a Prisma: pedido sob demanda, prazo de produção,
+        frete e rastreio, brindes do Jogo do Mês e a compatibilidade dos nossos cartuchos.
+      </p>
+    </div>
+    <aside class="hero-card">
+      <span class="hero-card__ic"><i class="bi bi-whatsapp"></i></span>
+      <h2>Não achou sua resposta?</h2>
+      <p>Fale com a gente no WhatsApp. Ajudamos a montar o pedido e tiramos suas dúvidas na hora.</p>
+      <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn-wa">
+        <i class="bi bi-whatsapp"></i> Falar no WhatsApp
+      </a>
+      <span class="hero-card__note"><i class="bi bi-chat-dots"></i> Rastreio e atendimento pelo WhatsApp</span>
+    </aside>
+  </section>
 
-  <div class="accordion" id="faq-accordion">
-    <% [
-      ["Como funciona o pedido sob demanda?",          "faq-pedido"],
-      ["Qual o prazo de produção e envio?",            "faq-prazo"],
-      ["Quais formas de pagamento vocês aceitam?",     "faq-pagamento"],
-      ["Como funciona o frete? Atendem todo o Brasil?", "faq-frete"],
-      ["Qual a garantia dos cartuchos e do hardware?", "faq-garantia"],
-      ["Posso encomendar um jogo que não está no catálogo?", "faq-encomenda"],
-    ].each_with_index do |(question, key), idx| %>
-      <div class="card">
-        <div class="card-header py-2" id="<%= key %>-heading">
-          <button class="btn btn-link text-start text-dark w-100 p-0" type="button"
-                  data-bs-toggle="collapse" data-bs-target="#<%= key %>"
-                  aria-expanded="<%= idx == 0 %>" aria-controls="<%= key %>">
-            <%= question %>
-          </button>
-        </div>
-        <div id="<%= key %>" class="collapse <%= "show" if idx == 0 %>"
-             aria-labelledby="<%= key %>-heading" data-bs-parent="#faq-accordion">
-          <div class="card-body small text-muted">
-            <p class="mb-0">
-              Conteúdo desta resposta a ser preenchido com base na FAQ atual do site.
-            </p>
+  <div class="faq-body" data-faq>
+    <aside class="faq-rail" aria-label="Tópicos da FAQ">
+      <span class="faq-rail__label">Tópicos</span>
+      <% [
+        ["g-prisma",   "bi-info-circle", "A Prisma", 1],
+        ["g-pedidos",  "bi-bag-check",   "Pedidos",  2],
+        ["g-entrega",  "bi-truck",       "Entrega",  3],
+        ["g-hardware", "bi-cpu",         "Hardware", 1],
+      ].each do |id, icon, label, count| %>
+        <a class="rail-link" href="#<%= id %>" data-rail-link data-target="<%= id %>">
+          <i class="rail-link__ic bi <%= icon %>"></i> <%= label %>
+          <span class="rail-link__count"><%= count %></span>
+        </a>
+      <% end %>
+    </aside>
+
+    <div class="faq-content">
+      <section class="faq-group" id="g-prisma" data-faq-group>
+        <div class="faq-group__head">
+          <span class="faq-group__ic"><i class="bi bi-info-circle"></i></span>
+          <div class="faq-group__htext">
+            <h2>A Prisma</h2>
+            <span>Quem somos e como produzimos</span>
           </div>
         </div>
-      </div>
-    <% end %>
-  </div>
+        <div class="faq-items">
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-prisma">
+              <span class="qa__q-txt">O que é a Prisma Games?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-prisma" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p>
+                  A Prisma Games é um projeto brasileiro de desenvolvimento de hardware para
+                  consoles e eletrônicos antigos. Ela foi criada por <b>Vinícius Nunes (Vini Ness)</b>,
+                  com formação em física, extensões em eletrônica, desenvolvimento de hardware,
+                  responsável pelo desenvolvimento, projeto de circuitos e design eletrônico de
+                  cada produto.
+                </p>
+                <p>
+                  Atualmente, os projetos da Prisma Games são voltados principalmente para o
+                  Game Boy, com a criação de cartuchos e novas tecnologias próprias, desenvolvidas
+                  para se comportar como o hardware original. Todos os projetos são originais,
+                  desenvolvidos internamente desde a engenharia reversa até o funcionamento do
+                  sistema, sempre com foco em compatibilidade, confiabilidade e upgrades
+                  tecnológicos.
+                </p>
+                <p>
+                  A ideia por trás da Prisma Games é manter consoles clássicos vivos, ao mesmo
+                  tempo em que traz tecnologias modernas para esses sistemas. Um grande exemplo é
+                  o sistema de <b>save sem bateria</b> para os cartuchos, entre outras melhorias modernas.
+                </p>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </section>
 
-  <div class="bg-light text-center py-4 mt-4 rounded">
-    <p class="mb-2">Não encontrou o que procurava?</p>
-    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success">
-      <i class="bi bi-whatsapp"></i> Falar no WhatsApp
-    </a>
+      <section class="faq-group" id="g-pedidos" data-faq-group>
+        <div class="faq-group__head">
+          <span class="faq-group__ic"><i class="bi bi-bag-check"></i></span>
+          <div class="faq-group__htext">
+            <h2>Pedidos</h2>
+            <span>Como pedir e o que vem junto</span>
+          </div>
+        </div>
+        <div class="faq-items">
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-encomenda">
+              <span class="qa__q-txt">Não encontrei um jogo que queria muito, como faço?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-encomenda" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p>
+                  Na página inicial, você vai encontrar os <b>"Pedidos"</b>. É por ali que você faz
+                  todos os pedidos de jogos não listados.
+                </p>
+                <p><b>Pontos importantes:</b></p>
+                <ul>
+                  <li>As artes das caixas e labels são feitas do zero, de acordo com o original da época.</li>
+                  <li>Qualquer mudança do original tem que ser verificada antes.</li>
+                </ul>
+              </div></div>
+            </div>
+          </article>
+
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-brindes">
+              <span class="qa__q-txt">Todos os pedidos vêm com brindes?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-brindes" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p><b>Não.</b></p>
+                <p><b>Brindes:</b></p>
+                <ul>
+                  <li>Exclusivos do <b>Jogo do Mês</b> (da aba "Jogo do Mês" e do jogo em destaque no Instagram).</li>
+                  <li>São válidos apenas para aquele item naquele mês.</li>
+                </ul>
+                <p><b>⚠️ ATENÇÃO:</b> situações que levam a um mal-entendido:</p>
+                <ul>
+                  <li>
+                    Às vezes, ao enviar material para influencers, envio conteúdo extra e brindes
+                    disponíveis, o que não significa que estarão disponíveis novamente.
+                  </li>
+                  <li>Algumas pessoas podem confundir postagens antigas com ofertas atuais, não se atentando à data.</li>
+                </ul>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-group" id="g-entrega" data-faq-group>
+        <div class="faq-group__head">
+          <span class="faq-group__ic"><i class="bi bi-truck"></i></span>
+          <div class="faq-group__htext">
+            <h2>Entrega</h2>
+            <span>Prazos, frete e rastreio</span>
+          </div>
+        </div>
+        <div class="faq-items">
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-prazo">
+              <span class="qa__q-txt">Após a compra, em quanto tempo eu vou receber meu produto?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-prazo" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p><b>⚠️ Não temos produtos prontos para entrega!</b></p>
+                <p>Após a confirmação do pagamento, os componentes para a produção são separados.</p>
+                <p>
+                  Cada produto é feito artesanalmente, por uma única pessoa. Por isso, o prazo de
+                  produção é de <b>até 10 dias úteis</b>*. Após esse período, o pedido é enviado aos
+                  Correios e o rastreio é enviado via WhatsApp.
+                </p>
+                <p><b>⚠️ ATENÇÃO:</b> em alguns casos, esse prazo pode aumentar um pouco:</p>
+                <ul>
+                  <li>Quando você pede uma arte que ainda não temos. Nesse caso, um artista precisa recriá-la baseada no modelo original da época.</li>
+                  <li>Em datas com feriados prolongados ou Fim de Ano.</li>
+                  <li>Em épocas do ano como Natal, Black Friday e afins.</li>
+                  <li>Problemas no estoque.</li>
+                </ul>
+              </div></div>
+            </div>
+          </article>
+
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-rastreio">
+              <span class="qa__q-txt">Envio do meu produto não atualiza, o que aconteceu?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-rastreio" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p>
+                  Os produtos enviados pelo frete mais econômico (PAC Mini / Mini Envios) só
+                  atualizam o rastreamento em <b>dois momentos</b>:
+                </p>
+                <ul>
+                  <li>Quando o produto é postado.</li>
+                  <li>Quando ele sai para entrega.</li>
+                </ul>
+                <p>
+                  <b>⚠️ ATENÇÃO:</b> em períodos de maior volume postal, pode parecer que está
+                  parado, mas a sua encomenda continua a caminho; é só o fluxo fora do normal.
+                </p>
+              </div></div>
+            </div>
+          </article>
+
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-status">
+              <span class="qa__q-txt">Por que o status da minha compra não altera? E por que aparece como "entregue" se eu não recebi nada?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-status" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p>
+                  A plataforma em que a Prisma Games está hospedada no momento não possui recursos
+                  para editar o nome dos status, então preciso trabalhar com as opções disponíveis.
+                  Assim sendo:
+                </p>
+                <ul>
+                  <li><b>🕒 Pendente:</b> aguardando pagamento · ordem de chegada dos pedidos.</li>
+                  <li><b>⏳ Em andamento:</b> separação dos insumos · encaminhado para a mesa de produção.</li>
+                  <li><b>🚚 Entregue:</b> etiqueta enviada para confirmação dos dados · código de rastreio enviado.</li>
+                </ul>
+                <p><b>⚠️ ATENÇÃO:</b></p>
+                <ul>
+                  <li>Todo o processo de atualização dos status é feito de maneira manual.</li>
+                  <li>Quando a etiqueta é emitida, o envio vai ser feito na próxima ida aos Correios.</li>
+                </ul>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-group" id="g-hardware" data-faq-group>
+        <div class="faq-group__head">
+          <span class="faq-group__ic"><i class="bi bi-cpu"></i></span>
+          <div class="faq-group__htext">
+            <h2>Hardware</h2>
+            <span>Compatibilidade e qualidade</span>
+          </div>
+        </div>
+        <div class="faq-items">
+          <article class="qa" data-faq-item>
+            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-compat">
+              <span class="qa__q-txt">Os cartuchos da Prisma Games funcionam como os originais?</span>
+              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
+            </button>
+            <div class="qa__a" id="a-compat" role="region">
+              <div class="qa__a-inner"><div class="qa__a-body">
+                <p>Os projetos são próprios, recriados e desenvolvidos por quem entende do assunto.</p>
+                <p>
+                  <b>Segurança e qualidade:</b> são projetados com robustez e qualidade seguindo os
+                  padrões impostos pelos fabricantes dos componentes e dos dispositivos.
+                </p>
+                <p>
+                  <b>Compatibilidade:</b> funciona em todos os dispositivos e consoles em que os
+                  originais funcionam, tais como:
+                </p>
+                <p class="qa__chips-label">🎮 Consoles</p>
+                <div class="qa-tags">
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Gameboy DMG</span>
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Gameboy Color</span>
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Gameboy Light</span>
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Gameboy Advanced</span>
+                </div>
+                <p class="qa__chips-label">📱 Periféricos</p>
+                <div class="qa-tags">
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Transfer Pak</span>
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Super Game Boy</span>
+                  <span class="qa-tag"><i class="bi bi-check-circle-fill"></i> Multiplayer (Via Cabo Link)</span>
+                </div>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
   </div>
 </div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/faq", type: "module" %>
+<% end %>
