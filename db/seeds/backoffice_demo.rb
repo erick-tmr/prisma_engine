@@ -103,19 +103,22 @@ orders.each_with_index do |(customer_index, status, days_ago, total_cents, quant
     number: "PG-#{placed_at.strftime('%Y%m%d')}#{format('%04d', index + 1)}",
     status: status,
     subtotal_cents: total_cents - shipping_cents,
-    shipping_cents: shipping_cents,
     total_cents: total_cents,
-    shipping_service: services[index % services.size],
     payment_method: status == "awaiting_payment" ? nil : %w[pix credit_card][index % 2],
-    ship_receiver_name: user.full_name, ship_receiver_cpf: user.cpf,
-    ship_zip: "01310100", ship_street: "Avenida Paulista", ship_number: format("%03d", 100 + index),
-    ship_neighborhood: "Centro", ship_city: city, ship_state: uf,
     created_at: placed_at, updated_at: placed_at
   )
   order.order_items.build(
-    name: "Cartucho reproduzido Prisma — pedido #{index + 1}",
+    name: "Cartucho reproduzido Prisma, pedido #{index + 1}",
     unit_price_cents: (total_cents - shipping_cents) / quantity,
     quantity: quantity
+  )
+  order.build_shipment(
+    service: services[index % services.size],
+    shipping_cents: shipping_cents,
+    receiver_name: user.full_name, receiver_cpf: user.cpf,
+    zip: "01310100", street: "Avenida Paulista", number: format("%03d", 100 + index),
+    neighborhood: "Centro", city: city, state: uf,
+    created_at: placed_at, updated_at: placed_at
   )
   order.save!
 end
