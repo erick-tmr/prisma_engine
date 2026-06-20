@@ -26,7 +26,7 @@ module Admin
                  to: "cancelled", icon: "bi-x-circle", danger: true, saga: false)
     ].freeze
 
-    def self.find(id)
+    def self.lookup(id)
       ALL.find { |action| action.id == id }
     end
 

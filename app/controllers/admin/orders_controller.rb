@@ -7,10 +7,11 @@ module Admin
 
     def transition
       order = find_order
-      action = OrderActions.find(params[:event])
+      action = OrderActions.lookup(params[:event])
       return reject(order) if action.nil? || !action.available_for?(order.status)
 
       apply(order, action)
+      # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect -- internal path helper from a DB record, not a user-supplied URL
       redirect_to admin_order_path(order), notice: notice_for(order, action)
     end
 
@@ -45,6 +46,7 @@ module Admin
     end
 
     def reject(order)
+      # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect -- internal path helper from a DB record, not a user-supplied URL
       redirect_to admin_order_path(order), alert: t("admin.orders.detail.transition_invalid")
     end
   end
