@@ -1,15 +1,15 @@
 require "test_helper"
 
 class Cart::LineTest < ActiveSupport::TestCase
-  test "unit_price_cents sums product price + option deltas" do
+  test "unit_price_cents is the product price, ignoring options" do
     line = Cart::Line.new(
       id: "abc123",
       product: products(:yellow),
       quantity: 1,
       options: [ product_options(:yellow_caixa_com) ]
     )
-    assert_equal 19_000, line.unit_price_cents
-    assert_equal "R$ 190.00", line.unit_price_formatted
+    assert_equal 18_000, line.unit_price_cents
+    assert_equal "R$ 180.00", line.unit_price_formatted
   end
 
   test "line_total_cents multiplies unit_price by quantity" do

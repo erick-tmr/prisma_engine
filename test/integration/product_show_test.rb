@@ -29,11 +29,12 @@ class ProductShowTest < ActionDispatch::IntegrationTest
     assert_select "section.freebies", false
   end
 
-  test "variant pills carry their price delta for the live price script" do
+  test "variant pills render without any price delta" do
     get product_path(slug: products(:yellow).slug)
 
     assert_response :success
-    assert_select "button.variant-pill[data-delta='1000']"
-    assert_match(/\+R\$ 10\.00/, response.body)
+    assert_select "button.variant-pill"
+    assert_select "button.variant-pill[data-delta]", false
+    assert_no_match(/\+R\$/, response.body)
   end
 end

@@ -23,8 +23,8 @@ class CartTest < ActionDispatch::IntegrationTest
       option_ids: [ product_options(:yellow_caixa_com).id ]
     }
     get "/carrinho"
-    # 19000 unit (18000 + 1000 delta) * 2 = 38000
-    assert_select "[data-mobile-bar] [data-mb-total]", text: /R\$ 380\.00/
+    # 18000 unit * 2 = 36000; options no longer move the price
+    assert_select "[data-mobile-bar] [data-mb-total]", text: /R\$ 360\.00/
   end
 
   test "adding a product writes a signed cart cookie and bumps the header counter" do
@@ -149,15 +149,15 @@ class CartTest < ActionDispatch::IntegrationTest
     assert_nil session["checkout_shipping_service"]
   end
 
-  test "subtotal reflects the option delta on the line" do
+  test "subtotal reflects the line price times quantity" do
     post cart_items_path, params: {
       product_id: products(:yellow).id, quantity: 2,
       option_ids: [ product_options(:yellow_caixa_com).id ]
     }
     get "/carrinho"
-    # 19000 unit * 2 = 38000
-    assert_select "[data-subtotal]", text: /R\$ 380\.00/
-    assert_select "[data-total]",    text: /R\$ 380\.00/
+    # 18000 unit * 2 = 36000; options no longer move the price
+    assert_select "[data-subtotal]", text: /R\$ 360\.00/
+    assert_select "[data-total]",    text: /R\$ 360\.00/
   end
 
   test "lines whose product was deleted are silently dropped from the cookie" do

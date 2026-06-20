@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_20_144527) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -157,7 +157,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
     t.string "group_name"
     t.string "name", null: false
     t.integer "position", default: 0, null: false
-    t.integer "price_delta_cents", default: 0, null: false
     t.bigint "product_id", null: false
     t.datetime "updated_at", null: false
     t.integer "weight_delta_grams", default: 0, null: false

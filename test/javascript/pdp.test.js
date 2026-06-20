@@ -26,15 +26,15 @@ function mountPdp() {
         <div class="variant-group">
           <div class="variant-group__label">Idioma <span data-vsel="Idioma">Inglês</span></div>
           <div class="variant-pills">
-            <button type="button" class="variant-pill is-selected" data-vpill data-vgroup="Idioma" data-vopt="1" data-vname="Inglês" data-delta="0">Inglês</button>
-            <button type="button" class="variant-pill" data-vpill data-vgroup="Idioma" data-vopt="2" data-vname="Português BR" data-delta="2000">Português BR</button>
+            <button type="button" class="variant-pill is-selected" data-vpill data-vgroup="Idioma" data-vopt="1" data-vname="Inglês">Inglês</button>
+            <button type="button" class="variant-pill" data-vpill data-vgroup="Idioma" data-vopt="2" data-vname="Português BR">Português BR</button>
           </div>
         </div>
         <div class="variant-group">
           <div class="variant-group__label">Caixa <span data-vsel="Caixa">Sem caixa</span></div>
           <div class="variant-pills">
-            <button type="button" class="variant-pill is-selected" data-vpill data-vgroup="Caixa" data-vopt="10" data-vname="Sem caixa" data-delta="0">Sem caixa</button>
-            <button type="button" class="variant-pill" data-vpill data-vgroup="Caixa" data-vopt="11" data-vname="Com caixa" data-delta="2000">Com caixa</button>
+            <button type="button" class="variant-pill is-selected" data-vpill data-vgroup="Caixa" data-vopt="10" data-vname="Sem caixa">Sem caixa</button>
+            <button type="button" class="variant-pill" data-vpill data-vgroup="Caixa" data-vopt="11" data-vname="Com caixa">Com caixa</button>
           </div>
         </div>
         <div class="stepper">
@@ -78,22 +78,14 @@ describe("clampQty", () => {
 describe("computeUnitPriceCents", () => {
   beforeEach(mountPdp);
 
-  it("is the base price when only zero-delta options are selected", () => {
+  it("is the product base price, regardless of selected options", () => {
+    $('[data-vpill][data-vopt="11"]').classList.add("is-selected");
     expect(computeUnitPriceCents($("[data-pdp-form]"))).toBe(18000);
   });
 
-  it("adds the deltas of the selected pills", () => {
-    $('[data-vpill][data-vopt="11"]').classList.add("is-selected");
-    expect(computeUnitPriceCents($("[data-pdp-form]"))).toBe(20000);
-  });
-
-  it("treats a missing base as zero and ignores unparseable deltas", () => {
-    document.body.innerHTML = `
-      <form data-pdp-form>
-        <button class="variant-pill is-selected" data-delta="500"></button>
-        <button class="variant-pill is-selected" data-delta="oops"></button>
-      </form>`;
-    expect(computeUnitPriceCents($("[data-pdp-form]"))).toBe(500);
+  it("treats a missing base as zero", () => {
+    document.body.innerHTML = `<form data-pdp-form></form>`;
+    expect(computeUnitPriceCents($("[data-pdp-form]"))).toBe(0);
   });
 });
 
@@ -129,13 +121,12 @@ describe("bindVariantPills", () => {
     bindVariantPills(document);
   });
 
-  it("updates the group's hidden field, highlight, label, and price", () => {
+  it("updates the group's hidden field, highlight, and label", () => {
     fire($('[data-vpill][data-vopt="2"]'), "click");
     expect($('input[data-variant-group="Idioma"]').value).toBe("2");
     expect($('[data-vpill][data-vopt="2"]').classList.contains("is-selected")).toBe(true);
     expect($('[data-vpill][data-vopt="1"]').classList.contains("is-selected")).toBe(false);
     expect($('[data-vsel="Idioma"]').textContent).toBe("Português BR");
-    expect($("[data-price]").textContent).toBe("R$ 200.00");
   });
 
   it("only touches its own group", () => {
@@ -271,8 +262,8 @@ describe("initPdp", () => {
         <form data-pdp-form data-base-cents="18000">
           <input type="hidden" data-variant-group="Idioma" value="1">
           <div class="variant-pills">
-            <button type="button" class="variant-pill is-selected" data-vpill data-vgroup="Idioma" data-vopt="1" data-vname="Inglês" data-delta="0">Inglês</button>
-            <button type="button" class="variant-pill" data-vpill data-vgroup="Idioma" data-vopt="2" data-vname="Português BR" data-delta="2000">Português BR</button>
+            <button type="button" class="variant-pill is-selected" data-vpill data-vgroup="Idioma" data-vopt="1" data-vname="Inglês">Inglês</button>
+            <button type="button" class="variant-pill" data-vpill data-vgroup="Idioma" data-vopt="2" data-vname="Português BR">Português BR</button>
           </div>
           <input type="number" value="1" data-qty>
           <button type="button" data-inc></button>
@@ -283,6 +274,6 @@ describe("initPdp", () => {
     expect($("[data-price]").textContent).toBe("R$ 180.00");
     expect($("[data-countdown-text]").textContent).toBe("termina em 2 dias e 0h");
     fire($('[data-vpill][data-vopt="2"]'), "click");
-    expect($("[data-price]").textContent).toBe("R$ 200.00");
+    expect($("[data-price]").textContent).toBe("R$ 180.00");
   });
 });

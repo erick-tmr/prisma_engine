@@ -3,11 +3,7 @@ export function formatPriceCents(cents) {
 }
 
 export function computeUnitPriceCents(form) {
-  let cents = parseInt(form.dataset.baseCents, 10) || 0;
-  form.querySelectorAll(".variant-pill.is-selected[data-delta]").forEach(function (pill) {
-    cents += parseInt(pill.dataset.delta, 10) || 0;
-  });
-  return cents;
+  return parseInt(form.dataset.baseCents, 10) || 0;
 }
 
 export function clampQty(value) {
@@ -36,7 +32,6 @@ export function bindVariantPills(scope) {
       });
       const label = form.querySelector('[data-vsel="' + group + '"]');
       if (label) label.textContent = pill.dataset.vname;
-      updatePrice(form);
     });
   });
 }

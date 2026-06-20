@@ -130,7 +130,7 @@ class Cart::BagTest < ActiveSupport::TestCase
 
   test "lines drops items whose option_ids no longer belong to the product" do
     foreign_opt = ProductOption.create!(
-      product: products(:metroid), group_name: "Idioma", name: "Espanhol", price_delta_cents: 0, position: 0
+      product: products(:metroid), group_name: "Idioma", name: "Espanhol", position: 0
     )
     bag = Cart::Bag.from_cookie({
       "v" => 1,
@@ -157,12 +157,12 @@ class Cart::BagTest < ActiveSupport::TestCase
     refute bag.cleanup!
   end
 
-  test "subtotal_cents sums product price plus delta times quantity" do
+  test "subtotal_cents sums the product price times quantity" do
     bag = Cart::Bag.new
     bag.add(product: yellow, quantity: 2, option_ids: [ product_options(:yellow_caixa_com).id ])
-    # 18000 base + 1000 delta = 19000 unit * 2 qty
-    assert_equal 38_000, bag.subtotal_cents
-    assert_equal "R$ 380.00", bag.subtotal_formatted
+    # 18000 base * 2 qty; options no longer move the price
+    assert_equal 36_000, bag.subtotal_cents
+    assert_equal "R$ 360.00", bag.subtotal_formatted
   end
 
   test "to_cookie round-trips through from_cookie" do

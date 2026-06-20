@@ -54,7 +54,6 @@
                 <%
                   is_sel = selected&.id == opt.id
                   flag = variant_option_flag(opt.name)
-                  delta_label = opt.price_delta_cents.positive? ? "+#{HasMoney.format(opt.price_delta_cents)}" : nil
                 %>
                 <button type="button"
                         class="variant-pill<%= ' is-selected' if is_sel %>"
@@ -62,7 +61,6 @@
                         data-vgroup="<%= group_name %>"
                         data-vopt="<%= opt.id %>">
                   <%= opt.name %><%= " #{flag}" if flag %>
-                  <% if delta_label %><span class="variant-pill__delta"><%= delta_label %></span><% end %>
                 </button>
               <% end %>
             </div>

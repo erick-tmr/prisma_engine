@@ -12,7 +12,8 @@ categories = {
   "game-boy-classic" => { name: "Game Boy Classic" },
   "game-boy-color"   => { name: "Game Boy Color" },
   # Game Boy Advance has no products yet — seeded for the near-future catalog.
-  "game-boy-advance" => { name: "Game Boy Advance" }
+  "game-boy-advance" => { name: "Game Boy Advance" },
+  "miscelanea"       => { name: "Miscelânea" }
 }.transform_values do |attrs|
   Category.find_or_create_by!(slug: attrs.fetch(:name).parameterize) do |c|
     c.name = attrs[:name]
@@ -21,7 +22,8 @@ end
 
 category_by_slug = {
   "game-boy-classic" => categories["game-boy-classic"],
-  "game-boy-color"   => categories["game-boy-color"]
+  "game-boy-color"   => categories["game-boy-color"],
+  "miscelanea"       => categories["miscelanea"]
 }
 
 # --- Products --------------------------------------------------------------
@@ -36,20 +38,16 @@ def infer_tag_slugs(name)
 end
 
 default_options = [
-  { group_name: "Idioma", name: "Português BR",  price_delta_cents: 0,    weight_delta_grams: 0,  position: 0 },
-  { group_name: "Idioma", name: "Inglês",        price_delta_cents: 0,    weight_delta_grams: 0,  position: 1 },
-  { group_name: "Idioma", name: "Japonês",       price_delta_cents: 0,    weight_delta_grams: 0,  position: 2 },
-  { group_name: "Caixa",  name: "Sem caixa",     price_delta_cents: 0,    weight_delta_grams: 0,  position: 3 },
-  { group_name: "Caixa",  name: "Com caixa",     price_delta_cents: 2000, weight_delta_grams: 38, position: 4 },
-  { group_name: "Label",  name: "Sem label",     price_delta_cents: 0,    weight_delta_grams: 0,  position: 5 },
-  { group_name: "Label",  name: "Com label",     price_delta_cents: 500,  weight_delta_grams: 0,  position: 6 }
+  { group_name: "Idioma", name: "Português BR", weight_delta_grams: 0, position: 0 },
+  { group_name: "Idioma", name: "Inglês",       weight_delta_grams: 0, position: 1 },
+  { group_name: "Idioma", name: "Japonês",      weight_delta_grams: 0, position: 2 }
 ]
 kept_options = default_options.map { |attrs| [ attrs[:group_name], attrs[:name] ] }
 
 default_description = <<~TEXT.strip
-  Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM, que não precisa de bateria — seu progresso dura por anos, sem risco de perder os arquivos.
+  Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM, que não precisa de bateria, e seu progresso dura por anos, sem risco de perder os arquivos.
 
-  Acompanha estojo rígido e etiqueta em padrão US, compatível com a linha Game Boy. Você escolhe idioma, caixa e etiqueta nas opções acima, e cada unidade é testada individualmente antes do envio.
+  Já vem completo, com estojo rígido e etiqueta em padrão US, compatível com a linha Game Boy. Você escolhe o idioma da ROM nas opções acima, e cada unidade é testada individualmente antes do envio.
 TEXT
 
 raw = YAML.safe_load_file(Rails.root.join("config/products.yml"))
@@ -63,7 +61,7 @@ raw.fetch("products").each do |entry|
     price_cents:       (BigDecimal(entry["price_brl"].to_s) * 100).to_i,
     currency:          "BRL",
     published:         true,
-    weight_grams:      22, # PCB + shell baseline; cart adds 38g when "Com caixa" is selected.
+    weight_grams:      60,
     legacy_image_path: entry["image"]
   )
   product.description = default_description if product.description.blank?
@@ -76,7 +74,6 @@ raw.fetch("products").each do |entry|
       name:       attrs[:name]
     )
     option.assign_attributes(
-      price_delta_cents:  attrs[:price_delta_cents],
       weight_delta_grams: attrs[:weight_delta_grams],
       position:           attrs[:position]
     )
@@ -94,6 +91,44 @@ raw.fetch("products").each do |entry|
 
   # Attach the vendored image as a ProductPhoto; Product#image falls back to
   # legacy_image_path so a missing file never breaks seeding or the storefront.
+  if product.legacy_image_path.present? && product.product_photos.empty?
+    file = Rails.root.join("public", product.legacy_image_path.delete_prefix("/"))
+    if File.exist?(file)
+      photo = product.product_photos.create!(alt_text: product.name, position: 0)
+      photo.image.attach(
+        io:           File.open(file),
+        filename:     File.basename(file),
+        content_type: "image/jpeg"
+      )
+    end
+  end
+end
+
+# --- Miscelânea (standalone parts) -----------------------------------------
+misc_products = [
+  { slug: "carcaca-de-plastico", name: "Carcaça de plástico", price_cents: 2000, weight_grams: 38,
+    image: "/images/stores/uploads/6305129/conversions/large.jpg",
+    description: "Case de plástico para guardar e proteger o seu cartucho de Game Boy." },
+  { slug: "caixa-estojo-do-jogo", name: "Caixa (estojo do jogo)", price_cents: 2500, weight_grams: 30,
+    description: "Estojo do jogo no padrão da linha Game Boy." },
+  { slug: "etiqueta-label-us", name: "Etiqueta (label US)", price_cents: 1000, weight_grams: 2,
+    description: "Etiqueta (label) em padrão US para o seu cartucho." }
+]
+
+misc_products.each do |attrs|
+  product = Product.find_or_initialize_by(slug: attrs[:slug])
+  product.assign_attributes(
+    name:              attrs[:name],
+    category:          category_by_slug.fetch("miscelanea"),
+    price_cents:       attrs[:price_cents],
+    currency:          "BRL",
+    published:         true,
+    weight_grams:      attrs[:weight_grams],
+    legacy_image_path: attrs[:image],
+    description:       attrs[:description]
+  )
+  product.save!
+
   if product.legacy_image_path.present? && product.product_photos.empty?
     file = Rails.root.join("public", product.legacy_image_path.delete_prefix("/"))
     if File.exist?(file)
