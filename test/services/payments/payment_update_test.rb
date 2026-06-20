@@ -12,7 +12,7 @@ module Payments
     def payload(overrides = {})
       {
         "order_nsu"       => @order.number,
-        "paid_amount"     => @order.total_cents,
+        "paid_amount"     => @order.subtotal_cents,
         "transaction_nsu" => "tx-abc",
         "receipt_url"     => "https://recibo.infinitepay.io/tx-abc",
         "capture_method"  => "pix"
@@ -60,7 +60,7 @@ module Payments
     end
 
     test "skips when paid_amount is not the order total" do
-      call("paid_amount" => @order.total_cents - 1)
+      call("paid_amount" => @order.subtotal_cents - 1)
       assert @order.reload.awaiting_payment?
     end
 

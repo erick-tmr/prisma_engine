@@ -25,7 +25,7 @@ module Payments
     end
 
     def amount_matches?
-      payload["paid_amount"].to_i == order.total_cents
+      payload["paid_amount"].to_i == order.subtotal_cents
     end
 
     def confirmable?

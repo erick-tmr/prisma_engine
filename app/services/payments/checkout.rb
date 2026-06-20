@@ -31,11 +31,9 @@ module Payments
     end
 
     def line_items
-      items = order.order_items.map do |item|
+      order.order_items.map do |item|
         { description: item.name, quantity: item.quantity, price: item.unit_price_cents }
       end
-      items << { description: "Frete — #{shipment.service}", quantity: 1, price: shipment.shipping_cents }
-      items
     end
 
     def customer

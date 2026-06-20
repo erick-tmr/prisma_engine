@@ -14,7 +14,7 @@ class PaymentsWebhooksTest < ActionDispatch::IntegrationTest
 
   def paid_payload(overrides = {})
     {
-      "order_nsu" => @order.number, "paid_amount" => @order.total_cents,
+      "order_nsu" => @order.number, "paid_amount" => @order.subtotal_cents,
       "transaction_nsu" => "tx-#{SecureRandom.hex(6)}",
       "receipt_url" => "https://recibo.infinitepay.io/tx", "capture_method" => "pix"
     }.merge(overrides)
