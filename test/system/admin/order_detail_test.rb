@@ -6,7 +6,10 @@ class AdminOrderDetailTest < ApplicationSystemTestCase
     login_as_user(users(:admin))
 
     visit admin_root_path
-    click_link order.number
+    # Click a non-link cell to prove the whole row opens the order, not just the number.
+    within "tr[data-order='#{order.number}']" do
+      find(".who").click
+    end
 
     assert_current_path admin_order_path(order)
     assert_selector ".od-head-num h1", text: order.number

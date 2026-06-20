@@ -599,9 +599,29 @@ describe("initDashboard", () => {
     expect($("#orders-body").querySelectorAll("tr.sel-row")).toHaveLength(0);
   });
 
-  it("flashes a row on click without toggling selection", () => {
-    const animate = vi.spyOn(window.HTMLElement.prototype, "animate");
+  it("opens an order by forwarding a row click to its detail link", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
     click($("#orders-body tr td:nth-child(2)"));
+    expect(open).toHaveBeenCalledTimes(1);
+    open.mockRestore();
+  });
+
+  it("does not double-open when the order number link itself is clicked", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#orders-body tr a.cell-link"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("ignores order-table clicks that land outside a row", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#orders-body"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("flashes a client row on click", () => {
+    const animate = vi.spyOn(window.HTMLElement.prototype, "animate");
     click($("#clients-body tr"));
     expect(animate).toHaveBeenCalled();
   });

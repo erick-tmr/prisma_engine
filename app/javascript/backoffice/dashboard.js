@@ -650,7 +650,10 @@ export function initDashboard(root, data, today) {
   ordersBody.addEventListener("click", (e) => {
     const cb = e.target.closest("[data-check]");
     if (cb) { e.stopPropagation(); toggleSel(cb.dataset.check); return; }
-    row(e.target);
+    // The whole row opens the order: forward the click to its detail link
+    // (the link still handles direct clicks and middle-click-to-new-tab).
+    const link = e.target.closest("tr[data-order]")?.querySelector("a.cell-link");
+    if (link && link !== e.target) link.click();
   });
   $("#o-checkall").addEventListener("click", toggleAll);
   $("#bulk-clear").addEventListener("click", () => { state.selected.clear(); renderOrders(); });
