@@ -432,8 +432,8 @@
   background: var(--pg-rainbow-edge);
 }
 
-.qa__chips-label {
-  margin: 14px 0 0;
+.qa__a-body .qa__chips-label {
+  margin: 22px 0 0;
   font-size: 13.5px;
   font-weight: 600;
   color: var(--pg-ink);
@@ -442,8 +442,8 @@
 .qa-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 11px;
 }
 
 .qa-tag {
