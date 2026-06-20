@@ -46,8 +46,8 @@ module Checkout
 
       assert result.success?
       order = result.order
-      assert_equal 38_000, order.subtotal_cents
-      assert_equal 40_084, order.total_cents
+      assert_equal 36_000, order.subtotal_cents
+      assert_equal 38_084, order.total_cents
       assert order.awaiting_payment?
 
       shipment = order.shipment
@@ -61,7 +61,7 @@ module Checkout
       item = order.order_items.sole
       assert_equal products(:yellow).id, item.product_id
       assert_equal "Pokemon Yellow Version", item.name
-      assert_equal 19_000, item.unit_price_cents
+      assert_equal 18_000, item.unit_price_cents
       assert_equal 2, item.quantity
       assert_equal [ "Caixa: Com caixa" ], item.chosen_options
       assert_equal products(:yellow).image, item.photo_path

@@ -62,13 +62,3 @@
   box-shadow: 0 0 0 1px var(--pg-ink);
   font-weight: 600;
 }
-
-.variant-pill__delta {
-  color: var(--pg-muted);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.variant-pill.is-selected .variant-pill__delta {
-  color: var(--pg-ink);
-}

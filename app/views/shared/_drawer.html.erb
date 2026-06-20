@@ -32,6 +32,13 @@
           <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("game-boy-color").published.count %></span>
         <% end %>
       </li>
+      <li>
+        <%= link_to category_path(slug: "miscelanea"),
+              class: "drawer__link" do %>
+          <i class="bi bi-box-seam me-2"></i> Miscelânea
+          <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("miscelanea").published.count %></span>
+        <% end %>
+      </li>
     </ul>
 
     <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Conteúdo</div>

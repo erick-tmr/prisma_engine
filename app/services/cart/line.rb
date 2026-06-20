@@ -1,7 +1,8 @@
 module Cart
   # Hydrated view of one cart line: the product, the quantity, and the
-  # chosen ProductOption rows. Pricing is derived live so deltas in the
-  # catalog reach the cart on the next render without a cookie rewrite.
+  # chosen ProductOption rows. Weight is derived live so option weight
+  # deltas in the catalog reach the cart on the next render without a
+  # cookie rewrite.
   class Line
     def initialize(id:, product:, quantity:, options:)
       @id = id
@@ -21,7 +22,7 @@ module Cart
     end
 
     def unit_price_cents
-      product.price_cents + options.sum(&:price_delta_cents)
+      product.price_cents
     end
 
     def line_total_cents

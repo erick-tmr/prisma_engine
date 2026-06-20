@@ -13,16 +13,4 @@ class VariantDisplayHelperTest < ActionView::TestCase
     assert_equal "🇺🇸", variant_option_flag("Inglês")
     assert_nil variant_option_flag("Com caixa")
   end
-
-  test "variant_delta_label is nil for a zero delta" do
-    assert_nil variant_delta_label(0)
-  end
-
-  test "variant_delta_label signs a positive delta" do
-    assert_equal "+R$ 20.00", variant_delta_label(2000)
-  end
-
-  test "variant_delta_label signs a negative delta with a minus sign" do
-    assert_equal "−R$ 15.00", variant_delta_label(-1500)
-  end
 end

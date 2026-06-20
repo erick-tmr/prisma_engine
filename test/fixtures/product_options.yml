@@ -2,21 +2,18 @@ yellow_idioma_pt:
   product: yellow
   group_name: Idioma
   name: Português BR
-  price_delta_cents: 0
   position: 0
 
 yellow_idioma_en:
   product: yellow
   group_name: Idioma
   name: Inglês
-  price_delta_cents: 0
   position: 1
 
 yellow_caixa_com:
   product: yellow
   group_name: Caixa
   name: Com caixa
-  price_delta_cents: 1000
   weight_delta_grams: 38
   position: 2
 
@@ -24,6 +21,5 @@ yellow_caixa_sem:
   product: yellow
   group_name: Caixa
   name: Sem caixa
-  price_delta_cents: 0
   weight_delta_grams: 0
   position: 3

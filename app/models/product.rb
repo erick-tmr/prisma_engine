@@ -1,5 +1,4 @@
 class Product < ApplicationRecord
-  include HasMoney
   extend FriendlyId
   friendly_id :name, use: [ :slugged, :history ]
 
