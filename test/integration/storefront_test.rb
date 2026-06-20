@@ -26,7 +26,13 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     get product_path(slug: products(:yellow).slug)
     assert_response :success
     assert_match products(:yellow).name, response.body
-    assert_no_match(/meloja|prismagames\.com\.br/i, response.body)
+    assert_no_match(%r{meloja|//[^"'\s]*prismagames\.com\.br}i, response.body)
+  end
+
+  test "footer shows the Prisma Games contact email" do
+    get root_path
+    assert_response :success
+    assert_match("contato@prismagames.com.br", response.body)
   end
 
   test "unknown product slug returns 404" do

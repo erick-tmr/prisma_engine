@@ -3,31 +3,42 @@
     <div class="footer__grid">
       <div class="footer__brand">
         <div class="footer__logo">
-          <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games">
+          <img src="/images/prisma-games-logo.png" alt="Prisma Games">
         </div>
         <p class="footer__desc">
-          Prisma Games — especializada em desenvolvimento e produção de hardware
-          para o Game Boy, da Nintendo.
+          Desenvolvimento, criação e melhorias para videogames clássicos,
+          respeitando sua história e expandindo suas possibilidades.
+          <span class="footer__desc-focus">Atualmente focado no nosso querido portátil ❤️</span>
         </p>
-        <a href="<%= social_links[:whatsapp] %>" target="_blank" rel="noopener" class="footer__whatsapp">
-          <i class="bi bi-whatsapp"></i> <span>(35) 9 2000-1100</span>
-        </a>
       </div>
 
-      <div class="footer__col">
-        <h4 class="footer__heading">Links úteis</h4>
-        <ul>
-          <li><a href="#">Sobre nós</a></li>
-          <li><a href="#">Como comprar</a></li>
-          <li><a href="#">Trocas e devoluções</a></li>
-          <li><a href="#">Contato</a></li>
-        </ul>
+      <div class="footer__col footer__contact">
+        <a href="<%= social_links[:whatsapp] %>" target="_blank" rel="noopener" class="footer__contact-phone">
+          <span class="footer__ic"><i class="bi bi-whatsapp"></i></span>
+          <span>(35) 9 2000-1100</span>
+        </a>
+        <div class="footer__contact-block">
+          <h4 class="footer__heading">Fale conosco:</h4>
+          <a href="mailto:contato@prismagames.com.br" class="footer__contact-row">
+            <span class="footer__ic"><i class="bi bi-envelope"></i></span>
+            <span>contato@prismagames.com.br</span>
+          </a>
+        </div>
+        <div class="footer__contact-block">
+          <h4 class="footer__heading">Horário de atendimento</h4>
+          <div class="footer__contact-row">
+            <span class="footer__ic"><i class="bi bi-clock"></i></span>
+            <span>Seg. a Sex. / 10h às 17h</span>
+          </div>
+        </div>
       </div>
 
       <div class="footer__col">
         <h4 class="footer__heading">Informações</h4>
         <ul>
           <li><%= link_to "Perguntas frequentes", perguntas_frequentes_path %></li>
+          <li><a href="#">Trocas e devoluções</a></li>
+          <li><%= link_to "Direitos do consumidor", direitos_path %></li>
         </ul>
       </div>
 
@@ -51,11 +62,6 @@
 
     <div class="footer__bottom">
       <span>&copy; <%= Date.current.year %> Prisma Games. Todos os direitos reservados.</span>
-      <div class="footer__payment">
-        <span>Pagamento seguro</span>
-        <span class="footer__pay-ic" title="Cartão"><i class="bi bi-credit-card-2-back"></i></span>
-        <span class="footer__pay-ic" title="Pix"><i class="bi bi-currency-dollar"></i></span>
-      </div>
     </div>
   </div>
 </footer>
