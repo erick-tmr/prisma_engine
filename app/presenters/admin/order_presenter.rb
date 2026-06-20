@@ -97,7 +97,7 @@ module Admin
     end
 
     def label_printable?
-      !!order.shipping_label&.ready?
+      order.label_issued? && !!order.shipping_label&.ready?
     end
 
     def lifecycle

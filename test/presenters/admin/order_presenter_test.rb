@@ -73,9 +73,11 @@ module Admin
       assert_nil order_in("in_production").auto_next_note
     end
 
-    test "label_printable? follows a ready stored label" do
-      assert OrderPresenter.new(orders(:labeled)).label_printable?
-      assert_not order_in("in_production").label_printable?
+    test "label_printable? only for a label_issued order with a ready stored label" do
+      assert OrderPresenter.new(orders(:labeled)).label_printable?  # label_issued + ready label
+      assert_not order_in("in_production").label_printable?         # not label_issued yet
+      assert_not order_in("label_issued").label_printable?          # label_issued but no stored label
+      assert_not OrderPresenter.new(orders(:shipped_order)).label_printable? # past label_issued
     end
 
     test "lifecycle on the happy path marks done/current/upcoming without a branch" do
