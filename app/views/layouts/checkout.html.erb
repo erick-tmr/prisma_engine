@@ -27,11 +27,10 @@
   <body class="checkout-body">
     <div class="checkout-strip"></div>
 
-    <%# Minimal chrome — fewer exit points than the storefront header. %>
     <header class="checkout-header">
       <div class="checkout-header__inner">
         <%= link_to "/carrinho", class: "checkout-header__logo", "aria-label": "Prisma Games" do %>
-          <img src="/images/stores/uploads/2359718/prisma-games.png" alt="Prisma Games">
+          <img src="/images/prisma-games-logo.png" alt="Prisma Games">
         <% end %>
         <% unless content_for?(:checkout_bare) %>
           <%= link_to "/carrinho", class: "checkout-header__back" do %>
