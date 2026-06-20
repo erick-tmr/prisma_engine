@@ -1,15 +1,5 @@
 name: CI
 
-# Single workflow for both the blocking pass/fail contract (rubocop, brakeman,
-# bundler-audit, importmap audit, tests, system-tests, semgrep diff, secret
-# scan, dependency review) and the diff-aware visibility layer (changed-line
-# coverage, code smells, SARIF uploads, the sticky `ci-quality` PR comment).
-#
-# Required-vs-advisory is enforced by main's branch protection list, not by
-# which file a job lives in. Keeping all jobs in one workflow run means
-# artifacts (e.g. coverage from the `test` job) flow naturally into downstream
-# jobs (`undercover` reads them) without a workflow_run serialization hop.
-
 on:
   pull_request:
   push:
@@ -173,15 +163,13 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Hand off the SimpleCov output to the undercover job (and the sticky
-      # comment via the report job). Keeps tests from running twice.
       - name: Upload coverage data
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage/
-          include-hidden-files: true   # .last_run.json carries total %
+          include-hidden-files: true
           if-no-files-found: warn
 
   system-test:
@@ -212,6 +200,8 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          HEADLESS: "1"
+          SKIP_COVERAGE_FLOOR: "1"
         run: |
           mkdir -p tmp
           bin/rails db:test:prepare test:system 2>&1 | tee tmp/system-test.log
@@ -267,8 +257,6 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Surface the coverage totals (the run already failed above if a metric
-      # dropped below the 100% threshold in vitest.config.js).
       - name: JS coverage summary
         if: ${{ !cancelled() }}
         run: |
@@ -300,14 +288,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      # cmake/pkg-config build the rugged (libgit2) native ext that undercover needs.
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y cmake pkg-config
 
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0   # undercover diffs changed lines against origin/main
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -401,7 +388,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write   # required to upload SARIF to code scanning
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -411,9 +398,6 @@ jobs:
         with:
           bundler-cache: true
 
-      # The blocking Brakeman run lives in the scan_ruby job; this run only
-      # surfaces findings as PR annotations + the Security tab, so it must not
-      # fail the job.
       - name: Brakeman SARIF
         run: bin/brakeman -f sarif -o brakeman.sarif.json --no-pager || true
 
@@ -435,16 +419,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Pin: floating versions previously masked a subtle suppression-handling
-      # difference between local and CI runs (see commit history on
-      # bin/pre-push-check). Bump deliberately.
       - name: Install Semgrep
         run: pipx install semgrep==1.165.0
 
-      # On PRs, --baseline-commit reports only NEWLY introduced findings. On
-      # main, a full scan seeds the default-branch baseline. Failure-on-finding
-      # is handled by the Render step below, not `--error`, so we can also
-      # print rule/file/line to the log, step summary, and sticky PR comment.
       - name: Semgrep scan
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main || true
@@ -456,16 +433,9 @@ jobs:
             semgrep scan $COMMON
           fi
 
-      # Convert SARIF into a readable text block (rule, file:line, code,
-      # message). Show in the log, attach to $GITHUB_STEP_SUMMARY, save as an
-      # artifact for the sticky `ci-quality` comment, and fail the step on PRs
-      # when at least one new finding was introduced.
       - name: Render Semgrep findings
         if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
         run: |
-          # Semgrep emits suppressed (`# nosemgrep`) findings to SARIF anyway,
-          # tagged with .suppressions. Filter those out — they were already
-          # justified in-source.
           UNSUPPRESSED='[.runs[].results[]? | select((.suppressions // []) | length == 0)]'
           COUNT=$(jq -r "$UNSUPPRESSED | length" semgrep.sarif)
           SUPPRESSED=$(jq -r '[.runs[].results[]? | select((.suppressions // []) | length > 0)] | length' semgrep.sarif)
@@ -497,12 +467,6 @@ jobs:
           path: semgrep-findings.txt
           if-no-files-found: warn
 
-      # GitHub Code Scanning ignores Semgrep's `{"kind": "inSource"}` suppressions
-      # (it expects a `"status": "accepted"` it never gets), so an in-source
-      # `# nosemgrep` still surfaces as an open alert under Security ▸ Code
-      # scanning. Strip suppressed results from the SARIF — same filter the
-      # Render step uses for the text output — so the upload matches the
-      # justified-in-source reality.
       - name: Strip suppressed findings from SARIF
         if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
         run: |
@@ -526,7 +490,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0   # scan the full commit range, not just the tip
+          fetch-depth: 0
 
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v3
@@ -548,24 +512,18 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v5
         with:
-          fail-on-severity: moderate   # tightened from high — e-commerce app
-          license-check: false         # we don't enforce a license policy; skip the unknown-license noise
+          fail-on-severity: moderate
+          license-check: false
           comment-summary-in-pr: on-failure
 
   lighthouse:
     name: Lighthouse (advisory)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    # Advisory only — never blocks the PR. Scores surface in the sticky
-    # `ci-quality` comment; keep this job OFF main's required-checks list.
-    # @lhci/cli runs via pinned npx (not a project dependency) so it never
-    # reaches the blocking Dependency-review gate.
     continue-on-error: true
     services:
       postgres:
         image: postgres
-        # Match the production database.yml (user + db name) so the audit runs
-        # in real production mode without DATABASE_URL precedence gymnastics.
         env:
           POSTGRES_USER: prisma_engine
           POSTGRES_PASSWORD: prisma_engine
@@ -573,9 +531,6 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
-    # Audit a production-config build on localhost (the Lighthouse best practice)
-    # for representative numbers without pointing at the live server. assume_ssl
-    # already neutralizes force_ssl, so there's no http->https redirect to dodge.
     env:
       RAILS_ENV: production
       RAILS_SERVE_STATIC_FILES: "true"
@@ -598,9 +553,6 @@ jobs:
           node-version-file: .node-version
           cache: npm
 
-      # Production needs a SECRET_KEY_BASE to boot. The audit only serves public
-      # pages, so a throwaway per-run key is fine — generated here (not stored in
-      # the repo) so secret scanners have nothing to flag.
       - name: Generate a throwaway SECRET_KEY_BASE
         run: echo "SECRET_KEY_BASE=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
@@ -610,8 +562,6 @@ jobs:
       - name: Precompile assets
         run: bin/rails assets:precompile
 
-      # autorun boots the production server (per .lighthouserc.json), audits the
-      # storefront with the runner's Chrome, and writes reports to .lighthouseci.
       - name: Run Lighthouse (autorun)
         run: |
           mkdir -p tmp
@@ -642,13 +592,11 @@ jobs:
   report:
     name: PR quality report
     runs-on: ubuntu-latest
-    # always() so the comment still posts (with the uncovered lines) when the
-    # blocking coverage gate fails.
     if: ${{ always() && github.event_name == 'pull_request' }}
     needs: [ coverage, code_quality, semgrep_diff, test_js, lighthouse ]
     permissions:
       contents: read
-      pull-requests: write   # required for the sticky comment
+      pull-requests: write
     steps:
       - name: Download reports
         uses: actions/download-artifact@v8

@@ -9,6 +9,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - `bin/share-dev` — public Cloudflare Tunnel for client previews; reads `SHARE_AUTH_*` from `.env`.
 - `bin/pre-push-check` — local CI gauntlet; must pass before push. `SKIP_TESTS=1` for docs-only pushes.
 - `npm run test:js` — Vitest+jsdom unit tests for storefront ES modules (`test/javascript/*.test.js`). Node pinned in `.node-version`; `npm install` first. `pre-push-check` runs it too.
+- `SKIP_COVERAGE_FLOOR=1 bin/rails test:system` — Capybara + Cuprite (headless Chrome) E2E tests; needs Postgres up. `HEADLESS=0` shows the browser, `DENY_EXTERNAL=0` lifts the no-network fence. Not in `pre-push-check` (CI's `system-test` job runs it). See **System tests (E2E)**.
 
 ## Stack invariants
 
@@ -41,9 +42,17 @@ Every external service is wrapped in three layers. Full rationale in `docs/archi
 
 No business rules in `Api::*`. No HTTP in the domain. A new vendor (or a vendor swap) is a new `Api` adapter — the domain shouldn't change.
 
+## System tests (E2E)
+
+- **Capybara + Cuprite** (headless Chrome over CDP — no Selenium/WebDriver), in-process, Minitest. Foundation in `test/application_system_test_case.rb`; specs in `test/system/*.rb`. Use `login_as_user` (Warden) for non-auth specs; the auth specs drive the real `/entrar`·`/cadastrar` forms.
+- Run **serial** (`parallelize(workers: 1)`) — N headless Chromes on a 2-core CI runner flake. **Never `sleep`**: rely on Capybara's auto-waiting matchers (`assert_selector`, `assert_current_path`); `default_max_wait_time = 2`, animations disabled. Select via the **`data-*` hooks** the views/Vitest specs already share — not Bootstrap classes or pt-BR copy.
+- **No test reaches the real network.** Server-side calls (Correios, InfinitePay) are stubbed in-process via `SystemStubs` (`test/system/support/`), exactly like the integration tests; the browser is additionally fenced to localhost via Cuprite's `url_blacklist` of external hosts (`DENY_EXTERNAL=0` lifts it). The InfinitePay hosted-redirect popup is neutralized by stubbing `POST /links` to return a `data:` URL, so the browser popup never leaves the box.
+- The CI `system-test` job runs `bin/rails test:system` with `SKIP_COVERAGE_FLOOR=1`: a handful of critical paths must not be held to the whole-app SimpleCov 100% floor (that floor is the unit/integration run's contract). Run it the same way locally.
+
 ## Git workflow
 
 - Start every task from a fresh `main`: `git fetch origin && git switch -c <type>/<short-desc> origin/main` (`feat` / `fix` / `chore` / `docs`). Never branch off another feature branch — a not-yet-merged base produces noisy, conflicting PRs.
+- **Worktrees live under `~/Code`** named `prisma_engine-<short-desc>` (e.g. `prisma_engine-system-tests`), never inside the repo or `.claude/`. After `git worktree add ~/Code/prisma_engine-<desc> <branch>`, link the Active Storage uploads so product images render: `ln -s ../prisma_engine/storage storage` (relative, points at the main checkout's `storage/` — the gitignored 60M+ of uploads), then `git update-index --skip-worktree storage/.keep` so the dir→symlink swap doesn't show as a deleted `.keep` (leaves only `?? storage`). `public/images` is vendored/tracked, so it needs no linking.
 - To check whether commits are already upstream, use `git cherry -v origin/main` (patch-id based), not `origin/main..HEAD` — squash / rebase merges rewrite SHAs.
 - `bin/pre-push-check` must pass before pushing. Branch protection on `main` blocks direct pushes — fix the cause, never `--force` or bypass.
 - Open PRs with `gh pr create`; merge from GitHub.

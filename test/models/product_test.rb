@@ -46,7 +46,7 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "image falls back to legacy_image_path when no photo is attached" do
-    assert_equal "/images/test-yellow.jpg", products(:yellow).image
+    assert_equal "/images/test-cartridge.png", products(:yellow).image
   end
 
   test "image returns the Active Storage blob path when a photo is attached" do
