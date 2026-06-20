@@ -52,3 +52,51 @@
 .banner .owl-dots .owl-dot.active span {
   background: var(--pg-ink);
 }
+
+.cta-band {
+  background: #fff;
+  border-top: 1px solid var(--pg-border);
+  border-bottom: 1px solid var(--pg-border);
+  padding: 56px 16px;
+  margin-top: 56px;
+}
+
+.cta-band__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-band h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.cta-band p {
+  color: var(--pg-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 560px;
+  margin: 0 auto 22px;
+}
+
+.cta-band__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--pg-whatsapp);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 14px 26px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.cta-band__btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  color: #fff;
+}

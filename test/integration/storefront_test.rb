@@ -4,6 +4,9 @@ class StorefrontTest < ActionDispatch::IntegrationTest
   test "home page renders the category grids" do
     get root_path
     assert_response :success
+    assert_select ".section-title__wordmark", /Miscelânea/
+    assert_select ".product-card__thumb--ph"
+    assert_select ".cta-band"
   end
 
   test "home page still renders when no GameOfTheMonth is set for the current month" do

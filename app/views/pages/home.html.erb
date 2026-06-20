@@ -47,15 +47,27 @@
   </div>
 </section>
 
-<section class="bg-light py-5 mb-5">
-  <div class="container text-center">
-    <h2 class="h3 mb-3">Atendimento direto pelo WhatsApp</h2>
-    <p class="text-muted mb-4">
+<section class="section">
+  <%= render "block_title", slug: "miscelanea",
+                            label: "Miscelânea",
+                            icon: "box-seam" %>
+  <div class="row">
+    <% @miscelanea.each do |product| %>
+      <%= render "products/card", product: product %>
+    <% end %>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="cta-band__inner">
+    <h2>Atendimento direto pelo WhatsApp</h2>
+    <p>
       Tire dúvidas sobre disponibilidade, frete ou patches específicos.
       Respondemos de segunda a sábado.
     </p>
-    <a href="https://wa.me/5535920001100" target="_blank" rel="noopener" class="btn btn-success btn-lg">
-      <i class="bi bi-whatsapp"></i> (35) 9 2000-1100
-    </a>
+    <%= link_to "https://wa.me/5535920001100",
+                class: "cta-band__btn", target: "_blank", rel: "noopener" do %>
+      <i class="bi bi-whatsapp" aria-hidden="true"></i> (35) 9 2000-1100
+    <% end %>
   </div>
 </section>

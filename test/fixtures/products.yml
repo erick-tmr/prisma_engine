@@ -37,3 +37,22 @@ hidden:
   currency: BRL
   published: false
   weight_grams: 22
+
+plastic_shell:
+  category: miscelanea
+  name: Carcaca de plastico
+  slug: carcaca-de-plastico
+  price_cents: 2000
+  currency: BRL
+  published: true
+  weight_grams: 30
+  legacy_image_path: /images/test-cartridge.png
+
+game_box:
+  category: miscelanea
+  name: Caixa (estojo do jogo)
+  slug: caixa-estojo-do-jogo
+  price_cents: 2500
+  currency: BRL
+  published: true
+  weight_grams: 30

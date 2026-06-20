@@ -40,6 +40,31 @@
   max-width: 100%;
 }
 
+.section-title__wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  color: var(--pg-navy);
+  text-transform: uppercase;
+}
+
+.section-title__wordmark .wm-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--pg-navy);
+  color: #fff;
+  font-size: 26px;
+}
+
 .section-title .rainbow-bar {
   display: block;
   width: 100%;
@@ -87,6 +112,17 @@
     height: 40px;
     max-width: 80vw;
   }
+  .section-title__wordmark {
+    height: 40px;
+    font-size: 32px;
+    gap: 11px;
+  }
+  .section-title__wordmark .wm-ic {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+    border-radius: 10px;
+  }
 }
 
 @media (max-width: 520px) {
@@ -95,5 +131,8 @@
   }
   .section-title__logo img {
     height: 36px;
+  }
+  .section-title__wordmark {
+    font-size: 27px;
   }
 }

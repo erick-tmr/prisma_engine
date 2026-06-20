@@ -9,3 +9,7 @@ gb_color:
 gb_advance:
   name: Game Boy Advance
   slug: game-boy-advance
+
+miscelanea:
+  name: Miscelânea
+  slug: miscelanea
