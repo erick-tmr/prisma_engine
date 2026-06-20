@@ -35,11 +35,19 @@ module Shipping
     def self.items_for(order)
       order.order_items.map do |item|
         {
-          conteudo: item.name,
+          conteudo: sanitize_content(item.name),
           quantidade: item.quantity.to_s,
           valor: format("%.2f", item.unit_price_cents.fdiv(100))
         }
       end
+    end
+
+    def self.sanitize_content(text)
+      text.to_s
+          .gsub(/[‐-―]/, "-")
+          .gsub(/[^ -ÿ]/, " ")
+          .gsub(/\s+/, " ")
+          .strip
     end
 
     def self.dimensions_for(shipment)
@@ -51,6 +59,6 @@ module Shipping
       }
     end
 
-    private_class_method :recipient_for, :items_for, :dimensions_for
+    private_class_method :recipient_for, :items_for, :dimensions_for, :sanitize_content
   end
 end
