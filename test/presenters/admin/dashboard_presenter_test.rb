@@ -20,14 +20,6 @@ module Admin
       assert_equal 1, first["items"]
     end
 
-    test "tolerates an order that has no shipment yet" do
-      bare = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000)
-      row = @presenter.orders.find { |order| order["n"] == bare.number }
-
-      assert_nil row["city"]
-      assert_nil row["uf"]
-    end
-
     test "clients exclude admins and derive situação plus order counts" do
       clients = @presenter.clients
       by_email = clients.index_by { |c| c["email"] }

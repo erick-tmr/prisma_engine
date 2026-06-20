@@ -42,8 +42,8 @@ module Admin
         {
           "n" => order.number,
           "clientName" => order.user.full_name,
-          "city" => order.shipment&.city,
-          "uf" => order.shipment&.state,
+          "city" => order.shipment.city,
+          "uf" => order.shipment.state,
           "date" => order.created_at.strftime("%Y-%m-%d"),
           "status" => order.status,
           "total" => order.total_cents,

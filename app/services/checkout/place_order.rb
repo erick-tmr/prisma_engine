@@ -52,14 +52,16 @@ module Checkout
     def build_order(address, service)
       subtotal = cart.subtotal_cents
       shipping = service[:price_cents]
-      order = Order.create!(
-        user:                   user,
-        subtotal_cents:         subtotal,
-        total_cents:            subtotal + shipping,
-        order_items_attributes: cart.lines.map { |line| item_attributes(line) }
-      )
-      order.create_shipment!(shipment_attributes(address, shipping))
-      order
+      Order.transaction do
+        order = Order.create!(
+          user:                   user,
+          subtotal_cents:         subtotal,
+          total_cents:            subtotal + shipping,
+          order_items_attributes: cart.lines.map { |line| item_attributes(line) }
+        )
+        order.create_shipment!(shipment_attributes(address, shipping))
+        order
+      end
     end
 
     def shipment_attributes(address, shipping)
