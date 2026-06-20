@@ -80,8 +80,6 @@ group :development do
 end
 
 group :test do
-  # System (E2E) testing: Capybara drives headless Chrome through Cuprite/Ferrum
-  # (Chrome DevTools Protocol, no WebDriver) [https://github.com/rubycdp/cuprite]
   gem "capybara"
   gem "cuprite", "~> 0.17"
 

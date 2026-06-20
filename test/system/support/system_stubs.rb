@@ -1,15 +1,7 @@
-# WebMock stubs for the external services system tests drive, mirroring the
-# shapes proven in test/integration/cart_quotes_test.rb and the Correios api
-# specs. Server-side calls (Correios CEP/preco/prazo, InfinitePay links) run
-# in-process, so these stubs intercept them exactly like the integration tests.
 module SystemStubs
   CORREIOS    = Correios::Api::BASE_URL
   INFINITEPAY = InfinitePay::Api::BASE_URL
 
-  # Stands in for InfinitePay's hosted-checkout page. A data: URL triggers zero
-  # network from the browser popup, so the test never leaves for infinitepay.io.
-  # The main window asserts the local return page; the popup's target is moot.
-  # (Decodes to "<h1>fake-psp</h1>".)
   FAKE_PAYMENT_URL = "data:text/html,%3Ch1%3Efake-psp%3C%2Fh1%3E".freeze
 
   def stub_external_env
