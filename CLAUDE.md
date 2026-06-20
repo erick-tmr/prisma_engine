@@ -31,6 +31,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - `bundler-audit` + `brakeman` block on findings. Fix the cause; don't add ignores without flagging it in the PR.
 - Keep **reek at zero warnings on changed files** (advisory, treated as a gate). Either fix the smell or silence the detector in `.reek.yml` with a comment justifying why.
 - Customer-facing strings are **pt-BR**. Brand names follow official source: `Pix` (capital P only — Banco Central style), `InfinitePay` (one word). Never `PIX`, `Mercado Pago`, or `Pagar.me` — InfinitePay is the locked-in PSP. **No boleto** — InfinitePay doesn't issue one.
+- **Avoid em-dashes (`—`) in customer-facing copy and authored prose** (storefront strings, commit messages, PR descriptions). They read as AI-generated; use commas, periods, parentheses, or colons instead. The one allowed em-dash is the page-`<title>` separator (`<Page> — Prisma Games`), an established site convention.
 
 ## Third-party integration pattern
 
