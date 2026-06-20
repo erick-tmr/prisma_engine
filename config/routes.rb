@@ -38,7 +38,8 @@ Rails.application.routes.draw do
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout
-    post   "etiquetas", to: "labels#create", as: :labels
+    post   "etiquetas",         to: "labels#create_batch", as: :labels
+    post   "etiquetas/:number", to: "labels#create",       as: :label, constraints: { number: /PG-\d+/ }
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
