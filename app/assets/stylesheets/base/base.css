@@ -1,8 +1,3 @@
-/*
- * Base layer — storefront-wide primitives that sit on top of Bootstrap.
- * Component and page rules cascade after this. Loaded after tokens.
- */
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -36,14 +31,10 @@ a:focus {
   text-decoration: underline;
 }
 
-/* Tabular figures for prices / counters that need column alignment. */
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Animated rainbow bar primitive — used by section titles, account panels,
-   and (as a card cap, via --top) the cart and checkout rails. Lives in the
-   base layer so it resolves on every layout, including checkout. */
 .rainbow-bar {
   background: var(--pg-rainbow);
   background-size: 200% 100%;

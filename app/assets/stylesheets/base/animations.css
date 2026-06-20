@@ -1,8 +1,3 @@
-/*
- * Global keyframes shared across components and pages. Page-local
- * animations (checkout spinner, payment-return tick) live with their page.
- */
-
 @keyframes rainbow-slide {
   0%   { background-position: 0% 0%; }
   100% { background-position: 200% 0%; }

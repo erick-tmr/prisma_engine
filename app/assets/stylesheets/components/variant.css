@@ -1,7 +1,3 @@
-/* Variant option pills — shared by the product detail page and the cart's
-   inline variant editor. JS hooks on [data-vpill]; selection is the
-   .is-selected state. */
-
 .variant-group {
   margin-bottom: 13px;
 }

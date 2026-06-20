@@ -1,8 +1,3 @@
-/* Brand flash / system messages. Named .flash (not .alert) so it never
-   collides with Bootstrap's .alert, which the cookie banner relies on.
-   Rails flash keys map to variants via the pg_alert_meta helper. Dismiss
-   is wired to .flash__close in the application-layout glue. */
-
 .flash-stack {
   max-width: 1320px;
   margin: 18px auto 0;

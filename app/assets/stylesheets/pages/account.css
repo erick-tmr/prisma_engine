@@ -1,14 +1,9 @@
-/* Account area: chrome (avatar header, sidebar, panels), addresses, and
-   orders. Form fields/buttons/locked values reuse the shared components;
-   the rainbow accents reuse .rainbow-bar. */
-
 .account {
   max-width: 1100px;
   margin: 28px auto 8px;
   padding: 0 16px;
 }
 
-/* ── Page header: avatar + greeting ───────────────────────────────── */
 .account__head {
   display: flex;
   align-items: center;
@@ -46,7 +41,6 @@
   .account__grid { grid-template-columns: 1fr; }
 }
 
-/* ── Card + sidebar nav ──────────────────────────────────────────── */
 .account__card {
   background: #fff;
   border: 1px solid var(--pg-border);
@@ -122,11 +116,8 @@
 }
 .account__signout button:hover { border-color: #d6483f; color: #d6483f; background: #fff6f5; }
 
-/* button_to wraps the button in a <form>; collapse it so the ghost button
-   sits inline with its siblings exactly like a link */
 .account__action-form { display: inline-flex; margin: 0; }
 
-/* ── Panel card (Perfil / Senha / Endereços / Pedidos) ───────────── */
 .account__panel { overflow: hidden; }
 
 .panel__head { padding: 22px 26px 18px; border-bottom: 1px solid var(--pg-border); }
@@ -169,7 +160,6 @@
 .panel__saved-note { font-size: 13px; color: var(--pg-muted); display: inline-flex; align-items: center; gap: 6px; }
 .panel__saved-note i { color: #1f9d57; }
 
-/* ── Addresses ───────────────────────────────────────────────────── */
 .address-form-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -251,7 +241,6 @@
 .empty-state i { font-size: 34px; display: block; margin-bottom: 12px; color: #c2c7ce; }
 .empty-state p { margin: 0 0 18px; font-size: 14px; }
 
-/* ── Orders ──────────────────────────────────────────────────────── */
 .orders { display: flex; flex-direction: column; }
 .orders__row {
   display: flex;
@@ -303,7 +292,6 @@
 .status-pill--production_issue   { background: #fbe3e3; color: #a31a1a; }
 .status-pill--cancelled          { background: #eceef1; color: #5b6470; }
 
-/* ── Order detail ────────────────────────────────────────────────── */
 .account-back {
   display: inline-flex;
   align-items: center;

@@ -1,6 +1,3 @@
-/* Homepage banner carousel. Section wrappers reuse the global .section /
-   .section-title components. */
-
 .banner {
   position: relative;
   max-width: 1320px;
@@ -8,11 +5,6 @@
   padding: 0 16px;
 }
 
-/* owl.carousel.css hides .owl-carousel (display:none) until its JS adds
-   .owl-loaded, which collapses the banner to nothing and then pops it open
-   on init — a big layout shift. Defeat that: keep the carousel laid out and
-   show just the first slide up front so its aspect-ratio reserves the height
-   before owl takes over. */
 .banner .owl-carousel {
   display: block;
 }
@@ -38,9 +30,6 @@
   display: block;
 }
 
-/* Dots overlay the bottom of the banner (rather than sitting below it) so
-   they don't add height when owl injects them on init — keeps the banner box
-   identical before and after, for zero layout shift. */
 .banner .owl-dots {
   position: absolute;
   left: 0;

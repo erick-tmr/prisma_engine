@@ -1,7 +1,3 @@
-/* Mobile slide-in category drawer + backdrop. Opened/closed by toggling
-   the .is-open state class (see the drawer glue in the application layout).
-   Partner rows reuse .partner-avatar / .partner-meta from links-menu. */
-
 .drawer {
   position: fixed;
   top: 0;
