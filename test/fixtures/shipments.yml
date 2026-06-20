@@ -1,0 +1,75 @@
+awaiting:
+  order: awaiting
+  service: pac
+  shipping_cents: 2990
+  weight_grams: 120
+  height_cm: 4
+  width_cm: 16
+  length_cm: 24
+  receiver_name: "Cliente Confirmado"
+  receiver_cpf: "52998224725"
+  zip: "01310100"
+  street: "Rua das Flores"
+  number: "150"
+  complement: "Apto 12"
+  neighborhood: "Centro"
+  city: "São Paulo"
+  state: "SP"
+  tracking_state: 0
+
+confirmed_paid:
+  order: confirmed_paid
+  service: pac
+  shipping_cents: 2990
+  weight_grams: 250
+  height_cm: 4
+  width_cm: 16
+  length_cm: 24
+  receiver_name: "Cliente Confirmado"
+  receiver_cpf: "52998224725"
+  zip: "01310100"
+  street: "Rua das Flores"
+  number: "150"
+  neighborhood: "Centro"
+  city: "São Paulo"
+  state: "SP"
+  tracking_state: 0
+
+producing:
+  order: producing
+  service: pac
+  shipping_cents: 2990
+  weight_grams: 250
+  height_cm: 4
+  width_cm: 16
+  length_cm: 24
+  receiver_name: "Cliente Confirmado"
+  receiver_cpf: "52998224725"
+  zip: "01310100"
+  street: "Rua das Flores"
+  number: "150"
+  complement: "Bloco B"
+  neighborhood: "Centro"
+  city: "São Paulo"
+  state: "SP"
+  tracking_state: 0
+
+delivered:
+  order: delivered
+  service: pac
+  shipping_cents: 2990
+  weight_grams: 250
+  height_cm: 4
+  width_cm: 16
+  length_cm: 24
+  receiver_name: "Cliente Confirmado"
+  receiver_cpf: "52998224725"
+  zip: "01310100"
+  street: "Rua das Flores"
+  number: "150"
+  complement: "Casa"
+  neighborhood: "Centro"
+  city: "São Paulo"
+  state: "SP"
+  tracking_code: "PG515656026BR"
+  tracking_state: 2

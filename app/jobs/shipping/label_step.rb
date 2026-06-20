@@ -11,16 +11,17 @@ module Shipping
       order = Order.find_by(id: order_id)
       return unless order
 
-      label = order.shipping_label
+      shipment = order.shipment
+      label = shipment&.shipping_label
       return unless label && applicable?(label)
 
-      execute(order, label)
+      execute(order, shipment, label)
     end
 
     private
 
-    def execute(order, label)
-      run(order, label)
+    def execute(order, shipment, label)
+      run(shipment, label)
       Shipping::EmitLabel.resume(order)
     rescue Correios::Api::TransientError
       raise

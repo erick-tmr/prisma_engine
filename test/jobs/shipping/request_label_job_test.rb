@@ -11,8 +11,9 @@ module Shipping
       @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
       ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
       @order = orders(:producing)
-      Shipment.create!(tracking_code: "AD1", pre_post_id: "PR-9", order: @order)
-      @label = @order.create_shipping_label!(state: :prepost_created)
+      @shipment = @order.shipment
+      @shipment.update!(pre_post_id: "PR-9")
+      @label = @shipment.create_shipping_label!(state: :prepost_created)
     end
 
     teardown do

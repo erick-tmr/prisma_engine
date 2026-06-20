@@ -47,15 +47,16 @@ module Checkout
       assert result.success?
       order = result.order
       assert_equal 38_000, order.subtotal_cents
-      assert_equal 2_084, order.shipping_cents
       assert_equal 40_084, order.total_cents
-      assert_equal "pac", order.shipping_service
-      assert_equal Shipping::PackageWeight.call(populated_cart), order.shipping_weight_grams
       assert order.awaiting_payment?
 
-      assert_equal "São Paulo", order.ship_city
-      assert_equal "01310100", order.ship_zip
-      assert_equal "Cliente Confirmado", order.ship_receiver_name
+      shipment = order.shipment
+      assert_equal 2_084, shipment.shipping_cents
+      assert_equal "pac", shipment.service
+      assert_equal Shipping::PackageWeight.call(populated_cart), shipment.weight_grams
+      assert_equal "São Paulo", shipment.city
+      assert_equal "01310100", shipment.zip
+      assert_equal "Cliente Confirmado", shipment.receiver_name
 
       item = order.order_items.sole
       assert_equal products(:yellow).id, item.product_id

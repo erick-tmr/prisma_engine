@@ -2,7 +2,7 @@ require "test_helper"
 
 class ShippingLabelTest < ActiveSupport::TestCase
   setup do
-    @label = orders(:producing).create_shipping_label!
+    @label = shipments(:producing).create_shipping_label!
   end
 
   test "starts pending" do

@@ -27,23 +27,24 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
 
     perform_enqueued_jobs { Shipping::EmitLabel.resume(@order) }
 
-    label = @order.reload.shipping_label
+    @order.reload
+    label = @order.shipment.shipping_label
     assert label.ready?
     assert_equal RECIBO, label.recibo_id
     assert_equal "etiqueta.pdf", label.filename
     assert_equal "%PDF-1.4 fake", label.pdf_bytes
     assert @order.label_issued?
-    assert @order.shipment.present?
+    assert_equal "AD999999999BR", @order.shipment.tracking_code
   end
 
   test "resumes from the failed step without redoing completed steps" do
     stub_prepostagem
     stub_request(:post, ROTULO).to_return(status: 400, body: "bad request")
 
-    @order.create_shipping_label!
+    @order.shipment.create_shipping_label!
     Shipping::CreatePrePostagemJob.perform_now(@order.id)
-    label = @order.reload.shipping_label
-    assert label.prepost_created?
+    label = @order.shipment.shipping_label
+    assert label.reload.prepost_created?
 
     assert_raises(Correios::Api::Error) { Shipping::RequestLabelJob.perform_now(@order.id) }
     assert label.reload.error.present?
@@ -55,7 +56,7 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
     perform_enqueued_jobs { Shipping::EmitLabel.resume(@order) }
 
     assert @order.reload.label_issued?
-    assert @order.shipping_label.ready?
+    assert @order.shipment.shipping_label.ready?
     assert_requested :post, PREPOST, times: 1
   end
 
@@ -84,10 +85,6 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
       "id" => "PR-abc",
       "codigoObjeto" => "AD999999999BR",
       "codigoServico" => "03298",
-      "pesoInformado" => "250",
-      "alturaInformada" => "4",
-      "larguraInformada" => "16",
-      "comprimentoInformado" => "24",
       "statusAtual" => 1,
       "descStatusAtual" => "Pré-atendido",
       "dataHora" => "2026-06-20T10:00:00",

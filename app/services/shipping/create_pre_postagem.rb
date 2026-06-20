@@ -18,23 +18,23 @@ module Shipping
 
     OBJECT_FORMAT_PACKAGE = "2".freeze
 
-    def self.call(request, order:)
-      new(request, order: order).call
+    def self.call(request, shipment:)
+      new(request, shipment: shipment).call
     end
 
-    def initialize(request, order:)
+    def initialize(request, shipment:)
       @request = request
-      @order = order
+      @shipment = shipment
     end
 
     def call
       response = Correios::Api::PrePostagem.create(request_body)
-      Shipping::ShipmentFactory.from_pre_postagem(response, order: order)
+      Shipping::ShipmentFactory.update_from_pre_postagem(shipment, response)
     end
 
     private
 
-    attr_reader :request, :order
+    attr_reader :request, :shipment
 
     def request_body
       {

@@ -4,18 +4,7 @@ class OrderTest < ActiveSupport::TestCase
   def base_attrs(overrides = {})
     {
       subtotal_cents: 32_000,
-      shipping_cents:  2_990,
-      total_cents:    34_990,
-      shipping_service: "pac",
-      ship_receiver_name: "Cliente Confirmado",
-      ship_receiver_cpf:  "52998224725",
-      ship_zip:           "01310100",
-      ship_street:        "Rua das Flores",
-      ship_number:        "150",
-      ship_complement:    "Apto 12",
-      ship_neighborhood:  "Centro",
-      ship_city:          "São Paulo",
-      ship_state:         "SP"
+      total_cents:    34_990
     }.merge(overrides)
   end
 
@@ -74,11 +63,6 @@ class OrderTest < ActiveSupport::TestCase
 
   test "money totals reject negatives" do
     assert_not build_order(total_cents: -1).valid?
-  end
-
-  test "shipping_service must be one we offer" do
-    assert_not build_order(shipping_service: "carrier_pigeon").valid?
-    assert build_order(shipping_service: "sedex").valid?
   end
 
   test "placed_at mirrors created_at" do
@@ -155,17 +139,6 @@ class OrderTest < ActiveSupport::TestCase
     assert order.cancelled?
   end
 
-  test "shipping_address exposes the snapshot as a symbol-keyed hash" do
-    order = build_order
-    assert_equal(
-      {
-        recipient: "Cliente Confirmado", cpf: "52998224725",
-        street: "Rua das Flores", number: "150", complement: "Apto 12",
-        neighborhood: "Centro", city: "São Paulo", state: "SP", zip: "01310100"
-      },
-      order.shipping_address
-    )
-  end
 
   test "cancellable? while awaiting or confirmed, not once in production" do
     order = build_order

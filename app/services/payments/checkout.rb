@@ -34,7 +34,7 @@ module Payments
       items = order.order_items.map do |item|
         { description: item.name, quantity: item.quantity, price: item.unit_price_cents }
       end
-      items << { description: "Frete — #{order.shipping_service}", quantity: 1, price: order.shipping_cents }
+      items << { description: "Frete — #{shipment.service}", quantity: 1, price: shipment.shipping_cents }
       items
     end
 
@@ -48,12 +48,16 @@ module Payments
 
     def address
       {
-        cep:          order.ship_zip,
-        street:       order.ship_street,
-        neighborhood: order.ship_neighborhood,
-        number:       order.ship_number,
-        complement:   order.ship_complement
+        cep:          shipment.zip,
+        street:       shipment.street,
+        neighborhood: shipment.neighborhood,
+        number:       shipment.number,
+        complement:   shipment.complement
       }
+    end
+
+    def shipment
+      order.shipment
     end
   end
 end

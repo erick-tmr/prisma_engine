@@ -130,18 +130,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
     t.string "number", null: false
     t.string "payment_method"
     t.string "receipt_url"
-    t.string "ship_city", null: false
-    t.string "ship_complement"
-    t.string "ship_neighborhood", null: false
-    t.string "ship_number", null: false
-    t.string "ship_receiver_cpf", null: false
-    t.string "ship_receiver_name", null: false
-    t.string "ship_state", null: false
-    t.string "ship_street", null: false
-    t.string "ship_zip", null: false
-    t.integer "shipping_cents", null: false
-    t.string "shipping_service", null: false
-    t.integer "shipping_weight_grams"
     t.string "status", default: "awaiting_payment", null: false
     t.integer "subtotal_cents", null: false
     t.integer "total_cents", null: false
@@ -245,6 +233,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
   end
 
   create_table "shipments", force: :cascade do |t|
+    t.string "city"
+    t.string "complement"
     t.integer "correios_status"
     t.datetime "correios_status_at"
     t.string "correios_status_label"
@@ -254,21 +244,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
     t.datetime "last_tracked_at"
     t.string "last_tracking_status"
     t.integer "length_cm"
+    t.string "neighborhood"
+    t.string "number"
     t.bigint "order_id", null: false
     t.datetime "posted_at"
     t.datetime "posting_deadline"
     t.string "pre_post_id"
     t.jsonb "pre_post_payload", default: {}, null: false
+    t.string "receiver_cpf"
+    t.string "receiver_name"
     t.datetime "requested_at"
     t.string "service"
     t.string "service_code"
-    t.string "tracking_code", null: false
+    t.integer "shipping_cents"
+    t.string "state"
+    t.string "street"
+    t.string "tracking_code"
     t.string "tracking_error"
     t.datetime "tracking_errored_at"
     t.integer "tracking_state", default: 0, null: false
     t.datetime "updated_at", null: false
     t.integer "weight_grams"
     t.integer "width_cm"
+    t.string "zip"
     t.index ["order_id"], name: "index_shipments_on_order_id"
     t.index ["pre_post_id"], name: "index_shipments_on_pre_post_id", unique: true
     t.index ["tracking_code"], name: "index_shipments_on_tracking_code", unique: true
@@ -280,12 +278,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
     t.string "error"
     t.datetime "errored_at"
     t.string "filename"
-    t.bigint "order_id", null: false
     t.text "pdf_base64"
     t.string "recibo_id"
+    t.bigint "shipment_id", null: false
     t.integer "state", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.index ["order_id"], name: "index_shipping_labels_on_order_id", unique: true
+    t.index ["shipment_id"], name: "index_shipping_labels_on_shipment_id", unique: true
   end
 
   create_table "tags", force: :cascade do |t|
@@ -340,5 +338,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_120100) do
   add_foreign_key "questions", "products"
   add_foreign_key "shipment_tracking_events", "shipments"
   add_foreign_key "shipments", "orders"
-  add_foreign_key "shipping_labels", "orders"
+  add_foreign_key "shipping_labels", "shipments"
 end

@@ -6,8 +6,8 @@ module Shipping
       label.prepost_created?
     end
 
-    def run(order, label)
-      recibo_id = Shipping::RequestLabel.call(order.shipment)
+    def run(shipment, label)
+      recibo_id = Shipping::RequestLabel.call(shipment)
       label.mark_requested!(recibo_id)
     end
   end

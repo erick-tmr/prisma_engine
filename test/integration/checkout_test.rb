@@ -94,7 +94,7 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
     order = Order.last
     assert_equal CHECKOUT_URL, response.headers["Location"]
-    assert_equal "pac", order.shipping_service
+    assert_equal "pac", order.shipment.service
     assert_requested(:post, LINKS_URL) do |req|
       body = JSON.parse(req.body)
       assert_equal order.number, body["order_nsu"]

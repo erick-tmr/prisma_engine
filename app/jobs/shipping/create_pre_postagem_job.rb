@@ -6,9 +6,9 @@ module Shipping
       label.pending?
     end
 
-    def run(order, label)
-      request = Shipping::PrePostagemRequest.from_order(order)
-      Shipping::CreatePrePostagem.call(request, order: order)
+    def run(shipment, label)
+      request = Shipping::PrePostagemRequest.from_shipment(shipment)
+      Shipping::CreatePrePostagem.call(request, shipment: shipment)
       label.mark_prepost_created!
     end
   end

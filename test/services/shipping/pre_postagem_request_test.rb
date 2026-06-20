@@ -2,8 +2,8 @@ require "test_helper"
 
 module Shipping
   class PrePostagemRequestTest < ActiveSupport::TestCase
-    test "builds the request from the order snapshot, user contact and line items" do
-      request = Shipping::PrePostagemRequest.from_order(orders(:awaiting))
+    test "builds the request from the shipment snapshot, user contact and line items" do
+      request = Shipping::PrePostagemRequest.from_shipment(shipments(:awaiting))
 
       assert_equal :pac, request.service
       assert_equal "PG-202606140001", request.observacao
@@ -30,7 +30,7 @@ module Shipping
     end
 
     test "omits a blank complemento from the recipient address" do
-      request = Shipping::PrePostagemRequest.from_order(orders(:confirmed_paid))
+      request = Shipping::PrePostagemRequest.from_shipment(shipments(:confirmed_paid))
 
       assert_not request.recipient[:endereco].key?(:complemento)
     end

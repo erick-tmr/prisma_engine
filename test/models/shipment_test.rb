@@ -11,11 +11,28 @@ class ShipmentTest < ActiveSupport::TestCase
     assert_nil Shipment.new(correios_status: nil).correios_status_name
   end
 
-  test "requires a tracking code" do
-    shipment = Shipment.new(tracking_code: nil, order: orders(:awaiting))
+  test "a planned shipment without a tracking code is valid" do
+    assert Shipment.new(order: orders(:awaiting)).valid?
+  end
 
-    assert_not shipment.valid?
-    assert_includes shipment.errors[:tracking_code], "não pode ficar em branco"
+  test "only accepts a service we offer" do
+    assert Shipment.new(order: orders(:awaiting), service: "sedex").valid?
+    assert_not Shipment.new(order: orders(:awaiting), service: "carrier_pigeon").valid?
+  end
+
+  test "rejects a negative shipping price" do
+    assert_not Shipment.new(order: orders(:awaiting), shipping_cents: -1).valid?
+  end
+
+  test "address exposes the snapshot as a symbol-keyed hash" do
+    assert_equal(
+      {
+        recipient: "Cliente Confirmado", cpf: "52998224725",
+        street: "Rua das Flores", number: "150", complement: "Apto 12",
+        neighborhood: "Centro", city: "São Paulo", state: "SP", zip: "01310100"
+      },
+      shipments(:awaiting).address
+    )
   end
 
   test "requires a unique tracking code" do

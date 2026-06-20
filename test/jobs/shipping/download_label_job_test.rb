@@ -12,7 +12,7 @@ module Shipping
       @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
       ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
       @order = orders(:producing)
-      @label = @order.create_shipping_label!(state: :requested, recibo_id: RECIBO)
+      @label = @order.shipment.create_shipping_label!(state: :requested, recibo_id: RECIBO)
     end
 
     teardown do

@@ -52,33 +52,42 @@ module Checkout
     def build_order(address, service)
       subtotal = cart.subtotal_cents
       shipping = service[:price_cents]
-      Order.create!(
-        user:                  user,
-        subtotal_cents:        subtotal,
-        shipping_cents:        shipping,
-        total_cents:           subtotal + shipping,
-        shipping_service:      shipping_service,
-        shipping_weight_grams: package_weight,
-        order_items_attributes: cart.lines.map { |line| item_attributes(line) },
-        **address_snapshot(address)
+      order = Order.create!(
+        user:                   user,
+        subtotal_cents:         subtotal,
+        total_cents:            subtotal + shipping,
+        order_items_attributes: cart.lines.map { |line| item_attributes(line) }
       )
+      order.create_shipment!(shipment_attributes(address, shipping))
+      order
+    end
+
+    def shipment_attributes(address, shipping)
+      {
+        service:        shipping_service,
+        shipping_cents: shipping,
+        weight_grams:   package_weight,
+        height_cm:      Shipping::PACKAGE_DIMENSIONS[:altura_cm],
+        width_cm:       Shipping::PACKAGE_DIMENSIONS[:largura_cm],
+        length_cm:      Shipping::PACKAGE_DIMENSIONS[:comprimento_cm],
+        **address_snapshot(address)
+      }
     end
 
     def address_snapshot(address)
       {
-        ship_receiver_name: address.receiver_name,
-        ship_receiver_cpf:  address.receiver_cpf,
-        ship_zip:           address.zip,
-        ship_street:        address.street,
-        ship_number:        address.number,
-        ship_complement:    address.complement,
-        ship_neighborhood:  address.neighborhood,
-        ship_city:          address.city,
-        ship_state:         address.state
+        receiver_name: address.receiver_name,
+        receiver_cpf:  address.receiver_cpf,
+        zip:           address.zip,
+        street:        address.street,
+        number:        address.number,
+        complement:    address.complement,
+        neighborhood:  address.neighborhood,
+        city:          address.city,
+        state:         address.state
       }
     end
 
-    # :reek:FeatureEnvy
     def item_attributes(line)
       product = line.product
       {

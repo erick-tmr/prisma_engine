@@ -1,5 +1,5 @@
 class ShippingLabel < ApplicationRecord
-  belongs_to :order
+  belongs_to :shipment
 
   enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3 }
 

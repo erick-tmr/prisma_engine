@@ -4,11 +4,7 @@ class OrderItemTest < ActiveSupport::TestCase
   def order
     @order ||= Order.create!(
       user: users(:confirmed),
-      subtotal_cents: 32_000, shipping_cents: 2_990, total_cents: 34_990,
-      shipping_service: "pac",
-      ship_receiver_name: "Cliente", ship_receiver_cpf: "52998224725",
-      ship_zip: "01310100", ship_street: "Rua das Flores", ship_number: "150",
-      ship_neighborhood: "Centro", ship_city: "São Paulo", ship_state: "SP"
+      subtotal_cents: 32_000, total_cents: 34_990,
     )
   end
 

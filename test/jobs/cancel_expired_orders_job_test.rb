@@ -3,11 +3,7 @@ require "test_helper"
 class CancelExpiredOrdersJobTest < ActiveSupport::TestCase
   def build_order
     Order.create!(
-      user: users(:confirmed), subtotal_cents: 18_000, shipping_cents: 1_984, total_cents: 19_984,
-      shipping_service: "pac",
-      ship_receiver_name: "Cliente", ship_receiver_cpf: "52998224725",
-      ship_zip: "01310100", ship_street: "Av. Paulista", ship_number: "1578",
-      ship_neighborhood: "Bela Vista", ship_city: "São Paulo", ship_state: "SP"
+      user: users(:confirmed), subtotal_cents: 18_000, total_cents: 19_984,
     )
   end
 

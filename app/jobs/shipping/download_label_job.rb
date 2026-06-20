@@ -6,11 +6,11 @@ module Shipping
       label.requested?
     end
 
-    def run(order, label)
+    def run(shipment, label)
       result = Shipping::DownloadLabel.call(label.recibo_id)
       Order.transaction do
         label.mark_ready!(filename: result.filename, pdf: result.pdf_base64)
-        order.transition_to!("label_issued")
+        shipment.order.transition_to!("label_issued")
       end
     end
   end

@@ -1,31 +1,33 @@
 module Shipping
   PrePostagemRequest = Data.define(:service, :recipient, :items, :dimensions, :observacao) do
-    def self.from_order(order)
+    def self.from_shipment(shipment)
+      order = shipment.order
       new(
-        service: order.shipping_service.to_sym,
-        recipient: recipient_for(order),
+        service: shipment.service.to_sym,
+        recipient: recipient_for(shipment),
         items: items_for(order),
-        dimensions: dimensions_for(order),
+        dimensions: dimensions_for(shipment),
         observacao: order.number
       )
     end
 
-    def self.recipient_for(order)
-      digits = order.user.phone.to_s.gsub(/\D/, "")
+    def self.recipient_for(shipment)
+      user = shipment.order.user
+      digits = user.phone.to_s.gsub(/\D/, "")
       {
-        nome: order.ship_receiver_name,
+        nome: shipment.receiver_name,
         dddCelular: digits[0, 2],
         celular: digits[2..],
-        email: order.user.email,
-        cpfCnpj: order.ship_receiver_cpf,
+        email: user.email,
+        cpfCnpj: shipment.receiver_cpf,
         endereco: {
-          cep: order.ship_zip,
-          logradouro: order.ship_street,
-          numero: order.ship_number,
-          complemento: order.ship_complement,
-          bairro: order.ship_neighborhood,
-          cidade: order.ship_city,
-          uf: order.ship_state
+          cep: shipment.zip,
+          logradouro: shipment.street,
+          numero: shipment.number,
+          complemento: shipment.complement,
+          bairro: shipment.neighborhood,
+          cidade: shipment.city,
+          uf: shipment.state
         }.compact
       }
     end
@@ -40,12 +42,12 @@ module Shipping
       end
     end
 
-    def self.dimensions_for(order)
+    def self.dimensions_for(shipment)
       {
-        pesoInformado: order.shipping_weight_grams.to_s,
-        alturaInformada: Shipping::PACKAGE_DIMENSIONS[:altura_cm].to_s,
-        larguraInformada: Shipping::PACKAGE_DIMENSIONS[:largura_cm].to_s,
-        comprimentoInformado: Shipping::PACKAGE_DIMENSIONS[:comprimento_cm].to_s
+        pesoInformado: shipment.weight_grams.to_s,
+        alturaInformada: shipment.height_cm.to_s,
+        larguraInformada: shipment.width_cm.to_s,
+        comprimentoInformado: shipment.length_cm.to_s
       }
     end
 
