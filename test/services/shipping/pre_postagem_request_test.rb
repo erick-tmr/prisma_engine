@@ -18,7 +18,7 @@ module Shipping
       assert_equal "Apto 12", recipient.dig(:endereco, :complemento)
 
       item = request.items.sole
-      assert_equal "Cartucho Game Boy — The Legend of Zelda: Link's Awakening DX", item[:conteudo]
+      assert_equal "Cartucho Game Boy - The Legend of Zelda: Link's Awakening DX", item[:conteudo]
       assert_equal "1", item[:quantidade]
       assert_equal "320.00", item[:valor]
 
@@ -33,6 +33,22 @@ module Shipping
       request = Shipping::PrePostagemRequest.from_shipment(shipments(:confirmed_paid))
 
       assert_not request.recipient[:endereco].key?(:complemento)
+    end
+
+    test "strips emoji and non-Latin-1 characters from the content declaration" do
+      order = Order.create!(user: users(:confirmed), subtotal_cents: 50, total_cents: 50)
+      order.order_items.create!(
+        name: "Pokemon - Yellow Version Inglês 🇺🇸 - Sem Caixa 🔴", unit_price_cents: 50, quantity: 1
+      )
+      order.create_shipment!(
+        service: "pac", shipping_cents: 0, weight_grams: 100, height_cm: 4, width_cm: 16, length_cm: 24,
+        receiver_name: "Cliente", receiver_cpf: "52998224725", zip: "01310100",
+        street: "Av. Paulista", number: "1", neighborhood: "Centro", city: "São Paulo", state: "SP"
+      )
+
+      request = Shipping::PrePostagemRequest.from_shipment(order.shipment)
+
+      assert_equal "Pokemon - Yellow Version Inglês - Sem Caixa", request.items.sole[:conteudo]
     end
   end
 end
