@@ -38,7 +38,7 @@ module Payments
         receipt_url:    payload["receipt_url"],
         payment_method: payload["capture_method"]
       )
-      order.confirm_payment!
+      order.confirm_payment!(automatic: true)
     end
 
     def log_skip(reason)

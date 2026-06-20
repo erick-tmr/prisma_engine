@@ -308,6 +308,7 @@ pt-BR:
           hint: "Tente outro nome, e-mail ou CPF."
       bulk_actions:
         to_production: "Enviar para produção"
+        to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
         flag_issue: "Marcar problema"
         refund_done: "Reembolso processado"
@@ -316,6 +317,73 @@ pt-BR:
         active: "Ativo"
         pending: "Pendente"
         locked: "Bloqueado"
+    orders:
+      detail:
+        page_title: "Pedido %{number} — Backoffice · Prisma Games"
+        topbar_title: "Detalhe do pedido"
+        crumb: "Pedidos · %{number}"
+        back: "Voltar para pedidos"
+        placed_on: "Feito em %{date}"
+        item_count:
+          one: "%{count} item"
+          other: "%{count} itens"
+        items: "Itens do pedido"
+        subtotal: "Subtotal"
+        shipping: "Frete (%{service})"
+        total: "Total"
+        address: "Endereço de entrega"
+        payment: "Pagamento"
+        payment_confirmed: "Pagamento confirmado"
+        payment_pending: "Aguardando pagamento"
+        tracking: "Rastreamento Correios"
+        history: "Histórico de status"
+        status_section: "Status do pedido"
+        current_status: "Status atual"
+        actions: "Ações"
+        action_target: "→ %{status}"
+        print_label: "Imprimir etiqueta Correios"
+        customer_since: "Cliente desde %{date}"
+        automatic: "Automático"
+        by: "por %{name}"
+        transition_done: "Status atualizado para %{status}."
+        transition_invalid: "Esta ação não está disponível para o status atual do pedido."
+        label_requested: "Emissão da etiqueta dos Correios iniciada."
+        cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."
+      states:
+        awaiting_payment:
+          description: "Pedido criado. A confirmação do pagamento é automática via webhook da InfinitePay."
+        payment_confirmed:
+          description: "Pagamento aprovado. Pronto para entrar na fila de produção."
+        awaiting_components:
+          description: "Em espera por componentes. Envie para produção assim que o estoque chegar."
+        in_production:
+          description: "Cartucho sendo montado e gravado. Emita a etiqueta dos Correios quando concluir."
+        production_issue:
+          description: "Produção interrompida por um problema. Resolva e retorne para produção."
+        label_issued:
+          description: "Etiqueta de pré-postagem emitida. O envio é confirmado automaticamente pelos Correios."
+        shipped:
+          description: "Em trânsito. A entrega é confirmada automaticamente pelo rastreio dos Correios."
+        delivered:
+          description: "Pedido entregue ao cliente. Fluxo encerrado."
+        awaiting_refund:
+          description: "Cancelamento solicitado pelo cliente. Processe o reembolso para encerrar o pedido."
+        cancelled:
+          description: "Pedido cancelado. Nenhuma ação adicional."
+      auto_next:
+        label_issued: "O status avança para Enviado automaticamente quando os Correios registram a postagem."
+        shipped: "O status avança para Entregue automaticamente pelo rastreio dos Correios."
+        delivered: "Este pedido está concluído. Não há mais transições disponíveis."
+        cancelled: "Este pedido foi cancelado. Não há mais transições disponíveis."
+      lifecycle:
+        awaiting_payment: "Pagamento"
+        payment_confirmed: "Confirmado"
+        in_production: "Produção"
+        label_issued: "Etiqueta"
+        shipped: "Enviado"
+        delivered: "Entregue"
+        auto_webhook: "automático (webhook)"
+        auto_correios: "automático (Correios)"
   activerecord:
     attributes:
       user:

@@ -54,6 +54,18 @@ admin:
   created_at: <%= 3.days.ago.to_fs(:db) %>
   updated_at: <%= 1.day.ago.to_fs(:db) %>
 
+# Customer who owns the extra orders the backoffice order detail exercises, so
+# :confirmed keeps its asserted 4-order count.
+buyer:
+  email: comprador@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: <%= 2.days.ago.to_fs(:db) %>
+  full_name: "Marina Compradora"
+  cpf: "32165498700"
+  phone: "11991112222"
+  created_at: <%= 12.days.ago.to_fs(:db) %>
+  updated_at: <%= 2.days.ago.to_fs(:db) %>
+
 # Admin flag set but unconfirmed — must NOT be able to log into the backoffice.
 unconfirmed_admin:
   email: admin-pendente@example.com

@@ -34,3 +34,20 @@ delivered_zelda:
     - "ROM: Link's Awakening DX"
     - "Cor da carcaça: cristal"
   photo_path: "/images/products/cartridge-zelda.png"
+
+labeled_item:
+  order: labeled
+  name: "Cartucho Game Boy Color — Pokémon Crystal"
+  unit_price_cents: 32000
+  quantity: 1
+  chosen_options:
+    - "ROM: Crystal"
+  photo_path: "/images/products/cartridge-pokemon.png"
+
+shipped_item:
+  order: shipped_order
+  name: "Cartucho Game Boy — Metroid II: Return of Samus"
+  unit_price_cents: 32000
+  quantity: 1
+  chosen_options: []
+  photo_path: "/images/products/cartridge-metroid.png"

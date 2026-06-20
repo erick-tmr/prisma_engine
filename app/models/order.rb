@@ -10,6 +10,7 @@ class Order < ApplicationRecord
   has_one :shipping_label, through: :shipment
   has_many :order_items, dependent: :destroy
   has_many :payment_webhook_events, dependent: :destroy
+  has_many :status_changes, class_name: "OrderStatusChange", dependent: :destroy
   accepts_nested_attributes_for :order_items
 
   has_secure_token :webhook_token
@@ -52,6 +53,7 @@ class Order < ApplicationRecord
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   before_validation :assign_number, on: :create
+  after_create :record_initial_status
   before_destroy :prevent_destroy
 
   def to_param
@@ -78,27 +80,33 @@ class Order < ApplicationRecord
     CANCELLABLE_STATUSES.include?(status)
   end
 
-  def transition_to!(next_status)
+  # :reek:BooleanParameter — `automatic` distinguishes system-driven transitions
+  # (webhook, Correios, expiry) from operator moves; a flag is the clean shape here.
+  def transition_to!(next_status, actor: nil, automatic: false)
     target = next_status.to_s
     raise InvalidTransition, "#{status} → #{target}" unless TRANSITIONS.fetch(status).include?(target)
 
-    update!(status: target)
+    previous = status
+    transaction do
+      update!(status: target)
+      status_changes.create!(from_status: previous, to_status: target, actor: actor, automatic: automatic)
+    end
   end
 
-  def confirm_payment!
-    transition_to!("payment_confirmed")
+  def confirm_payment!(**opts)
+    transition_to!("payment_confirmed", **opts)
   end
 
-  def cancel!
-    transition_to!("cancelled")
+  def cancel!(**opts)
+    transition_to!("cancelled", **opts)
   end
 
-  def request_refund!
-    transition_to!("awaiting_refund")
+  def request_refund!(**opts)
+    transition_to!("awaiting_refund", **opts)
   end
 
-  def cancel_by_customer!
-    awaiting_payment? ? cancel! : request_refund!
+  def cancel_by_customer!(**opts)
+    awaiting_payment? ? cancel!(**opts) : request_refund!(**opts)
   end
 
   def payment_deadline
@@ -110,6 +118,10 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def record_initial_status
+    status_changes.create!(from_status: nil, to_status: status, automatic: true)
+  end
 
   def prevent_destroy
     errors.add(:base, "Orders are kept for history and cannot be deleted; cancel instead.")

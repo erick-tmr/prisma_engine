@@ -40,6 +40,9 @@ Rails.application.routes.draw do
     delete "sair",   to: "sessions#destroy", as: :logout
     post   "etiquetas",         to: "labels#create_batch", as: :labels
     post   "etiquetas/:number", to: "labels#create",       as: :label, constraints: { number: /PG-\d+/ }
+    get    "pedidos/:number",           to: "orders#show",       as: :order,            constraints: { number: /PG-\d+/ }
+    post   "pedidos/:number/transicao", to: "orders#transition", as: :order_transition, constraints: { number: /PG-\d+/ }
+    get    "pedidos/:number/etiqueta",  to: "orders#label",      as: :order_label,      constraints: { number: /PG-\d+/ }
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

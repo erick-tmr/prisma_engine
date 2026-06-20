@@ -73,3 +73,42 @@ delivered:
   state: "SP"
   tracking_code: "PG515656026BR"
   tracking_state: 2
+
+labeled:
+  order: labeled
+  service: pac
+  shipping_cents: 2990
+  weight_grams: 250
+  height_cm: 4
+  width_cm: 16
+  length_cm: 24
+  receiver_name: "Marina Compradora"
+  receiver_cpf: "32165498700"
+  zip: "80010000"
+  street: "Rua XV de Novembro"
+  number: "500"
+  complement: "Sala 3"
+  neighborhood: "Centro"
+  city: "Curitiba"
+  state: "PR"
+  tracking_state: 0
+
+shipped_order:
+  order: shipped_order
+  service: sedex
+  shipping_cents: 3990
+  weight_grams: 250
+  height_cm: 4
+  width_cm: 16
+  length_cm: 24
+  receiver_name: "Marina Compradora"
+  receiver_cpf: "32165498700"
+  zip: "80010000"
+  street: "Rua XV de Novembro"
+  number: "500"
+  neighborhood: "Centro"
+  city: "Curitiba"
+  state: "PR"
+  # No denormalized tracking_code here: keeps this fixture out of the
+  # awaiting_tracking polling scope while its tracking_events still render.
+  tracking_state: 1

@@ -199,13 +199,14 @@ describe("clients transforms", () => {
 });
 
 describe("template builders", () => {
-  it("ordersRowsHtml marks selected rows, status pills and item pluralization", () => {
+  it("ordersRowsHtml marks selected rows, status pills, pluralization and links to the detail page", () => {
     const { orders } = sampleData();
-    const html = ordersRowsHtml(orders, new Set(["PG-202606140001"]), STATUS_LABELS);
+    const html = ordersRowsHtml(orders, new Set(["PG-202606140001"]), STATUS_LABELS, "/admin/pedidos/");
     expect(html).toContain("sel-row");
     expect(html).toContain("st-awaiting_payment");
     expect(html).toContain("2 itens");
     expect(html).toContain("1 item");
+    expect(html).toContain('href="/admin/pedidos/PG-202606140001"');
   });
 
   it("clientsRowsHtml renders situação tags, masks contact data and dashes a missing city", () => {
@@ -598,9 +599,29 @@ describe("initDashboard", () => {
     expect($("#orders-body").querySelectorAll("tr.sel-row")).toHaveLength(0);
   });
 
-  it("flashes a row on click without toggling selection", () => {
-    const animate = vi.spyOn(window.HTMLElement.prototype, "animate");
+  it("opens an order by forwarding a row click to its detail link", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
     click($("#orders-body tr td:nth-child(2)"));
+    expect(open).toHaveBeenCalledTimes(1);
+    open.mockRestore();
+  });
+
+  it("does not double-open when the order number link itself is clicked", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#orders-body tr a.cell-link"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("ignores order-table clicks that land outside a row", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#orders-body"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("flashes a client row on click", () => {
+    const animate = vi.spyOn(window.HTMLElement.prototype, "animate");
     click($("#clients-body tr"));
     expect(animate).toHaveBeenCalled();
   });

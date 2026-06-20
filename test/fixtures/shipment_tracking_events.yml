@@ -1,0 +1,17 @@
+shipped_posted:
+  shipment: shipped_order
+  position: 1
+  tracking_code: "PG888000222BR"
+  event_code: "PO"
+  event_type: "01"
+  description: "Objeto postado"
+  occurred_at: <%= 8.days.ago.to_fs(:db) %>
+
+shipped_transit:
+  shipment: shipped_order
+  position: 2
+  tracking_code: "PG888000222BR"
+  event_code: "DO"
+  event_type: "01"
+  description: "Objeto em trânsito, por favor aguarde"
+  occurred_at: <%= 6.days.ago.to_fs(:db) %>
