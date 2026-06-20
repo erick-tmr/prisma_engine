@@ -29,8 +29,16 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     url_blacklist:   ENV["DENY_EXTERNAL"] == "0" ? [] : EXTERNAL_HOSTS
   }
 
-  setup    { Warden.test_mode! }
-  teardown { Warden.test_reset! }
+  setup do
+    Warden.test_mode!
+    @allow_forgery_protection = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+  end
+
+  teardown do
+    ActionController::Base.allow_forgery_protection = @allow_forgery_protection
+    Warden.test_reset!
+  end
 
   def login_as_user(user)
     login_as(user, scope: :user)
