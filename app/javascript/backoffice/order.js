@@ -19,12 +19,22 @@ export function bindMenu(root) {
   toggle.addEventListener("click", () => sidebar.classList.toggle("show"));
 }
 
+export function bindFlashDismiss(root) {
+  root.querySelectorAll("[data-flash-close]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const flash = button.closest(".od-flash");
+      if (flash) flash.remove();
+    });
+  });
+}
+
 /* v8 ignore start */
 if (typeof document !== "undefined") {
   const root = document.querySelector("[data-bo-order]");
   if (root) {
     bindConfirm(root);
     bindMenu(root);
+    bindFlashDismiss(root);
   }
 }
 /* v8 ignore stop */
