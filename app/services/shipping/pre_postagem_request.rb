@@ -1,53 +1,56 @@
 module Shipping
-  # Parameter object for the variable inputs of a pré-postagem, so
-  # Shipping::CreatePrePostagem takes one argument instead of a long keyword list.
-  # Only `service` is really chosen today; the rest are hardcoded placeholders until
-  # the Order / customer / cart models feed them (see docs/architecture.md). Use
-  # `.placeholder(service:)` for the current case and `#with` to override a field.
   PrePostagemRequest = Data.define(:service, :recipient, :items, :dimensions, :observacao) do
-    # The buyer. Placeholder until customer profiles exist.
-    PLACEHOLDER_RECIPIENT = {
-      nome: "Erick Takeshi Mine Rezende",
-      dddCelular: "11",
-      celular: "973498347",
-      email: "ericktm93@gmail.com",
-      cpfCnpj: "40706252837",
-      endereco: {
-        cep: "03131010",
-        logradouro: "Rua Orfanato",
-        numero: "593",
-        complemento: "Apto 113 B",
-        bairro: "Vila Prudente",
-        cidade: "Sao Paulo",
-        uf: "SP"
-      }
-    }.freeze
-
-    # The package contents declaration. Placeholder until order line-items exist.
-    PLACEHOLDER_ITEMS = [
-      { conteudo: "Jogo de Gameboy", quantidade: "1", valor: "200.00" }
-    ].freeze
-
-    # Placeholder until a packing algorithm exists.
-    PLACEHOLDER_DIMENSIONS = {
-      pesoInformado: "120",        # grams
-      alturaInformada: "4",        # cm
-      larguraInformada: "16",      # cm
-      comprimentoInformado: "24"   # cm
-    }.freeze
-
-    # Placeholder until the order identifier exists.
-    PLACEHOLDER_OBSERVACAO = "Pedido #123".freeze
-
-    # The current hardcoded request — only the service is chosen.
-    def self.placeholder(service:)
+    def self.from_shipment(shipment)
+      order = shipment.order
       new(
-        service: service,
-        recipient: PLACEHOLDER_RECIPIENT,
-        items: PLACEHOLDER_ITEMS,
-        dimensions: PLACEHOLDER_DIMENSIONS,
-        observacao: PLACEHOLDER_OBSERVACAO
+        service: shipment.service.to_sym,
+        recipient: recipient_for(shipment),
+        items: items_for(order),
+        dimensions: dimensions_for(shipment),
+        observacao: order.number
       )
     end
+
+    def self.recipient_for(shipment)
+      user = shipment.order.user
+      digits = user.phone.to_s.gsub(/\D/, "")
+      {
+        nome: shipment.receiver_name,
+        dddCelular: digits[0, 2],
+        celular: digits[2..],
+        email: user.email,
+        cpfCnpj: shipment.receiver_cpf,
+        endereco: {
+          cep: shipment.zip,
+          logradouro: shipment.street,
+          numero: shipment.number,
+          complemento: shipment.complement,
+          bairro: shipment.neighborhood,
+          cidade: shipment.city,
+          uf: shipment.state
+        }.compact
+      }
+    end
+
+    def self.items_for(order)
+      order.order_items.map do |item|
+        {
+          conteudo: item.name,
+          quantidade: item.quantity.to_s,
+          valor: format("%.2f", item.unit_price_cents.fdiv(100))
+        }
+      end
+    end
+
+    def self.dimensions_for(shipment)
+      {
+        pesoInformado: shipment.weight_grams.to_s,
+        alturaInformada: shipment.height_cm.to_s,
+        larguraInformada: shipment.width_cm.to_s,
+        comprimentoInformado: shipment.length_cm.to_s
+      }
+    end
+
+    private_class_method :recipient_for, :items_for, :dimensions_for
   end
 end

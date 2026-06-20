@@ -7,6 +7,7 @@ class Order < ApplicationRecord
 
   belongs_to :user
   has_one :shipment, dependent: :nullify
+  has_one :shipping_label, through: :shipment
   has_many :order_items, dependent: :destroy
   has_many :payment_webhook_events, dependent: :destroy
   accepts_nested_attributes_for :order_items
@@ -47,9 +48,8 @@ class Order < ApplicationRecord
   scope :recent_first, -> { order(created_at: :desc) }
 
   validates :number, presence: true, uniqueness: true
-  validates :subtotal_cents, :shipping_cents, :total_cents,
+  validates :subtotal_cents, :total_cents,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :shipping_service, inclusion: { in: Shipping::SERVICES.keys.map(&:to_s) }
 
   before_validation :assign_number, on: :create
   before_destroy :prevent_destroy
@@ -60,14 +60,6 @@ class Order < ApplicationRecord
 
   def placed_at
     created_at
-  end
-
-  def shipping_address
-    {
-      recipient: ship_receiver_name, cpf: ship_receiver_cpf,
-      street: ship_street, number: ship_number, complement: ship_complement,
-      neighborhood: ship_neighborhood, city: ship_city, state: ship_state, zip: ship_zip
-    }
   end
 
   def payment_status

@@ -4,7 +4,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   setup do
-    @shipment = Shipment.create!(tracking_code: "PG515656026BR", order: orders(:delivered), tracking_state: :delivered)
+    @shipment = shipments(:delivered)
     @shipment.tracking_events.create!(position: 1, event_code: "PO", event_type: "01",
                                       description: "Postado em São Paulo / SP", occurred_at: 16.days.ago)
     @shipment.tracking_events.create!(position: 2, event_code: "BDE", event_type: "01",

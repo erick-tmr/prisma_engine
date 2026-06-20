@@ -12,8 +12,8 @@ module Admin
       first = payload.first # recent_first → the 1h-old awaiting order leads
       assert_equal awaiting.number, first["n"]
       assert_equal awaiting.user.full_name, first["clientName"]
-      assert_equal awaiting.ship_city, first["city"]
-      assert_equal awaiting.ship_state, first["uf"]
+      assert_equal awaiting.shipment.city, first["city"]
+      assert_equal awaiting.shipment.state, first["uf"]
       assert_equal awaiting.created_at.strftime("%Y-%m-%d"), first["date"]
       assert_equal "awaiting_payment", first["status"]
       assert_equal awaiting.total_cents, first["total"]

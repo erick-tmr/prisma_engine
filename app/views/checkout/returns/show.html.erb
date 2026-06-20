@@ -118,7 +118,7 @@
 
     <div class="pay-return__sum-totals">
       <div class="pay-return__sum-line"><span class="muted">Subtotal</span><span class="val tnum"><%= HasMoney.format(@order.subtotal_cents) %></span></div>
-      <div class="pay-return__sum-line"><span class="muted">Frete · <%= @order.shipping_service %></span><span class="val tnum"><%= HasMoney.format(@order.shipping_cents) %></span></div>
+      <div class="pay-return__sum-line"><span class="muted">Frete · <%= @order.shipment.service %></span><span class="val tnum"><%= HasMoney.format(@order.shipment.shipping_cents) %></span></div>
       <hr class="pay-return__sum-divider">
       <div class="pay-return__sum-total"><span class="lbl">Total</span><span class="amt tnum"><%= HasMoney.format(@order.total_cents) %></span></div>
     </div>
@@ -127,10 +127,11 @@
       <div class="pay-return__info-cell">
         <p class="pay-return__info-label"><i class="bi bi-truck"></i> Entrega</p>
         <div class="pay-return__info-body">
-          <div class="strong"><%= @order.ship_receiver_name %></div>
-          <div><%= "#{@order.ship_street}, #{@order.ship_number}" %><%= " — #{@order.ship_complement}" if @order.ship_complement.present? %></div>
-          <div><%= "#{@order.ship_neighborhood} · #{@order.ship_city} — #{@order.ship_state}" %></div>
-          <div>CEP <%= fmt_cep.call(@order.ship_zip) %></div>
+          <% ship = @order.shipment %>
+          <div class="strong"><%= ship.receiver_name %></div>
+          <div><%= "#{ship.street}, #{ship.number}" %><%= " — #{ship.complement}" if ship.complement.present? %></div>
+          <div><%= "#{ship.neighborhood} · #{ship.city} — #{ship.state}" %></div>
+          <div>CEP <%= fmt_cep.call(ship.zip) %></div>
         </div>
       </div>
       <div class="pay-return__info-cell">

@@ -46,7 +46,7 @@
 
       <div class="order-detail__totals">
         <div class="row-t"><span><%= t("account.orders.show.subtotal") %></span><span><%= format_brl(@order.subtotal_cents) %></span></div>
-        <div class="row-t"><span><%= t("account.orders.show.shipping") %></span><span><%= format_brl(@order.shipping_cents) %></span></div>
+        <div class="row-t"><span><%= t("account.orders.show.shipping") %></span><span><%= format_brl(@order.shipment.shipping_cents) %></span></div>
         <div class="row-t row-total"><span><%= t("account.orders.show.total") %></span><span><%= format_brl(@order.total_cents) %></span></div>
       </div>
     </div>
@@ -55,7 +55,7 @@
       <div class="order-detail__subcard">
         <div class="order-detail__subcard-head"><%= t("account.orders.show.shipping_address") %></div>
         <div class="order-detail__info-body">
-          <% address = @order.shipping_address %>
+          <% address = @order.shipment.address %>
           <div class="strong"><%= address[:recipient] %></div>
           <div><%= address[:street] %>, <%= address[:number] %><% if address[:complement].present? %> — <%= address[:complement] %><% end %></div>
           <div><%= address[:neighborhood] %></div>

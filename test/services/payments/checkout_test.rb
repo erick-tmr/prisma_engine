@@ -7,14 +7,12 @@ module Payments
     setup do
       @prev_handle = ENV["INFINITEPAY_HANDLE"]
       ENV["INFINITEPAY_HANDLE"] = "prisma_games"
-      @order = Order.create!(
-        user: users(:confirmed),
-        subtotal_cents: 18_000, shipping_cents: 1_984, total_cents: 19_984,
-        shipping_service: "sedex",
-        ship_receiver_name: "Cliente Confirmado", ship_receiver_cpf: "52998224725",
-        ship_zip: "01310100", ship_street: "Av. Paulista", ship_number: "1578",
-        ship_complement: "11º andar", ship_neighborhood: "Bela Vista",
-        ship_city: "São Paulo", ship_state: "SP"
+      @order = Order.create!(user: users(:confirmed), subtotal_cents: 18_000, total_cents: 19_984)
+      @order.create_shipment!(
+        service: "sedex", shipping_cents: 1_984, weight_grams: 120, height_cm: 4, width_cm: 16, length_cm: 24,
+        receiver_name: "Cliente Confirmado", receiver_cpf: "52998224725",
+        zip: "01310100", street: "Av. Paulista", number: "1578",
+        complement: "11º andar", neighborhood: "Bela Vista", city: "São Paulo", state: "SP"
       )
       @order.order_items.create!(name: "Cartucho Zelda", unit_price_cents: 18_000, quantity: 1, chosen_options: [ "ROM: Zelda" ])
     end

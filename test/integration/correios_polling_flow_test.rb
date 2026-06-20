@@ -17,8 +17,9 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
   end
 
   test "pré-postagem then polling delivers the shipment and records its events" do
-    Shipping::ShipmentFactory.from_pre_postagem(pre_post_payload, order: orders(:awaiting))
-    code = Shipment.sole.tracking_code
+    shipment = orders(:awaiting).shipment
+    Shipping::ShipmentFactory.update_from_pre_postagem(shipment, pre_post_payload)
+    code = shipment.reload.tracking_code
 
     stub_request(:get, "#{BASE}/srorastro/v1/objetos/#{code}?resultado=T")
       .to_return(status: 200, body: rastro_body(code),
@@ -28,7 +29,7 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
       SyncPendingShipmentsJob.perform_now
     end
 
-    shipment = Shipment.sole
+    shipment.reload
     assert shipment.tracking_delivered?
     assert_equal "Objeto entregue ao destinatário", shipment.last_tracking_status
     assert_equal %w[PO BDE], shipment.tracking_events.order(:position).map(&:event_code)

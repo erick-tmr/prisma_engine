@@ -1,15 +1,5 @@
 module Shipping
-  # Use case: create a Correios pré-postagem and persist it as a Shipment.
-  #
-  #   request = Shipping::PrePostagemRequest.placeholder(service: :sedex)
-  #   Shipping::CreatePrePostagem.call(request, order: order)
-  #
-  # Owns the fixed store config (sender, postage card, object format); the variable
-  # inputs arrive in the PrePostagemRequest. Delegates the HTTP to
-  # Correios::Api::PrePostagem and the persistence to Shipping::ShipmentFactory.
   class CreatePrePostagem
-    # The store. Hardcoded until seller settings exist. The CEP lives in
-    # `Shipping::ORIGIN_CEP` so the price/prazo quote can reuse it.
     SENDER = {
       nome: "Prisma Games",
       dddCelular: "35",
@@ -26,41 +16,39 @@ module Shipping
       }
     }.freeze
 
-    POSTAGE_CARD_NUMBER = "0076738043".freeze # numeroCartaoPostagem — seller settings later
-    OBJECT_FORMAT_PACKAGE = "2".freeze        # codigoFormatoObjetoInformado: 2 = pacote
+    OBJECT_FORMAT_PACKAGE = "2".freeze
 
-    def self.call(request, order:)
-      new(request, order: order).call
+    def self.call(request, shipment:)
+      new(request, shipment: shipment).call
     end
 
-    def initialize(request, order:)
+    def initialize(request, shipment:)
       @request = request
-      @order = order
+      @shipment = shipment
     end
 
-    # Returns the persisted Shipment.
     def call
       response = Correios::Api::PrePostagem.create(request_body)
-      Shipping::ShipmentFactory.from_pre_postagem(response, order: order)
+      Shipping::ShipmentFactory.update_from_pre_postagem(shipment, response)
     end
 
     private
 
-    attr_reader :request, :order
+    attr_reader :request, :shipment
 
     def request_body
       {
         remetente: SENDER,
         destinatario: request.recipient,
         codigoServico: Shipping::SERVICES.fetch(request.service),
-        numeroCartaoPostagem: POSTAGE_CARD_NUMBER,
+        numeroCartaoPostagem: Shipping::POSTAGE_CARD_NUMBER,
         codigoFormatoObjetoInformado: OBJECT_FORMAT_PACKAGE,
         itensDeclaracaoConteudo: request.items,
-        cienteObjetoNaoProibido: "1", # we never ship prohibited items
-        solicitarColeta: "N",         # never ask Correios to collect at the store
+        cienteObjetoNaoProibido: "1",
+        solicitarColeta: "N",
         observacao: request.observacao,
-        logisticaReversa: "N",        # returns are handled manually, not via Correios
-        emiteDCe: "S"                 # always emit the electronic content declaration
+        logisticaReversa: "N",
+        emiteDCe: "S"
       }.merge(request.dimensions)
     end
   end
