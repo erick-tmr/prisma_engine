@@ -16,7 +16,12 @@ module Correios
       def fetch
         response = get
         raise_for_status(response)
-        JSON.parse(response.body)
+        body = JSON.parse(response.body)
+        return body if body.is_a?(Hash) && body.key?("nome") && body.key?("dados")
+
+        message = body.is_a?(Hash) ? body["mensagem"] : response.body
+        Rails.logger.warn("[RotuloDownload] recibo=#{recibo_id} sem etiqueta: #{message}")
+        raise Correios::Api::Error, "rótulo download sem etiqueta (recibo #{recibo_id}): #{message}"
       end
 
       private
