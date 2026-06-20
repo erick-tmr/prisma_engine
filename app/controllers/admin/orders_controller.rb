@@ -19,7 +19,7 @@ module Admin
       label = find_order.shipping_label
       return head :not_found unless label&.ready?
 
-      send_data Base64.decode64(label.pdf_base64),
+      send_data label.pdf_bytes,
                 type: "application/pdf", disposition: "inline", filename: label.filename
     end
 
