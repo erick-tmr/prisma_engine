@@ -25,6 +25,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     process_timeout: 20,
     timeout:         15,
     js_errors:       true,
+    slowmo:          ENV["SLOWMO"]&.to_f,
     browser_options: ENV["CI"] ? { "no-sandbox" => nil } : {},
     url_blacklist:   ENV["DENY_EXTERNAL"] == "0" ? [] : EXTERNAL_HOSTS
   }
