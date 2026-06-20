@@ -1,13 +1,4 @@
 <%# locals: (slug:, label:, logo: nil, icon: nil) %>
-<%# Section title: bare SVG wordmark over a logo-width rainbow bar, with
-    "Ver tudo →" anchored to the right edge. The wordmark IS the visible
-    title; an sr-only <h2> keeps the heading in the document outline.
-
-    `logo` defaults to `slug`; pass it when the section title needs a
-    different wordmark file than the nav strip (e.g. the horizontal
-    Game Boy Color variant). Pass `icon` (a Bootstrap Icons name) for a
-    category with no SVG logo: the title renders as a typographic wordmark
-    with that icon instead of an image. %>
 <% logo ||= slug %>
 
 <div class="section-title">
