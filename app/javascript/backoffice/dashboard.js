@@ -222,12 +222,12 @@ export function sortClients(rows, sort) {
 }
 
 // ── Templates (pure HTML builders) ───────────────────────────────────────────
-export function ordersRowsHtml(rows, selected, statusLabels) {
+export function ordersRowsHtml(rows, selected, statusLabels, orderBase) {
   return rows.map((o) => {
     const on = selected.has(o.n);
     return `<tr data-order="${escapeHtml(o.n)}" class="${on ? "sel-row" : ""}">
       <td class="checkcol"><span class="rowcheck ${on ? "on" : ""}" data-check="${escapeHtml(o.n)}" role="checkbox" aria-checked="${on}" tabindex="0"></span></td>
-      <td><span class="cell-mono">${escapeHtml(o.n)}</span></td>
+      <td><a class="cell-mono cell-link" href="${escapeHtml(orderBase)}${encodeURIComponent(o.n)}">${escapeHtml(o.n)}</a></td>
       <td>
         <div class="who">
           <div class="who-av who-av--${tintIndex(o.clientName)}">${escapeHtml(initials(o.clientName))}</div>
@@ -342,6 +342,7 @@ export function initDashboard(root, data, today) {
   const dp = { left: startOfMonth(today), sel: { from: null, to: null }, preset: null };
 
   const $ = (sel) => root.querySelector(sel);
+  const orderBase = root.dataset.orderBase;
   const ordersBody = $("#orders-body");
   const ordersTable = $("#orders-table");
   const ordersEmpty = $("#orders-empty");
@@ -402,7 +403,7 @@ export function initDashboard(root, data, today) {
   }
   function renderOrders() {
     const rows = sortOrders(filterOrders(orders, state), state.oSort, statuses);
-    ordersBody.innerHTML = ordersRowsHtml(rows, state.selected, statusLabels);
+    ordersBody.innerHTML = ordersRowsHtml(rows, state.selected, statusLabels, orderBase);
     ordersEmpty.classList.toggle("show", rows.length === 0);
     ordersTable.hidden = rows.length === 0;
     const total = rows.reduce((sum, o) => sum + o.total, 0);

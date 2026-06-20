@@ -1,0 +1,44 @@
+# A full happy-path history for the delivered order: drives the backoffice
+# detail's "Histórico de status" panel (automatic system steps + one manual move).
+delivered_created:
+  order: delivered
+  from_status:
+  to_status: awaiting_payment
+  automatic: true
+  created_at: <%= 18.days.ago.to_fs(:db) %>
+
+delivered_paid:
+  order: delivered
+  from_status: awaiting_payment
+  to_status: payment_confirmed
+  automatic: true
+  created_at: <%= 17.days.ago.to_fs(:db) %>
+
+delivered_production:
+  order: delivered
+  actor: admin
+  from_status: payment_confirmed
+  to_status: in_production
+  automatic: false
+  created_at: <%= 16.days.ago.to_fs(:db) %>
+
+delivered_labeled:
+  order: delivered
+  from_status: in_production
+  to_status: label_issued
+  automatic: true
+  created_at: <%= 15.days.ago.to_fs(:db) %>
+
+delivered_shipped:
+  order: delivered
+  from_status: label_issued
+  to_status: shipped
+  automatic: true
+  created_at: <%= 14.days.ago.to_fs(:db) %>
+
+delivered_delivered:
+  order: delivered
+  from_status: shipped
+  to_status: delivered
+  automatic: true
+  created_at: <%= 12.days.ago.to_fs(:db) %>

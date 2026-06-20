@@ -36,3 +36,26 @@ delivered:
   total_cents: 34990
   created_at: <%= 18.days.ago.to_fs(:db) %>
   updated_at: <%= 12.days.ago.to_fs(:db) %>
+
+# Owned by :buyer so :confirmed keeps its 4-order count. label_issued exercises
+# the printable-label branch of the backoffice order detail.
+labeled:
+  user: buyer
+  number: "PG-202606070005"
+  status: label_issued
+  payment_method: "pix"
+  subtotal_cents: 32000
+  total_cents: 34990
+  created_at: <%= 8.days.ago.to_fs(:db) %>
+  updated_at: <%= 7.days.ago.to_fs(:db) %>
+
+# Owned by :buyer; shipped exercises the Correios tracking panel.
+shipped_order:
+  user: buyer
+  number: "PG-202606050006"
+  status: shipped
+  payment_method: "credit_card"
+  subtotal_cents: 32000
+  total_cents: 34990
+  created_at: <%= 9.days.ago.to_fs(:db) %>
+  updated_at: <%= 6.days.ago.to_fs(:db) %>

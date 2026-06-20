@@ -1,0 +1,246 @@
+<% content_for :title, t("admin.orders.detail.page_title", number: @presenter.number) %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-order" %>
+<% end %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app" data-bo-order>
+  <aside class="sidebar" data-sidebar>
+    <div class="sb-brand">
+      <span class="sb-word"><%= t("admin.dashboard.brand") %></span>
+      <span class="sb-tag"><%= t("admin.dashboard.tag") %></span>
+    </div>
+
+    <div class="sb-section"><%= t("admin.dashboard.section") %></div>
+    <nav class="sb-nav">
+      <a class="sb-link active" href="<%= admin_root_path %>">
+        <i class="bi bi-receipt"></i> <%= t("admin.dashboard.nav.orders") %>
+      </a>
+      <a class="sb-link" href="<%= admin_root_path %>">
+        <i class="bi bi-people"></i> <%= t("admin.dashboard.nav.clients") %>
+      </a>
+    </nav>
+
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-avatar"><%= account_avatar_initials(current_user.full_name) %></div>
+        <div class="sb-user-meta">
+          <div class="nm"><%= current_user.full_name %></div>
+          <div class="rl"><%= t("admin.dashboard.role") %></div>
+        </div>
+      </div>
+      <%= button_to admin_logout_path, method: :delete, class: "sb-signout" do %>
+        <i class="bi bi-box-arrow-left"></i> <%= t("admin.dashboard.signout") %>
+      <% end %>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-menu-toggle aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.orders.detail.topbar_title") %></h1>
+        <span class="crumb"><%= t("admin.orders.detail.crumb", number: @presenter.number) %></span>
+      </div>
+      <div class="topbar-right"></div>
+    </header>
+
+    <main class="content">
+      <%= link_to admin_root_path, class: "od-back" do %>
+        <i class="bi bi-arrow-left"></i> <%= t("admin.orders.detail.back") %>
+      <% end %>
+
+      <% flash.each do |type, message| %>
+        <div class="od-flash od-flash--<%= type == "alert" ? "alert" : "ok" %>"><%= message %></div>
+      <% end %>
+
+      <div class="od-head">
+        <div class="od-head-main">
+          <div class="od-head-num">
+            <h1><%= @presenter.number %></h1>
+            <span class="pill pill-lg st-<%= @presenter.status %>"><%= @presenter.status_label %></span>
+          </div>
+          <div class="od-head-sub">
+            <span><%= t("admin.orders.detail.placed_on", date: l(@presenter.placed_at.to_date, format: :long)) %></span>
+            <span class="dotsep"></span>
+            <span><%= t("admin.orders.detail.item_count", count: @presenter.item_count) %></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="od-grid">
+        <div class="od-col-main">
+          <div class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.items") %></h2>
+              </div>
+            </div>
+            <div class="od-items">
+              <% @presenter.order_items.each do |item| %>
+                <div class="od-item">
+                  <div class="od-item-thumb"><i class="bi bi-controller"></i></div>
+                  <div class="od-item-info">
+                    <div class="nm"><%= item.name %></div>
+                    <% if item.chosen_options.any? %>
+                      <div class="opts"><%= item.chosen_options.join(" · ") %></div>
+                    <% end %>
+                    <div class="qty"><%= item.quantity %> × <%= format_brl(item.unit_price_cents) %></div>
+                  </div>
+                  <div class="od-item-line"><%= format_brl(item.line_total_cents) %></div>
+                </div>
+              <% end %>
+            </div>
+            <div class="od-totals">
+              <div class="row-t"><span><%= t("admin.orders.detail.subtotal") %></span><span><%= format_brl(@presenter.subtotal_cents) %></span></div>
+              <div class="row-t"><span><%= t("admin.orders.detail.shipping", service: @presenter.shipping_service_label) %></span><span><%= format_brl(@presenter.shipping_cents) %></span></div>
+              <div class="row-t row-total"><span><%= t("admin.orders.detail.total") %></span><span><%= format_brl(@presenter.total_cents) %></span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <% address = @presenter.address %>
+            <div class="od-meta-grid">
+              <div class="od-meta">
+                <div class="od-meta-head"><i class="bi bi-geo-alt"></i> <%= t("admin.orders.detail.address") %></div>
+                <div class="od-meta-body">
+                  <div class="strong"><%= address[:recipient] %></div>
+                  <div><%= address[:street] %>, <%= address[:number] %><% if address[:complement].present? %> — <%= address[:complement] %><% end %></div>
+                  <div><%= address[:neighborhood] %></div>
+                  <div><%= address[:city] %> — <%= address[:state] %> · CEP <%= number_to_cep(address[:zip]) %></div>
+                </div>
+              </div>
+              <div class="od-meta">
+                <div class="od-meta-head"><i class="bi bi-wallet2"></i> <%= t("admin.orders.detail.payment") %></div>
+                <div class="od-meta-body">
+                  <% payment = @presenter.payment %>
+                  <div class="od-pay"><i class="bi <%= payment.icon %>"></i> <%= payment.method_label %></div>
+                  <div class="od-pay-status <%= payment.status_class %>">
+                    <i class="bi <%= payment.status_icon %>"></i>
+                    <%= payment.status_label %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <% if @presenter.shipping_visible? %>
+            <div class="panel">
+              <div class="panel-top">
+                <div class="panel-top-main">
+                  <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.tracking") %></h2>
+                </div>
+              </div>
+              <div class="od-track">
+                <% @presenter.tracking_events.each_with_index do |event, index| %>
+                  <div class="od-track-item<%= " is-current" if index.zero? %>">
+                    <span class="od-track-dot"></span>
+                    <div class="od-track-body">
+                      <div>
+                        <div class="desc"><%= event.description %></div>
+                        <div class="meta"><%= event.event_code %>/<%= event.event_type %></div>
+                      </div>
+                      <div class="time"><%= l(event.occurred_at, format: :short) %></div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.history") %></h2>
+              </div>
+            </div>
+            <div class="od-history">
+              <% @presenter.history.each_with_index do |entry, index| %>
+                <div class="hist-item<%= " is-latest" if index.zero? %>">
+                  <span class="hist-dot dotc-<%= entry[:status] %>"></span>
+                  <div class="hist-body">
+                    <div>
+                      <div class="desc"><b><%= entry[:label] %></b></div>
+                      <div class="who-by"><%= entry[:by] %></div>
+                    </div>
+                    <div class="time"><%= l(entry[:at], format: :short) %></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <aside class="od-col-side">
+          <section class="status-card">
+            <div class="status-card-top">
+              <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.status_section") %></h2>
+            </div>
+            <div class="status-now">
+              <div class="status-now-label"><%= t("admin.orders.detail.current_status") %></div>
+              <div><span class="pill st-<%= @presenter.status %>"><%= @presenter.status_label %></span></div>
+              <p class="status-now-desc"><%= @presenter.status_description %></p>
+            </div>
+
+            <div class="lifecycle">
+              <% @presenter.lifecycle.each do |step| %>
+                <div class="lc-step <%= step.classes %>">
+                  <span class="lc-node"></span>
+                  <div class="lc-label"><%= step.label %><% if step.auto_note %><span class="lc-auto"><%= step.auto_note %></span><% end %></div>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="status-actions">
+              <div class="status-actions-head"><%= t("admin.orders.detail.actions") %></div>
+              <div class="act-list">
+                <% @presenter.available_actions.each do |action| %>
+                  <%= button_to admin_order_transition_path(@presenter.number, event: action[:id]),
+                        method: :post, class: action[:button_class],
+                        form: { class: "act-form", data: action[:form_data] } do %>
+                    <i class="bi <%= action[:icon] %>"></i>
+                    <span><%= action[:label] %><span class="act-to"><%= t("admin.orders.detail.action_target", status: action[:target_label]) %></span></span>
+                    <i class="bi bi-arrow-right act-arrow"></i>
+                  <% end %>
+                <% end %>
+
+                <% if @presenter.label_printable? %>
+                  <%= link_to admin_order_label_path(@presenter.number), class: "act-btn", target: "_blank", rel: "noopener" do %>
+                    <i class="bi bi-printer"></i><span><%= t("admin.orders.detail.print_label") %></span>
+                  <% end %>
+                <% end %>
+
+                <% if @presenter.available_actions.empty? %>
+                  <div class="act-none"><i class="bi bi-info-circle"></i><div><%= @presenter.auto_next_note %></div></div>
+                <% end %>
+              </div>
+            </div>
+          </section>
+
+          <section class="cust-card">
+            <% customer = @presenter.customer %>
+            <div class="cust-top">
+              <div class="cust-av cust-av--<%= @presenter.avatar_tint_index %>"><%= account_avatar_initials(customer.full_name) %></div>
+              <div class="cust-meta">
+                <div class="nm"><%= customer.full_name %></div>
+                <div class="sub"><%= t("admin.orders.detail.customer_since", date: l(customer.created_at.to_date, format: :long)) %></div>
+              </div>
+            </div>
+            <div class="cust-rows">
+              <div class="cust-row"><i class="bi bi-envelope"></i> <span class="v"><%= customer.email %></span></div>
+              <div class="cust-row"><i class="bi bi-telephone"></i> <span class="v"><%= @presenter.customer_phone %></span></div>
+              <div class="cust-row"><i class="bi bi-person-vcard"></i> <span class="v"><%= @presenter.customer_cpf %></span></div>
+              <div class="cust-row"><i class="bi bi-geo"></i> <span class="v"><%= address[:city] %>/<%= address[:state] %></span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "backoffice/order", type: "module" %>
+<% end %>

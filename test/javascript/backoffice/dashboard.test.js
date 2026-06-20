@@ -199,13 +199,14 @@ describe("clients transforms", () => {
 });
 
 describe("template builders", () => {
-  it("ordersRowsHtml marks selected rows, status pills and item pluralization", () => {
+  it("ordersRowsHtml marks selected rows, status pills, pluralization and links to the detail page", () => {
     const { orders } = sampleData();
-    const html = ordersRowsHtml(orders, new Set(["PG-202606140001"]), STATUS_LABELS);
+    const html = ordersRowsHtml(orders, new Set(["PG-202606140001"]), STATUS_LABELS, "/admin/pedidos/");
     expect(html).toContain("sel-row");
     expect(html).toContain("st-awaiting_payment");
     expect(html).toContain("2 itens");
     expect(html).toContain("1 item");
+    expect(html).toContain('href="/admin/pedidos/PG-202606140001"');
   });
 
   it("clientsRowsHtml renders situação tags, masks contact data and dashes a missing city", () => {

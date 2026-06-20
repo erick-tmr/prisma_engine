@@ -1,0 +1,138 @@
+require "test_helper"
+
+module Admin
+  class OrderPresenterTest < ActiveSupport::TestCase
+    # Builds an order in any status by walking the real transition graph, with a
+    # shipment so the address/payment/tracking methods have something to read.
+    PATHS = {
+      "awaiting_payment"    => [],
+      "payment_confirmed"   => %w[payment_confirmed],
+      "awaiting_components" => %w[payment_confirmed awaiting_components],
+      "in_production"       => %w[payment_confirmed in_production],
+      "production_issue"    => %w[payment_confirmed in_production production_issue],
+      "label_issued"        => %w[payment_confirmed in_production label_issued],
+      "shipped"             => %w[payment_confirmed in_production label_issued shipped],
+      "delivered"           => %w[payment_confirmed in_production label_issued shipped delivered],
+      "awaiting_refund"     => %w[payment_confirmed awaiting_refund],
+      "cancelled"           => %w[cancelled]
+    }.freeze
+
+    def order_in(status, service: "pac")
+      order = Order.create!(user: users(:confirmed), subtotal_cents: 32_000, total_cents: 34_990)
+      Shipment.create!(
+        order: order, service: service, shipping_cents: 2_990,
+        receiver_name: "Cliente Confirmado", receiver_cpf: "52998224725", zip: "01310100",
+        street: "Rua das Flores", number: "150", neighborhood: "Centro", city: "São Paulo", state: "SP"
+      )
+      PATHS.fetch(status).each { |step| order.transition_to!(step) }
+      OrderPresenter.new(order.reload)
+    end
+
+    test "delegates raw order data" do
+      presenter = order_in("payment_confirmed")
+      assert_match(/\APG-/, presenter.number)
+      assert_equal "payment_confirmed", presenter.status
+      assert_equal "Pagamento confirmado", presenter.status_label
+      assert_equal 2_990, presenter.shipping_cents
+      assert_equal "PAC", presenter.shipping_service_label
+    end
+
+    test "shipping_service_label maps the Correios service code" do
+      assert_equal "SEDEX", order_in("payment_confirmed", service: "sedex").shipping_service_label
+    end
+
+    test "status_description is the admin-facing copy" do
+      assert_equal I18n.t("admin.orders.states.in_production.description"),
+                   order_in("in_production").status_description
+    end
+
+    test "available_actions for payment_confirmed: a primary move and a plain one, no confirm" do
+      actions = order_in("payment_confirmed").available_actions
+      assert_equal %w[to_production to_components], actions.map { |a| a[:id] }
+      assert_equal "act-btn primary", actions.first[:button_class]
+      assert_equal "act-btn", actions.second[:button_class]
+      assert_equal({}, actions.first[:form_data])
+      assert_equal "Em produção", actions.first[:target_label]
+    end
+
+    test "available_actions for awaiting_payment: a danger cancel carrying a confirm prompt" do
+      action = order_in("awaiting_payment").available_actions.sole
+      assert_equal "cancel", action[:id]
+      assert_equal "act-btn danger", action[:button_class]
+      assert_includes action[:form_data][:confirm], "Cancelar o pedido"
+    end
+
+    test "available_actions is empty for terminal/automatic states" do
+      %w[label_issued shipped delivered cancelled].each do |status|
+        assert_empty order_in(status).available_actions, status
+      end
+    end
+
+    test "auto_next_note is present only for automatic-next states" do
+      assert_equal I18n.t("admin.orders.auto_next.delivered"), order_in("delivered").auto_next_note
+      assert_nil order_in("in_production").auto_next_note
+    end
+
+    test "label_printable? follows a ready stored label" do
+      assert OrderPresenter.new(orders(:labeled)).label_printable?
+      assert_not order_in("in_production").label_printable?
+    end
+
+    test "lifecycle on the happy path marks done/current/upcoming without a branch" do
+      steps = order_in("in_production").lifecycle
+      assert_equal 6, steps.size
+      assert_equal %w[done done current upcoming upcoming upcoming], steps.map(&:classes)
+      assert_equal I18n.t("admin.orders.lifecycle.auto_webhook"), steps.second.auto_note
+      assert_nil steps.first.auto_note
+    end
+
+    test "lifecycle inserts a branch step for a non-linear state" do
+      steps = order_in("production_issue").lifecycle
+      branch = steps.find { |step| step.classes == "branch current" }
+      assert_not_nil branch
+      assert_equal "Problema na produção", branch.label
+    end
+
+    test "history is newest-first and labels actor vs automatic" do
+      presenter = order_in("awaiting_payment")
+      presenter.order.transition_to!("payment_confirmed", actor: users(:admin))
+      history = OrderPresenter.new(presenter.order.reload).history
+
+      assert_equal "payment_confirmed", history.first[:status]
+      assert_equal I18n.t("admin.orders.detail.by", name: users(:admin).full_name), history.first[:by]
+      assert_equal I18n.t("admin.orders.detail.automatic"), history.last[:by]
+    end
+
+    test "payment badge for a paid Pix order" do
+      presenter = order_in("payment_confirmed")
+      presenter.order.update!(payment_method: "pix")
+      payment = OrderPresenter.new(presenter.order.reload).payment
+
+      assert_equal "Pix", payment.method_label
+      assert_equal "bi-qr-code", payment.icon
+      assert_equal "paid", payment.status_class
+      assert_equal "bi-check-circle-fill", payment.status_icon
+    end
+
+    test "payment badge for an unpaid order falls back to pending" do
+      payment = order_in("awaiting_payment").payment
+      assert_equal "Aguardando pagamento", payment.method_label
+      assert_equal "bi-wallet2", payment.icon
+      assert_equal "pending", payment.status_class
+      assert_equal "bi-hourglass-split", payment.status_icon
+    end
+
+    test "customer contact details are formatted" do
+      presenter = order_in("payment_confirmed")
+      assert_equal "111.444.777-35", presenter.customer_cpf
+      assert_equal "(11) 99999-8888", presenter.customer_phone
+      assert_includes 0..7, presenter.avatar_tint_index
+    end
+
+    test "tracking events come newest-first from the shipment" do
+      presenter = OrderPresenter.new(orders(:shipped_order))
+      events = presenter.tracking_events
+      assert_equal %w[DO PO], events.map(&:event_code)
+    end
+  end
+end

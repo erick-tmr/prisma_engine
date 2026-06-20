@@ -188,6 +188,46 @@ class OrderTest < ActiveSupport::TestCase
     assert order.payment_confirmed?
   end
 
+  test "creating an order records an initial automatic status change" do
+    order = build_order
+    order.save!
+    change = order.status_changes.sole
+    assert_nil change.from_status
+    assert_equal "awaiting_payment", change.to_status
+    assert change.automatic
+    assert_nil change.actor
+  end
+
+  test "transition_to! records the move with the acting operator" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.transition_to!("in_production", actor: users(:admin))
+    change = order.status_changes.chronological.last
+    assert_equal "payment_confirmed", change.from_status
+    assert_equal "in_production", change.to_status
+    assert_equal users(:admin), change.actor
+    assert_not change.automatic
+  end
+
+  test "transition_to! can flag an automatic move with no actor" do
+    order = build_order
+    order.save!
+    order.confirm_payment!(automatic: true)
+    change = order.status_changes.chronological.last
+    assert_equal "payment_confirmed", change.to_status
+    assert change.automatic
+    assert_nil change.actor
+  end
+
+  test "a refused transition records no status change" do
+    order = build_order
+    order.save!
+    assert_no_difference -> { order.status_changes.count } do
+      assert_raises(Order::InvalidTransition) { order.transition_to!("delivered") }
+    end
+  end
+
   test "an order cannot be destroyed — it is kept for history" do
     order = build_order
     order.save!

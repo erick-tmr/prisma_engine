@@ -1,12 +1,12 @@
 <% content_for :title, t("admin.dashboard.title") %>
 <% content_for :head do %>
   <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
-  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-dashboard" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-dashboard" %>
 <% end %>
 
 <div class="app-rainbow" aria-hidden="true"></div>
 
-<div class="app" data-dashboard="<%= @dashboard.to_json %>">
+<div class="app" data-dashboard="<%= @dashboard.to_json %>" data-order-base="/admin/pedidos/">
   <aside class="sidebar">
     <div class="sb-brand">
       <span class="sb-word"><%= t("admin.dashboard.brand") %></span>

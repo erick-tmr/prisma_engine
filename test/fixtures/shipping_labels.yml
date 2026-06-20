@@ -1,0 +1,7 @@
+# state: 3 == ready (see ShippingLabel enum). pdf_base64 decodes to "%PDF-1.4".
+labeled:
+  shipment: labeled
+  state: 3
+  recibo_id: "REC-202606070005"
+  filename: "etiqueta-PG-202606070005.pdf"
+  pdf_base64: "JVBERi0xLjQK"

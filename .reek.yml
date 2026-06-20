@@ -17,6 +17,11 @@ detectors:
   LongParameterList:
     max_params: 4         # 4 keyword args is a clean request shape, not a smell —
                           # 5+ is where the smell genuinely lives (cf. Sandi Metz)
+  TooManyConstants:
+    exclude:
+      - Admin::OrderPresenter   # a view-model: small display lookup tables (status flow,
+                                # branch anchors, service/payment label + icon maps) are
+                                # cohesive presentation config, not a god object.
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms
   UtilityFunction:
