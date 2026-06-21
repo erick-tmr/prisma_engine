@@ -40,7 +40,7 @@ class Product < ApplicationRecord
   def image
     photo = product_photos.in_display_order.first
     if photo&.image&.attached?
-      Rails.application.routes.url_helpers.rails_blob_path(photo.image, only_path: true)
+      Storefront::ImageSource.call(photo.image)
     else
       legacy_image_path
     end

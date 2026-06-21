@@ -39,6 +39,9 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 2.0"
 
+# S3-compatible client for the Cloudflare R2 Active Storage service [https://github.com/aws/aws-sdk-ruby]
+gem "aws-sdk-s3", "~> 1.226", require: false
+
 # HTTP client for the Correios tracking (rastro) API [https://github.com/lostisland/faraday]
 gem "faraday", "~> 2.14"
 
