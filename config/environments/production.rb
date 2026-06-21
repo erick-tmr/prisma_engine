@@ -22,7 +22,9 @@ Rails.application.configure do
   # config.asset_host = "http://assets.example.com"
 
   # Store uploaded files on Cloudflare R2 object storage (see config/storage.yml).
-  config.active_storage.service = :r2
+  # Overridable so a production-mode boot without R2 credentials (the Lighthouse CI
+  # audit) can fall back to the local Disk service.
+  config.active_storage.service = (ENV["ACTIVE_STORAGE_SERVICE"].presence || "r2").to_sym
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
