@@ -6,7 +6,7 @@ Rails.application.configure do
     policy.script_src  :self
     policy.style_src   :self, :unsafe_inline
     policy.font_src    :self
-    policy.img_src     :self, :data
+    policy.img_src     :self, :data, *Array(ENV["R2_PUBLIC_HOST"].presence)
     policy.connect_src :self
     policy.object_src  :none
     policy.base_uri    :self

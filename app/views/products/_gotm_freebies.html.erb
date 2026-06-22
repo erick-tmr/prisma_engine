@@ -18,7 +18,7 @@
           <div class="free-card__media">
             <span class="free-card__num"><%= index + 1 %></span>
             <% if brinde.image.attached? %>
-              <img src="<%= rails_blob_path(brinde.image, only_path: true) %>" alt="<%= brinde.caption %>">
+              <img src="<%= Storefront::ImageSource.call(brinde.image) %>" alt="<%= brinde.caption %>">
             <% end %>
           </div>
           <div class="free-card__body">

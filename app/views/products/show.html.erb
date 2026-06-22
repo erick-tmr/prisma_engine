@@ -4,7 +4,7 @@
 <% end %>
 
 <% photos = @product.product_photos.in_display_order.select { |p| p.image.attached? } %>
-<% main_src = photos.first ? rails_blob_path(photos.first.image, only_path: true) : @product.image %>
+<% main_src = photos.first ? Storefront::ImageSource.call(photos.first.image) : @product.image %>
 
 <div class="pdp">
   <%= render "shared/breadcrumb",
@@ -25,7 +25,7 @@
       <% if photos.size > 1 %>
         <div class="gallery-thumbs">
           <% photos.each_with_index do |photo, index| %>
-            <% src = rails_blob_path(photo.image, only_path: true) %>
+            <% src = Storefront::ImageSource.call(photo.image) %>
             <button type="button" class="thumb<%= ' is-selected' if index.zero? %>" data-thumb data-src="<%= src %>">
               <img src="<%= src %>" alt="<%= photo.alt_text.presence || @product.title %>">
               <% if photo.alt_text.present? %><span class="thumb__tag"><%= photo.alt_text %></span><% end %>

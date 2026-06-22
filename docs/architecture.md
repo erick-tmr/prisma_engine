@@ -252,6 +252,49 @@ Also add `BreadcrumbList` and `Organization` schemas.
 - Descriptive `alt` text including product name
 - Serve via CDN
 
+### Object storage (Cloudflare R2)
+
+Product and brinde images are stored via Active Storage on Cloudflare R2 (S3-compatible)
+in **production**; dev and test stay on the local Disk service (test must stay offline).
+R2 has no egress fees, so the cost surface is Class B (read) operations on cache misses,
+and the Cloudflare CDN in front of a public bucket is the cost shield.
+
+**In the app (this repo):**
+
+- `config/storage.yml` `r2:` service uses the custom `ActiveStorage::Service::R2Service`
+  (`lib/active_storage/service/r2_service.rb`), a thin `S3Service` subclass that rewrites
+  public URLs to `R2_PUBLIC_HOST` and drops the `public-read` ACL R2 does not use. It sets
+  `force_path_style` and `when_required` checksums for R2 compatibility, and stamps
+  `Cache-Control: public, max-age=31536000, immutable` on upload (safe because Active
+  Storage keys are content-addressed, so a replaced image gets a new URL).
+- `Storefront::ImageSource.call(attachment)` returns the permanent CDN URL for a public
+  service, falling back to the same-origin `rails_blob_path` for Disk (dev/test), so the
+  strict CSP stays `:self` locally.
+- The CSP `img_src` adds `R2_PUBLIC_HOST` only when set (`content_security_policy.rb`).
+- Config via env (`R2_PUBLIC_HOST`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`,
+  `R2_SECRET_ACCESS_KEY`), documented in `.env.example`.
+
+**On Cloudflare (dashboard/Terraform, once per environment):**
+
+- Create the bucket (set a Location Hint), enable public access, bind the custom domain
+  (`cdn.prismagames.com.br`), and disable the `r2.dev` URL so all traffic flows through
+  the cache and WAF.
+- Set a CORS policy (allowed origin = the storefront domain).
+- Cache Rule: long edge TTL and **ignore the query string** in the cache key (kills
+  `?x=random` cache-busting).
+- Rate Limiting Rule (per IP) on the `cdn.` host, Hotlink protection (Referer), Bot Fight
+  Mode, brief caching of 404s, and a billing/usage alert.
+
+**Cutover (greenfield, no live data):** point production at `:r2`, then copy the existing
+blobs to the bucket with:
+
+```
+bin/rails runner 'Storage::BlobMigrator.new(destination: ActiveStorage::Blob.services.fetch(:r2), name: :r2).call'
+```
+
+`Storage::BlobMigrator` copies each blob to the destination service preserving
+key/checksum, skips ones already present, and stamps `service_name`.
+
 ### What to skip at this scale
 
 - Incremental Static Regeneration (only matters for 10k+ products)
