@@ -53,7 +53,10 @@
       <% end %>
 
       <% flash.each do |type, message| %>
-        <div class="od-flash od-flash--<%= type == "alert" ? "alert" : "ok" %>"><%= message %></div>
+        <div class="od-flash od-flash--<%= type == "alert" ? "alert" : "ok" %>" role="alert">
+          <span class="od-flash__msg"><%= message %></span>
+          <button type="button" class="od-flash__close" data-flash-close aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+        </div>
       <% end %>
 
       <div class="od-head">
