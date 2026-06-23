@@ -142,8 +142,7 @@
                     <span class="od-track-dot"></span>
                     <div class="od-track-body">
                       <div>
-                        <div class="desc"><%= event.description %></div>
-                        <div class="meta"><%= event.event_code %>/<%= event.event_type %></div>
+                        <div class="desc"><%= event.summary %></div>
                       </div>
                       <div class="time"><%= l(event.occurred_at, format: :short) %></div>
                     </div>

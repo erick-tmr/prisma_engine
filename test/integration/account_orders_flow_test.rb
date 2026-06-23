@@ -44,8 +44,9 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Seu pedido foi entregue/, body)
     assert_match(/Cor da carcaça: cristal/, body)
     assert_match(/Rastreamento/, body)
-    assert_match(%r{BDE/01}, body)
-    assert_match(%r{PO/01}, body)
+    assert_match(/Objeto entregue ao destinatário/, body)
+    assert_match(%r{Postado em São Paulo / SP}, body)
+    refute_match(%r{PO/01}, body)
     assert_match(/Pago/, body)
     assert_match(/Pix/, body)
     assert_select ".order-detail__track-item.is-current .desc", text: /entregue ao destinatário/
