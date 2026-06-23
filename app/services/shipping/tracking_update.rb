@@ -22,6 +22,17 @@ module Shipping
       new(shipment, events).apply
     end
 
+    # Distinct (code, type, sample description) the rastro has sent that
+    # EVENT_SIGNALS doesn't classify yet — the queue for cataloguing new
+    # lifecycle codes (e.g. the returned/extraviado family) from real data.
+    def self.uncatalogued_codes
+      ShipmentTrackingEvent
+        .group(:event_code, :event_type)
+        .pluck(:event_code, :event_type, "MIN(description)")
+        .reject { |code, type, _description| EVENT_SIGNALS.key?([ code, type ]) }
+        .map { |code, type, description| { code: code, type: type, description: description } }
+    end
+
     def initialize(shipment, events)
       @shipment = shipment
       @events = events
