@@ -18,6 +18,15 @@ class ShippingLabelTest < ActiveSupport::TestCase
     assert_nil @label.errored_at
   end
 
+  test "mark_prepost_confirmed! advances the state and clears any error" do
+    @label.record_error!("boom")
+    @label.mark_prepost_confirmed!
+
+    assert @label.prepost_confirmed?
+    assert_nil @label.error
+    assert_nil @label.errored_at
+  end
+
   test "mark_requested! stores the recibo id" do
     @label.mark_requested!("R-1")
 

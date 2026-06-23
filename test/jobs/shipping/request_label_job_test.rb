@@ -13,7 +13,7 @@ module Shipping
       @order = orders(:producing)
       @shipment = @order.shipment
       @shipment.update!(pre_post_id: "PR-9")
-      @label = @shipment.create_shipping_label!(state: :prepost_created)
+      @label = @shipment.create_shipping_label!(state: :prepost_confirmed)
     end
 
     teardown do

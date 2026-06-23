@@ -1,10 +1,14 @@
 class ShippingLabel < ApplicationRecord
   belongs_to :shipment
 
-  enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3 }
+  enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3, prepost_confirmed: 4 }
 
   def mark_prepost_created!
     update!(state: :prepost_created, error: nil, errored_at: nil)
+  end
+
+  def mark_prepost_confirmed!
+    update!(state: :prepost_confirmed, error: nil, errored_at: nil)
   end
 
   def mark_requested!(recibo_id)

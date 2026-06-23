@@ -22,6 +22,9 @@ detectors:
       - Admin::OrderPresenter   # a view-model: small display lookup tables (status flow,
                                 # branch anchors, service/payment label + icon maps) are
                                 # cohesive presentation config, not a god object.
+      - Shipping                # the shipping config namespace: services, package
+                                # dimensions, origin/card, and the pré-postagem poll
+                                # cadence are cohesive configuration, not a god object.
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms
   UtilityFunction:

@@ -16,4 +16,10 @@ module Shipping
   POSTAGE_CARD_NUMBER = "0076738043".freeze
 
   PACKAGE_OVERHEAD_GRAMS = 52
+
+  PREPOSTAGEM_INITIAL_DELAY = 10.seconds
+  PREPOSTAGEM_POLL_INTERVAL = 10.seconds
+  PREPOSTAGEM_MAX_POLL_ATTEMPTS = 18
+
+  PrePostagemPending = Class.new(StandardError)
 end
