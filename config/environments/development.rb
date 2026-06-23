@@ -31,6 +31,13 @@ Rails.application.configure do
   # Store uploaded files on Cloudflare R2 (dev bucket, see config/storage.yml).
   config.active_storage.service = :r2
 
+  # Run Active Job through Solid Queue locally (mirrors production) so the
+  # recurring scheduler in config/recurring.yml fires the Correios tracking poll
+  # without a deploy. Needs the queue database (bin/rails db:prepare) and the
+  # `jobs` process in Procfile.dev.
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
+
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 
