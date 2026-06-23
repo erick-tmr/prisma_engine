@@ -30,6 +30,39 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
     assert_equal 0, events.first.position
   end
 
+  test "advances the order through shipped to delivered when the parcel is delivered" do
+    order = orders(:labeled)
+    shipment = order.shipment
+    shipment.update!(tracking_code: "AD483393343BR")
+    stub_rastro(shipment.tracking_code, [ delivered, posted, label ])
+
+    SyncShipmentJob.perform_now(shipment.id)
+
+    order.reload
+    assert order.delivered?
+    last_two = order.status_changes.chronological.last(2)
+    assert_equal %w[shipped delivered], last_two.map(&:to_status)
+    assert last_two.all?(&:automatic)
+  end
+
+  test "leaves the order untouched when the object is invalid" do
+    order = orders(:labeled)
+    shipment = order.shipment
+    shipment.update!(tracking_code: "X7")
+    stub_request(:get, "#{BASE}/srorastro/v1/objetos/#{shipment.tracking_code}?resultado=T")
+      .to_return(
+        status: 200,
+        body: { "objetos" => [ { "codObjeto" => shipment.tracking_code,
+                                 "mensagem" => "SRO-019: Objeto inválido" } ] }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+    SyncShipmentJob.perform_now(shipment.id)
+
+    assert shipment.reload.tracking_unavailable?
+    assert order.reload.label_issued?
+  end
+
   test "is idempotent: a re-run updates in place without duplicating rows" do
     shipment = Shipment.create!(tracking_code: "AD483393343BR", order: orders(:awaiting))
     stub_rastro(shipment.tracking_code, [ delivered, posted, label ])

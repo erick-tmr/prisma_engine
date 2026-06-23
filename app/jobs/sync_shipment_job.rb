@@ -23,6 +23,7 @@ class SyncShipmentJob < ApplicationJob
 
     events = Correios::Api::Tracking.fetch(shipment.tracking_code)
     Shipping::TrackingUpdate.apply(shipment, events)
+    Shipping::OrderProgress.apply(shipment)
   rescue Correios::Api::InvalidObjectError => error
     shipment.mark_tracking_unavailable!(error.message)
   end

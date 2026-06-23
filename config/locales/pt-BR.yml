@@ -195,6 +195,9 @@ pt-BR:
         delivered:
           label: "Entregue"
           description: "Seu pedido foi entregue."
+        delivery_issue:
+          label: "Problema na entrega"
+          description: "Houve um problema na entrega do seu pedido. Entre em contato para resolvermos."
         awaiting_refund:
           label: "Aguardando reembolso"
           description: "Cancelamento solicitado. Estamos processando o reembolso do seu pagamento."
@@ -313,6 +316,9 @@ pt-BR:
         flag_issue: "Marcar problema"
         refund_done: "Reembolso processado"
         cancel: "Cancelar"
+        issue_refund: "Reembolsar"
+        reship: "Reenviar"
+        cancel_issue: "Cancelar pedido"
       situations:
         active: "Ativo"
         pending: "Pendente"
@@ -366,6 +372,8 @@ pt-BR:
           description: "Em trânsito. A entrega é confirmada automaticamente pelo rastreio dos Correios."
         delivered:
           description: "Pedido entregue ao cliente. Fluxo encerrado."
+        delivery_issue:
+          description: "Os Correios reportaram um problema na entrega (extravio ou devolução). Reenvie, reembolse ou cancele o pedido."
         awaiting_refund:
           description: "Cancelamento solicitado pelo cliente. Processe o reembolso para encerrar o pedido."
         cancelled:

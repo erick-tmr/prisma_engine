@@ -13,6 +13,7 @@ module Admin
       "label_issued"        => %w[payment_confirmed in_production label_issued],
       "shipped"             => %w[payment_confirmed in_production label_issued shipped],
       "delivered"           => %w[payment_confirmed in_production label_issued shipped delivered],
+      "delivery_issue"      => %w[payment_confirmed in_production label_issued shipped delivery_issue],
       "awaiting_refund"     => %w[payment_confirmed awaiting_refund],
       "cancelled"           => %w[cancelled]
     }.freeze
@@ -93,6 +94,25 @@ module Admin
       branch = steps.find { |step| step.classes == "branch current" }
       assert_not_nil branch
       assert_equal "Problema na produção", branch.label
+    end
+
+    test "available_actions for delivery_issue offers refund, reship and a danger cancel" do
+      actions = order_in("delivery_issue").available_actions
+      assert_equal %w[issue_refund reship cancel_issue], actions.map { |a| a[:id] }
+      cancel = actions.find { |a| a[:id] == "cancel_issue" }
+      assert_equal "act-btn danger", cancel[:button_class]
+      assert_includes cancel[:form_data][:confirm], "Cancelar o pedido"
+    end
+
+    test "lifecycle inserts a delivery problem branch step" do
+      steps = order_in("delivery_issue").lifecycle
+      branch = steps.find { |step| step.classes == "branch current" }
+      assert_equal "Problema na entrega", branch.label
+    end
+
+    test "status_description for delivery_issue is the admin copy" do
+      assert_equal I18n.t("admin.orders.states.delivery_issue.description"),
+                   order_in("delivery_issue").status_description
     end
 
     test "history is newest-first and labels actor vs automatic" do

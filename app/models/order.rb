@@ -24,6 +24,7 @@ class Order < ApplicationRecord
     label_issued
     shipped
     delivered
+    delivery_issue
     awaiting_refund
     cancelled
   ].freeze
@@ -37,8 +38,9 @@ class Order < ApplicationRecord
     "in_production"       => %w[label_issued production_issue],
     "production_issue"    => %w[in_production],
     "label_issued"        => %w[shipped],
-    "shipped"             => %w[delivered],
+    "shipped"             => %w[delivered delivery_issue],
     "delivered"           => [],
+    "delivery_issue"      => %w[awaiting_refund shipped cancelled],
     "awaiting_refund"     => %w[cancelled],
     "cancelled"           => %w[payment_confirmed]
   }.freeze
