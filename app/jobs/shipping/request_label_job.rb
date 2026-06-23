@@ -3,7 +3,7 @@ module Shipping
     private
 
     def applicable?(label)
-      label.prepost_created?
+      label.prepost_confirmed?
     end
 
     def run(shipment, label)

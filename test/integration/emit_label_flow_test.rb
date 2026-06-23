@@ -22,6 +22,7 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
 
   test "runs the full saga and moves the order to label_issued with a stored PDF" do
     stub_prepostagem
+    stub_status(2)
     stub_rotulo
     stub_download
 
@@ -39,12 +40,14 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
 
   test "resumes from the failed step without redoing completed steps" do
     stub_prepostagem
+    stub_status(2)
     stub_request(:post, ROTULO).to_return(status: 400, body: "bad request")
 
     @order.shipment.create_shipping_label!
     Shipping::CreatePrePostagemJob.perform_now(@order.id)
+    Shipping::ConfirmPrePostagemJob.perform_now(@order.id)
     label = @order.shipment.shipping_label
-    assert label.reload.prepost_created?
+    assert label.reload.prepost_confirmed?
 
     assert_raises(Correios::Api::Error) { Shipping::RequestLabelJob.perform_now(@order.id) }
     assert label.reload.error.present?
@@ -64,6 +67,16 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
 
   def stub_prepostagem
     stub_request(:post, PREPOST).to_return(status: 201, body: prepost_body, headers: JSON_HEADERS)
+  end
+
+  def stub_status(status)
+    stub_request(:get, %r{/prepostagem/v2/prepostagens}).to_return(
+      status: 200,
+      body: { "itens" => [ { "codigoObjeto" => "AD999999999BR", "statusAtual" => status,
+                            "descStatusAtual" => "Pré-postado",
+                            "dataHoraStatusAtual" => "2026-06-20T10:00:01" } ] }.to_json,
+      headers: JSON_HEADERS
+    )
   end
 
   def stub_rotulo

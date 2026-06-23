@@ -14,8 +14,16 @@ module Shipping
       assert @order.shipment.shipping_label.pending?
     end
 
-    test "resumes step 2 from prepost_created" do
+    test "resumes into the confirmation poll from prepost_created" do
       @order.shipment.create_shipping_label!(state: :prepost_created)
+
+      assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ @order.id ]) do
+        Shipping::EmitLabel.resume(@order)
+      end
+    end
+
+    test "resumes the rótulo request from prepost_confirmed" do
+      @order.shipment.create_shipping_label!(state: :prepost_confirmed)
 
       assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
         Shipping::EmitLabel.resume(@order)

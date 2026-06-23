@@ -18,11 +18,11 @@ module Shipping
       ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
     end
 
-    test "creates the pré-postagem, advances the label and enqueues step 2" do
+    test "creates the pré-postagem, advances the label and enqueues the confirmation poll" do
       label = @shipment.create_shipping_label!
       stub_create
 
-      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+      assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ @order.id ]) do
         Shipping::CreatePrePostagemJob.perform_now(@order.id)
       end
 
