@@ -6,7 +6,9 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   setup do
     @shipment = shipments(:delivered)
     @shipment.tracking_events.create!(position: 1, event_code: "PO", event_type: "01",
-                                      description: "Postado em São Paulo / SP", occurred_at: 16.days.ago)
+                                      description: "Postado em São Paulo / SP", occurred_at: 16.days.ago,
+                                      payload: { "unidadeDestino" => { "tipo" => "Unidade de Tratamento",
+                                                                       "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } } })
     @shipment.tracking_events.create!(position: 2, event_code: "BDE", event_type: "01",
                                       description: "Objeto entregue ao destinatário", occurred_at: 11.days.ago)
   end
@@ -46,6 +48,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Rastreamento/, body)
     assert_match(/Objeto entregue ao destinatário/, body)
     assert_match(%r{Postado em São Paulo / SP}, body)
+    assert_match(/Destino: Unidade de Tratamento - SAO PAULO - SP/, body)
     refute_match(%r{PO/01}, body)
     assert_match(/Pago/, body)
     assert_match(/Pix/, body)

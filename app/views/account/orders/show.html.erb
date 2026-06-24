@@ -82,6 +82,9 @@
               <div class="order-detail__track-body">
                 <div>
                   <div class="desc"><%= event.summary %></div>
+                  <% if event.destination %>
+                    <div class="meta"><%= t("account.orders.show.destination") %>: <%= event.destination %></div>
+                  <% end %>
                 </div>
                 <div class="time"><%= l(event.occurred_at, format: :short) %></div>
               </div>

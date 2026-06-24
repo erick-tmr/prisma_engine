@@ -37,11 +37,18 @@ module Admin
 
     test "show renders the Correios timeline for a shipped order" do
       sign_in users(:admin)
+      orders(:shipped_order).shipment.tracking_events.create!(
+        position: 3, event_code: "RO", event_type: "01", description: "Objeto em trânsito",
+        occurred_at: 5.days.ago,
+        payload: { "unidadeDestino" => { "tipo" => "Unidade de Tratamento",
+                                         "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } } }
+      )
       get admin_order_path(orders(:shipped_order))
 
       assert_response :success
       assert_select ".od-track-item", minimum: 2
       assert_select ".od-track-item.is-current"
+      assert_select ".od-track .meta", text: "Destino: Unidade de Tratamento - SAO PAULO - SP"
     end
 
     test "show renders the printable label and the auto-next note for a label_issued order" do

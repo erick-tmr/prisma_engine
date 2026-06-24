@@ -24,4 +24,15 @@ class ShipmentTrackingEventTest < ActiveSupport::TestCase
     event = ShipmentTrackingEvent.new(event_code: "ZZ", event_type: "99", description: nil)
     assert_equal "ZZ/99", event.summary
   end
+
+  test "destination reads the unit type, city and UF from the payload" do
+    event = ShipmentTrackingEvent.new(payload: {
+      "unidadeDestino" => { "tipo" => "Unidade de Tratamento", "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } }
+    })
+    assert_equal "Unidade de Tratamento - SAO PAULO - SP", event.destination
+  end
+
+  test "destination is nil when the event carries no destination unit" do
+    assert_nil ShipmentTrackingEvent.new(payload: {}).destination
+  end
 end
