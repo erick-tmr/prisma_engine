@@ -37,9 +37,14 @@ module Admin
 
     test "show renders the Correios timeline for a shipped order" do
       sign_in users(:admin)
-      orders(:shipped_order).shipment.tracking_events.create!(
-        position: 3, event_code: "RO", event_type: "01", description: "Objeto em trânsito",
-        occurred_at: 5.days.ago,
+      shipment = orders(:shipped_order).shipment
+      shipment.tracking_events.create!(
+        position: 3, event_code: "PO", event_type: "01", description: "Objeto postado", occurred_at: 7.days.ago,
+        payload: { "unidade" => { "tipo" => "Agência dos Correios",
+                                  "endereco" => { "cidade" => "CAMBUI", "uf" => "MG" } } }
+      )
+      shipment.tracking_events.create!(
+        position: 4, event_code: "RO", event_type: "01", description: "Objeto em trânsito", occurred_at: 5.days.ago,
         payload: { "unidadeDestino" => { "tipo" => "Unidade de Tratamento",
                                          "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } } }
       )
@@ -48,6 +53,7 @@ module Admin
       assert_response :success
       assert_select ".od-track-item", minimum: 2
       assert_select ".od-track-item.is-current"
+      assert_select ".od-track .meta", text: "Agência dos Correios - CAMBUI - MG"
       assert_select ".od-track .meta", text: "Destino: Unidade de Tratamento - SAO PAULO - SP"
     end
 

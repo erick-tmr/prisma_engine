@@ -82,6 +82,9 @@
               <div class="order-detail__track-body">
                 <div>
                   <div class="desc"><%= event.summary %></div>
+                  <% if event.posting_unit %>
+                    <div class="meta"><%= event.posting_unit %></div>
+                  <% end %>
                   <% if event.destination %>
                     <div class="meta"><%= t("account.orders.show.destination") %>: <%= event.destination %></div>
                   <% end %>

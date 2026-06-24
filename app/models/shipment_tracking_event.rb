@@ -1,17 +1,26 @@
 class ShipmentTrackingEvent < ApplicationRecord
   belongs_to :shipment
 
-  # Human-readable line for the tracking timeline: the Correios descrição, falling
-  # back to the raw code/type only for events that arrive without one.
+  POSTED = %w[PO 01].freeze
+
   def summary
     description.presence || "#{event_code}/#{event_type}"
   end
 
-  # Where the object is headed, for transfer events that carry a destination unit
-  # ("Tipo - CIDADE - UF"), or nil. Read straight from the stored rastro payload;
-  # Correios sends the city uppercase, so we surface it as-is.
   def destination
-    unit = payload["unidadeDestino"].to_h
+    unit_location(payload["unidadeDestino"])
+  end
+
+  def posting_unit
+    return unless [ event_code, event_type ] == POSTED
+
+    unit_location(payload["unidade"])
+  end
+
+  private
+
+  def unit_location(unit)
+    unit = unit.to_h
     return if unit.blank?
 
     address = unit["endereco"].to_h

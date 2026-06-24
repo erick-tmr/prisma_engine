@@ -35,4 +35,18 @@ class ShipmentTrackingEventTest < ActiveSupport::TestCase
   test "destination is nil when the event carries no destination unit" do
     assert_nil ShipmentTrackingEvent.new(payload: {}).destination
   end
+
+  test "posting_unit is the receiving agency on the posted event" do
+    event = ShipmentTrackingEvent.new(event_code: "PO", event_type: "01", payload: {
+      "unidade" => { "tipo" => "Agência dos Correios", "endereco" => { "cidade" => "CAMBUI", "uf" => "MG" } }
+    })
+    assert_equal "Agência dos Correios - CAMBUI - MG", event.posting_unit
+  end
+
+  test "posting_unit is nil for events other than Objeto postado" do
+    event = ShipmentTrackingEvent.new(event_code: "BDE", event_type: "01", payload: {
+      "unidade" => { "tipo" => "Unidade de Distribuição", "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } }
+    })
+    assert_nil event.posting_unit
+  end
 end
