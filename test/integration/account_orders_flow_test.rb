@@ -60,6 +60,14 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_select ".order-detail__track-item.is-current .desc", text: /entregue ao destinatário/
   end
 
+  test "tracking times render in Brasília time, not UTC" do
+    sign_in users(:confirmed)
+    @shipment.tracking_events.create!(position: 9, event_code: "OEC", event_type: "01",
+                                      description: "Saiu para entrega", occurred_at: Time.utc(2026, 6, 23, 12, 42, 48))
+    get account_order_path(orders(:delivered))
+    assert_match(%r{23/06 09:42}, response.body)
+  end
+
   test "show on an in-production order omits tracking and the cancel button" do
     sign_in users(:confirmed)
     get account_order_path(orders(:producing))
