@@ -105,6 +105,19 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
     assert_match(/unmapped event code=ZZ type=99/, log)
   end
 
+  test "treats a failed delivery attempt (BDE/20) as transient in-transit, not delivered or unmapped" do
+    shipment = Shipment.create!(tracking_code: "X7", order: orders(:awaiting))
+    attempt = evento("BDE", "20", "2026-05-24T10:00:00", "Objeto não entregue - carteiro não atendido")
+    stub_rastro(shipment.tracking_code, [ attempt, posted ])
+
+    log = capture_log { SyncShipmentJob.perform_now(shipment.id) }
+
+    shipment.reload
+    assert shipment.tracking_in_transit?
+    assert_not shipment.tracking_delivered?
+    assert_no_match(/unmapped event code=BDE/, log)
+  end
+
   test "delivered_at stays the delivery event's time even when a later event follows" do
     shipment = Shipment.create!(tracking_code: "X5", order: orders(:awaiting))
     receipt = evento("PMT", "01", "2026-05-24T08:00:00", "Comprovante de entrega disponível")
