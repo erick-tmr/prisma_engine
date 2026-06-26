@@ -23,6 +23,12 @@ module Admin
       Action.new(id: "refund_done", from: %w[awaiting_refund],
                  to: "cancelled", icon: "bi-cash-coin", danger: false, saga: false),
       Action.new(id: "cancel", from: %w[awaiting_payment],
+                 to: "cancelled", icon: "bi-x-circle", danger: true, saga: false),
+      Action.new(id: "issue_refund", from: %w[delivery_issue],
+                 to: "awaiting_refund", icon: "bi-arrow-counterclockwise", danger: false, saga: false),
+      Action.new(id: "reship", from: %w[delivery_issue],
+                 to: "shipped", icon: "bi-truck", danger: false, saga: false),
+      Action.new(id: "cancel_issue", from: %w[delivery_issue],
                  to: "cancelled", icon: "bi-x-circle", danger: true, saga: false)
     ].freeze
 

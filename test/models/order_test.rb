@@ -12,6 +12,15 @@ class OrderTest < ActiveSupport::TestCase
     Order.new(base_attrs(overrides).merge(user: users(:confirmed)))
   end
 
+  def order_in_delivery_issue
+    order = build_order
+    order.save!
+    %w[payment_confirmed in_production label_issued shipped delivery_issue].each do |step|
+      order.transition_to!(step)
+    end
+    order
+  end
+
   test "a fully-populated record is valid and starts awaiting payment" do
     order = build_order
     assert order.valid?, order.errors.full_messages.to_sentence
@@ -186,6 +195,24 @@ class OrderTest < ActiveSupport::TestCase
     order.cancel!
     order.transition_to!("payment_confirmed")
     assert order.payment_confirmed?
+  end
+
+  test "a shipped order can branch to delivery_issue" do
+    order = order_in_delivery_issue
+    assert order.delivery_issue?
+  end
+
+  test "delivery_issue resolves to refund, reship or cancel" do
+    %w[awaiting_refund shipped cancelled].each do |target|
+      order = order_in_delivery_issue
+      order.transition_to!(target)
+      assert_equal target, order.status
+    end
+  end
+
+  test "delivery_issue refuses a non-resolution edge" do
+    order = order_in_delivery_issue
+    assert_raises(Order::InvalidTransition) { order.transition_to!("delivered") }
   end
 
   test "creating an order records an initial automatic status change" do

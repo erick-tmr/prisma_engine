@@ -10,6 +10,7 @@ module Admin
     BRANCH_ANCHOR = {
       "awaiting_components" => "payment_confirmed",
       "production_issue"    => "in_production",
+      "delivery_issue"      => "shipped",
       "awaiting_refund"     => "payment_confirmed",
       "cancelled"           => "awaiting_payment"
     }.freeze

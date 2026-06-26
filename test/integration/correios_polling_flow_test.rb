@@ -16,10 +16,12 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
     ENV["CORREIOS_API_TOKEN"] = @prev_token
   end
 
-  test "pré-postagem then polling delivers the shipment and records its events" do
-    shipment = orders(:awaiting).shipment
+  test "pré-postagem then polling delivers the shipment and advances the order" do
+    order = orders(:awaiting)
+    shipment = order.shipment
     Shipping::ShipmentFactory.update_from_pre_postagem(shipment, pre_post_payload)
     code = shipment.reload.tracking_code
+    walk_to_label_issued(order)
 
     stub_request(:get, "#{BASE}/srorastro/v1/objetos/#{code}?resultado=T")
       .to_return(status: 200, body: rastro_body(code),
@@ -33,9 +35,21 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
     assert shipment.tracking_delivered?
     assert_equal "Objeto entregue ao destinatário", shipment.last_tracking_status
     assert_equal %w[PO BDE], shipment.tracking_events.order(:position).map(&:event_code)
+
+    order.reload
+    assert order.delivered?
+    last_two = order.status_changes.chronological.last(2)
+    assert_equal %w[shipped delivered], last_two.map(&:to_status)
+    assert last_two.all?(&:automatic)
   end
 
   private
+
+  def walk_to_label_issued(order)
+    order.confirm_payment!
+    order.transition_to!("in_production")
+    order.transition_to!("label_issued")
+  end
 
   def pre_post_payload
     {
