@@ -225,6 +225,7 @@ pt-BR:
           paid: "Pago"
           pending: "Pagamento pendente"
         tracking: "Rastreamento"
+        destination: "Destino"
         cancel: "Cancelar pedido"
   admin:
     sessions:
@@ -342,6 +343,7 @@ pt-BR:
         payment_confirmed: "Pagamento confirmado"
         payment_pending: "Aguardando pagamento"
         tracking: "Rastreamento Correios"
+        destination: "Destino"
         history: "Histórico de status"
         status_section: "Status do pedido"
         current_status: "Status atual"

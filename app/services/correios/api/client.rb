@@ -2,15 +2,10 @@ require "faraday"
 
 module Correios
   module Api
-    # Shared HTTP plumbing for the Correios::Api clients (Tracking, PrePostagem,
-    # CEP, …): one Faraday connection to Correios::Api::BASE_URL, the same
-    # timeouts, a single status check that maps 429/5xx onto the retryable
-    # TransientError, and a full request/response trace to log/correios-poll.log
-    # with the Bearer credential redacted so it never reaches disk.
     module Client
       OPEN_TIMEOUT = 5
       READ_TIMEOUT = 15
-      LOG_PATH = Rails.root.join("log", "correios-poll.log")
+      LOG_PATH = Rails.root.join("log", "correios-poll.#{Rails.env}.log")
       REDACT_BEARER = [ /(Bearer )[^"\s]+/, '\1[REDACTED]' ].freeze
 
       def self.request_logger

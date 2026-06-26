@@ -6,8 +6,14 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   setup do
     @shipment = shipments(:delivered)
     @shipment.tracking_events.create!(position: 1, event_code: "PO", event_type: "01",
-                                      description: "Postado em São Paulo / SP", occurred_at: 16.days.ago)
-    @shipment.tracking_events.create!(position: 2, event_code: "BDE", event_type: "01",
+                                      description: "Postado em São Paulo / SP", occurred_at: 16.days.ago,
+                                      payload: { "unidade" => { "tipo" => "Agência dos Correios",
+                                                                "endereco" => { "cidade" => "CAMBUI", "uf" => "MG" } } })
+    @shipment.tracking_events.create!(position: 2, event_code: "RO", event_type: "01",
+                                      description: "Objeto em trânsito, por favor aguarde", occurred_at: 13.days.ago,
+                                      payload: { "unidadeDestino" => { "tipo" => "Unidade de Tratamento",
+                                                                       "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } } })
+    @shipment.tracking_events.create!(position: 3, event_code: "BDE", event_type: "01",
                                       description: "Objeto entregue ao destinatário", occurred_at: 11.days.ago)
   end
 
@@ -44,11 +50,22 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Seu pedido foi entregue/, body)
     assert_match(/Cor da carcaça: cristal/, body)
     assert_match(/Rastreamento/, body)
-    assert_match(%r{BDE/01}, body)
-    assert_match(%r{PO/01}, body)
+    assert_match(/Objeto entregue ao destinatário/, body)
+    assert_match(%r{Postado em São Paulo / SP}, body)
+    assert_match(/Agência dos Correios - CAMBUI - MG/, body)
+    assert_match(/Destino: Unidade de Tratamento - SAO PAULO - SP/, body)
+    refute_match(%r{PO/01}, body)
     assert_match(/Pago/, body)
     assert_match(/Pix/, body)
     assert_select ".order-detail__track-item.is-current .desc", text: /entregue ao destinatário/
+  end
+
+  test "tracking times render in Brasília time, not UTC" do
+    sign_in users(:confirmed)
+    @shipment.tracking_events.create!(position: 9, event_code: "OEC", event_type: "01",
+                                      description: "Saiu para entrega", occurred_at: Time.utc(2026, 6, 23, 12, 42, 48))
+    get account_order_path(orders(:delivered))
+    assert_match(%r{23/06 09:42}, response.body)
   end
 
   test "show on an in-production order omits tracking and the cancel button" do
