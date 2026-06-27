@@ -1,14 +1,14 @@
 module Admin
   class ProductionReportsController < BaseController
     def new
-      @presenter = build_presenter
+      @presenter = ProductionReportPresenter.new(orders: eligible_orders, from: period_param(:de), to: period_param(:ate))
     end
 
     def create
-      orders = build_presenter.orders
+      orders = eligible_orders
       return redirect_to(admin_production_report_path(period_params), alert: t("admin.production_report.none")) if orders.empty?
 
-      batch = send_to_production(orders)
+      batch = Production::SendBatch.call(orders: orders, operator: current_user, from: period_param(:de), to: period_param(:ate))
       redirect_to admin_production_report_batch_path(batch)
     end
 
@@ -20,19 +20,8 @@ module Admin
 
     private
 
-    def send_to_production(orders)
-      Order.transaction do
-        batch = ProductionBatch.create!(
-          operator: current_user, period_from: period_param(:de), period_to: period_param(:ate), orders_count: orders.size
-        )
-        orders.each { |order| order.transition_to!("in_production", actor: current_user) }
-        Order.where(id: orders.map(&:id)).update_all(production_batch_id: batch.id)
-        batch
-      end
-    end
-
-    def build_presenter
-      ProductionReportPresenter.new(from: period_param(:de), to: period_param(:ate))
+    def eligible_orders
+      Production::EligibleOrders.within(from: period_param(:de), to: period_param(:ate))
     end
 
     def period_param(key)

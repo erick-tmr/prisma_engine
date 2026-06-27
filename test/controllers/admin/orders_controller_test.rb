@@ -177,5 +177,14 @@ module Admin
 
       assert_response :not_found
     end
+
+    test "the order detail renders the shared backoffice nav, including the reports tab" do
+      sign_in users(:admin)
+      get admin_order_path(orders(:producing))
+
+      assert_response :success
+      assert_select "aside.sidebar a.sb-link[data-view=?]", "reports"
+      assert_select "aside.sidebar a.sb-link[href=?]", admin_root_path(view: "reports")
+    end
   end
 end

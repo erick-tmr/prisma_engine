@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   STATUS_COLORS, ACTIONS, AVATAR_TINTS, SITUATION_TAGS, PRESETS, MONTHS_LONG,
-  escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural,
+  escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural, pickView,
   sameDay, startOfMonth, addMonths, applyPreset, monthCells,
   filterOrders, sortOrders, affectedBy, availableActions, applyAction, productionReportUrl,
   filterClients, sortClients,
@@ -99,6 +99,13 @@ describe("formatting helpers", () => {
   it("plural picks the singular only for 1", () => {
     expect(plural(1, "pedido", "pedidos")).toBe("pedido");
     expect(plural(2, "pedido", "pedidos")).toBe("pedidos");
+  });
+
+  it("pickView keeps a known sidebar view and falls back to orders", () => {
+    expect(pickView("reports")).toBe("reports");
+    expect(pickView("clients")).toBe("clients");
+    expect(pickView(null)).toBe("orders");
+    expect(pickView("bogus")).toBe("orders");
   });
 });
 

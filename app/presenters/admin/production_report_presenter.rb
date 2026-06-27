@@ -1,23 +1,21 @@
 module Admin
   class ProductionReportPresenter
-    ELIGIBLE_STATUSES = OrderActions.lookup("to_production").from
-
     Row = Data.define(:seq, :customer, :number, :placed_on, :items)
     Item = Data.define(:quantity, :name, :variants)
 
     def self.for_batch(batch)
       orders = batch.orders.includes(:user, order_items: { product: :category }).order(created_at: :asc)
-      new(from: batch.period_from, to: batch.period_to, orders: orders)
+      new(orders: orders, from: batch.period_from, to: batch.period_to)
     end
 
-    def initialize(from: nil, to: nil, orders: nil)
+    def initialize(orders:, from: nil, to: nil)
+      @relation = orders
       @from = from
       @to = to
-      @explicit_orders = orders
     end
 
     def orders
-      @orders ||= (@explicit_orders || scope).to_a
+      @orders ||= @relation.to_a
     end
 
     def count
@@ -44,28 +42,6 @@ module Admin
     end
 
     private
-
-    def scope
-      relation = Order.where(status: ELIGIBLE_STATUSES)
-                      .where(id: OrderItem.games.select(:order_id))
-                      .includes(:user, order_items: { product: :category })
-                      .order(created_at: :asc)
-      period_range ? relation.where(created_at: period_range) : relation
-    end
-
-    def period_range
-      return unless @from || @to
-
-      start_bound..end_bound
-    end
-
-    def start_bound
-      @from.in_time_zone.beginning_of_day if @from
-    end
-
-    def end_bound
-      @to.in_time_zone.end_of_day if @to
-    end
 
     def build_row(order, index)
       Row.new(

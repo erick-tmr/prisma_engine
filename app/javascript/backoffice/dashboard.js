@@ -106,6 +106,13 @@ export function plural(n, one, many) {
   return n === 1 ? one : many;
 }
 
+// The sidebar links carry ?view=, so landing from another admin page (e.g. the
+// order detail) opens the right tab. Unknown values fall back to orders.
+export const VIEWS = ["orders", "clients", "reports"];
+export function pickView(value) {
+  return VIEWS.includes(value) ? value : "orders";
+}
+
 // ── Date math ────────────────────────────────────────────────────────────────
 export function sameDay(a, b) {
   return Boolean(a) && Boolean(b) &&
@@ -713,7 +720,7 @@ export function initDashboard(root, data, today) {
   renderOrders();
   renderClients();
   renderReports();
-  switchView("orders");
+  switchView(pickView(new URLSearchParams(window.location.search).get("view")));
 
   return function destroy() {
     document.removeEventListener("click", onDocClick);

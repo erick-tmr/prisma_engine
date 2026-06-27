@@ -7,47 +7,8 @@
 <div class="app-rainbow" aria-hidden="true"></div>
 
 <div class="app" data-dashboard="<%= @dashboard.to_json %>" data-order-base="/admin/pedidos/">
-  <aside class="sidebar">
-    <div class="sb-brand">
-      <span class="sb-word"><%= t("admin.dashboard.brand") %></span>
-      <span class="sb-tag"><%= t("admin.dashboard.tag") %></span>
-    </div>
-
-    <div class="sb-section"><%= t("admin.dashboard.section") %></div>
-    <nav class="sb-nav">
-      <a class="sb-link active" data-view="orders"
-         data-title="<%= t("admin.dashboard.views.orders.title") %>"
-         data-crumb="<%= t("admin.dashboard.views.orders.crumb") %>">
-        <i class="bi bi-receipt"></i> <%= t("admin.dashboard.nav.orders") %>
-        <span class="count"><%= @dashboard.orders.size %></span>
-      </a>
-      <a class="sb-link" data-view="clients"
-         data-title="<%= t("admin.dashboard.views.clients.title") %>"
-         data-crumb="<%= t("admin.dashboard.views.clients.crumb") %>">
-        <i class="bi bi-people"></i> <%= t("admin.dashboard.nav.clients") %>
-        <span class="count"><%= @dashboard.clients.size %></span>
-      </a>
-      <a class="sb-link" data-view="reports"
-         data-title="<%= t("admin.dashboard.views.reports.title") %>"
-         data-crumb="<%= t("admin.dashboard.views.reports.crumb") %>">
-        <i class="bi bi-printer"></i> <%= t("admin.dashboard.nav.reports") %>
-        <span class="count"><%= @dashboard.reports.size %></span>
-      </a>
-    </nav>
-
-    <div class="sb-foot">
-      <div class="sb-user">
-        <div class="sb-avatar"><%= account_avatar_initials(current_user.full_name) %></div>
-        <div class="sb-user-meta">
-          <div class="nm"><%= current_user.full_name %></div>
-          <div class="rl"><%= t("admin.dashboard.role") %></div>
-        </div>
-      </div>
-      <%= button_to admin_logout_path, method: :delete, class: "sb-signout" do %>
-        <i class="bi bi-box-arrow-left"></i> <%= t("admin.dashboard.signout") %>
-      <% end %>
-    </div>
-  </aside>
+  <%= render "admin/sidebar", active: "orders",
+        counts: { "orders" => @dashboard.orders.size, "clients" => @dashboard.clients.size, "reports" => @dashboard.reports.size } %>
 
   <div class="main">
     <header class="topbar">
