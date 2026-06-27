@@ -38,4 +38,19 @@ class OrderItemTest < ActiveSupport::TestCase
   test "product is optional — the snapshot stands without a catalog link" do
     assert build_item(product: nil).valid?
   end
+
+  test "game? is true for a catalog game, false for an accessory or a detached snapshot" do
+    assert build_item(product: products(:metroid)).game?
+    assert_not build_item(product: products(:game_box)).game?
+    assert_not build_item(product: nil).game?
+  end
+
+  test "the games scope keeps cartridges and drops accessory items" do
+    order.order_items.create!(name: "Metroid", unit_price_cents: 1, quantity: 1, product: products(:metroid))
+    order.order_items.create!(name: "Caixa", unit_price_cents: 1, quantity: 1, product: products(:game_box))
+
+    names = order.order_items.games.pluck(:name)
+    assert_includes names, "Metroid"
+    assert_not_includes names, "Caixa"
+  end
 end

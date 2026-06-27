@@ -40,7 +40,10 @@ module Admin
     private
 
     def scope
-      relation = Order.where(status: ELIGIBLE_STATUSES).includes(:user, :order_items).order(created_at: :asc)
+      relation = Order.where(status: ELIGIBLE_STATUSES)
+                      .where(id: OrderItem.games.select(:order_id))
+                      .includes(:user, order_items: { product: :category })
+                      .order(created_at: :asc)
       period_range ? relation.where(created_at: period_range) : relation
     end
 
@@ -64,7 +67,7 @@ module Admin
         customer: order.user.full_name,
         number: order.number,
         placed_on: I18n.l(order.placed_at.to_date),
-        items: order.order_items.map { |item| build_item(item) }
+        items: order.order_items.select(&:game?).map { |item| build_item(item) }
       )
     end
 

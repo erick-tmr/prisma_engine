@@ -10,7 +10,8 @@ module Admin
         subtotal_cents: 1_000, total_cents: 1_000, created_at: created_at
       )
       items.each do |attrs|
-        order.order_items.create!({ name: "Cartucho", unit_price_cents: 1_000, quantity: 1, chosen_options: [] }.merge(attrs))
+        defaults = { product: products(:metroid), name: "Cartucho", unit_price_cents: 1_000, quantity: 1, chosen_options: [] }
+        order.order_items.create!(defaults.merge(attrs))
       end
       order
     end
@@ -27,6 +28,29 @@ module Admin
       assert_includes numbers, eligible.number
       assert_not_includes numbers, ineligible.number
       ProductionReportPresenter.new.orders.each { |order| assert_includes ELIGIBLE, order.status }
+    end
+
+    test "excludes orders that have no game items" do
+      games = make_order(status: "payment_confirmed", items: [ { product: products(:metroid) } ])
+      accessories_only = make_order(status: "payment_confirmed", items: [ { product: products(:game_box) } ])
+
+      numbers = ProductionReportPresenter.new.orders.map(&:number)
+      assert_includes numbers, games.number
+      assert_not_includes numbers, accessories_only.number
+    end
+
+    test "a mixed order lists only its game items" do
+      make_order(
+        status: "payment_confirmed", created_at: Time.zone.local(2026, 1, 10, 9),
+        items: [
+          { product: products(:metroid), name: "Metroid II", chosen_options: [ "Idioma: Inglês" ] },
+          { product: products(:game_box), name: "Caixa (estojo do jogo)" }
+        ]
+      )
+      presenter = ProductionReportPresenter.new(from: Date.new(2026, 1, 1), to: Date.new(2026, 1, 31))
+      names = presenter.rows.first.items.map(&:name)
+
+      assert_equal [ "Metroid II" ], names
     end
 
     test "within a period it returns the eligible orders oldest-first" do

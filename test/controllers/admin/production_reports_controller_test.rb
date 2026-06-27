@@ -45,21 +45,37 @@ module Admin
       eligible = orders(:confirmed_paid)
       untouched = orders(:awaiting)
       with_variants = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 1_000, total_cents: 1_000)
-      with_variants.order_items.create!(name: "Pokemon - Gold", unit_price_cents: 1_000, quantity: 1,
-                                        chosen_options: [ "Idioma: Inglês", "Caixa: Com Caixa" ])
+      with_variants.order_items.create!(product: products(:yellow), name: "Pokemon - Gold", unit_price_cents: 1_000, quantity: 1,
+                                        chosen_options: [ "Idioma: Inglês", "Cor da carcaça: Transparente" ])
+      accessories_only = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 2_500, total_cents: 2_500)
+      accessories_only.order_items.create!(product: products(:game_box), name: "Caixa", unit_price_cents: 2_500, quantity: 1, chosen_options: [])
 
       post admin_production_report_path
 
       assert_response :success
       assert_select ".pr-order"
-      assert_select ".pr-item__variants", text: "Inglês · Com Caixa"
+      assert_select ".pr-item__variants", text: "Inglês · Transparente"
       assert eligible.reload.in_production?
       assert with_variants.reload.in_production?
       assert untouched.reload.awaiting_payment?
+      assert accessories_only.reload.payment_confirmed?, "an accessories-only order must not be sent to production"
 
       change = eligible.status_changes.chronological.last
       assert_equal "in_production", change.to_status
       assert_equal users(:admin), change.actor
+    end
+
+    test "the sheet prints only the game items of a mixed order" do
+      sign_in users(:admin)
+      mixed = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 1_000, total_cents: 1_000)
+      mixed.order_items.create!(product: products(:metroid), name: "Metroid II", unit_price_cents: 1_000, quantity: 1, chosen_options: [])
+      mixed.order_items.create!(product: products(:game_box), name: "Caixa do jogo", unit_price_cents: 2_500, quantity: 1, chosen_options: [])
+
+      post admin_production_report_path
+
+      assert_response :success
+      assert_match "Metroid II", response.body
+      assert_no_match(/Caixa do jogo/, response.body)
     end
 
     test "confirming with no eligible orders redirects with an alert" do

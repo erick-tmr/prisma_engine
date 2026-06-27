@@ -12,4 +12,9 @@ class CategoryTest < ActiveSupport::TestCase
     assert_not category.destroy
     assert_includes category.errors[:base].join, "Não é possível excluir"
   end
+
+  test "miscellaneous? singles out the accessories bucket" do
+    assert categories(:miscelanea).miscellaneous?
+    assert_not categories(:gb_color).miscellaneous?
+  end
 end
