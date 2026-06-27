@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   STATUS_COLORS, ACTIONS, AVATAR_TINTS, SITUATION_TAGS, PRESETS, MONTHS_LONG,
-  escapeHtml, parseISO, fmtDate, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural,
+  escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural,
   sameDay, startOfMonth, addMonths, applyPreset, monthCells,
-  filterOrders, sortOrders, affectedBy, availableActions, applyAction,
+  filterOrders, sortOrders, affectedBy, availableActions, applyAction, productionReportUrl,
   filterClients, sortClients,
   ordersRowsHtml, clientsRowsHtml, bulkChipsHtml, statusOptionsHtml, calendarHtml, dpReadoutHtml, datePopHtml,
   confirmText, toastMessage, initDashboard
@@ -56,6 +56,11 @@ describe("formatting helpers", () => {
     expect(parseISO("2026-06-14").getMonth()).toBe(5);
     expect(fmtDate("2026-06-14")).toBe("14 jun 2026");
     expect(fmtDate(new Date(2026, 0, 5))).toBe("05 jan 2026");
+  });
+
+  it("toISO renders a Date as a zero-padded YYYY-MM-DD string", () => {
+    expect(toISO(new Date(2026, 0, 5))).toBe("2026-01-05");
+    expect(toISO(new Date(2026, 11, 31))).toBe("2026-12-31");
   });
 
   it("fmtBRL formats cents as Brazilian currency", () => {
@@ -177,6 +182,15 @@ describe("orders transforms", () => {
     const affected = applyAction(action, confirmed);
     expect(affected).toHaveLength(1);
     expect(confirmed[0].status).toBe("in_production");
+  });
+
+  it("productionReportUrl carries the active period or falls back to the base path", () => {
+    const base = "/admin/relatorio-producao";
+    expect(productionReportUrl({ from: null, to: null }, base)).toBe(base);
+    expect(productionReportUrl({ from: new Date(2026, 0, 5), to: null }, base)).toBe(`${base}?de=2026-01-05`);
+    expect(productionReportUrl({ from: null, to: new Date(2026, 0, 9) }, base)).toBe(`${base}?ate=2026-01-09`);
+    expect(productionReportUrl({ from: new Date(2026, 0, 5), to: new Date(2026, 0, 9) }, base))
+      .toBe(`${base}?de=2026-01-05&ate=2026-01-09`);
   });
 });
 
@@ -302,6 +316,7 @@ function mountDashboard() {
         <main>
           <section class="view" data-view="orders">
             <span class="result-count" id="orders-count"></span>
+            <a id="gen-production" href="/admin/relatorio-producao" data-base="/admin/relatorio-producao">gerar</a>
             <div class="filters">
               <input id="o-name" type="text">
               <div class="f-trigger" id="date-trigger" data-pop>
@@ -636,6 +651,23 @@ describe("initDashboard", () => {
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
     expect($("#status-pop").classList.contains("open")).toBe(false);
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" })); // non-Escape → ignored
+  });
+
+  it("rewrites the production report link with the active period on click", () => {
+    const link = $("#gen-production");
+    // Cancelable so preventDefault actually suppresses jsdom's link navigation.
+    const followLink = () => link.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+    link.addEventListener("click", (e) => e.preventDefault());
+
+    followLink(); // no period applied yet → base path
+    expect(link.getAttribute("href")).toBe("/admin/relatorio-producao");
+
+    click($("#date-trigger"));
+    click($('#date-pop .dp-preset[data-p="today"]'));
+    click($("#dp-apply"));
+    followLink();
+    expect(link.getAttribute("href")).toContain("de=");
+    expect(link.getAttribute("href")).toContain("ate=");
   });
 
   it("auto-dismisses a toast after its timeout", () => {

@@ -38,6 +38,8 @@ Rails.application.routes.draw do
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout
+    get    "relatorio-producao", to: "production_reports#new",    as: :production_report
+    post   "relatorio-producao", to: "production_reports#create"
     post   "etiquetas",         to: "labels#create_batch", as: :labels
     post   "etiquetas/:number", to: "labels#create",       as: :label, constraints: { number: /PG-\d+/ }
     get    "pedidos/:number",           to: "orders#show",       as: :order,            constraints: { number: /PG-\d+/ }

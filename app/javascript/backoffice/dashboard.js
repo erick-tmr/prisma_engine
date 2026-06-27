@@ -66,6 +66,10 @@ export function fmtDate(value) {
   return `${pad2(dt.getDate())} ${MONTHS_SHORT[dt.getMonth()]} ${dt.getFullYear()}`;
 }
 
+export function toISO(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
 export function fmtBRL(cents) {
   return `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -197,6 +201,14 @@ export function applyAction(action, orders) {
   const affected = affectedBy(action, orders);
   affected.forEach((o) => { o.status = action.to; });
   return affected;
+}
+
+export function productionReportUrl(state, base) {
+  const params = new URLSearchParams();
+  if (state.from) params.set("de", toISO(state.from));
+  if (state.to) params.set("ate", toISO(state.to));
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
 
 // ── Clients: filter / sort ───────────────────────────────────────────────────
@@ -623,6 +635,11 @@ export function initDashboard(root, data, today) {
   });
 
   $("#o-clear").addEventListener("click", clearOrderFilters);
+
+  const genReport = $("#gen-production");
+  genReport.addEventListener("click", () => {
+    genReport.setAttribute("href", productionReportUrl(state, genReport.dataset.base));
+  });
 
   ordersTable.querySelectorAll("thead th.sortable").forEach((th) =>
     th.addEventListener("click", () => {
