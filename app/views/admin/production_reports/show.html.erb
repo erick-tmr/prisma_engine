@@ -9,8 +9,9 @@
     <div>
       <h1 class="pr-sheet__title"><%= t("admin.production_report.report.heading") %></h1>
       <p class="pr-sheet__meta">
-        <%= t("admin.production_report.count", count: @presenter.count) %> <%= @presenter.period_clause %>
-        · <%= t("admin.production_report.report.generated_on", date: l(Time.current)) %>
+        <%= t("admin.production_report.report.batch", id: @batch.id) %>
+        · <%= t("admin.production_report.count", count: @presenter.count) %> <%= @presenter.period_clause %>
+        · <%= t("admin.production_report.report.generated_by", date: l(@batch.created_at), operator: @batch.operator&.full_name || t("admin.production_report.report.system")) %>
       </p>
     </div>
     <button type="button" class="pr-btn pr-btn--primary pr-noprint" data-pr-print>
@@ -32,12 +33,8 @@
             <li class="pr-item">
               <span class="pr-check" aria-label="<%= t("admin.production_report.report.checkbox_aria") %>"></span>
               <span class="pr-item__qty"><%= item.quantity %>x</span>
-              <span class="pr-item__body">
-                <span class="pr-item__name"><%= item.name %></span>
-                <% if item.variants.present? %>
-                  <span class="pr-item__variants"><%= item.variants %></span>
-                <% end %>
-              </span>
+              <span class="pr-item__name"><%= item.name %></span>
+              <% if item.variants.present? %><span class="pr-item__variants"><%= item.variants %></span><% end %>
             </li>
           <% end %>
         </ul>

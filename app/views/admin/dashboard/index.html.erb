@@ -27,6 +27,12 @@
         <i class="bi bi-people"></i> <%= t("admin.dashboard.nav.clients") %>
         <span class="count"><%= @dashboard.clients.size %></span>
       </a>
+      <a class="sb-link" data-view="reports"
+         data-title="<%= t("admin.dashboard.views.reports.title") %>"
+         data-crumb="<%= t("admin.dashboard.views.reports.crumb") %>">
+        <i class="bi bi-printer"></i> <%= t("admin.dashboard.nav.reports") %>
+        <span class="count"><%= @dashboard.reports.size %></span>
+      </a>
     </nav>
 
     <div class="sb-foot">
@@ -179,6 +185,41 @@
               <i class="bi bi-person-x"></i>
               <p><%= t("admin.dashboard.clients.empty.title") %></p>
               <span><%= t("admin.dashboard.clients.empty.hint") %></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="reports" hidden>
+        <div class="panel">
+          <div class="panel-top">
+            <div class="panel-top-main">
+              <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.dashboard.reports.heading") %></h2>
+              <div class="sub"><%= t("admin.dashboard.reports.sub") %></div>
+            </div>
+            <div class="panel-top-right">
+              <span class="result-count" id="reports-count"></span>
+            </div>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl" id="reports-table">
+              <thead>
+                <tr>
+                  <th><%= t("admin.dashboard.reports.columns.batch") %></th>
+                  <th><%= t("admin.dashboard.reports.columns.generated") %></th>
+                  <th><%= t("admin.dashboard.reports.columns.operator") %></th>
+                  <th class="num"><%= t("admin.dashboard.reports.columns.orders") %></th>
+                  <th><%= t("admin.dashboard.reports.columns.period") %></th>
+                  <th class="num"></th>
+                </tr>
+              </thead>
+              <tbody id="reports-body"></tbody>
+            </table>
+            <div class="empty" id="reports-empty">
+              <i class="bi bi-printer"></i>
+              <p><%= t("admin.dashboard.reports.empty.title") %></p>
+              <span><%= t("admin.dashboard.reports.empty.hint") %></span>
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import {
   sameDay, startOfMonth, addMonths, applyPreset, monthCells,
   filterOrders, sortOrders, affectedBy, availableActions, applyAction, productionReportUrl,
   filterClients, sortClients,
-  ordersRowsHtml, clientsRowsHtml, bulkChipsHtml, statusOptionsHtml, calendarHtml, dpReadoutHtml, datePopHtml,
+  ordersRowsHtml, clientsRowsHtml, reportsRowsHtml, bulkChipsHtml, statusOptionsHtml, calendarHtml, dpReadoutHtml, datePopHtml,
   confirmText, toastMessage, initDashboard
 } from "../../../app/javascript/backoffice/dashboard.js";
 
@@ -33,6 +33,10 @@ function sampleData() {
       { id: 1, name: "Ana Cardoso", email: "ana@example.com", cpf: "31244577809", phone: "11988765521", city: "São Paulo", uf: "SP", since: "2025-09-03", orders: 2, status: "active" },
       { id: 2, name: "Bruno Tanaka", email: "bruno@example.com", cpf: "40811722055", phone: "", city: null, uf: null, since: "2026-01-15", orders: 1, status: "pending" },
       { id: 3, name: "Carla Menezes", email: "carla@example.com", cpf: "22190345612", phone: "1133224567", city: "Rio de Janeiro", uf: "RJ", since: "2025-06-22", orders: 0, status: "locked" }
+    ],
+    reports: [
+      { id: 12, label: "Lote #12", generatedAt: "27/06/2026 14:17", operator: "Erick Takeshi", orders: 8, period: "16/06/2026 a 26/06/2026", url: "/admin/relatorio-producao/12" },
+      { id: 11, label: "Lote #11", generatedAt: "20/06/2026 09:30", operator: "sistema", orders: 1, period: "Todos os períodos", url: "/admin/relatorio-producao/11" }
     ],
     statuses: STATUSES,
     statusLabels: STATUS_LABELS,
@@ -244,6 +248,16 @@ describe("template builders", () => {
     expect(chips).toContain("Enviar para produção");
   });
 
+  it("reportsRowsHtml links each batch to its reprint and pluralizes the order count", () => {
+    const { reports } = sampleData();
+    const html = reportsRowsHtml(reports);
+    expect(html).toContain('href="/admin/relatorio-producao/12"');
+    expect(html).toContain("Lote #12");
+    expect(html).toContain("8 pedidos");
+    expect(html).toContain("1 pedido</td>"); // singular for the 1-order batch
+    expect(html).toContain("Todos os períodos");
+  });
+
   it("statusOptionsHtml renders one option per status with a coloured dot and a selection", () => {
     const html = statusOptionsHtml(STATUSES, STATUS_LABELS, new Set(["delivered"]));
     expect(html.match(/class="opt/g)).toHaveLength(STATUSES.length);
@@ -304,6 +318,7 @@ function mountDashboard() {
         <nav>
           <a class="sb-link active" data-view="orders" data-title="Pedidos" data-crumb="Histórico de pedidos">x</a>
           <a class="sb-link" data-view="clients" data-title="Clientes" data-crumb="Todos os clientes">x</a>
+          <a class="sb-link" data-view="reports" data-title="Relatorios" data-crumb="Lotes gerados">x</a>
         </nav>
       </aside>
       <div class="main">
@@ -372,6 +387,11 @@ function mountDashboard() {
             </table>
             <div class="empty" id="clients-empty"></div>
           </section>
+          <section class="view" data-view="reports" hidden>
+            <span class="result-count" id="reports-count"></span>
+            <table class="tbl" id="reports-table"><tbody id="reports-body"></tbody></table>
+            <div class="empty" id="reports-empty"></div>
+          </section>
         </main>
       </div>
     </div>
@@ -408,6 +428,28 @@ describe("initDashboard", () => {
     const dateTh = $('#orders-table th[data-key="date"]');
     expect(dateTh.classList.contains("sorted")).toBe(true);
     expect(dateTh.querySelector(".sortarrow").textContent).toBe("▼");
+  });
+
+  it("renders the reports history and opens its tab from the sidebar", () => {
+    expect($("#reports-body").querySelectorAll("tr")).toHaveLength(2);
+    expect($("#reports-count").textContent).toContain("2 relatórios");
+    expect($("#reports-body").querySelector('a[href="/admin/relatorio-producao/12"]')).not.toBeNull();
+
+    click($('.sb-link[data-view="reports"]'));
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+    expect($('.view[data-view="orders"]').hidden).toBe(true);
+    expect($("#page-title").textContent).toBe("Relatorios");
+  });
+
+  it("shows the empty state when no reports have been generated", () => {
+    destroy(); // tear down the beforeEach instance, then remount with no reports
+    root = mountDashboard();
+    destroy = initDashboard(root, { ...sampleData(), reports: [] }, TODAY);
+
+    expect($("#reports-body").querySelectorAll("tr")).toHaveLength(0);
+    expect($("#reports-empty").classList.contains("show")).toBe(true);
+    expect($("#reports-table").hidden).toBe(true);
+    expect($("#reports-count").textContent).toContain("0 relatórios");
   });
 
   it("switches views from the sidebar and the menu toggle", () => {

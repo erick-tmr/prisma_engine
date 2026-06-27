@@ -40,7 +40,7 @@ module Admin
       assert_match orders(:confirmed_paid).number, response.body
     end
 
-    test "confirming sends the eligible batch to production and renders the sheet" do
+    test "confirming records a batch, sends the eligible orders to production and redirects to the sheet" do
       sign_in users(:admin)
       eligible = orders(:confirmed_paid)
       untouched = orders(:awaiting)
@@ -50,19 +50,29 @@ module Admin
       accessories_only = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 2_500, total_cents: 2_500)
       accessories_only.order_items.create!(product: products(:game_box), name: "Caixa", unit_price_cents: 2_500, quantity: 1, chosen_options: [])
 
-      post admin_production_report_path
+      assert_difference -> { ProductionBatch.count }, 1 do
+        post admin_production_report_path
+      end
 
-      assert_response :success
-      assert_select ".pr-order"
-      assert_select ".pr-item__variants", text: "Inglês · Transparente"
+      batch = ProductionBatch.order(:id).last
+      assert_redirected_to admin_production_report_batch_path(batch)
+      assert_equal users(:admin), batch.operator
+      assert_equal 2, batch.orders_count
       assert eligible.reload.in_production?
+      assert_equal batch, eligible.production_batch
       assert with_variants.reload.in_production?
       assert untouched.reload.awaiting_payment?
       assert accessories_only.reload.payment_confirmed?, "an accessories-only order must not be sent to production"
+      assert_nil accessories_only.production_batch
 
       change = eligible.status_changes.chronological.last
       assert_equal "in_production", change.to_status
       assert_equal users(:admin), change.actor
+
+      follow_redirect!
+      assert_response :success
+      assert_select ".pr-order"
+      assert_select ".pr-item__variants", text: "Inglês · Transparente"
     end
 
     test "the sheet prints only the game items of a mixed order" do
@@ -72,16 +82,33 @@ module Admin
       mixed.order_items.create!(product: products(:game_box), name: "Caixa do jogo", unit_price_cents: 2_500, quantity: 1, chosen_options: [])
 
       post admin_production_report_path
+      follow_redirect!
 
       assert_response :success
       assert_match "Metroid II", response.body
       assert_no_match(/Caixa do jogo/, response.body)
     end
 
-    test "confirming with no eligible orders redirects with an alert" do
+    test "show reprints a stored batch from its frozen orders" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      post admin_production_report_path
+      batch = ProductionBatch.order(:id).last
+
+      get admin_production_report_batch_path(batch)
+
+      assert_response :success
+      assert_select ".pr-order"
+      assert_match order.number, response.body
+      assert_match "Lote ##{batch.id}", response.body
+    end
+
+    test "confirming with no eligible orders redirects with an alert and records no batch" do
       sign_in users(:admin)
 
-      post admin_production_report_path(de: "2020-01-01", ate: "2020-01-02")
+      assert_no_difference -> { ProductionBatch.count } do
+        post admin_production_report_path(de: "2020-01-01", ate: "2020-01-02")
+      end
 
       assert_redirected_to admin_production_report_path(de: "2020-01-01", ate: "2020-01-02")
       follow_redirect!
@@ -92,7 +119,7 @@ module Admin
       sign_in users(:admin)
 
       post admin_production_report_path
-      assert_response :success
+      assert_response :redirect
 
       post admin_production_report_path # nothing eligible left in the fixtures
       assert_redirected_to admin_production_report_path

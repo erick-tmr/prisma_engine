@@ -276,6 +276,19 @@ export function clientsRowsHtml(rows, situationLabels) {
   }).join("");
 }
 
+export function reportsRowsHtml(rows) {
+  return rows.map((r) =>
+    `<tr data-report="${escapeHtml(r.id)}">
+      <td><a class="cell-mono cell-link" href="${escapeHtml(r.url)}">${escapeHtml(r.label)}</a></td>
+      <td class="cell-num">${escapeHtml(r.generatedAt)}</td>
+      <td>${escapeHtml(r.operator)}</td>
+      <td class="num cell-num">${r.orders} ${plural(r.orders, "pedido", "pedidos")}</td>
+      <td>${escapeHtml(r.period)}</td>
+      <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
+    </tr>`
+  ).join("");
+}
+
 export function bulkChipsHtml(available, actionLabels) {
   if (available.length === 0) return `<span class="bulk-none">Nenhuma ação disponível para esta seleção</span>`;
   return available.map(({ action, count }) =>
@@ -341,7 +354,7 @@ export function toastMessage(label, count) {
 
 // ── Orchestrator ─────────────────────────────────────────────────────────────
 export function initDashboard(root, data, today) {
-  const { orders, clients, statuses, statusLabels, actionLabels, situationLabels } = data;
+  const { orders, clients, reports, statuses, statusLabels, actionLabels, situationLabels } = data;
   const toasts = document.getElementById("toasts");
 
   const state = {
@@ -363,6 +376,10 @@ export function initDashboard(root, data, today) {
   const clientsTable = $("#clients-table");
   const clientsEmpty = $("#clients-empty");
   const clientsCount = $("#clients-count");
+  const reportsBody = $("#reports-body");
+  const reportsTable = $("#reports-table");
+  const reportsEmpty = $("#reports-empty");
+  const reportsCount = $("#reports-count");
   const statusPop = $("#status-pop");
   const statusTrigger = $("#status-trigger");
   const datePop = $("#date-pop");
@@ -431,6 +448,12 @@ export function initDashboard(root, data, today) {
     clientsTable.hidden = rows.length === 0;
     clientsCount.textContent = `${rows.length} ${plural(rows.length, "cliente", "clientes")}`;
     updateSortArrows(clientsTable, state.cSort);
+  }
+  function renderReports() {
+    reportsBody.innerHTML = reportsRowsHtml(reports);
+    reportsEmpty.classList.toggle("show", reports.length === 0);
+    reportsTable.hidden = reports.length === 0;
+    reportsCount.textContent = `${reports.length} ${plural(reports.length, "relatório", "relatórios")}`;
   }
 
   // ── Toasts (mock feedback) ──
@@ -689,6 +712,7 @@ export function initDashboard(root, data, today) {
 
   renderOrders();
   renderClients();
+  renderReports();
   switchView("orders");
 
   return function destroy() {

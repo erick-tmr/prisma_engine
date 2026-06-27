@@ -262,6 +262,7 @@ pt-BR:
       nav:
         orders: "Pedidos"
         clients: "Clientes"
+        reports: "Relatórios"
       bulk:
         selected: "selecionados"
         clear: "Limpar seleção"
@@ -272,6 +273,9 @@ pt-BR:
         clients:
           title: "Clientes"
           crumb: "Todos os clientes cadastrados"
+        reports:
+          title: "Relatórios de produção"
+          crumb: "Lotes de produção já gerados"
       orders:
         heading: "Histórico de pedidos"
         sub: "Todos os pedidos da loja, de todos os clientes."
@@ -311,6 +315,18 @@ pt-BR:
         empty:
           title: "Nenhum cliente encontrado"
           hint: "Tente outro nome, e-mail ou CPF."
+      reports:
+        heading: "Relatórios de produção"
+        sub: "Cada lote enviado para produção. Abra um lote para reimprimir a folha."
+        columns:
+          batch: "Lote"
+          generated: "Gerado em"
+          operator: "Operador"
+          orders: "Pedidos"
+          period: "Período"
+        empty:
+          title: "Nenhum relatório gerado"
+          hint: "Gere um relatório de produção pela aba Pedidos."
       bulk_actions:
         to_production: "Enviar para produção"
         to_components: "Aguardar componentes"
@@ -430,7 +446,10 @@ pt-BR:
       report:
         page_title: "Relatório de produção — Prisma Games"
         heading: "Relatório de produção"
-        generated_on: "Gerado em %{date}"
+        batch: "Lote #%{id}"
+        generated_by: "Gerado em %{date} por %{operator}"
+        system: "sistema"
+        all_periods: "Todos os períodos"
         print: "Imprimir"
         checkbox_aria: "Marcar como produzido"
   activerecord:

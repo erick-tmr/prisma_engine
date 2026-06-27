@@ -5,13 +5,19 @@ module Admin
     Row = Data.define(:seq, :customer, :number, :placed_on, :items)
     Item = Data.define(:quantity, :name, :variants)
 
-    def initialize(from: nil, to: nil)
+    def self.for_batch(batch)
+      orders = batch.orders.includes(:user, order_items: { product: :category }).order(created_at: :asc)
+      new(from: batch.period_from, to: batch.period_to, orders: orders)
+    end
+
+    def initialize(from: nil, to: nil, orders: nil)
       @from = from
       @to = to
+      @explicit_orders = orders
     end
 
     def orders
-      @orders ||= scope.to_a
+      @orders ||= (@explicit_orders || scope).to_a
     end
 
     def count

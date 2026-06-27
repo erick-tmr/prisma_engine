@@ -108,6 +108,21 @@ module Admin
       assert_equal "", items.second.variants
     end
 
+    test "for_batch reprints the batch's own orders, games only, with its stored period" do
+      order = make_order(
+        status: "in_production", created_at: Time.zone.local(2026, 1, 10, 9),
+        items: [ { product: products(:metroid), name: "Metroid II" }, { product: products(:game_box), name: "Caixa" } ]
+      )
+      batch = ProductionBatch.create!(period_from: Date.new(2026, 1, 1), period_to: Date.new(2026, 1, 31), orders_count: 1)
+      order.update!(production_batch: batch)
+
+      presenter = ProductionReportPresenter.for_batch(batch)
+
+      assert_equal [ order.number ], presenter.orders.map(&:number)
+      assert_equal [ "Metroid II" ], presenter.rows.first.items.map(&:name)
+      assert_equal "do período 01/01/2026 a 31/01/2026", presenter.period_clause
+    end
+
     test "period clause and iso readers reflect whether a window was given" do
       open_ended = ProductionReportPresenter.new
       assert_equal I18n.t("admin.production_report.period_all"), open_ended.period_clause
