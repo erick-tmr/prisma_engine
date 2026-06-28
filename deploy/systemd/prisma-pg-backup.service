@@ -1,0 +1,11 @@
+[Unit]
+Description=Prisma Engine nightly Postgres backup to R2
+After=postgresql.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/prisma_engine/backup.env
+ExecStart=/opt/prisma_engine/pg_backup.sh
+Nice=10
+IOSchedulingClass=idle

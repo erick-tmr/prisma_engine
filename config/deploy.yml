@@ -1,0 +1,63 @@
+# Single São Paulo VPS: Rails app + host-installed Postgres. Runbook: docs/deployment.md.
+# Replace the REPLACE_ME values before deploying. Secrets resolve from .kamal/secrets.
+service: prisma_engine
+
+image: erick-tmr/prisma_engine
+
+servers:
+  web:
+    hosts:
+      - REPLACE_ME_VPS_IP
+    options:
+      add-host: host.docker.internal:host-gateway
+
+proxy:
+  ssl: true
+  hosts:
+    - prismagames.com.br
+    - www.prismagames.com.br
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 5
+
+registry:
+  server: ghcr.io
+  username: erick-tmr
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+
+env:
+  clear:
+    PORT: 3000
+    WEB_CONCURRENCY: 1
+    RAILS_MAX_THREADS: 3
+    SOLID_QUEUE_IN_PUMA: 1
+    RAILS_LOG_LEVEL: info
+    DATABASE_HOST: host.docker.internal
+    DATABASE_USER: prisma_engine
+    APP_HOST: prismagames.com.br
+    ACTIVE_STORAGE_SERVICE: r2
+    R2_ENDPOINT: https://REPLACE_ME_ACCOUNT_ID.r2.cloudflarestorage.com
+    R2_BUCKET: REPLACE_ME_BUCKET
+    R2_PUBLIC_HOST: https://REPLACE_ME_ASSETS_HOST
+    INFINITEPAY_HANDLE: prisma_games
+  secret:
+    - RAILS_MASTER_KEY
+    - PRISMA_ENGINE_DATABASE_PASSWORD
+    - DATABASE_PASSWORD
+    - BREVO_SMTP_LOGIN
+    - BREVO_SMTP_KEY
+    - CORREIOS_API_TOKEN
+    - CORREIOS_CARTAO_API_TOKEN
+    - R2_ACCESS_KEY_ID
+    - R2_SECRET_ACCESS_KEY
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  dbconsole: app exec --interactive --reuse "bin/rails dbconsole"
+  logs: app logs --follow

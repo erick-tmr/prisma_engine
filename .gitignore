@@ -52,3 +52,5 @@
 # Ignore key files for decrypting credentials and more.
 /config/credentials/*.key
 
+# Kamal: commit .kamal/secrets (env references only); never local/real-value variants.
+/.kamal/secrets*.local
