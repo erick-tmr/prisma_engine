@@ -1,5 +1,6 @@
 # Single São Paulo VPS: Rails app + host-installed Postgres. Runbook: docs/deployment.md.
-# Replace the REPLACE_ME values before deploying. Secrets resolve from .kamal/secrets.
+# Secrets resolve from .kamal/secrets (Bitwarden). proxy.hosts is the temporary sslip.io
+# test host; swap to prismagames.com.br once the domain is live.
 service: prisma_engine
 
 image: erick-tmr/prisma_engine
@@ -14,8 +15,7 @@ servers:
 proxy:
   ssl: true
   hosts:
-    - prismagames.com.br
-    - www.prismagames.com.br
+    - 187.127.38.87.sslip.io
   app_port: 80
   healthcheck:
     path: /up
