@@ -84,7 +84,6 @@ module Admin
       ProductionBatch.includes(:operator).recent_first.map do |batch|
         {
           "id" => batch.id,
-          "label" => I18n.t("admin.production_report.report.batch", id: batch.id),
           "generatedAt" => I18n.l(batch.created_at),
           "operator" => batch.operator&.full_name || I18n.t("admin.production_report.report.system"),
           "orders" => batch.orders_count,

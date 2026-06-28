@@ -285,8 +285,7 @@ export function clientsRowsHtml(rows, situationLabels) {
 export function reportsRowsHtml(rows) {
   return rows.map((r) =>
     `<tr data-report="${escapeHtml(r.id)}">
-      <td><a class="cell-mono cell-link" href="${escapeHtml(r.url)}">${escapeHtml(r.label)}</a></td>
-      <td class="cell-num">${escapeHtml(r.generatedAt)}</td>
+      <td class="cell-num"><a class="cell-link" href="${escapeHtml(r.url)}">${escapeHtml(r.generatedAt)}</a></td>
       <td>${escapeHtml(r.operator)}</td>
       <td class="num cell-num">${r.orders} ${plural(r.orders, "pedido", "pedidos")}</td>
       <td>${escapeHtml(r.period)}</td>

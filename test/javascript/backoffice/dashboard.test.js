@@ -35,8 +35,8 @@ function sampleData() {
       { id: 3, name: "Carla Menezes", email: "carla@example.com", cpf: "22190345612", phone: "1133224567", city: "Rio de Janeiro", uf: "RJ", since: "2025-06-22", orders: 0, status: "locked" }
     ],
     reports: [
-      { id: 12, label: "Lote #12", generatedAt: "27/06/2026 14:17", operator: "Erick Takeshi", orders: 8, period: "16/06/2026 a 26/06/2026", url: "/admin/relatorio-producao/12" },
-      { id: 11, label: "Lote #11", generatedAt: "20/06/2026 09:30", operator: "sistema", orders: 1, period: "Todos os períodos", url: "/admin/relatorio-producao/11" }
+      { id: 12, generatedAt: "27/06/2026 14:17", operator: "Erick Takeshi", orders: 8, period: "16/06/2026 a 26/06/2026", url: "/admin/relatorio-producao/12" },
+      { id: 11, generatedAt: "20/06/2026 09:30", operator: "sistema", orders: 1, period: "Todos os períodos", url: "/admin/relatorio-producao/11" }
     ],
     statuses: STATUSES,
     statusLabels: STATUS_LABELS,
@@ -255,11 +255,10 @@ describe("template builders", () => {
     expect(chips).toContain("Enviar para produção");
   });
 
-  it("reportsRowsHtml links each batch to its reprint and pluralizes the order count", () => {
+  it("reportsRowsHtml links each batch by its date to the reprint and pluralizes the order count", () => {
     const { reports } = sampleData();
     const html = reportsRowsHtml(reports);
-    expect(html).toContain('href="/admin/relatorio-producao/12"');
-    expect(html).toContain("Lote #12");
+    expect(html).toContain('<a class="cell-link" href="/admin/relatorio-producao/12">27/06/2026 14:17</a>');
     expect(html).toContain("8 pedidos");
     expect(html).toContain("1 pedido</td>"); // singular for the 1-order batch
     expect(html).toContain("Todos os períodos");

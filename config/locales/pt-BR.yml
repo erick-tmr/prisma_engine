@@ -319,7 +319,6 @@ pt-BR:
         heading: "Relatórios de produção"
         sub: "Cada lote enviado para produção. Abra um lote para reimprimir a folha."
         columns:
-          batch: "Lote"
           generated: "Gerado em"
           operator: "Operador"
           orders: "Pedidos"

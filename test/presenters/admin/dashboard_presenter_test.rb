@@ -66,7 +66,6 @@ module Admin
 
       first = reports.first # recent_first → the open-ended batch leads
       assert_equal open_ended.id, first["id"]
-      assert_equal "Lote ##{open_ended.id}", first["label"]
       assert_equal I18n.t("admin.production_report.report.system"), first["operator"]
       assert_equal I18n.t("admin.production_report.report.all_periods"), first["period"]
       assert_equal 5, first["orders"]
