@@ -287,8 +287,8 @@ export function reportsRowsHtml(rows) {
     `<tr data-report="${escapeHtml(r.id)}">
       <td class="cell-num"><a class="cell-link" href="${escapeHtml(r.url)}">${escapeHtml(r.generatedAt)}</a></td>
       <td>${escapeHtml(r.operator)}</td>
-      <td class="num cell-num">${r.orders} ${plural(r.orders, "pedido", "pedidos")}</td>
       <td>${escapeHtml(r.period)}</td>
+      <td class="num cell-num">${r.orders} ${plural(r.orders, "pedido", "pedidos")}</td>
       <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
     </tr>`
   ).join("");
