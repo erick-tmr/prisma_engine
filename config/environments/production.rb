@@ -25,6 +25,8 @@ Rails.application.configure do
   # Overridable so a production-mode boot without R2 credentials (the Lighthouse CI
   # audit) can fall back to the local Disk service.
   config.active_storage.service = (ENV["ACTIVE_STORAGE_SERVICE"].presence || "r2").to_sym
+  config.x.r2_bucket = "prisma-games-prod"
+  config.x.r2_public_host = "https://pub-e2438ab87e6a4efaa35d305adad5229d.r2.dev"
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true

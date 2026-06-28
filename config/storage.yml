@@ -6,19 +6,20 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# Cloudflare R2 (S3-compatible), public bucket served via a Cloudflare custom domain.
-# Production-only; dev + test stay on Disk. Credentials/config come from the env
-# (see .env.example). The custom ActiveStorage::Service::R2Service rewrites public
-# URLs to R2_PUBLIC_HOST and drops the public-read ACL R2 doesn't use.
+# Cloudflare R2 (S3-compatible), public bucket served via the configured public host.
+# Used in development + production (the buckets differ); test stays on Disk. Bucket,
+# endpoint, and public host are committed (config/environments/*.rb); only the API
+# token lives in credentials. The custom ActiveStorage::Service::R2Service rewrites
+# public URLs to that host and drops the public-read ACL R2 doesn't use.
 # force_path_style + when_required checksums keep aws-sdk-s3 compatible with R2.
 r2:
   service: R2
   public: true
-  public_host: <%= ENV["R2_PUBLIC_HOST"] %>
-  access_key_id: <%= ENV["R2_ACCESS_KEY_ID"] %>
-  secret_access_key: <%= ENV["R2_SECRET_ACCESS_KEY"] %>
-  endpoint: <%= ENV["R2_ENDPOINT"] %>
-  bucket: <%= ENV["R2_BUCKET"] %>
+  public_host: <%= Rails.application.config.x.r2_public_host %>
+  access_key_id: <%= Rails.application.credentials.dig(:r2, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:r2, :secret_access_key) %>
+  endpoint: https://ebd6066b8c5c56f2942edd6b4267b706.r2.cloudflarestorage.com
+  bucket: <%= Rails.application.config.x.r2_bucket %>
   region: auto
   force_path_style: true
   request_checksum_calculation: when_required

@@ -7,12 +7,8 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
   CHECKOUT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
 
   setup do
-    @prev_handle = ENV["INFINITEPAY_HANDLE"]
-    ENV["INFINITEPAY_HANDLE"] = "prisma_games"
     @user = users(:confirmed)
   end
-
-  teardown { ENV["INFINITEPAY_HANDLE"] = @prev_handle }
 
   test "GET /checkout/retorno records the transaction and shows the pending state" do
     sign_in @user

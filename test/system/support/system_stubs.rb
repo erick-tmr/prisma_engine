@@ -6,14 +6,11 @@ module SystemStubs
 
   def stub_external_env
     @prev_correios_token = ENV["CORREIOS_API_TOKEN"]
-    @prev_infinitepay    = ENV["INFINITEPAY_HANDLE"]
     ENV["CORREIOS_API_TOKEN"] = "test-api"
-    ENV["INFINITEPAY_HANDLE"] = "prisma_games"
   end
 
   def restore_external_env
     ENV["CORREIOS_API_TOKEN"] = @prev_correios_token
-    ENV["INFINITEPAY_HANDLE"] = @prev_infinitepay
   end
 
   def stub_cep(cep: "01310100", uf: "SP", street: "Av. Paulista", neighborhood: "Bela Vista", city: "São Paulo")

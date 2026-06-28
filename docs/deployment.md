@@ -147,17 +147,18 @@ A   prismagames.com.br       -> VPS_IP
 A   www.prismagames.com.br   -> VPS_IP
 ```
 
-Also confirm the R2 public bucket is served from your `R2_PUBLIC_HOST` custom domain;
-that host feeds both image URLs and the CSP `img_src`.
+Also confirm the R2 public bucket is served from the public host committed in
+`config/environments/production.rb` (`config.x.r2_public_host`); that host feeds both
+image URLs and the CSP `img_src`.
 
 ## 4. Fill in config/deploy.yml
 
 Replace the `REPLACE_ME_*` placeholders in `config/deploy.yml`:
 
 - `servers.web.hosts` -> the VPS IP.
-- `env.clear.R2_ENDPOINT` -> `https://<account_id>.r2.cloudflarestorage.com`.
-- `env.clear.R2_BUCKET` -> the production uploads bucket.
-- `env.clear.R2_PUBLIC_HOST` -> the R2 custom domain (e.g. `https://assets.prismagames.com.br`).
+
+The R2 bucket, endpoint, and public host are committed in the app config
+(`config/environments/production.rb` + `config/storage.yml`), not in `deploy.yml`.
 
 ## 5. Secrets (Bitwarden)
 
@@ -179,8 +180,10 @@ One-time setup:
    | `KAMAL_REGISTRY_PASSWORD` | GitHub PAT with `write:packages` |
    | `RAILS_MASTER_KEY` | contents of `config/credentials/production.key` |
    | `PRISMA_ENGINE_DATABASE_PASSWORD` | the Postgres role password |
-   | `R2_ACCESS_KEY_ID` | R2 API token id |
-   | `R2_SECRET_ACCESS_KEY` | R2 API token secret |
+
+   The R2 API token (`r2.access_key_id` / `r2.secret_access_key`) is no longer a Bitwarden
+   field: it lives in `config/credentials/production.yml.enc`, decrypted at boot by
+   `RAILS_MASTER_KEY`. Edit it with `bin/rails credentials:edit --environment production`.
 
    Add `BREVO_SMTP_LOGIN`/`BREVO_SMTP_KEY` and `CORREIOS_API_TOKEN`/`CORREIOS_CARTAO_API_TOKEN`
    when those integrations go live (also add them to `.kamal/secrets` and `env.secret`).
@@ -237,7 +240,8 @@ mkdir -p /opt/prisma_engine /etc/prisma_engine
 cp deploy/pg_backup.sh /opt/prisma_engine/pg_backup.sh   # from a checkout/copy of the repo
 chmod +x /opt/prisma_engine/pg_backup.sh
 
-# R2 credentials for rclone (root-only)
+# R2 credentials for rclone (root-only). Read the token values with
+# `bin/rails credentials:show --environment production` (key `r2:`).
 mkdir -p /root/.config/rclone
 cat > /root/.config/rclone/rclone.conf <<'EOF'
 [r2]
@@ -292,7 +296,7 @@ throwaway database.
   supervisor started.
 - `curl -I https://prismagames.com.br/up` returns 200 with a valid Let's Encrypt cert;
   `http://` redirects to `https://` with no loop.
-- The storefront loads over HTTPS and product images render from `R2_PUBLIC_HOST`.
+- The storefront loads over HTTPS and product images render from the R2 public host.
 - Checkout creates an Order.
 - A registration or password-reset email is delivered through Brevo.
 - An hourly job (e.g. `SyncPendingShipmentsJob`) appears in the logs.
@@ -309,8 +313,8 @@ throwaway database.
   `docker network inspect kamal`.
 - **Redirect loop on HTTPS**: `config.assume_ssl` must stay `true` (it is, in
   `production.rb`) so Rails trusts kamal-proxy's `X-Forwarded-Proto`.
-- **Images blocked / not loading**: `R2_PUBLIC_HOST` must be a real resolvable host; it
-  is added to the CSP `img_src`.
+- **Images blocked / not loading**: the configured public host (`config.x.r2_public_host`
+  in `production.rb`) must be a real resolvable host; it is added to the CSP `img_src`.
 - **Wrong PostgreSQL version**: make sure you installed `postgresql-17` from PGDG, not
   the Ubuntu default 16, and that `pg_dump`/`pg_restore` are the v17 binaries.
 
