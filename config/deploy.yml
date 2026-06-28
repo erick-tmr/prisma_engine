@@ -42,9 +42,9 @@ env:
     DATABASE_USER: prisma_engine
     APP_HOST: prismagames.com.br
     ACTIVE_STORAGE_SERVICE: r2
-    R2_ENDPOINT: https://REPLACE_ME_ACCOUNT_ID.r2.cloudflarestorage.com
-    R2_BUCKET: REPLACE_ME_BUCKET
-    R2_PUBLIC_HOST: https://REPLACE_ME_ASSETS_HOST
+    R2_ENDPOINT: https://ebd6066b8c5c56f2942edd6b4267b706.r2.cloudflarestorage.com
+    R2_BUCKET: prisma-games-prod
+    R2_PUBLIC_HOST: https://pub-e2438ab87e6a4efaa35d305adad5229d.r2.dev
     INFINITEPAY_HANDLE: prisma_games
   secret:
     - RAILS_MASTER_KEY
