@@ -185,10 +185,9 @@ One-time setup:
    field: it lives in `config/credentials/production.yml.enc`, decrypted at boot by
    `RAILS_MASTER_KEY`. Edit it with `bin/rails credentials:edit --environment production`.
 
-   Add `BREVO_SMTP_LOGIN`/`BREVO_SMTP_KEY` to the vault item when email goes live (also add
-   them to `.kamal/secrets` and `env.secret`). The Correios tokens follow the R2 pattern
-   instead: they go in `production.yml.enc` as `correios.api_token` /
-   `correios.cartao_api_token`, not Bitwarden.
+   Brevo SMTP and the Correios tokens follow the R2 pattern too: they go in
+   `production.yml.enc` (`brevo.smtp_login` / `brevo.smtp_key`, `correios.api_token` /
+   `correios.cartao_api_token`), not Bitwarden.
 
 Before deploying, export your Bitwarden account email. Kamal unlocks the vault, prompting
 for your master password if it is locked:

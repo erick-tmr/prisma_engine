@@ -1,0 +1,11 @@
+<%= t("order_mailer.greeting", name: @order.user.first_name) %>
+
+<%= t("order_mailer.delivery_issue.heading") %>
+
+<%= t("order_mailer.delivery_issue.intro") %>
+
+<%= render "summary" %>
+
+<%= t("order_mailer.tracking_code", code: @order.shipment.tracking_code) %>
+
+<%= t("order_mailer.signature") %>

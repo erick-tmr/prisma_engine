@@ -1,0 +1,11 @@
+<p><%= t("order_mailer.greeting", name: @order.user.first_name) %></p>
+
+<h1 style="font-size: 20px; color: #212529;"><%= t("order_mailer.delivery_issue.heading") %></h1>
+
+<p><%= t("order_mailer.delivery_issue.intro") %></p>
+
+<%= render "summary" %>
+
+<p style="color: #6c757d;"><%= t("order_mailer.tracking_code", code: @order.shipment.tracking_code) %></p>
+
+<p><%= t("order_mailer.signature") %></p>

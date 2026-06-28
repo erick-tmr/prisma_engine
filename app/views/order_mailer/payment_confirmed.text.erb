@@ -1,0 +1,9 @@
+<%= t("order_mailer.greeting", name: @order.user.first_name) %>
+
+<%= t("order_mailer.payment_confirmed.heading") %>
+
+<%= t("order_mailer.payment_confirmed.intro") %>
+
+<%= render "summary" %>
+
+<%= t("order_mailer.signature") %>

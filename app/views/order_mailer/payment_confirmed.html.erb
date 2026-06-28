@@ -1,0 +1,9 @@
+<p><%= t("order_mailer.greeting", name: @order.user.first_name) %></p>
+
+<h1 style="font-size: 20px; color: #212529;"><%= t("order_mailer.payment_confirmed.heading") %></h1>
+
+<p><%= t("order_mailer.payment_confirmed.intro") %></p>
+
+<%= render "summary" %>
+
+<p><%= t("order_mailer.signature") %></p>

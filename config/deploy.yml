@@ -46,10 +46,9 @@ env:
     - RAILS_MASTER_KEY
     - PRISMA_ENGINE_DATABASE_PASSWORD
     - DATABASE_PASSWORD
-    # Add when Brevo email goes live (also add to .kamal/secrets + the vault item):
-    #   BREVO_SMTP_LOGIN, BREVO_SMTP_KEY
-    # The Correios tokens are not env secrets: they live in production.yml.enc
-    # (correios.api_token / correios.cartao_api_token).
+    # Brevo SMTP and the Correios tokens are not env secrets: they live in
+    # production.yml.enc (brevo.smtp_login / brevo.smtp_key, correios.api_token /
+    # correios.cartao_api_token), decrypted at boot by RAILS_MASTER_KEY.
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
