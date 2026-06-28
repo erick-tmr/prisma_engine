@@ -19,7 +19,10 @@ Docker bridge gateway because the container is started with
 
 ## Prerequisites
 
-- A Hostinger (or equivalent) VPS in São Paulo, Ubuntu 24.04 LTS, around 2 vCPU / 8 GB.
+- A Hostinger (or equivalent) VPS in São Paulo, Ubuntu 24.04 LTS. Launching on KVM 1
+  (1 vCPU / 4 GB / 50 GB NVMe); the config is tuned for it (`WEB_CONCURRENCY=1`,
+  `RAILS_MAX_THREADS=3`, 4 GB swap). Resize up to KVM 2 (2 vCPU / 8 GB) if memory or CPU
+  get tight (see "When to scale up").
 - The domain `prismagames.com.br` with DNS you can edit.
 - A Cloudflare R2 bucket for production uploads plus a second bucket (or prefix) for
   database backups, and an R2 API token (access key id + secret).
@@ -296,6 +299,21 @@ throwaway database.
   is added to the CSP `img_src`.
 - **Wrong PostgreSQL version**: make sure you installed `postgresql-17` from PGDG, not
   the Ubuntu default 16, and that `pg_dump`/`pg_restore` are the v17 binaries.
+
+## When to scale up
+
+The box launches on KVM 1 (1 vCPU / 4 GB). That is enough for low launch traffic because
+images are served from R2, the Solid stack avoids a separate Redis, and jobs run in-Puma.
+Bump to KVM 2 (2 vCPU / 8 GB) from the Hostinger panel (a few-minute reboot; data
+persists) when you see any of:
+
+- `free -h` shows swap persistently in heavy use (brief spikes during a deploy are normal).
+- Response times climb or requests queue under normal traffic.
+- OOM-kill entries in `journalctl -k` (Postgres or Puma killed).
+- A deploy fails or hangs under memory pressure.
+- Sustained load average above ~1.5 to 2 on the single core.
+
+After a resize to 2+ cores, consider raising `WEB_CONCURRENCY` to 2 in `config/deploy.yml`.
 
 ## Out of scope (later)
 
