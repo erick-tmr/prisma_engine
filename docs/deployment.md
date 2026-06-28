@@ -159,23 +159,37 @@ Replace the `REPLACE_ME_*` placeholders in `config/deploy.yml`:
 - `env.clear.R2_BUCKET` -> the production uploads bucket.
 - `env.clear.R2_PUBLIC_HOST` -> the R2 custom domain (e.g. `https://assets.prismagames.com.br`).
 
-## 5. Secrets
+## 5. Secrets (Bitwarden)
 
-Kamal reads secrets via `.kamal/secrets`, which only references environment variables.
-Export the real values in your deployer shell (from your vault) before deploying.
+Secrets are fetched from Bitwarden at deploy time via the `bw` CLI, so nothing secret is
+stored on disk or in git (`.kamal/secrets` contains only `bw` lookups).
+
+One-time setup:
+
+1. Install the Bitwarden CLI and log in:
+   ```bash
+   npm install -g @bitwarden/cli   # or: snap install bw
+   bw login                        # email + master password + 2FA
+   ```
+2. Create one Bitwarden item (Login or Secure Note) named exactly `prisma-engine-prod`,
+   with a hidden custom field per secret (field name = the variable name):
+
+   | Field | Value |
+   |---|---|
+   | `KAMAL_REGISTRY_PASSWORD` | GitHub PAT with `write:packages` |
+   | `RAILS_MASTER_KEY` | contents of `config/credentials/production.key` |
+   | `PRISMA_ENGINE_DATABASE_PASSWORD` | the Postgres role password |
+   | `R2_ACCESS_KEY_ID` | R2 API token id |
+   | `R2_SECRET_ACCESS_KEY` | R2 API token secret |
+
+   Add `BREVO_SMTP_LOGIN`/`BREVO_SMTP_KEY` and `CORREIOS_API_TOKEN`/`CORREIOS_CARTAO_API_TOKEN`
+   when those integrations go live (also add them to `.kamal/secrets` and `env.secret`).
+
+Before deploying, export your Bitwarden account email. Kamal unlocks the vault, prompting
+for your master password if it is locked:
 
 ```bash
-export KAMAL_REGISTRY_PASSWORD='ghcr_pat_with_write_packages'
-# Production uses env-scoped credentials, so this MUST be production.key, not master.key:
-export RAILS_MASTER_KEY="$(cat config/credentials/production.key)"
-export PRISMA_ENGINE_DATABASE_PASSWORD='STRONG_DB_PASSWORD'
-export DATABASE_PASSWORD="$PRISMA_ENGINE_DATABASE_PASSWORD"
-export BREVO_SMTP_LOGIN='...'
-export BREVO_SMTP_KEY='...'
-export CORREIOS_API_TOKEN='...'
-export CORREIOS_CARTAO_API_TOKEN='...'
-export R2_ACCESS_KEY_ID='...'
-export R2_SECRET_ACCESS_KEY='...'
+export BW_ACCOUNT="you@example.com"
 ```
 
 Verify the master key decrypts the production credentials before deploying:

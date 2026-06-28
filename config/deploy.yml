@@ -7,7 +7,7 @@ image: erick-tmr/prisma_engine
 servers:
   web:
     hosts:
-      - REPLACE_ME_VPS_IP
+      - 187.127.38.87
     options:
       add-host: host.docker.internal:host-gateway
 
@@ -50,12 +50,10 @@ env:
     - RAILS_MASTER_KEY
     - PRISMA_ENGINE_DATABASE_PASSWORD
     - DATABASE_PASSWORD
-    - BREVO_SMTP_LOGIN
-    - BREVO_SMTP_KEY
-    - CORREIOS_API_TOKEN
-    - CORREIOS_CARTAO_API_TOKEN
     - R2_ACCESS_KEY_ID
     - R2_SECRET_ACCESS_KEY
+    # Add when those integrations go live (also add to .kamal/secrets + the vault item):
+    #   BREVO_SMTP_LOGIN, BREVO_SMTP_KEY, CORREIOS_API_TOKEN, CORREIOS_CARTAO_API_TOKEN
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
