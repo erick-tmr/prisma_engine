@@ -1,0 +1,61 @@
+# Single São Paulo VPS: Rails app + host-installed Postgres. Runbook: docs/deployment.md.
+# Secrets resolve from .kamal/secrets (Bitwarden). proxy.hosts is the temporary sslip.io
+# test host; swap to prismagames.com.br once the domain is live.
+service: prisma_engine
+
+image: erick-tmr/prisma_engine
+
+servers:
+  web:
+    hosts:
+      - 187.127.38.87
+    options:
+      add-host: host.docker.internal:host-gateway
+
+proxy:
+  ssl: true
+  hosts:
+    - 187.127.38.87.sslip.io
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 5
+
+registry:
+  server: ghcr.io
+  username: erick-tmr
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+
+env:
+  clear:
+    PORT: 3000
+    WEB_CONCURRENCY: 1
+    RAILS_MAX_THREADS: 3
+    SOLID_QUEUE_IN_PUMA: 1
+    RAILS_LOG_LEVEL: info
+    DATABASE_HOST: host.docker.internal
+    DATABASE_USER: prisma_engine
+    APP_HOST: prismagames.com.br
+    ACTIVE_STORAGE_SERVICE: r2
+    R2_ENDPOINT: https://ebd6066b8c5c56f2942edd6b4267b706.r2.cloudflarestorage.com
+    R2_BUCKET: prisma-games-prod
+    R2_PUBLIC_HOST: https://pub-e2438ab87e6a4efaa35d305adad5229d.r2.dev
+    INFINITEPAY_HANDLE: prisma_games
+  secret:
+    - RAILS_MASTER_KEY
+    - PRISMA_ENGINE_DATABASE_PASSWORD
+    - DATABASE_PASSWORD
+    - R2_ACCESS_KEY_ID
+    - R2_SECRET_ACCESS_KEY
+    # Add when those integrations go live (also add to .kamal/secrets + the vault item):
+    #   BREVO_SMTP_LOGIN, BREVO_SMTP_KEY, CORREIOS_API_TOKEN, CORREIOS_CARTAO_API_TOKEN
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  dbconsole: app exec --interactive --reuse "bin/rails dbconsole"
+  logs: app logs --follow
