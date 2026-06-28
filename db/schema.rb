@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_20_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_27_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -141,6 +141,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_150000) do
     t.string "external_id"
     t.string "number", null: false
     t.string "payment_method"
+    t.bigint "production_batch_id"
     t.string "receipt_url"
     t.string "status", default: "awaiting_payment", null: false
     t.integer "subtotal_cents", null: false
@@ -150,6 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_150000) do
     t.string "webhook_token"
     t.index ["external_id"], name: "index_orders_on_external_id", unique: true
     t.index ["number"], name: "index_orders_on_number", unique: true
+    t.index ["production_batch_id"], name: "index_orders_on_production_batch_id"
     t.index ["user_id", "created_at"], name: "index_orders_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_orders_on_user_id"
     t.index ["webhook_token"], name: "index_orders_on_webhook_token", unique: true
@@ -193,6 +195,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_150000) do
     t.index ["product_id", "tag_id"], name: "index_product_tags_on_product_id_and_tag_id", unique: true
     t.index ["product_id"], name: "index_product_tags_on_product_id"
     t.index ["tag_id"], name: "index_product_tags_on_tag_id"
+  end
+
+  create_table "production_batches", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "operator_id"
+    t.integer "orders_count", default: 0, null: false
+    t.date "period_from"
+    t.date "period_to"
+    t.datetime "updated_at", null: false
+    t.index ["operator_id"], name: "index_production_batches_on_operator_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -341,12 +353,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_150000) do
   add_foreign_key "order_items", "products", on_delete: :nullify
   add_foreign_key "order_status_changes", "orders"
   add_foreign_key "order_status_changes", "users", column: "actor_id"
+  add_foreign_key "orders", "production_batches", on_delete: :nullify
   add_foreign_key "orders", "users"
   add_foreign_key "payment_webhook_events", "orders"
   add_foreign_key "product_options", "products"
   add_foreign_key "product_photos", "products"
   add_foreign_key "product_tags", "products"
   add_foreign_key "product_tags", "tags"
+  add_foreign_key "production_batches", "users", column: "operator_id"
   add_foreign_key "products", "categories"
   add_foreign_key "questions", "products"
   add_foreign_key "shipment_tracking_events", "shipments"

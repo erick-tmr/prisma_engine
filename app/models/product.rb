@@ -33,6 +33,10 @@ class Product < ApplicationRecord
     name
   end
 
+  def game?
+    !category.miscellaneous?
+  end
+
   def category_label
     category&.name
   end

@@ -6,6 +6,7 @@ class Order < ApplicationRecord
   EXPIRY_WINDOW = 24.hours
 
   belongs_to :user
+  belongs_to :production_batch, optional: true
   has_one :shipment, dependent: :nullify
   has_one :shipping_label, through: :shipment
   has_many :order_items, dependent: :destroy

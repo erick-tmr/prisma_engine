@@ -1,0 +1,75 @@
+<% content_for :title, t("admin.production_report.page_title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "pages/production-report" %>
+<% end %>
+
+<div class="pr">
+  <header class="pr-top">
+    <a class="pr-back" href="<%= admin_root_path %>"><i class="bi bi-arrow-left"></i> <%= t("admin.production_report.back") %></a>
+    <h1 class="pr-heading"><%= t("admin.production_report.heading") %></h1>
+    <p class="pr-lede"><%= t("admin.production_report.lede") %></p>
+  </header>
+
+  <% flash.each do |type, message| %>
+    <div class="pr-flash pr-flash--<%= type == "alert" ? "alert" : "ok" %>" role="alert"><%= message %></div>
+  <% end %>
+
+  <% if @presenter.count.zero? %>
+    <div class="pr-empty">
+      <i class="bi bi-inbox"></i>
+      <p class="pr-empty__title"><%= t("admin.production_report.empty.title") %></p>
+      <span class="pr-empty__hint"><%= t("admin.production_report.empty.hint") %></span>
+    </div>
+  <% else %>
+    <div class="pr-meta">
+      <span class="pr-count"><%= t("admin.production_report.count", count: @presenter.count) %> <%= @presenter.period_clause %></span>
+      <button type="button" class="pr-btn pr-btn--primary" data-pr-open>
+        <i class="bi bi-printer"></i> <%= t("admin.production_report.generate") %>
+      </button>
+    </div>
+
+    <table class="pr-preview">
+      <thead>
+        <tr>
+          <th class="pr-preview__seq"><%= t("admin.production_report.columns.seq") %></th>
+          <th><%= t("admin.production_report.columns.order") %></th>
+          <th><%= t("admin.production_report.columns.client") %></th>
+          <th><%= t("admin.production_report.columns.date") %></th>
+          <th class="pr-preview__items"><%= t("admin.production_report.columns.items") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @presenter.rows.each do |row| %>
+          <tr>
+            <td class="pr-preview__seq"><%= row.seq %></td>
+            <td class="pr-mono"><%= row.number %></td>
+            <td><%= row.customer %></td>
+            <td><%= row.placed_on %></td>
+            <td class="pr-preview__items"><%= t("admin.production_report.items_count", count: row.items.sum(&:quantity)) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="pr-modal" data-pr-modal hidden>
+      <div class="pr-modal__box" role="dialog" aria-modal="true" aria-labelledby="pr-modal-title">
+        <h2 class="pr-modal__title" id="pr-modal-title"><%= t("admin.production_report.confirm.title") %></h2>
+        <p class="pr-modal__summary"><%= t("admin.production_report.confirm.summary", count: @presenter.count, period: @presenter.period_clause) %></p>
+        <p class="pr-modal__warning"><%= t("admin.production_report.confirm.warning") %></p>
+        <div class="pr-modal__actions">
+          <button type="button" class="pr-btn pr-btn--ghost" data-pr-close><%= t("admin.production_report.confirm.cancel") %></button>
+          <%= form_with url: admin_production_report_path, method: :post do |form| %>
+            <%= form.hidden_field :de, value: @presenter.from_iso %>
+            <%= form.hidden_field :ate, value: @presenter.to_iso %>
+            <%= form.submit t("admin.production_report.confirm.submit"), class: "pr-btn pr-btn--primary" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "backoffice/production_report", type: "module" %>
+<% end %>

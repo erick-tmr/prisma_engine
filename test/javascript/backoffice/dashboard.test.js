@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   STATUS_COLORS, ACTIONS, AVATAR_TINTS, SITUATION_TAGS, PRESETS, MONTHS_LONG,
-  escapeHtml, parseISO, fmtDate, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural,
+  escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural, viewForPath,
   sameDay, startOfMonth, addMonths, applyPreset, monthCells,
-  filterOrders, sortOrders, affectedBy, availableActions, applyAction,
+  filterOrders, sortOrders, affectedBy, availableActions, applyAction, productionReportUrl,
   filterClients, sortClients,
-  ordersRowsHtml, clientsRowsHtml, bulkChipsHtml, statusOptionsHtml, calendarHtml, dpReadoutHtml, datePopHtml,
+  ordersRowsHtml, clientsRowsHtml, reportsRowsHtml, bulkChipsHtml, statusOptionsHtml, calendarHtml, dpReadoutHtml, datePopHtml,
   confirmText, toastMessage, initDashboard
 } from "../../../app/javascript/backoffice/dashboard.js";
 
@@ -34,6 +34,10 @@ function sampleData() {
       { id: 2, name: "Bruno Tanaka", email: "bruno@example.com", cpf: "40811722055", phone: "", city: null, uf: null, since: "2026-01-15", orders: 1, status: "pending" },
       { id: 3, name: "Carla Menezes", email: "carla@example.com", cpf: "22190345612", phone: "1133224567", city: "Rio de Janeiro", uf: "RJ", since: "2025-06-22", orders: 0, status: "locked" }
     ],
+    reports: [
+      { id: 12, generatedAt: "27/06/2026 14:17", operator: "Erick Takeshi", orders: 8, period: "16/06/2026 a 26/06/2026", url: "/admin/relatorio-producao/12" },
+      { id: 11, generatedAt: "20/06/2026 09:30", operator: "sistema", orders: 1, period: "Todos os períodos", url: "/admin/relatorio-producao/11" }
+    ],
     statuses: STATUSES,
     statusLabels: STATUS_LABELS,
     actionLabels: ACTION_LABELS,
@@ -56,6 +60,11 @@ describe("formatting helpers", () => {
     expect(parseISO("2026-06-14").getMonth()).toBe(5);
     expect(fmtDate("2026-06-14")).toBe("14 jun 2026");
     expect(fmtDate(new Date(2026, 0, 5))).toBe("05 jan 2026");
+  });
+
+  it("toISO renders a Date as a zero-padded YYYY-MM-DD string", () => {
+    expect(toISO(new Date(2026, 0, 5))).toBe("2026-01-05");
+    expect(toISO(new Date(2026, 11, 31))).toBe("2026-12-31");
   });
 
   it("fmtBRL formats cents as Brazilian currency", () => {
@@ -90,6 +99,13 @@ describe("formatting helpers", () => {
   it("plural picks the singular only for 1", () => {
     expect(plural(1, "pedido", "pedidos")).toBe("pedido");
     expect(plural(2, "pedido", "pedidos")).toBe("pedidos");
+  });
+
+  it("viewForPath maps a dedicated path to its sidebar view, defaulting to orders", () => {
+    const byPath = new Map([ [ "/admin", "orders" ], [ "/admin/clientes", "clients" ], [ "/admin/relatorios", "reports" ] ]);
+    expect(viewForPath("/admin/relatorios", byPath)).toBe("reports");
+    expect(viewForPath("/admin/clientes", byPath)).toBe("clients");
+    expect(viewForPath("/something-else", byPath)).toBe("orders");
   });
 });
 
@@ -178,6 +194,15 @@ describe("orders transforms", () => {
     expect(affected).toHaveLength(1);
     expect(confirmed[0].status).toBe("in_production");
   });
+
+  it("productionReportUrl carries the active period or falls back to the base path", () => {
+    const base = "/admin/relatorio-producao";
+    expect(productionReportUrl({ from: null, to: null }, base)).toBe(base);
+    expect(productionReportUrl({ from: new Date(2026, 0, 5), to: null }, base)).toBe(`${base}?de=2026-01-05`);
+    expect(productionReportUrl({ from: null, to: new Date(2026, 0, 9) }, base)).toBe(`${base}?ate=2026-01-09`);
+    expect(productionReportUrl({ from: new Date(2026, 0, 5), to: new Date(2026, 0, 9) }, base))
+      .toBe(`${base}?de=2026-01-05&ate=2026-01-09`);
+  });
 });
 
 describe("clients transforms", () => {
@@ -228,6 +253,15 @@ describe("template builders", () => {
     expect(chips).toContain('data-act="to_production"');
     expect(chips).toContain("danger");
     expect(chips).toContain("Enviar para produção");
+  });
+
+  it("reportsRowsHtml links each batch by its date to the reprint and pluralizes the order count", () => {
+    const { reports } = sampleData();
+    const html = reportsRowsHtml(reports);
+    expect(html).toContain('<a class="cell-link" href="/admin/relatorio-producao/12">27/06/2026 14:17</a>');
+    expect(html).toContain("8 pedidos");
+    expect(html).toContain("1 pedido</td>"); // singular for the 1-order batch
+    expect(html).toContain("Todos os períodos");
   });
 
   it("statusOptionsHtml renders one option per status with a coloured dot and a selection", () => {
@@ -288,8 +322,9 @@ function mountDashboard() {
     <div class="app" data-dashboard="{}">
       <aside class="sidebar">
         <nav>
-          <a class="sb-link active" data-view="orders" data-title="Pedidos" data-crumb="Histórico de pedidos">x</a>
-          <a class="sb-link" data-view="clients" data-title="Clientes" data-crumb="Todos os clientes">x</a>
+          <a class="sb-link active" href="/admin" data-view="orders" data-title="Pedidos" data-crumb="Histórico de pedidos">x</a>
+          <a class="sb-link" href="/admin/clientes" data-view="clients" data-title="Clientes" data-crumb="Todos os clientes">x</a>
+          <a class="sb-link" href="/admin/relatorios" data-view="reports" data-title="Relatorios" data-crumb="Lotes gerados">x</a>
         </nav>
       </aside>
       <div class="main">
@@ -302,6 +337,7 @@ function mountDashboard() {
         <main>
           <section class="view" data-view="orders">
             <span class="result-count" id="orders-count"></span>
+            <a id="gen-production" href="/admin/relatorio-producao" data-base="/admin/relatorio-producao">gerar</a>
             <div class="filters">
               <input id="o-name" type="text">
               <div class="f-trigger" id="date-trigger" data-pop>
@@ -357,6 +393,11 @@ function mountDashboard() {
             </table>
             <div class="empty" id="clients-empty"></div>
           </section>
+          <section class="view" data-view="reports" hidden>
+            <span class="result-count" id="reports-count"></span>
+            <table class="tbl" id="reports-table"><tbody id="reports-body"></tbody></table>
+            <div class="empty" id="reports-empty"></div>
+          </section>
         </main>
       </div>
     </div>
@@ -365,7 +406,7 @@ function mountDashboard() {
 }
 
 const $ = (sel) => document.querySelector(sel);
-const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
 function input(el, value) {
   el.value = value;
   el.dispatchEvent(new window.Event("input", { bubbles: true }));
@@ -383,6 +424,7 @@ describe("initDashboard", () => {
   afterEach(() => {
     destroy();
     vi.restoreAllMocks();
+    window.history.pushState({}, "", "/"); // reset the URL pushed by tab navigation
   });
 
   it("renders both tables, the default sort arrow and counts", () => {
@@ -393,6 +435,74 @@ describe("initDashboard", () => {
     const dateTh = $('#orders-table th[data-key="date"]');
     expect(dateTh.classList.contains("sorted")).toBe(true);
     expect(dateTh.querySelector(".sortarrow").textContent).toBe("▼");
+  });
+
+  it("renders the reports history and opens its tab from the sidebar", () => {
+    expect($("#reports-body").querySelectorAll("tr")).toHaveLength(2);
+    expect($("#reports-count").textContent).toContain("2 relatórios");
+    expect($("#reports-body").querySelector('a[href="/admin/relatorio-producao/12"]')).not.toBeNull();
+
+    click($('.sb-link[data-view="reports"]'));
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+    expect($('.view[data-view="orders"]').hidden).toBe(true);
+    expect($("#page-title").textContent).toBe("Relatorios");
+  });
+
+  it("opens the tab matching the current dedicated path on load", () => {
+    destroy(); // tear down the beforeEach instance, then remount on a dedicated path
+    window.history.pushState({}, "", "/admin/relatorios");
+    root = mountDashboard();
+    destroy = initDashboard(root, sampleData(), TODAY);
+
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+    expect($('.view[data-view="orders"]').hidden).toBe(true);
+  });
+
+  it("pushes the tab's dedicated path to the address bar on click", () => {
+    click($('.sb-link[data-view="reports"]'));
+    expect(window.location.pathname).toBe("/admin/relatorios");
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+  });
+
+  it("re-opens the matching tab on browser back/forward", () => {
+    click($('.sb-link[data-view="reports"]'));
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+
+    window.history.pushState({}, "", "/admin/clientes"); // simulate a history entry
+    window.dispatchEvent(new window.Event("popstate"));
+    expect($('.view[data-view="clients"]').hidden).toBe(false);
+  });
+
+  it("opens a report by forwarding a row click to its reprint link", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#reports-body tr td:nth-child(2)")); // a non-link cell
+    expect(open).toHaveBeenCalledTimes(1);
+    open.mockRestore();
+  });
+
+  it("does not double-open when the report link itself is clicked", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#reports-body tr a.cell-link"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("ignores report-table clicks that land outside a row", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#reports-body"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("shows the empty state when no reports have been generated", () => {
+    destroy(); // tear down the beforeEach instance, then remount with no reports
+    root = mountDashboard();
+    destroy = initDashboard(root, { ...sampleData(), reports: [] }, TODAY);
+
+    expect($("#reports-body").querySelectorAll("tr")).toHaveLength(0);
+    expect($("#reports-empty").classList.contains("show")).toBe(true);
+    expect($("#reports-table").hidden).toBe(true);
+    expect($("#reports-count").textContent).toContain("0 relatórios");
   });
 
   it("switches views from the sidebar and the menu toggle", () => {
@@ -636,6 +746,23 @@ describe("initDashboard", () => {
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
     expect($("#status-pop").classList.contains("open")).toBe(false);
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" })); // non-Escape → ignored
+  });
+
+  it("rewrites the production report link with the active period on click", () => {
+    const link = $("#gen-production");
+    // Cancelable so preventDefault actually suppresses jsdom's link navigation.
+    const followLink = () => link.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+    link.addEventListener("click", (e) => e.preventDefault());
+
+    followLink(); // no period applied yet → base path
+    expect(link.getAttribute("href")).toBe("/admin/relatorio-producao");
+
+    click($("#date-trigger"));
+    click($('#date-pop .dp-preset[data-p="today"]'));
+    click($("#dp-apply"));
+    followLink();
+    expect(link.getAttribute("href")).toContain("de=");
+    expect(link.getAttribute("href")).toContain("ate=");
   });
 
   it("auto-dismisses a toast after its timeout", () => {

@@ -7,41 +7,8 @@
 <div class="app-rainbow" aria-hidden="true"></div>
 
 <div class="app" data-dashboard="<%= @dashboard.to_json %>" data-order-base="/admin/pedidos/">
-  <aside class="sidebar">
-    <div class="sb-brand">
-      <span class="sb-word"><%= t("admin.dashboard.brand") %></span>
-      <span class="sb-tag"><%= t("admin.dashboard.tag") %></span>
-    </div>
-
-    <div class="sb-section"><%= t("admin.dashboard.section") %></div>
-    <nav class="sb-nav">
-      <a class="sb-link active" data-view="orders"
-         data-title="<%= t("admin.dashboard.views.orders.title") %>"
-         data-crumb="<%= t("admin.dashboard.views.orders.crumb") %>">
-        <i class="bi bi-receipt"></i> <%= t("admin.dashboard.nav.orders") %>
-        <span class="count"><%= @dashboard.orders.size %></span>
-      </a>
-      <a class="sb-link" data-view="clients"
-         data-title="<%= t("admin.dashboard.views.clients.title") %>"
-         data-crumb="<%= t("admin.dashboard.views.clients.crumb") %>">
-        <i class="bi bi-people"></i> <%= t("admin.dashboard.nav.clients") %>
-        <span class="count"><%= @dashboard.clients.size %></span>
-      </a>
-    </nav>
-
-    <div class="sb-foot">
-      <div class="sb-user">
-        <div class="sb-avatar"><%= account_avatar_initials(current_user.full_name) %></div>
-        <div class="sb-user-meta">
-          <div class="nm"><%= current_user.full_name %></div>
-          <div class="rl"><%= t("admin.dashboard.role") %></div>
-        </div>
-      </div>
-      <%= button_to admin_logout_path, method: :delete, class: "sb-signout" do %>
-        <i class="bi bi-box-arrow-left"></i> <%= t("admin.dashboard.signout") %>
-      <% end %>
-    </div>
-  </aside>
+  <%= render "admin/sidebar", active: "orders",
+        counts: { "orders" => @dashboard.orders.size, "clients" => @dashboard.clients.size, "reports" => @dashboard.reports.size } %>
 
   <div class="main">
     <header class="topbar">
@@ -69,6 +36,7 @@
             </div>
             <div class="panel-top-right">
               <span class="result-count" id="orders-count"></span>
+              <a class="btn-ghost" id="gen-production" href="<%= admin_production_report_path %>" data-base="<%= admin_production_report_path %>"><i class="bi bi-printer"></i> <%= t("admin.dashboard.orders.production_report") %></a>
               <button class="btn-ghost" type="button"><i class="bi bi-download"></i> <%= t("admin.dashboard.orders.export") %></button>
             </div>
           </div>
@@ -178,6 +146,40 @@
               <i class="bi bi-person-x"></i>
               <p><%= t("admin.dashboard.clients.empty.title") %></p>
               <span><%= t("admin.dashboard.clients.empty.hint") %></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="reports" hidden>
+        <div class="panel">
+          <div class="panel-top">
+            <div class="panel-top-main">
+              <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.dashboard.reports.heading") %></h2>
+              <div class="sub"><%= t("admin.dashboard.reports.sub") %></div>
+            </div>
+            <div class="panel-top-right">
+              <span class="result-count" id="reports-count"></span>
+            </div>
+          </div>
+
+          <div class="tbl-wrap">
+            <table class="tbl" id="reports-table">
+              <thead>
+                <tr>
+                  <th><%= t("admin.dashboard.reports.columns.generated") %></th>
+                  <th><%= t("admin.dashboard.reports.columns.operator") %></th>
+                  <th><%= t("admin.dashboard.reports.columns.period") %></th>
+                  <th class="num"><%= t("admin.dashboard.reports.columns.orders") %></th>
+                  <th class="num"></th>
+                </tr>
+              </thead>
+              <tbody id="reports-body"></tbody>
+            </table>
+            <div class="empty" id="reports-empty">
+              <i class="bi bi-printer"></i>
+              <p><%= t("admin.dashboard.reports.empty.title") %></p>
+              <span><%= t("admin.dashboard.reports.empty.hint") %></span>
             </div>
           </div>
         </div>

@@ -262,6 +262,7 @@ pt-BR:
       nav:
         orders: "Pedidos"
         clients: "Clientes"
+        reports: "Relatórios"
       bulk:
         selected: "selecionados"
         clear: "Limpar seleção"
@@ -272,10 +273,14 @@ pt-BR:
         clients:
           title: "Clientes"
           crumb: "Todos os clientes cadastrados"
+        reports:
+          title: "Relatórios de produção"
+          crumb: "Lotes de produção já gerados"
       orders:
         heading: "Histórico de pedidos"
         sub: "Todos os pedidos da loja, de todos os clientes."
         export: "Exportar"
+        production_report: "Gerar relatório de produção"
         filters:
           query: "Cliente ou nº do pedido"
           query_placeholder: "Buscar por nome do cliente ou PG-…"
@@ -310,6 +315,17 @@ pt-BR:
         empty:
           title: "Nenhum cliente encontrado"
           hint: "Tente outro nome, e-mail ou CPF."
+      reports:
+        heading: "Relatórios de produção"
+        sub: "Cada lote enviado para produção. Abra um lote para reimprimir a folha."
+        columns:
+          generated: "Gerado em"
+          operator: "Operador"
+          orders: "Pedidos"
+          period: "Período"
+        empty:
+          title: "Nenhum relatório gerado"
+          hint: "Gere um relatório de produção pela aba Pedidos."
       bulk_actions:
         to_production: "Enviar para produção"
         to_components: "Aguardar componentes"
@@ -394,6 +410,48 @@ pt-BR:
         delivered: "Entregue"
         auto_webhook: "automático (webhook)"
         auto_correios: "automático (Correios)"
+    production_report:
+      page_title: "Relatório de produção — Backoffice · Prisma Games"
+      heading: "Relatório de produção"
+      lede: "Pedidos pagos prontos para fabricação. Gerar o relatório envia este lote para produção."
+      back: "Voltar ao painel"
+      generate: "Enviar para produção e gerar"
+      count:
+        one: "%{count} pedido"
+        other: "%{count} pedidos"
+      period_all: "de todo o período"
+      period_range: "do período %{dates}"
+      columns:
+        seq: "#"
+        order: "Pedido"
+        client: "Cliente"
+        date: "Data"
+        items: "Itens"
+      items_count:
+        one: "%{count} item"
+        other: "%{count} itens"
+      empty:
+        title: "Nenhum pedido elegível"
+        hint: "Não há pedidos pagos aguardando produção neste período."
+      confirm:
+        title: "Confirmar envio para produção"
+        summary:
+          one: "%{count} pedido %{period} será enviado para produção e marcado como Em produção."
+          other: "%{count} pedidos %{period} serão enviados para produção e marcados como Em produção."
+        warning: "Esta ação atualiza o status dos pedidos. O relatório será gerado em seguida."
+        cancel: "Cancelar"
+        submit: "Confirmar e gerar"
+      none: "Nenhum pedido elegível para enviar à produção."
+      report:
+        page_title: "Relatório de produção — Prisma Games"
+        heading: "Relatório de produção"
+        back: "Voltar aos relatórios"
+        batch: "Lote #%{id}"
+        generated_by: "Gerado em %{date} por %{operator}"
+        system: "sistema"
+        all_periods: "Todos os períodos"
+        print: "Imprimir"
+        checkbox_aria: "Marcar como produzido"
   activerecord:
     attributes:
       user:

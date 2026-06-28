@@ -1,0 +1,50 @@
+<% content_for :title, t("admin.production_report.report.page_title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "pages/production-report" %>
+<% end %>
+
+<div class="pr pr-sheet">
+  <a class="pr-back pr-noprint" href="<%= admin_reports_path %>"><i class="bi bi-arrow-left"></i> <%= t("admin.production_report.report.back") %></a>
+
+  <header class="pr-sheet__top">
+    <div>
+      <h1 class="pr-sheet__title"><%= t("admin.production_report.report.heading") %></h1>
+      <p class="pr-sheet__meta">
+        <%= t("admin.production_report.report.batch", id: @batch.id) %>
+        · <%= t("admin.production_report.count", count: @presenter.count) %> <%= @presenter.period_clause %>
+        · <%= t("admin.production_report.report.generated_by", date: l(@batch.created_at), operator: @batch.operator&.full_name || t("admin.production_report.report.system")) %>
+      </p>
+    </div>
+    <button type="button" class="pr-btn pr-btn--primary pr-noprint" data-pr-print>
+      <i class="bi bi-printer"></i> <%= t("admin.production_report.report.print") %>
+    </button>
+  </header>
+
+  <ol class="pr-orders">
+    <% @presenter.rows.each do |row| %>
+      <li class="pr-order">
+        <div class="pr-order__head">
+          <span class="pr-order__seq">#<%= row.seq %></span>
+          <span class="pr-order__customer"><%= row.customer %></span>
+          <span class="pr-order__date"><%= row.placed_on %></span>
+          <span class="pr-order__number"><%= row.number %></span>
+        </div>
+        <ul class="pr-items">
+          <% row.items.each do |item| %>
+            <li class="pr-item">
+              <span class="pr-check" aria-label="<%= t("admin.production_report.report.checkbox_aria") %>"></span>
+              <span class="pr-item__qty"><%= item.quantity %>x</span>
+              <span class="pr-item__name"><%= item.name %></span>
+              <% if item.variants.present? %><span class="pr-item__variants"><%= item.variants %></span><% end %>
+            </li>
+          <% end %>
+        </ul>
+      </li>
+    <% end %>
+  </ol>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "backoffice/production_report", type: "module" %>
+<% end %>

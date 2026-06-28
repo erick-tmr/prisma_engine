@@ -1,5 +1,6 @@
 awaiting_zelda:
   order: awaiting
+  product: metroid
   name: "Cartucho Game Boy — The Legend of Zelda: Link's Awakening DX"
   unit_price_cents: 32000
   quantity: 1
@@ -10,6 +11,7 @@ awaiting_zelda:
 
 confirmed_pokemon:
   order: confirmed_paid
+  product: yellow
   name: "Cartucho Game Boy Color — Pokémon Crystal"
   unit_price_cents: 16000
   quantity: 2
@@ -18,6 +20,7 @@ confirmed_pokemon:
 
 producing_zelda:
   order: producing
+  product: metroid
   name: "Cartucho Game Boy — The Legend of Zelda: Link's Awakening DX"
   unit_price_cents: 32000
   quantity: 1
@@ -27,6 +30,7 @@ producing_zelda:
 
 delivered_zelda:
   order: delivered
+  product: metroid
   name: "Cartucho Game Boy — The Legend of Zelda: Link's Awakening DX"
   unit_price_cents: 32000
   quantity: 1
@@ -37,6 +41,7 @@ delivered_zelda:
 
 labeled_item:
   order: labeled
+  product: yellow
   name: "Cartucho Game Boy Color — Pokémon Crystal"
   unit_price_cents: 32000
   quantity: 1
@@ -46,6 +51,7 @@ labeled_item:
 
 shipped_item:
   order: shipped_order
+  product: metroid
   name: "Cartucho Game Boy — Metroid II: Return of Samus"
   unit_price_cents: 32000
   quantity: 1

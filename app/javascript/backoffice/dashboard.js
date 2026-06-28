@@ -66,6 +66,10 @@ export function fmtDate(value) {
   return `${pad2(dt.getDate())} ${MONTHS_SHORT[dt.getMonth()]} ${dt.getFullYear()}`;
 }
 
+export function toISO(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
 export function fmtBRL(cents) {
   return `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -100,6 +104,12 @@ export function tintIndex(name) {
 
 export function plural(n, one, many) {
   return n === 1 ? one : many;
+}
+
+// Each sidebar tab has its own dedicated path; map the current path back to its
+// view so landing on (or navigating back to) a path opens the right tab.
+export function viewForPath(pathname, byPath) {
+  return byPath.get(pathname) || "orders";
 }
 
 // ── Date math ────────────────────────────────────────────────────────────────
@@ -199,6 +209,14 @@ export function applyAction(action, orders) {
   return affected;
 }
 
+export function productionReportUrl(state, base) {
+  const params = new URLSearchParams();
+  if (state.from) params.set("de", toISO(state.from));
+  if (state.to) params.set("ate", toISO(state.to));
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
 // ── Clients: filter / sort ───────────────────────────────────────────────────
 export function filterClients(clients, query) {
   const q = query.trim().toLowerCase();
@@ -262,6 +280,18 @@ export function clientsRowsHtml(rows, situationLabels) {
       <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
     </tr>`;
   }).join("");
+}
+
+export function reportsRowsHtml(rows) {
+  return rows.map((r) =>
+    `<tr data-report="${escapeHtml(r.id)}">
+      <td class="cell-num"><a class="cell-link" href="${escapeHtml(r.url)}">${escapeHtml(r.generatedAt)}</a></td>
+      <td>${escapeHtml(r.operator)}</td>
+      <td>${escapeHtml(r.period)}</td>
+      <td class="num cell-num">${r.orders} ${plural(r.orders, "pedido", "pedidos")}</td>
+      <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
+    </tr>`
+  ).join("");
 }
 
 export function bulkChipsHtml(available, actionLabels) {
@@ -329,7 +359,7 @@ export function toastMessage(label, count) {
 
 // ── Orchestrator ─────────────────────────────────────────────────────────────
 export function initDashboard(root, data, today) {
-  const { orders, clients, statuses, statusLabels, actionLabels, situationLabels } = data;
+  const { orders, clients, reports, statuses, statusLabels, actionLabels, situationLabels } = data;
   const toasts = document.getElementById("toasts");
 
   const state = {
@@ -351,6 +381,10 @@ export function initDashboard(root, data, today) {
   const clientsTable = $("#clients-table");
   const clientsEmpty = $("#clients-empty");
   const clientsCount = $("#clients-count");
+  const reportsBody = $("#reports-body");
+  const reportsTable = $("#reports-table");
+  const reportsEmpty = $("#reports-empty");
+  const reportsCount = $("#reports-count");
   const statusPop = $("#status-pop");
   const statusTrigger = $("#status-trigger");
   const datePop = $("#date-pop");
@@ -419,6 +453,12 @@ export function initDashboard(root, data, today) {
     clientsTable.hidden = rows.length === 0;
     clientsCount.textContent = `${rows.length} ${plural(rows.length, "cliente", "clientes")}`;
     updateSortArrows(clientsTable, state.cSort);
+  }
+  function renderReports() {
+    reportsBody.innerHTML = reportsRowsHtml(reports);
+    reportsEmpty.classList.toggle("show", reports.length === 0);
+    reportsTable.hidden = reports.length === 0;
+    reportsCount.textContent = `${reports.length} ${plural(reports.length, "relatório", "relatórios")}`;
   }
 
   // ── Toasts (mock feedback) ──
@@ -531,8 +571,14 @@ export function initDashboard(root, data, today) {
   syncStatusTrigger();
   syncDateTrigger();
 
-  root.querySelectorAll(".sb-link[data-view]").forEach((l) =>
-    l.addEventListener("click", (e) => { e.preventDefault(); switchView(l.dataset.view); }));
+  const navLinks = [...root.querySelectorAll(".sb-link[data-view]")];
+  const viewByPath = new Map(navLinks.map((l) => [new URL(l.href).pathname, l.dataset.view]));
+  navLinks.forEach((l) =>
+    l.addEventListener("click", (e) => {
+      e.preventDefault();
+      switchView(l.dataset.view);
+      window.history.pushState({}, "", l.getAttribute("href"));
+    }));
   $("#menu-toggle").addEventListener("click", () => sidebar.classList.toggle("show"));
 
   $("#o-name").addEventListener("input", (e) => { state.oName = e.target.value; renderOrders(); });
@@ -624,6 +670,11 @@ export function initDashboard(root, data, today) {
 
   $("#o-clear").addEventListener("click", clearOrderFilters);
 
+  const genReport = $("#gen-production");
+  genReport.addEventListener("click", () => {
+    genReport.setAttribute("href", productionReportUrl(state, genReport.dataset.base));
+  });
+
   ordersTable.querySelectorAll("thead th.sortable").forEach((th) =>
     th.addEventListener("click", () => {
       const k = th.dataset.key;
@@ -662,21 +713,29 @@ export function initDashboard(root, data, today) {
     if (chip) applyBulk(chip.dataset.act);
   });
   clientsBody.addEventListener("click", (e) => row(e.target));
+  reportsBody.addEventListener("click", (e) => {
+    const link = e.target.closest("tr[data-report]")?.querySelector("a.cell-link");
+    if (link && link !== e.target) link.click();
+  });
 
   const onDocClick = (e) => {
     if (!e.target.closest(".pop") && !e.target.closest("[data-pop]")) closePop();
   };
   const onDocKeydown = (e) => { if (e.key === "Escape") closePop(); };
+  const onPopState = () => switchView(viewForPath(window.location.pathname, viewByPath));
   document.addEventListener("click", onDocClick);
   document.addEventListener("keydown", onDocKeydown);
+  window.addEventListener("popstate", onPopState);
 
   renderOrders();
   renderClients();
-  switchView("orders");
+  renderReports();
+  switchView(viewForPath(window.location.pathname, viewByPath));
 
   return function destroy() {
     document.removeEventListener("click", onDocClick);
     document.removeEventListener("keydown", onDocKeydown);
+    window.removeEventListener("popstate", onPopState);
   };
 }
 

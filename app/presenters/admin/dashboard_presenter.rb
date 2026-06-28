@@ -20,10 +20,15 @@ module Admin
       @clients ||= load_clients
     end
 
+    def reports
+      @reports ||= load_reports
+    end
+
     def to_h
       {
         "orders" => orders,
         "clients" => clients,
+        "reports" => reports,
         "statuses" => Order::STATUSES,
         "statusLabels" => status_labels,
         "actionLabels" => action_labels,
@@ -73,6 +78,27 @@ module Admin
           "status" => situation(customer)
         }
       end
+    end
+
+    def load_reports
+      ProductionBatch.includes(:operator).recent_first.map do |batch|
+        {
+          "id" => batch.id,
+          "generatedAt" => I18n.l(batch.created_at),
+          "operator" => batch.operator&.full_name || I18n.t("admin.production_report.report.system"),
+          "orders" => batch.orders_count,
+          "period" => report_period(batch),
+          "url" => Rails.application.routes.url_helpers.admin_production_report_batch_path(batch)
+        }
+      end
+    end
+
+    def report_period(batch)
+      from = batch.period_from
+      to = batch.period_to
+      return I18n.t("admin.production_report.report.all_periods") unless from || to
+
+      [ from, to ].compact.map { |date| I18n.l(date) }.join(" a ")
     end
 
     def situation(customer)

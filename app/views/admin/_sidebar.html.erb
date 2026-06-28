@@ -1,0 +1,35 @@
+<%# locals: (active:, counts: nil) %>
+<aside class="sidebar" data-sidebar>
+  <div class="sb-brand">
+    <span class="sb-word"><%= t("admin.dashboard.brand") %></span>
+    <span class="sb-tag"><%= t("admin.dashboard.tag") %></span>
+  </div>
+
+  <div class="sb-section"><%= t("admin.dashboard.section") %></div>
+  <nav class="sb-nav">
+    <% [ { view: "orders", icon: "bi-receipt", href: admin_root_path },
+         { view: "clients", icon: "bi-people", href: admin_clients_path },
+         { view: "reports", icon: "bi-printer", href: admin_reports_path } ].each do |item| %>
+      <a class="sb-link<%= " active" if item[:view] == active %>" href="<%= item[:href] %>"
+         data-view="<%= item[:view] %>"
+         data-title="<%= t("admin.dashboard.views.#{item[:view]}.title") %>"
+         data-crumb="<%= t("admin.dashboard.views.#{item[:view]}.crumb") %>">
+        <i class="bi <%= item[:icon] %>"></i> <%= t("admin.dashboard.nav.#{item[:view]}") %>
+        <% if counts %><span class="count"><%= counts[item[:view]] %></span><% end %>
+      </a>
+    <% end %>
+  </nav>
+
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-avatar"><%= account_avatar_initials(current_user.full_name) %></div>
+      <div class="sb-user-meta">
+        <div class="nm"><%= current_user.full_name %></div>
+        <div class="rl"><%= t("admin.dashboard.role") %></div>
+      </div>
+    </div>
+    <%= button_to admin_logout_path, method: :delete, class: "sb-signout" do %>
+      <i class="bi bi-box-arrow-left"></i> <%= t("admin.dashboard.signout") %>
+    <% end %>
+  </div>
+</aside>
