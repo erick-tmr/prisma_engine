@@ -233,9 +233,18 @@
   padding: 0;
 }
 
+/* Two columns on a wide screen, mirroring the printed sheet. */
+@media (min-width: 720px) {
+  .pr-orders {
+    column-count: 2;
+    column-gap: var(--space-8);
+  }
+}
+
 .pr-order {
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--pg-border);
+  break-inside: avoid;
 }
 
 .pr-order__head {
