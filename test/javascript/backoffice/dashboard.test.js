@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   STATUS_COLORS, ACTIONS, AVATAR_TINTS, SITUATION_TAGS, PRESETS, MONTHS_LONG,
-  escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural, pickView,
+  escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural, viewForPath,
   sameDay, startOfMonth, addMonths, applyPreset, monthCells,
   filterOrders, sortOrders, affectedBy, availableActions, applyAction, productionReportUrl,
   filterClients, sortClients,
@@ -101,11 +101,11 @@ describe("formatting helpers", () => {
     expect(plural(2, "pedido", "pedidos")).toBe("pedidos");
   });
 
-  it("pickView keeps a known sidebar view and falls back to orders", () => {
-    expect(pickView("reports")).toBe("reports");
-    expect(pickView("clients")).toBe("clients");
-    expect(pickView(null)).toBe("orders");
-    expect(pickView("bogus")).toBe("orders");
+  it("viewForPath maps a dedicated path to its sidebar view, defaulting to orders", () => {
+    const byPath = new Map([ [ "/admin", "orders" ], [ "/admin/clientes", "clients" ], [ "/admin/relatorios", "reports" ] ]);
+    expect(viewForPath("/admin/relatorios", byPath)).toBe("reports");
+    expect(viewForPath("/admin/clientes", byPath)).toBe("clients");
+    expect(viewForPath("/something-else", byPath)).toBe("orders");
   });
 });
 
@@ -323,9 +323,9 @@ function mountDashboard() {
     <div class="app" data-dashboard="{}">
       <aside class="sidebar">
         <nav>
-          <a class="sb-link active" data-view="orders" data-title="Pedidos" data-crumb="Histórico de pedidos">x</a>
-          <a class="sb-link" data-view="clients" data-title="Clientes" data-crumb="Todos os clientes">x</a>
-          <a class="sb-link" data-view="reports" data-title="Relatorios" data-crumb="Lotes gerados">x</a>
+          <a class="sb-link active" href="/admin" data-view="orders" data-title="Pedidos" data-crumb="Histórico de pedidos">x</a>
+          <a class="sb-link" href="/admin/clientes" data-view="clients" data-title="Clientes" data-crumb="Todos os clientes">x</a>
+          <a class="sb-link" href="/admin/relatorios" data-view="reports" data-title="Relatorios" data-crumb="Lotes gerados">x</a>
         </nav>
       </aside>
       <div class="main">
@@ -407,7 +407,7 @@ function mountDashboard() {
 }
 
 const $ = (sel) => document.querySelector(sel);
-const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
 function input(el, value) {
   el.value = value;
   el.dispatchEvent(new window.Event("input", { bubbles: true }));
@@ -425,6 +425,7 @@ describe("initDashboard", () => {
   afterEach(() => {
     destroy();
     vi.restoreAllMocks();
+    window.history.pushState({}, "", "/"); // reset the URL pushed by tab navigation
   });
 
   it("renders both tables, the default sort arrow and counts", () => {
@@ -446,6 +447,52 @@ describe("initDashboard", () => {
     expect($('.view[data-view="reports"]').hidden).toBe(false);
     expect($('.view[data-view="orders"]').hidden).toBe(true);
     expect($("#page-title").textContent).toBe("Relatorios");
+  });
+
+  it("opens the tab matching the current dedicated path on load", () => {
+    destroy(); // tear down the beforeEach instance, then remount on a dedicated path
+    window.history.pushState({}, "", "/admin/relatorios");
+    root = mountDashboard();
+    destroy = initDashboard(root, sampleData(), TODAY);
+
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+    expect($('.view[data-view="orders"]').hidden).toBe(true);
+  });
+
+  it("pushes the tab's dedicated path to the address bar on click", () => {
+    click($('.sb-link[data-view="reports"]'));
+    expect(window.location.pathname).toBe("/admin/relatorios");
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+  });
+
+  it("re-opens the matching tab on browser back/forward", () => {
+    click($('.sb-link[data-view="reports"]'));
+    expect($('.view[data-view="reports"]').hidden).toBe(false);
+
+    window.history.pushState({}, "", "/admin/clientes"); // simulate a history entry
+    window.dispatchEvent(new window.Event("popstate"));
+    expect($('.view[data-view="clients"]').hidden).toBe(false);
+  });
+
+  it("opens a report by forwarding a row click to its reprint link", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#reports-body tr td:nth-child(2)")); // a non-link cell
+    expect(open).toHaveBeenCalledTimes(1);
+    open.mockRestore();
+  });
+
+  it("does not double-open when the report link itself is clicked", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#reports-body tr a.cell-link"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it("ignores report-table clicks that land outside a row", () => {
+    const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
+    click($("#reports-body"));
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
   });
 
   it("shows the empty state when no reports have been generated", () => {

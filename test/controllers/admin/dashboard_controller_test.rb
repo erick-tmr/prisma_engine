@@ -33,5 +33,20 @@ module Admin
       assert_select ".sb-user .nm", text: users(:admin).full_name
       assert_includes response.body, orders(:awaiting).number
     end
+
+    test "each sidebar tab has its own dedicated path that renders the dashboard" do
+      sign_in users(:admin)
+
+      get admin_clients_path
+      assert_response :success
+      assert_select ".app[data-dashboard]"
+
+      get admin_reports_path
+      assert_response :success
+      assert_select ".app[data-dashboard]"
+
+      assert_select "aside.sidebar a.sb-link[href=?]", admin_clients_path
+      assert_select "aside.sidebar a.sb-link[href=?]", admin_reports_path
+    end
   end
 end

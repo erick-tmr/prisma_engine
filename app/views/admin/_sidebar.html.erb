@@ -8,8 +8,8 @@
   <div class="sb-section"><%= t("admin.dashboard.section") %></div>
   <nav class="sb-nav">
     <% [ { view: "orders", icon: "bi-receipt", href: admin_root_path },
-         { view: "clients", icon: "bi-people", href: admin_root_path(view: "clients") },
-         { view: "reports", icon: "bi-printer", href: admin_root_path(view: "reports") } ].each do |item| %>
+         { view: "clients", icon: "bi-people", href: admin_clients_path },
+         { view: "reports", icon: "bi-printer", href: admin_reports_path } ].each do |item| %>
       <a class="sb-link<%= " active" if item[:view] == active %>" href="<%= item[:href] %>"
          data-view="<%= item[:view] %>"
          data-title="<%= t("admin.dashboard.views.#{item[:view]}.title") %>"

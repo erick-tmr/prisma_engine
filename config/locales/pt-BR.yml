@@ -446,6 +446,7 @@ pt-BR:
       report:
         page_title: "Relatório de produção — Prisma Games"
         heading: "Relatório de produção"
+        back: "Voltar aos relatórios"
         batch: "Lote #%{id}"
         generated_by: "Gerado em %{date} por %{operator}"
         system: "sistema"

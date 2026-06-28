@@ -106,11 +106,10 @@ export function plural(n, one, many) {
   return n === 1 ? one : many;
 }
 
-// The sidebar links carry ?view=, so landing from another admin page (e.g. the
-// order detail) opens the right tab. Unknown values fall back to orders.
-export const VIEWS = ["orders", "clients", "reports"];
-export function pickView(value) {
-  return VIEWS.includes(value) ? value : "orders";
+// Each sidebar tab has its own dedicated path; map the current path back to its
+// view so landing on (or navigating back to) a path opens the right tab.
+export function viewForPath(pathname, byPath) {
+  return byPath.get(pathname) || "orders";
 }
 
 // ── Date math ────────────────────────────────────────────────────────────────
@@ -573,8 +572,14 @@ export function initDashboard(root, data, today) {
   syncStatusTrigger();
   syncDateTrigger();
 
-  root.querySelectorAll(".sb-link[data-view]").forEach((l) =>
-    l.addEventListener("click", (e) => { e.preventDefault(); switchView(l.dataset.view); }));
+  const navLinks = [...root.querySelectorAll(".sb-link[data-view]")];
+  const viewByPath = new Map(navLinks.map((l) => [new URL(l.href).pathname, l.dataset.view]));
+  navLinks.forEach((l) =>
+    l.addEventListener("click", (e) => {
+      e.preventDefault();
+      switchView(l.dataset.view);
+      window.history.pushState({}, "", l.getAttribute("href"));
+    }));
   $("#menu-toggle").addEventListener("click", () => sidebar.classList.toggle("show"));
 
   $("#o-name").addEventListener("input", (e) => { state.oName = e.target.value; renderOrders(); });
@@ -709,22 +714,29 @@ export function initDashboard(root, data, today) {
     if (chip) applyBulk(chip.dataset.act);
   });
   clientsBody.addEventListener("click", (e) => row(e.target));
+  reportsBody.addEventListener("click", (e) => {
+    const link = e.target.closest("tr[data-report]")?.querySelector("a.cell-link");
+    if (link && link !== e.target) link.click();
+  });
 
   const onDocClick = (e) => {
     if (!e.target.closest(".pop") && !e.target.closest("[data-pop]")) closePop();
   };
   const onDocKeydown = (e) => { if (e.key === "Escape") closePop(); };
+  const onPopState = () => switchView(viewForPath(window.location.pathname, viewByPath));
   document.addEventListener("click", onDocClick);
   document.addEventListener("keydown", onDocKeydown);
+  window.addEventListener("popstate", onPopState);
 
   renderOrders();
   renderClients();
   renderReports();
-  switchView(pickView(new URLSearchParams(window.location.search).get("view")));
+  switchView(viewForPath(window.location.pathname, viewByPath));
 
   return function destroy() {
     document.removeEventListener("click", onDocClick);
     document.removeEventListener("keydown", onDocKeydown);
+    window.removeEventListener("popstate", onPopState);
   };
 }
 

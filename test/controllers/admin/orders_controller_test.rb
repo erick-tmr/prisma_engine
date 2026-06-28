@@ -184,7 +184,7 @@ module Admin
 
       assert_response :success
       assert_select "aside.sidebar a.sb-link[data-view=?]", "reports"
-      assert_select "aside.sidebar a.sb-link[href=?]", admin_root_path(view: "reports")
+      assert_select "aside.sidebar a.sb-link[href=?]", admin_reports_path
     end
   end
 end

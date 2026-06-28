@@ -99,6 +99,7 @@ module Admin
 
       assert_response :success
       assert_select ".pr-order"
+      assert_select "a.pr-back[href=?]", admin_reports_path
       assert_match order.number, response.body
       assert_match "Lote ##{batch.id}", response.body
     end

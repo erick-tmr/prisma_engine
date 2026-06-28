@@ -35,6 +35,8 @@ Rails.application.routes.draw do
 
   scope path: "admin", module: "admin", as: :admin do
     root to: "dashboard#index"
+    get    "clientes",   to: "dashboard#index", as: :clients
+    get    "relatorios", to: "dashboard#index", as: :reports
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout
