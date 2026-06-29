@@ -9,6 +9,8 @@ module StructuredLogging
       "discard" => { ok: "discarded", error: "discarded" }
     }.freeze
 
+    attr_reader :logger
+
     def self.install
       require "active_job/log_subscriber"
       ActiveJob::LogSubscriber.detach_from :active_job
@@ -21,6 +23,7 @@ module StructuredLogging
 
     def initialize
       super
+      @logger = ActiveSupport::Logger.new($stdout)
       @param_filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
     end
 

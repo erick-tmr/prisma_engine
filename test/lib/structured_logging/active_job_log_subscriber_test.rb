@@ -16,9 +16,10 @@ module StructuredLogging
 
     setup do
       @io = StringIO.new
-      @logger = ActiveSupport::Logger.new(@io)
-      @logger.formatter = proc { |_severity, _time, _progname, message| "#{message}\n" }
+      logger = ActiveSupport::Logger.new(@io)
+      logger.formatter = proc { |_severity, _time, _progname, message| "#{message}\n" }
       @subscriber = ActiveJobLogSubscriber.new
+      @subscriber.instance_variable_set(:@logger, logger)
     end
 
     test "perform emits one JSON line with the performed outcome and no exception" do
@@ -103,6 +104,10 @@ module StructuredLogging
       assert_not log_line(:perform, job: build_job(arguments: [])).key?("arguments")
     end
 
+    test "writes to a dedicated non-tagged logger so Active Job tags never prefix the JSON" do
+      assert_not ActiveJobLogSubscriber.new.logger.respond_to?(:tagged)
+    end
+
     test "install detaches the default Active Job subscriber and attaches itself" do
       detached = nil
       attached = nil
@@ -128,7 +133,7 @@ module StructuredLogging
 
     def log_line(method_name, payload)
       event = FakeEvent.new("#{method_name}.active_job", payload, 12.34)
-      @subscriber.stub(:logger, @logger) { @subscriber.public_send(method_name, event) }
+      @subscriber.public_send(method_name, event)
       JSON.parse(@io.string.lines.last)
     end
   end
