@@ -136,9 +136,9 @@ module Admin
       assert_equal "bi-check-circle-fill", payment.status_icon
     end
 
-    test "payment badge for an unpaid order falls back to pending" do
+    test "payment badge shows an unknown-method label when no method is set" do
       payment = order_in("awaiting_payment").payment
-      assert_equal "Aguardando pagamento", payment.method_label
+      assert_equal "Forma de pagamento não identificada", payment.method_label
       assert_equal "bi-wallet2", payment.icon
       assert_equal "pending", payment.status_class
       assert_equal "bi-hourglass-split", payment.status_icon

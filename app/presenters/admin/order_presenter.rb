@@ -150,7 +150,7 @@ module Admin
 
     def payment_badge(status_class, status_icon, status_label)
       Payment.new(
-        method_label: PAYMENT_METHOD_LABELS.fetch(payment_method.to_s, I18n.t("admin.orders.detail.payment_pending")),
+        method_label: PAYMENT_METHOD_LABELS.fetch(payment_method.to_s, I18n.t("admin.orders.detail.payment_method_unknown")),
         icon: PAYMENT_METHOD_ICONS.fetch(payment_method.to_s, "bi-wallet2"),
         status_class: status_class, status_icon: status_icon, status_label: status_label
       )

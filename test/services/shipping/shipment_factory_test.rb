@@ -33,16 +33,24 @@ module Shipping
       assert_equal 120, @shipment.weight_grams
     end
 
-    test "updates in place on a re-run without changing the record count" do
+    test "first-writer-wins: a duplicate pré-postagem is discarded, keeping the first pinned" do
       Shipping::ShipmentFactory.update_from_pre_postagem(@shipment, PAYLOAD)
 
-      assert_no_difference -> { Shipment.count } do
+      log = capture_log do
         Shipping::ShipmentFactory.update_from_pre_postagem(
-          @shipment, PAYLOAD.merge("statusAtual" => 3, "descStatusAtual" => "Postado")
+          @shipment,
+          PAYLOAD.merge(
+            "id" => "OTHER-PREPOST", "codigoObjeto" => "ZZ999999999BR",
+            "statusAtual" => 3, "descStatusAtual" => "Postado"
+          )
         )
       end
 
-      assert_equal 3, @shipment.reload.correios_status
+      @shipment.reload
+      assert_equal "PRHelX4tO8Qsuqq0D47quwxA", @shipment.pre_post_id
+      assert_equal "AD515656026BR", @shipment.tracking_code
+      assert_equal 7, @shipment.correios_status
+      assert_match(/discarded duplicate/, log)
     end
 
     test "accepts a JSON string payload" do

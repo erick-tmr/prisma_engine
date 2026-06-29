@@ -11,15 +11,22 @@ module Shipping
     end
 
     def update
-      shipment.assign_attributes(attributes)
-      warn_unknown_status
-      shipment.save!
+      pinned = Shipment.where(id: shipment.id, pre_post_id: nil).update_all(attributes)
+      shipment.reload
+      pinned.zero? ? log_discarded_duplicate : warn_unknown_status
       shipment
     end
 
     private
 
     attr_reader :shipment, :payload
+
+    def log_discarded_duplicate
+      Rails.logger.info(
+        "[correios-prepost] discarded duplicate pré-postagem id=#{payload["id"].inspect} " \
+        "for shipment=#{shipment.id}; kept pre_post_id=#{shipment.pre_post_id.inspect}"
+      )
+    end
 
     def attributes
       {

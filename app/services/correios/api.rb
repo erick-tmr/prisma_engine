@@ -21,5 +21,8 @@ module Correios
     # A 200 whose body rejects the object as invalid (rastro SRO-019) — permanent,
     # so the caller stops rather than retries.
     InvalidObjectError = Class.new(Error)
+    # A 200 whose body reports the async label generation failed (PPN-295) — the
+    # recibo is dead, so the caller must request a fresh one rather than retry.
+    LabelGenerationFailedError = Class.new(Error)
   end
 end

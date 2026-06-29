@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_27_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_29_215039) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -303,6 +303,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_120000) do
     t.string "filename"
     t.text "pdf_base64"
     t.string "recibo_id"
+    t.integer "relabel_attempts", default: 0, null: false
+    t.datetime "requesting_at"
     t.bigint "shipment_id", null: false
     t.integer "state", default: 0, null: false
     t.datetime "updated_at", null: false

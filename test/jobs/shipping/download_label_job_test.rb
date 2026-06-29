@@ -27,5 +27,38 @@ module Shipping
       assert_equal "%PDF-1.4", @label.pdf_bytes
       assert @order.reload.label_issued?
     end
+
+    test "on PPN-295 it rewinds the label and re-requests a fresh recibo" do
+      stub_request(:get, URL).to_return(
+        status: 200,
+        body: { "mensagem" => "PPN-295: Houve uma falha na geração do rótulo. Gere um novo recibo." }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+        Shipping::DownloadLabelJob.perform_now(@order.id)
+      end
+
+      assert @label.reload.prepost_confirmed?
+      assert_nil @label.recibo_id
+      assert_equal 1, @label.relabel_attempts
+      assert @order.reload.in_production?
+    end
+
+    test "on PPN-295 past the relabel cap it records the error and stops" do
+      @label.update!(relabel_attempts: Shipping::LabelStep::MAX_RELABEL_ATTEMPTS)
+      stub_request(:get, URL).to_return(
+        status: 200,
+        body: { "mensagem" => "PPN-295: Houve uma falha na geração do rótulo. Gere um novo recibo." }.to_json,
+        headers: { "Content-Type" => "application/json" }
+      )
+
+      assert_no_enqueued_jobs do
+        assert_raises(Correios::Api::LabelGenerationFailedError) { Shipping::DownloadLabelJob.perform_now(@order.id) }
+      end
+
+      assert @label.reload.requested?
+      assert_match "PPN-295", @label.error
+    end
   end
 end

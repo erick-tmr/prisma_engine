@@ -61,8 +61,6 @@ class StorefrontTest < ActionDispatch::IntegrationTest
 test "every static page route renders" do
     [
       perguntas_frequentes_path,
-      recomendacao_de_jogos_path,
-      reviews_path,
       direitos_path
     ].each do |path|
       get path

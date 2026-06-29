@@ -44,6 +44,36 @@ module Shipping
       assert_no_enqueued_jobs { Shipping::EmitLabel.resume(@order) }
     end
 
+    test "ignores a requesting label by default so a live claim is not disturbed" do
+      @order.shipment.create_shipping_label!(state: :requesting)
+
+      assert_no_enqueued_jobs { Shipping::EmitLabel.resume(@order) }
+      assert @order.shipment.shipping_label.requesting?
+    end
+
+    test "recover rewinds a stuck requesting label and re-requests" do
+      label = @order.shipment.create_shipping_label!(state: :requesting)
+
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+        Shipping::EmitLabel.recover(@order)
+      end
+      assert label.reload.prepost_confirmed?
+    end
+
+    test "recover leaves a healthy label untouched" do
+      @order.shipment.create_shipping_label!(state: :prepost_confirmed)
+
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+        Shipping::EmitLabel.recover(@order)
+      end
+    end
+
+    test "recover is a no-op when the order has no shipment" do
+      order = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000)
+
+      assert_no_enqueued_jobs { Shipping::EmitLabel.recover(order) }
+    end
+
     test "does nothing when the order has no shipment" do
       order = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000)
 

@@ -40,6 +40,17 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    config.solid_queue.silence_polling = true
+
+    stdout_logger = ActiveSupport::TaggedLogging.logger($stdout)
+    config.logger = ActiveSupport::BroadcastLogger.new(
+      ActiveSupport::TaggedLogging.logger(Rails.root.join("log", "development.log")),
+      stdout_logger
+    )
+    config.after_initialize { stdout_logger.level = Logger::INFO }
+  end
+
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 

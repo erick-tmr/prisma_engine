@@ -100,6 +100,10 @@ class Order < ApplicationRecord
     transition_to!("payment_confirmed", **opts)
   end
 
+  def advance_to_label_issued!(**opts)
+    transition_to!("label_issued", **opts) unless label_issued?
+  end
+
   def cancel!(**opts)
     transition_to!("cancelled", **opts)
   end
