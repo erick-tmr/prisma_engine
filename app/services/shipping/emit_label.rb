@@ -12,5 +12,11 @@ module Shipping
       when "requested"         then Shipping::DownloadLabelJob.perform_later(order.id)
       end
     end
+
+    def self.recover(order)
+      label = order.shipment&.shipping_label
+      label.unclaim_requesting! if label&.requesting?
+      resume(order)
+    end
   end
 end

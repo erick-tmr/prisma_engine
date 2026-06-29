@@ -41,6 +41,7 @@ class ShippingLabelTest < ActiveSupport::TestCase
 
     assert @label.claim_requesting!
     assert @label.requesting?
+    assert_not_nil @label.requesting_at
     assert_not @label.claim_requesting!
   end
 

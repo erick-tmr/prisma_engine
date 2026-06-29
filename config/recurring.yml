@@ -16,6 +16,9 @@ production:
   sync_pending_shipments:
     class: SyncPendingShipmentsJob
     schedule: every hour
+  recover_stuck_label_requests:
+    class: Shipping::RecoverStuckLabelRequestsJob
+    schedule: every 10 minutes
   cancel_expired_orders:
     class: CancelExpiredOrdersJob
     schedule: every hour
@@ -27,3 +30,6 @@ development:
   sync_pending_shipments:
     class: SyncPendingShipmentsJob
     schedule: every hour
+  recover_stuck_label_requests:
+    class: Shipping::RecoverStuckLabelRequestsJob
+    schedule: every 10 minutes

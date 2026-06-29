@@ -32,7 +32,7 @@ module Admin
 
     def apply(order, action)
       if action.saga
-        Shipping::EmitLabel.resume(order)
+        Shipping::EmitLabel.recover(order)
       else
         order.transition_to!(action.to, actor: current_user)
       end

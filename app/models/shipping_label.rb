@@ -12,7 +12,8 @@ class ShippingLabel < ApplicationRecord
   end
 
   def claim_requesting!
-    claimed = self.class.where(id: id, state: :prepost_confirmed).update_all(state: :requesting)
+    claimed = self.class.where(id: id, state: :prepost_confirmed)
+                  .update_all(state: :requesting, requesting_at: Time.current)
     reload
     claimed == 1
   end
