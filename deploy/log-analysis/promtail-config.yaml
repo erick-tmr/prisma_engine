@@ -41,8 +41,13 @@ scrape_configs:
       - match:
           selector: '{job="prisma_engine"}'
           stages:
+            # Shared `event` label tells request lines (lograge) from job lines
+            # (StructuredLogging::ActiveJobLogSubscriber) apart. Request-only fields
+            # (method/status/controller/action) and job-only fields (job_class/queue/
+            # outcome) are sparse: each line carries one set, the other stays unset.
             - json:
                 expressions:
+                  event: event
                   method: method
                   path: path
                   status: status
@@ -51,12 +56,25 @@ scrape_configs:
                   duration: duration
                   request_id: request_id
                   user_id: user_id
+                  job_class: job_class
+                  queue: queue
+                  outcome: outcome
+                  job_event: job_event
+                  job_id: job_id
+                  executions: executions
             - labels:
+                event:
                 method:
                 status:
                 controller:
                 action:
+                job_class:
+                queue:
+                outcome:
             - structured_metadata:
                 request_id:
                 user_id:
                 duration:
+                job_event:
+                job_id:
+                executions:

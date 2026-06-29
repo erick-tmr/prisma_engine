@@ -9,11 +9,22 @@ for, run on demand. Error tracking (Sentry) is deferred; this covers log search 
 - Rails logs to STDOUT, captured by Docker's `json-file` driver
   (`config/deploy.yml` rotates it at `50m` x `3`, about 150 MB of on-box history).
 - `lograge` (`config/environments/production.rb`) condenses each controller request
-  into a single JSON line: `method`, `path`, `status`, `controller`, `action`,
-  `duration` (ms), plus `request_id`, `host`, and `user_id`. Raw request params are
-  not logged (PII).
-- Solid Queue job logs, boot lines, and other `Rails.logger` output stay plain text.
-  They are still queryable in Loki as raw lines, just without parsed fields.
+  into a single JSON line tagged `event: "request"`: `method`, `path`, `status`,
+  `controller`, `action`, `duration` (ms), plus `request_id`, `host`, and `user_id`.
+  Raw request params are not logged (PII).
+- Active Job runs (Solid Queue is in-Puma, so jobs log to the same STDOUT) emit one
+  JSON line per event tagged `event: "job"`, via
+  `StructuredLogging::ActiveJobLogSubscriber`: `job_event` (enqueue/enqueue_at/perform/
+  enqueue_retry/retry_stopped/discard), `job_class`, `job_id`, `queue`, `outcome`
+  (e.g. performed/errored), `duration` (ms), `executions`, `arguments`, and `exception` /
+  `exception_message` on failure. Arguments are filtered through Rails'
+  `config.filter_parameters` (`config/initializers/filter_parameter_logging.rb`), the same
+  redaction the request logs use, so PII/secret keys (`email`, `token`, `passw`, ...) log as
+  `[FILTERED]`; Active Record records log as their GlobalID, never their attributes. A job can
+  drop arguments entirely with `self.log_arguments = false`.
+- Solid Queue's own supervisor/worker lifecycle lines, boot lines, and other
+  `Rails.logger` output stay plain text. They are still queryable in Loki as raw
+  lines, just without parsed fields.
 - Every line on disk is double-wrapped: the Docker envelope
   `{"log":"<inner>\n","stream":"stdout","time":"..."}` around the inner stdout line.
   The local stack unwraps this for you.
@@ -45,9 +56,10 @@ docker compose up -d
 ```
 
 Loki, Grafana, and Promtail start. Promtail reads `tmp/production-logs/`, unwraps the
-Docker envelope, parses the lograge JSON into labels (`method`, `status`, `controller`,
-`action`) and structured metadata (`request_id`, `user_id`, `duration`), and ships it
-to Loki.
+Docker envelope, parses the JSON into labels (`event`, plus `method`/`status`/
+`controller`/`action` for requests and `job_class`/`queue`/`outcome` for jobs) and
+structured metadata (`request_id`, `user_id`, `duration`, `job_event`, `job_id`,
+`executions`), and ships it to Loki.
 
 Grafana listens on `http://127.0.0.1:3000`. This collides with a local `bin/dev` Rails
 server, so don't run both at once, or remap the Grafana port to `127.0.0.1:3001:3000`
@@ -61,12 +73,20 @@ timestamps, not "now". Example LogQL:
 
 ```logql
 {job="prisma_engine"}                                      # everything
+{job="prisma_engine", event="request"}                     # requests only
 {job="prisma_engine", status=~"5.."}                       # 5xx responses
 {job="prisma_engine", controller="CartController"}         # one controller
 {job="prisma_engine"} | json | duration > 500              # requests slower than 500ms
 {job="prisma_engine"} | json | request_id="<id>"           # one request, end to end
-{job="prisma_engine"} |= "SolidQueue"                      # raw job/boot lines (text match)
-sum(count_over_time({job="prisma_engine", status=~"5.."}[5m]))   # 5xx rate
+
+{job="prisma_engine", event="job"}                         # all job events
+{job="prisma_engine", event="job", outcome="errored"}      # failed job runs
+{job="prisma_engine", job_class="SyncShipmentJob"}         # one job class
+{job="prisma_engine"} | json | job_id="<id>"               # one job, end to end
+{job="prisma_engine"} |= "SolidQueue"                      # raw lifecycle/boot lines (text match)
+
+sum(count_over_time({job="prisma_engine", status=~"5.."}[5m]))        # 5xx rate
+sum by (job_class) (count_over_time({job="prisma_engine", outcome="errored"}[1h]))  # job errors by class
 ```
 
 ## 4. Teardown
