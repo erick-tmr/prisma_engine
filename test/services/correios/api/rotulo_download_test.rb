@@ -76,6 +76,17 @@ module Correios
         assert_match "PPN-295", error.message
       end
 
+      test "raises LabelGenerationFailedError when PPN-297 reports the generation was not performed" do
+        stub_request(:get, URL).to_return(
+          status: 200,
+          body: { "mensagem" => "PPN-297: Geração do rótulo não realizada." }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+        error = assert_raises(Correios::Api::LabelGenerationFailedError) { Correios::Api::RotuloDownload.fetch(RECIBO) }
+        assert_match "PPN-297", error.message
+      end
+
       test "raises a non-transient Error when the 200 body is not a label object" do
         stub_request(:get, URL).to_return(
           status: 200, body: "[]", headers: { "Content-Type" => "application/json" }

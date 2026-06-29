@@ -6,7 +6,7 @@ module Correios
       include Correios::Api::Client
 
       LABEL_PENDING_CODE = "PPN-291".freeze
-      LABEL_FAILED_CODE = "PPN-295".freeze
+      LABEL_FAILED_CODES = %w[PPN-295 PPN-297].freeze
 
       def self.fetch(recibo_id)
         new(recibo_id).fetch
@@ -34,7 +34,7 @@ module Correios
       def error_class_for(message)
         text = message.to_s
         return Correios::Api::TransientError if text.include?(LABEL_PENDING_CODE)
-        return Correios::Api::LabelGenerationFailedError if text.include?(LABEL_FAILED_CODE)
+        return Correios::Api::LabelGenerationFailedError if LABEL_FAILED_CODES.any? { |code| text.include?(code) }
 
         Correios::Api::Error
       end
