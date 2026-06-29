@@ -26,9 +26,9 @@
     </aside>
   </section>
 
-  <div class="faq-body" data-faq>
-    <aside class="faq-rail" aria-label="Tópicos da FAQ">
-      <span class="faq-rail__label">Tópicos</span>
+  <div class="topic-layout" data-faq>
+    <aside class="topic-rail" aria-label="Tópicos da FAQ">
+      <span class="topic-rail__label">Tópicos</span>
       <% [
         ["g-prisma",   "bi-info-circle", "A Prisma", 1],
         ["g-pedidos",  "bi-bag-check",   "Pedidos",  2],
@@ -42,11 +42,11 @@
       <% end %>
     </aside>
 
-    <div class="faq-content">
-      <section class="faq-group" id="g-prisma" data-faq-group>
-        <div class="faq-group__head">
-          <span class="faq-group__ic"><i class="bi bi-info-circle"></i></span>
-          <div class="faq-group__htext">
+    <div class="topic-content">
+      <section class="topic-group" id="g-prisma" data-topic-group>
+        <div class="topic-group__head">
+          <span class="topic-group__ic"><i class="bi bi-info-circle"></i></span>
+          <div class="topic-group__htext">
             <h2>A Prisma</h2>
             <span>Quem somos e como produzimos</span>
           </div>
@@ -85,10 +85,10 @@
         </div>
       </section>
 
-      <section class="faq-group" id="g-pedidos" data-faq-group>
-        <div class="faq-group__head">
-          <span class="faq-group__ic"><i class="bi bi-bag-check"></i></span>
-          <div class="faq-group__htext">
+      <section class="topic-group" id="g-pedidos" data-topic-group>
+        <div class="topic-group__head">
+          <span class="topic-group__ic"><i class="bi bi-bag-check"></i></span>
+          <div class="topic-group__htext">
             <h2>Pedidos</h2>
             <span>Como pedir e o que vem junto</span>
           </div>
@@ -141,10 +141,10 @@
         </div>
       </section>
 
-      <section class="faq-group" id="g-entrega" data-faq-group>
-        <div class="faq-group__head">
-          <span class="faq-group__ic"><i class="bi bi-truck"></i></span>
-          <div class="faq-group__htext">
+      <section class="topic-group" id="g-entrega" data-topic-group>
+        <div class="topic-group__head">
+          <span class="topic-group__ic"><i class="bi bi-truck"></i></span>
+          <div class="topic-group__htext">
             <h2>Entrega</h2>
             <span>Prazos, frete e rastreio</span>
           </div>
@@ -226,10 +226,10 @@
         </div>
       </section>
 
-      <section class="faq-group" id="g-hardware" data-faq-group>
-        <div class="faq-group__head">
-          <span class="faq-group__ic"><i class="bi bi-cpu"></i></span>
-          <div class="faq-group__htext">
+      <section class="topic-group" id="g-hardware" data-topic-group>
+        <div class="topic-group__head">
+          <span class="topic-group__ic"><i class="bi bi-cpu"></i></span>
+          <div class="topic-group__htext">
             <h2>Hardware</h2>
             <span>Compatibilidade e qualidade</span>
           </div>
@@ -274,5 +274,5 @@
 </div>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "storefront/faq", type: "module" %>
+  <%= javascript_include_tag "storefront/topic_rail", "storefront/faq", type: "module" %>
 <% end %>

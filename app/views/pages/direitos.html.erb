@@ -1,29 +1,90 @@
-<% content_for :title, "Direitos do consumidor — Prisma Games" %>
+<% content_for :title, "Direitos — Prisma Games" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "pages/direitos" %>
+<% end %>
 
-<div class="container py-4">
-  <%= render "shared/breadcrumb", crumbs: [["Início", root_path]], current: "Direitos do consumidor" %>
+<div class="direitos-page">
+  <%= render "shared/breadcrumb", crumbs: [["Início", root_path]], current: "Direitos" %>
 
-  <h1 class="h3 mb-3">Direitos do consumidor</h1>
-  <p class="text-muted mb-4">
-    Política de troca, devolução, garantia e privacidade. Texto formal a ser
-    preenchido com a versão atual do site.
-  </p>
+  <section class="direitos-hero">
+    <span class="direitos-hero__eyebrow"><i class="bi bi-shield-check"></i> Direitos do consumidor</span>
+    <h1>Direitos</h1>
+  </section>
 
-  <% [
-    ["Direito de arrependimento",
-     "Prazo de 7 dias após o recebimento, conforme o Código de Defesa do Consumidor (Art. 49)."],
-    ["Garantia",
-     "Cobertura legal e contratual sobre o cartucho e o hardware produzidos pela Prisma Games."],
-    ["Trocas e devoluções",
-     "Como solicitar, prazos e condições para cobertura."],
-    ["Privacidade e cookies",
-     "Quais dados coletamos, como tratamos e por quanto tempo armazenamos."],
-    ["Contato",
-     "Canais oficiais (WhatsApp, e-mail) e horário de atendimento."],
-  ].each do |label, blurb| %>
-    <section class="mb-4">
-      <h2 class="h5 mb-2"><%= label %></h2>
-      <p class="text-muted small mb-0"><%= blurb %></p>
-    </section>
-  <% end %>
+  <div class="topic-layout">
+    <aside class="topic-rail" aria-label="Tópicos">
+      <span class="topic-rail__label">Tópicos</span>
+      <a class="rail-link" href="#g-hardware" data-rail-link data-target="g-hardware">
+        <i class="rail-link__ic bi bi-cpu"></i> Hardware
+      </a>
+      <a class="rail-link" href="#g-software" data-rail-link data-target="g-software">
+        <i class="rail-link__ic bi bi-disc"></i> Software
+      </a>
+    </aside>
+
+    <div class="topic-content">
+      <section class="topic-group" id="g-hardware" data-topic-group>
+        <div class="topic-group__head">
+          <span class="topic-group__ic"><i class="bi bi-cpu"></i></span>
+          <div class="topic-group__htext">
+            <h2>Hardware</h2>
+            <span>Projeto e propriedade intelectual</span>
+          </div>
+        </div>
+        <div class="direitos-cards">
+          <article class="direitos-card">
+            <p>
+              O Hardware foi desenhado e projetado por <b>Vinícius Nunes (Vini Ness)</b> da Prisma Games,
+              usando técnicas de engenharia reversa, análise de sinais e síntese de hardware para a
+              comunicação com o sistema, sem violação de nenhuma propriedade intelectual e sem uso de
+              softwares proprietários e afins.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="topic-group" id="g-software" data-topic-group>
+        <div class="topic-group__head">
+          <span class="topic-group__ic"><i class="bi bi-disc"></i></span>
+          <div class="topic-group__htext">
+            <h2>Software</h2>
+            <span>ROMs, romhacks, traduções e homebrew</span>
+          </div>
+        </div>
+        <div class="direitos-cards">
+          <article class="direitos-card">
+            <p class="direitos-lead">Nós não vendemos ROMs!!!</p>
+            <p>Apenas as disponibilizamos junto ao nosso <b>HARDWARE</b>.</p>
+            <p>Comercializamos apenas o <b>HARDWARE</b> e o <b>Material Impresso</b> que são desenvolvidos por nós.</p>
+            <p>
+              Não temos ganho algum com as ROMs, e elas estão sob os direitos autorais de seus
+              respectivos donos, podendo ser removidas a qualquer momento caso assim desejem.
+            </p>
+          </article>
+
+          <article class="direitos-card">
+            <span class="direitos-tag"><i class="bi bi-translate"></i> Romhacks e traduções</span>
+            <p>
+              <b>ROMHACKS e TRADUÇÕES:</b> Essas também são disponibilizadas de forma gratuita, e os
+              desenvolvedores são devidamente creditados (Links, Citações, Canais de Apoio e afins).
+              Também podem ser removidos a qualquer momento caso os desenvolvedores requisitem.
+            </p>
+          </article>
+
+          <article class="direitos-card">
+            <span class="direitos-tag"><i class="bi bi-joystick"></i> Homebrew e indies</span>
+            <p>
+              <b>HOMEBREW e INDIES:</b> Esses nós não disponibilizamos, salvo o caso de alguma parceria
+              ou contrato de distribuição, no qual o valor da ROM vai ser anexado e repassado aos
+              desenvolvedores.
+            </p>
+          </article>
+        </div>
+      </section>
+    </div>
+  </div>
 </div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/topic_rail", type: "module" %>
+<% end %>
