@@ -74,7 +74,5 @@ Rails.application.routes.draw do
   post "/pagamentos/webhook/:token", to: "payments/webhooks#create", as: :payments_webhook
 
   get  "/pagina/perguntas-frequentes",  to: "pages#perguntas_frequentes",  as: :perguntas_frequentes
-  get  "/pagina/recomendacao-de-jogos", to: "pages#recomendacao_de_jogos", as: :recomendacao_de_jogos
-  get  "/pagina/reviews",               to: "pages#reviews",               as: :reviews
   get  "/pagina/direitos",              to: "pages#direitos",              as: :direitos
 end
