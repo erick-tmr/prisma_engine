@@ -7,7 +7,7 @@ module Correios
     # domain layer translate it into our Address columns.
     #
     #   GET {base}/cep/v2/enderecos/{cep}
-    #   Authorization: Bearer <CORREIOS_API_TOKEN>
+    #   Authorization: Bearer <correios.api_token>
     #
     # The same Bearer token used for rastro — Correios issues one credential per
     # contract that gates every read endpoint we use today.
@@ -42,7 +42,7 @@ module Correios
       def request
         connection.get("cep/v2/enderecos/#{cep}") do |req|
           req.headers["Accept"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.api_token}"
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
         raise Correios::Api::TransientError, "cep request failed: #{error.message}"

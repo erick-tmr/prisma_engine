@@ -27,7 +27,7 @@ module Correios
         connection.post("prepostagem/v1/prepostagens/rotulo/assincrono/pdf") do |req|
           req.headers["Accept"] = "application/json"
           req.headers["Content-Type"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_CARTAO_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.cartao_api_token}"
           req.body = payload.to_json
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error

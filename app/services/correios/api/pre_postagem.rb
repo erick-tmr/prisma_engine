@@ -5,7 +5,7 @@ module Correios
     # Creates a Correios pré-postagem (the shipping object/label).
     #
     #   POST {base}/prepostagem/v1/prepostagens
-    #   Authorization: Bearer <CORREIOS_CARTAO_API_TOKEN>   # the cartão-de-postagem token
+    #   Authorization: Bearer <correios.cartao_api_token>   # the cartão-de-postagem token
     #
     # Takes the already-built request body and returns the parsed response Hash.
     # Knows nothing about Shipment or how the body is assembled — that's the
@@ -35,7 +35,7 @@ module Correios
         connection.post("prepostagem/v1/prepostagens") do |req|
           req.headers["Accept"] = "application/json"
           req.headers["Content-Type"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_CARTAO_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.cartao_api_token}"
           req.body = payload.to_json
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error

@@ -31,7 +31,7 @@ module Correios
       def get
         connection.get("prepostagem/v1/prepostagens/rotulo/download/assincrono/#{recibo_id}") do |req|
           req.headers["Accept"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_CARTAO_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.cartao_api_token}"
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
         raise Correios::Api::TransientError, "rótulo download failed: #{error.message}"

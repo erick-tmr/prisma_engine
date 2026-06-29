@@ -255,7 +255,8 @@ Also add `BreadcrumbList` and `Organization` schemas.
 ### Object storage (Cloudflare R2)
 
 Product and brinde images are stored via Active Storage on Cloudflare R2 (S3-compatible)
-in **production**; dev and test stay on the local Disk service (test must stay offline).
+in **development and production** (a separate bucket per environment); test stays on the
+local Disk service (test must stay offline).
 R2 has no egress fees, so the cost surface is Class B (read) operations on cache misses,
 and the Cloudflare CDN in front of a public bucket is the cost shield.
 
@@ -263,16 +264,20 @@ and the Cloudflare CDN in front of a public bucket is the cost shield.
 
 - `config/storage.yml` `r2:` service uses the custom `ActiveStorage::Service::R2Service`
   (`lib/active_storage/service/r2_service.rb`), a thin `S3Service` subclass that rewrites
-  public URLs to `R2_PUBLIC_HOST` and drops the `public-read` ACL R2 does not use. It sets
+  public URLs to the configured public host and drops the `public-read` ACL R2 does not use. It sets
   `force_path_style` and `when_required` checksums for R2 compatibility, and stamps
   `Cache-Control: public, max-age=31536000, immutable` on upload (safe because Active
   Storage keys are content-addressed, so a replaced image gets a new URL).
 - `Storefront::ImageSource.call(attachment)` returns the permanent CDN URL for a public
   service, falling back to the same-origin `rails_blob_path` for Disk (dev/test), so the
   strict CSP stays `:self` locally.
-- The CSP `img_src` adds `R2_PUBLIC_HOST` only when set (`content_security_policy.rb`).
-- Config via env (`R2_PUBLIC_HOST`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`,
-  `R2_SECRET_ACCESS_KEY`), documented in `.env.example`.
+- The CSP `img_src` adds the configured public host only when set
+  (`config.x.r2_public_host`, read in `content_security_policy.rb`).
+- Bucket, endpoint, and public host are committed per environment
+  (`config/environments/{development,production}.rb` + `config/storage.yml`, which hardcodes
+  the shared account endpoint). The API token is read from credentials
+  (`r2.access_key_id` / `r2.secret_access_key`): the dev token lives in the default vault,
+  the production token in `config/credentials/production.yml.enc`.
 
 **On Cloudflare (dashboard/Terraform, once per environment):**
 

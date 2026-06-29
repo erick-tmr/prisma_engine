@@ -6,7 +6,7 @@ module Correios
     # scheduled job polls this per shipment (see SyncShipmentJob).
     #
     #   GET {base}/srorastro/v1/objetos/{code}?resultado=T
-    #   Authorization: Bearer <CORREIOS_API_TOKEN>
+    #   Authorization: Bearer <correios.api_token>
     #
     # The token is supplied and rotated out of band — we don't run the autentica
     # exchange. We hand events back oldest-first, sorted by their own timestamp
@@ -54,7 +54,7 @@ module Correios
         connection.get("srorastro/v1/objetos/#{tracking_code}") do |req|
           req.params["resultado"] = "T"
           req.headers["Accept"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.api_token}"
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
         raise Correios::Api::TransientError, "rastro request failed: #{error.message}"

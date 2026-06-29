@@ -9,14 +9,8 @@ module Shipping
     URL = "#{BASE}/prepostagem/v1/prepostagens/rotulo/download/assincrono/#{RECIBO}".freeze
 
     setup do
-      @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
       @order = orders(:producing)
       @label = @order.shipment.create_shipping_label!(state: :requested, recibo_id: RECIBO)
-    end
-
-    teardown do
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
     end
 
     test "downloads the PDF, marks the label ready and moves the order to label_issued" do

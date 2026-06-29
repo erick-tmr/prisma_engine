@@ -7,15 +7,6 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
 
   BASE = Correios::Api::BASE_URL
 
-  setup do
-    @prev_token = ENV["CORREIOS_API_TOKEN"]
-    ENV["CORREIOS_API_TOKEN"] = "test-token"
-  end
-
-  teardown do
-    ENV["CORREIOS_API_TOKEN"] = @prev_token
-  end
-
   test "pré-postagem then polling delivers the shipment and advances the order" do
     order = orders(:awaiting)
     shipment = order.shipment

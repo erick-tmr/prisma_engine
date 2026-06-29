@@ -3,15 +3,6 @@ require "test_helper"
 class SyncShipmentJobTest < ActiveSupport::TestCase
   BASE = Correios::Api::BASE_URL
 
-  setup do
-    @prev_token = ENV["CORREIOS_API_TOKEN"]
-    ENV["CORREIOS_API_TOKEN"] = "test-token"
-  end
-
-  teardown do
-    ENV["CORREIOS_API_TOKEN"] = @prev_token
-  end
-
   test "records events oldest-first and marks the shipment delivered" do
     shipment = Shipment.create!(tracking_code: "AD483393343BR", order: orders(:awaiting))
     stub_rastro(shipment.tracking_code, [ delivered, posted, label ])

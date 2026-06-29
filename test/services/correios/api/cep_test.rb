@@ -7,19 +7,12 @@ module Correios
       CEP = "37665000".freeze
       URL = "#{BASE}/cep/v2/enderecos/#{CEP}".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_API_TOKEN"]
-        ENV["CORREIOS_API_TOKEN"] = "test-token"
-      end
-
-      teardown do
-        ENV["CORREIOS_API_TOKEN"] = @prev_token
-      end
-
       test "GETs the CEP endpoint with the bearer token and returns the parsed body" do
         stub_lookup(status: 200, body: town_wide_body)
 
-        body = Correios::Api::Cep.find(CEP)
+        body = Correios::Api.stub(:api_token, "test-token") do
+          Correios::Api::Cep.find(CEP)
+        end
 
         assert_requested :get, URL,
           headers: { "Authorization" => "Bearer test-token", "Accept" => "application/json" }

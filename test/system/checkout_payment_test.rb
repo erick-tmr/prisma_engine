@@ -3,7 +3,6 @@ require "application_system_test_case"
 class CheckoutPaymentTest < ApplicationSystemTestCase
   setup do
     Rails.cache.clear
-    stub_external_env
     stub_cep
     stub_preco_prazo
     stub_infinitepay_links
@@ -15,8 +14,6 @@ class CheckoutPaymentTest < ApplicationSystemTestCase
     )
     login_as_user(@user)
   end
-
-  teardown { restore_external_env }
 
   test "confirming payment creates the order and lands on the local return page" do
     visit product_path(slug: products(:yellow).slug)

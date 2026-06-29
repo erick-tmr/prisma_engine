@@ -3,12 +3,9 @@ require "application_system_test_case"
 class AccountAddressesTest < ApplicationSystemTestCase
   setup do
     Rails.cache.clear
-    stub_external_env
     stub_cep
     login_as_user(users(:orderless))
   end
-
-  teardown { restore_external_env }
 
   test "the CEP blur autofills the address and the form saves" do
     visit new_account_address_path

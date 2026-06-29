@@ -20,7 +20,7 @@ module Payments
 
     def payload
       {
-        handle:       ENV.fetch("INFINITEPAY_HANDLE"),
+        handle:       InfinitePay::Api::HANDLE,
         order_nsu:    order.number,
         items:        line_items,
         customer:     customer,

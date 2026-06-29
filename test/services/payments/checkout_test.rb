@@ -5,8 +5,6 @@ module Payments
     LINKS_URL = "#{InfinitePay::Api::BASE_URL}/links".freeze
 
     setup do
-      @prev_handle = ENV["INFINITEPAY_HANDLE"]
-      ENV["INFINITEPAY_HANDLE"] = "prisma_games"
       @order = Order.create!(user: users(:confirmed), subtotal_cents: 18_000, total_cents: 19_984)
       @order.create_shipment!(
         service: "sedex", shipping_cents: 1_984, weight_grams: 120, height_cm: 4, width_cm: 16, length_cm: 24,
@@ -16,8 +14,6 @@ module Payments
       )
       @order.order_items.create!(name: "Cartucho Zelda", unit_price_cents: 18_000, quantity: 1, chosen_options: [ "ROM: Zelda" ])
     end
-
-    teardown { ENV["INFINITEPAY_HANDLE"] = @prev_handle }
 
     def stub_links
       stub_request(:post, LINKS_URL).to_return(

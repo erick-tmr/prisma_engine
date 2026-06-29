@@ -6,7 +6,7 @@ module Correios
     # a single batched POST.
     #
     #   POST {base}/prazo/v1/nacional
-    #   Authorization: Bearer <CORREIOS_API_TOKEN>   # the contrato token, same as Cep/Tracking
+    #   Authorization: Bearer <correios.api_token>   # the contrato token, same as Cep/Tracking
     #
     # Returns the parsed JSON Array exactly as Correios sends it. We only
     # consume `prazoEntrega` (business days) downstream; the response also
@@ -45,7 +45,7 @@ module Correios
         connection.post("prazo/v1/nacional") do |req|
           req.headers["Accept"]        = "application/json"
           req.headers["Content-Type"]  = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.api_token}"
           req.body = body.to_json
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error

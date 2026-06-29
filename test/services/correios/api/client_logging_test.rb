@@ -7,9 +7,6 @@ module Correios
       CODE = "AD483393343BR".freeze
 
       setup do
-        @prev_token = ENV["CORREIOS_API_TOKEN"]
-        ENV["CORREIOS_API_TOKEN"] = "super-secret-token"
-
         @sink = StringIO.new
         @prev_logger = Correios::Api::Client.instance_variable_get(:@request_logger)
         Correios::Api::Client.instance_variable_set(:@request_logger, ActiveSupport::Logger.new(@sink))
@@ -23,7 +20,6 @@ module Correios
       end
 
       teardown do
-        ENV["CORREIOS_API_TOKEN"] = @prev_token
         Correios::Api::Client.instance_variable_set(:@request_logger, @prev_logger)
       end
 
@@ -37,7 +33,9 @@ module Correios
       end
 
       test "redacts the Bearer token so the credential never reaches the log" do
-        Correios::Api::Tracking.fetch(CODE)
+        Correios::Api.stub(:api_token, "super-secret-token") do
+          Correios::Api::Tracking.fetch(CODE)
+        end
 
         assert_match "Bearer [REDACTED]", @sink.string
         refute_match(/super-secret-token/, @sink.string)

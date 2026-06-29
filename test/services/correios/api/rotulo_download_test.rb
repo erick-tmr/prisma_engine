@@ -7,22 +7,15 @@ module Correios
       RECIBO = "R-123".freeze
       URL = "#{BASE}/prepostagem/v1/prepostagens/rotulo/download/assincrono/#{RECIBO}".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
-      end
-
-      teardown do
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
-      end
-
       test "GETs the recibo with the cartão bearer token and returns the parsed response" do
         stub_request(:get, URL).to_return(
           status: 200, body: { "nome" => "label.pdf", "dados" => "JVBERi0=" }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
-        response = Correios::Api::RotuloDownload.fetch(RECIBO)
+        response = Correios::Api.stub(:cartao_api_token, "test-token") do
+          Correios::Api::RotuloDownload.fetch(RECIBO)
+        end
 
         assert_equal "label.pdf", response["nome"]
         assert_equal "JVBERi0=", response["dados"]

@@ -9,16 +9,10 @@ module Shipping
     URL = "#{BASE}/prepostagem/v2/prepostagens?codigoObjeto=#{CODE}".freeze
 
     setup do
-      @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
       @order = orders(:producing)
       @shipment = @order.shipment
       @shipment.update!(tracking_code: CODE)
       @label = @shipment.create_shipping_label!(state: :prepost_created)
-    end
-
-    teardown do
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
     end
 
     test "confirms the label and enqueues the rótulo request once Pré-postado" do
