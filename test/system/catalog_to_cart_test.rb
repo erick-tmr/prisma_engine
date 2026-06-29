@@ -3,12 +3,9 @@ require "application_system_test_case"
 class CatalogToCartTest < ApplicationSystemTestCase
   setup do
     Rails.cache.clear
-    stub_external_env
     stub_cep
     stub_preco_prazo
   end
-
-  teardown { restore_external_env }
 
   test "a guest adds a product, quotes shipping, and is sent to log in to finalize" do
     visit products_path

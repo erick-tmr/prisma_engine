@@ -5,15 +5,6 @@ module Shipping
     BASE = Correios::Api::BASE_URL
     URL = "#{BASE}/prepostagem/v1/prepostagens/rotulo/assincrono/pdf".freeze
 
-    setup do
-      @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
-    end
-
-    teardown do
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
-    end
-
     test "requests the label for the shipment and returns the idRecibo" do
       shipment = Shipment.create!(tracking_code: "AD1", pre_post_id: "PR-99", order: orders(:producing))
       stub_request(:post, URL)

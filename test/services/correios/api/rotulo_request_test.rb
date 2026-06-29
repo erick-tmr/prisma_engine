@@ -6,22 +6,15 @@ module Correios
       BASE = Correios::Api::BASE_URL
       URL = "#{BASE}/prepostagem/v1/prepostagens/rotulo/assincrono/pdf".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
-      end
-
-      teardown do
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
-      end
-
       test "POSTs the body with the cartão bearer token and returns the parsed response" do
         stub_request(:post, URL).to_return(
           status: 201, body: { "idRecibo" => "R1" }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
-        response = Correios::Api::RotuloRequest.create({ idsPrePostagem: [ "PR1" ] })
+        response = Correios::Api.stub(:cartao_api_token, "test-token") do
+          Correios::Api::RotuloRequest.create({ idsPrePostagem: [ "PR1" ] })
+        end
 
         assert_equal "R1", response["idRecibo"]
         assert_requested :post, URL, headers: {

@@ -5,15 +5,6 @@ module Correios
     class PrecoTest < ActiveSupport::TestCase
       URL = "#{Correios::Api::BASE_URL}/preco/v1/nacional".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_API_TOKEN"]
-        ENV["CORREIOS_API_TOKEN"] = "test-api"
-      end
-
-      teardown do
-        ENV["CORREIOS_API_TOKEN"] = @prev_token
-      end
-
       test "POSTs a batched request with one parametrosProduto per service code" do
         stub_request(:post, URL).to_return(
           status:  200,
@@ -24,12 +15,14 @@ module Correios
           headers: { "Content-Type" => "application/json" }
         )
 
-        rows = Correios::Api::Preco.fetch(
-          cep_origem:    "37600000",
-          cep_destino:   "01310100",
-          weight_grams:  150,
-          service_codes: [ "03220", "03298" ]
-        )
+        rows = Correios::Api.stub(:api_token, "test-api") do
+          Correios::Api::Preco.fetch(
+            cep_origem:    "37600000",
+            cep_destino:   "01310100",
+            weight_grams:  150,
+            service_codes: [ "03220", "03298" ]
+          )
+        end
 
         assert_equal 2, rows.length
         assert_equal "19,84", rows.first["pcFinal"]

@@ -31,6 +31,7 @@ SimpleCov.command_name("system") if ENV["SKIP_COVERAGE_FLOOR"]
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "minitest/mock"
 
 # No test may reach the network. Correios rastro calls are stubbed with WebMock;
 # localhost stays open for Capybara/Cuprite system tests.

@@ -6,19 +6,12 @@ module Correios
       BASE = Correios::Api::BASE_URL
       CODE = "AD483393343BR".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_API_TOKEN"]
-        ENV["CORREIOS_API_TOKEN"] = "test-token"
-      end
-
-      teardown do
-        ENV["CORREIOS_API_TOKEN"] = @prev_token
-      end
-
       test "returns events oldest-first, normalized, with the bearer token" do
         stub_objetos(status: 200, body: sample_body)
 
-        events = Correios::Api::Tracking.fetch(CODE)
+        events = Correios::Api.stub(:api_token, "test-token") do
+          Correios::Api::Tracking.fetch(CODE)
+        end
 
         assert_requested :get, "#{BASE}/srorastro/v1/objetos/#{CODE}?resultado=T",
           headers: { "Authorization" => "Bearer test-token", "Accept" => "application/json" }

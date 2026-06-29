@@ -4,15 +4,6 @@ module SystemStubs
 
   FAKE_PAYMENT_URL = "data:text/html,%3Ch1%3Efake-psp%3C%2Fh1%3E".freeze
 
-  def stub_external_env
-    @prev_correios_token = ENV["CORREIOS_API_TOKEN"]
-    ENV["CORREIOS_API_TOKEN"] = "test-api"
-  end
-
-  def restore_external_env
-    ENV["CORREIOS_API_TOKEN"] = @prev_correios_token
-  end
-
   def stub_cep(cep: "01310100", uf: "SP", street: "Av. Paulista", neighborhood: "Bela Vista", city: "São Paulo")
     stub_request(:get, "#{CORREIOS}/cep/v2/enderecos/#{cep}").to_return(
       status:  200,

@@ -8,14 +8,8 @@ module Shipping
     URL = "#{BASE}/prepostagem/v1/prepostagens".freeze
 
     setup do
-      @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
       @order = orders(:producing)
       @shipment = @order.shipment
-    end
-
-    teardown do
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
     end
 
     test "creates the pré-postagem, advances the label and enqueues the confirmation poll" do

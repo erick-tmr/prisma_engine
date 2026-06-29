@@ -10,8 +10,6 @@ class CheckoutTest < ActionDispatch::IntegrationTest
 
   setup do
     Rails.cache.clear
-    @prev_token = ENV["CORREIOS_API_TOKEN"]
-    ENV["CORREIOS_API_TOKEN"] = "test-api"
     @user = users(:confirmed)
     @address = @user.addresses.create!(
       zip: "01310100", street: "Av. Paulista", number: "1578",
@@ -21,7 +19,6 @@ class CheckoutTest < ActionDispatch::IntegrationTest
   end
 
   teardown do
-    ENV["CORREIOS_API_TOKEN"] = @prev_token
     Rails.cache.clear
   end
 

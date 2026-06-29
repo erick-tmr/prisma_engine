@@ -7,13 +7,10 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
 
   setup do
     Rails.cache.clear
-    @prev_api_token = ENV["CORREIOS_API_TOKEN"]
-    ENV["CORREIOS_API_TOKEN"] = "test-api"
     stub_cep
   end
 
   teardown do
-    ENV["CORREIOS_API_TOKEN"] = @prev_api_token
     Rails.cache.clear
   end
 

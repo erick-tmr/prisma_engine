@@ -6,13 +6,7 @@ module Shipping
     URL = "#{BASE}/prepostagem/v1/prepostagens".freeze
 
     setup do
-      @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
       @shipment = shipments(:awaiting)
-    end
-
-    teardown do
-      ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
     end
 
     test "creates a pré-postagem and updates the shipment with the Correios response" do

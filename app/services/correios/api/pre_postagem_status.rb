@@ -27,7 +27,7 @@ module Correios
         connection.get("prepostagem/v2/prepostagens") do |req|
           req.params["codigoObjeto"] = codigo_objeto
           req.headers["Accept"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{ENV['CORREIOS_CARTAO_API_TOKEN']}"
+          req.headers["Authorization"] = "Bearer #{Correios::Api.cartao_api_token}"
         end
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
         raise Correios::Api::TransientError, "pré-postagem status request failed: #{error.message}"

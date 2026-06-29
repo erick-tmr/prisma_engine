@@ -7,19 +7,12 @@ module Correios
       CODE = "AD601193771BR".freeze
       URL = "#{BASE}/prepostagem/v2/prepostagens?codigoObjeto=#{CODE}".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
-      end
-
-      teardown do
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
-      end
-
       test "returns the first item with the cartão bearer token" do
         stub_status(status: 200, body: { "itens" => [ item ], "page" => {} }.to_json)
 
-        result = Correios::Api::PrePostagemStatus.fetch(CODE)
+        result = Correios::Api.stub(:cartao_api_token, "test-token") do
+          Correios::Api::PrePostagemStatus.fetch(CODE)
+        end
 
         assert_requested :get, URL,
           headers: { "Authorization" => "Bearer test-token", "Accept" => "application/json" }

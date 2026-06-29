@@ -10,12 +10,9 @@ module Shipping
       # actually deduplicates calls inside Quote.
       @prev_cache = Rails.cache
       Rails.cache = ActiveSupport::Cache::MemoryStore.new
-      @prev_token = ENV["CORREIOS_API_TOKEN"]
-      ENV["CORREIOS_API_TOKEN"] = "test-api"
     end
 
     teardown do
-      ENV["CORREIOS_API_TOKEN"] = @prev_token
       Rails.cache = @prev_cache
     end
 

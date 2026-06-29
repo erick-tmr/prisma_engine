@@ -89,6 +89,9 @@ group :test do
   gem "capybara"
   gem "cuprite", "~> 0.17"
 
+  # Object#stub / Minitest::Mock, extracted from minitest core in v6 [https://github.com/minitest/minitest-mock]
+  gem "minitest-mock", "~> 5.27"
+
   # Stub external HTTP (Correios rastro) in tests [https://github.com/bblimke/webmock]
   gem "webmock", "~> 3.26"
 

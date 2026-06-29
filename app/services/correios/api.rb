@@ -6,6 +6,14 @@ module Correios
   module Api
     BASE_URL = "https://api.correios.com.br".freeze
 
+    def self.api_token
+      Rails.application.credentials.dig(:correios, :api_token)
+    end
+
+    def self.cartao_api_token
+      Rails.application.credentials.dig(:correios, :cartao_api_token)
+    end
+
     # One error hierarchy for every Correios::Api client.
     Error = Class.new(StandardError)
     # Timeouts, 429s and 5xx — the caller retries these with backoff.

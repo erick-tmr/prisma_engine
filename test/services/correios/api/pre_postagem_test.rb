@@ -6,19 +6,12 @@ module Correios
       BASE = Correios::Api::BASE_URL
       URL = "#{BASE}/prepostagem/v1/prepostagens".freeze
 
-      setup do
-        @prev_token = ENV["CORREIOS_CARTAO_API_TOKEN"]
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = "test-token"
-      end
-
-      teardown do
-        ENV["CORREIOS_CARTAO_API_TOKEN"] = @prev_token
-      end
-
       test "POSTs the body with the cartão bearer token and returns the parsed response" do
         stub_create(status: 201, body: { "codigoObjeto" => "AD515656026BR" }.to_json)
 
-        response = Correios::Api::PrePostagem.create({ codigoServico: "03220" })
+        response = Correios::Api.stub(:cartao_api_token, "test-token") do
+          Correios::Api::PrePostagem.create({ codigoServico: "03220" })
+        end
 
         assert_equal "AD515656026BR", response["codigoObjeto"]
         assert_requested :post, URL, headers: {

@@ -4,15 +4,6 @@ module Shipping
   class CepLookupTest < ActiveSupport::TestCase
     BASE = Correios::Api::BASE_URL
 
-    setup do
-      @prev_token = ENV["CORREIOS_API_TOKEN"]
-      ENV["CORREIOS_API_TOKEN"] = "test-token"
-    end
-
-    teardown do
-      ENV["CORREIOS_API_TOKEN"] = @prev_token
-    end
-
     test "maps a street-specific response to street/neighborhood/city/state" do
       stub_cep("01310100",
         "logradouro" => "Avenida Paulista",
