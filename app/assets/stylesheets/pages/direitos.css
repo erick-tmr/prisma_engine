@@ -25,26 +25,6 @@
   background: var(--pg-rainbow);
 }
 
-.direitos-hero__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--pg-muted);
-  margin-bottom: 14px;
-}
-
-.direitos-hero__eyebrow i {
-  font-size: 13px;
-  background: var(--pg-rainbow);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 .direitos-hero h1 {
   margin: 0;
   font-size: 40px;
