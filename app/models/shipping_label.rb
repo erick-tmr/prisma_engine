@@ -1,7 +1,7 @@
 class ShippingLabel < ApplicationRecord
   belongs_to :shipment
 
-  enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3, prepost_confirmed: 4 }
+  enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3, prepost_confirmed: 4, requesting: 5 }
 
   def mark_prepost_created!
     update!(state: :prepost_created, error: nil, errored_at: nil)
@@ -9,6 +9,17 @@ class ShippingLabel < ApplicationRecord
 
   def mark_prepost_confirmed!
     update!(state: :prepost_confirmed, error: nil, errored_at: nil)
+  end
+
+  def claim_requesting!
+    claimed = self.class.where(id: id, state: :prepost_confirmed).update_all(state: :requesting)
+    reload
+    claimed == 1
+  end
+
+  def unclaim_requesting!
+    self.class.where(id: id, state: :requesting).update_all(state: :prepost_confirmed)
+    reload
   end
 
   def mark_requested!(recibo_id)
