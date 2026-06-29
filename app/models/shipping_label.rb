@@ -19,6 +19,13 @@ class ShippingLabel < ApplicationRecord
     update!(state: :ready, filename: filename, pdf_base64: pdf, error: nil, errored_at: nil)
   end
 
+  def reset_for_relabel!
+    update!(
+      state: :prepost_confirmed, recibo_id: nil, error: nil, errored_at: nil,
+      relabel_attempts: relabel_attempts + 1
+    )
+  end
+
   def record_error!(message)
     update!(error: message, errored_at: Time.current)
   end

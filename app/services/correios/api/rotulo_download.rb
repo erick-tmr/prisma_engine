@@ -5,6 +5,9 @@ module Correios
     class RotuloDownload
       include Correios::Api::Client
 
+      LABEL_PENDING_CODE = "PPN-291".freeze
+      LABEL_FAILED_CODE = "PPN-295".freeze
+
       def self.fetch(recibo_id)
         new(recibo_id).fetch
       end
@@ -21,12 +24,20 @@ module Correios
 
         message = body.is_a?(Hash) ? body["mensagem"] : response.body
         Rails.logger.warn("[RotuloDownload] recibo=#{recibo_id} sem etiqueta: #{message}")
-        raise Correios::Api::Error, "rótulo download sem etiqueta (recibo #{recibo_id}): #{message}"
+        raise error_class_for(message), "rótulo download sem etiqueta (recibo #{recibo_id}): #{message}"
       end
 
       private
 
       attr_reader :recibo_id
+
+      def error_class_for(message)
+        text = message.to_s
+        return Correios::Api::TransientError if text.include?(LABEL_PENDING_CODE)
+        return Correios::Api::LabelGenerationFailedError if text.include?(LABEL_FAILED_CODE)
+
+        Correios::Api::Error
+      end
 
       def get
         connection.get("prepostagem/v1/prepostagens/rotulo/download/assincrono/#{recibo_id}") do |req|

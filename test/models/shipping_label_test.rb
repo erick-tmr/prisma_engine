@@ -56,4 +56,16 @@ class ShippingLabelTest < ActiveSupport::TestCase
     @label.mark_ready!(filename: "label.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
     assert_equal "%PDF-1.4", @label.pdf_bytes
   end
+
+  test "reset_for_relabel! rewinds to prepost_confirmed, clears the recibo and counts the attempt" do
+    @label.mark_requested!("R-9")
+    @label.record_error!("boom")
+    @label.reset_for_relabel!
+
+    assert @label.prepost_confirmed?
+    assert_nil @label.recibo_id
+    assert_nil @label.error
+    assert_nil @label.errored_at
+    assert_equal 1, @label.relabel_attempts
+  end
 end
