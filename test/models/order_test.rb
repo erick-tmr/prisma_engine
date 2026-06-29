@@ -109,6 +109,21 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal :pending, order.payment_status
   end
 
+  test "advance_to_label_issued! moves an in-production order to label_issued" do
+    order = orders(:producing)
+
+    order.advance_to_label_issued!(automatic: true)
+    assert order.reload.label_issued?
+  end
+
+  test "advance_to_label_issued! is idempotent once already label_issued" do
+    order = orders(:producing)
+    order.advance_to_label_issued!(automatic: true)
+
+    assert_nothing_raised { order.advance_to_label_issued!(automatic: true) }
+    assert order.reload.label_issued?
+  end
+
   test "tracking_events and shipping_visible? follow the linked shipment" do
     order = build_order
     order.save!
