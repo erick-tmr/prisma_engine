@@ -82,6 +82,27 @@ pt-BR:
     support_email: "vininess@hotmail.com"
     help_footer_html: 'Precisa de ajuda? Escreva para <a href="mailto:%{email}">%{email}</a>.'
     help_footer: "Precisa de ajuda? Escreva para %{email}."
+  order_mailer:
+    greeting: "Olá, %{name}!"
+    summary_heading: "Resumo do pedido"
+    order_label: "Pedido"
+    subtotal: "Subtotal"
+    shipping: "Frete"
+    total: "Total"
+    tracking_code: "Código de rastreio: %{code}"
+    signature: "Equipe Prisma Games"
+    payment_confirmed:
+      subject: "Pagamento confirmado do pedido %{number}"
+      heading: "Pagamento confirmado!"
+      intro: "Recebemos o pagamento do seu pedido e já vamos preparar tudo para a produção. Avisaremos a cada etapa."
+    delivered:
+      subject: "Seu pedido %{number} foi entregue"
+      heading: "Pedido entregue!"
+      intro: "Seu pedido foi entregue pelos Correios. Esperamos que você aproveite muito. Qualquer coisa, é só chamar a gente."
+    delivery_issue:
+      subject: "Problema na entrega do pedido %{number}"
+      heading: "Tivemos um problema na entrega"
+      intro: "Os Correios reportaram um problema na entrega do seu pedido. Nossa equipe já está cuidando disso e vai entrar em contato. Se preferir, fale com a gente pelo e-mail de suporte abaixo."
   account:
     greeting_html: "Olá, %{name}"
     short_label: "Minha conta"

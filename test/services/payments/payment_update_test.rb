@@ -2,6 +2,8 @@ require "test_helper"
 
 module Payments
   class PaymentUpdateTest < ActiveSupport::TestCase
+    include ActionMailer::TestHelper
+
     setup do
       @order = Order.create!(
         user: users(:confirmed),
@@ -24,7 +26,9 @@ module Payments
     end
 
     test "confirms an awaiting_payment order and records the payment fields" do
-      call
+      assert_enqueued_email_with OrderMailer, :payment_confirmed, args: [ @order ] do
+        call
+      end
       @order.reload
       assert @order.payment_confirmed?
       assert_equal "tx-abc", @order.external_id

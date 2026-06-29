@@ -18,6 +18,7 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
       .to_return(status: 200, body: rastro_body(code),
                  headers: { "Content-Type" => "application/json" })
 
+    ActionMailer::Base.deliveries.clear
     perform_enqueued_jobs do
       SyncPendingShipmentsJob.perform_now
     end
@@ -32,6 +33,10 @@ class CorreiosPollingFlowTest < ActiveSupport::TestCase
     last_two = order.status_changes.chronological.last(2)
     assert_equal %w[shipped delivered], last_two.map(&:to_status)
     assert last_two.all?(&:automatic)
+
+    delivered_email = ActionMailer::Base.deliveries.find { |mail| mail.to == [ order.user.email ] }
+    assert delivered_email, "expected the poll to deliver a delivered-order email"
+    assert_equal "Seu pedido #{order.number} foi entregue", delivered_email.subject
   end
 
   private

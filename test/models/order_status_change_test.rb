@@ -1,6 +1,24 @@
 require "test_helper"
 
 class OrderStatusChangeTest < ActiveSupport::TestCase
+  include ActionMailer::TestHelper
+
+  test "a notifiable status change enqueues the matching order email" do
+    order = orders(:confirmed_paid)
+
+    assert_enqueued_email_with OrderMailer, :delivered, args: [ order ] do
+      order.status_changes.create!(from_status: "shipped", to_status: "delivered", automatic: true)
+    end
+  end
+
+  test "a non-notifiable status change enqueues nothing" do
+    order = orders(:confirmed_paid)
+
+    assert_no_enqueued_emails do
+      order.status_changes.create!(from_status: "payment_confirmed", to_status: "in_production", automatic: true)
+    end
+  end
+
   test "belongs to an order and the acting operator" do
     change = order_status_changes(:delivered_production)
     assert_equal orders(:delivered), change.order

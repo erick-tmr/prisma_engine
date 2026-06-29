@@ -1,8 +1,4 @@
-# :nocov:
-# Rails scaffold base class — no mailers exist yet. Once a real mailer lands,
-# remove the nocov markers and add tests that exercise its deliveries.
 class ApplicationMailer < ActionMailer::Base
-  default from: "from@example.com"
+  default from: "Prisma Games <no-reply@prismagames.com.br>"
   layout "mailer"
 end
-# :nocov:

@@ -2,6 +2,8 @@ require "test_helper"
 
 module Shipping
   class OrderProgressTest < ActiveSupport::TestCase
+    include ActionMailer::TestHelper
+
     # Order statuses reached by walking the real transition graph.
     PATHS = {
       "label_issued"     => %w[payment_confirmed in_production label_issued],
@@ -40,11 +42,13 @@ module Shipping
       assert(last_two.all? { |change| change.actor.nil? })
     end
 
-    test "delivered advances a shipped order one step" do
+    test "delivered advances a shipped order one step and emails the customer" do
       order, shipment = order_with_shipment("shipped", :delivered)
 
-      assert_difference -> { order.status_changes.count }, 1 do
-        Shipping::OrderProgress.apply(shipment)
+      assert_enqueued_email_with OrderMailer, :delivered, args: [ order ] do
+        assert_difference -> { order.status_changes.count }, 1 do
+          Shipping::OrderProgress.apply(shipment)
+        end
       end
 
       assert order.reload.delivered?
@@ -60,10 +64,12 @@ module Shipping
                    order.status_changes.chronological.last(2).map(&:to_status)
     end
 
-    test "returned flags delivery_issue straight from shipped" do
+    test "returned flags delivery_issue straight from shipped and emails the customer" do
       order, shipment = order_with_shipment("shipped", :returned)
 
-      Shipping::OrderProgress.apply(shipment)
+      assert_enqueued_email_with OrderMailer, :delivery_issue, args: [ order ] do
+        Shipping::OrderProgress.apply(shipment)
+      end
 
       assert order.reload.delivery_issue?
     end
