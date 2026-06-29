@@ -1,0 +1,50 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+# reject_old_samples must be false: rehydrated logs carry production timestamps
+# that are hours or days old. structured_metadata (Loki 3.x / schema v13) lets us
+# attach high-cardinality fields (request_id, user_id, duration) without exploding
+# the label index.
+limits_config:
+  reject_old_samples: false
+  allow_structured_metadata: true
+  volume_enabled: true
+
+# Rehydrated logs always carry old (production) timestamps, so Loki's live-tailing
+# defaults work against us. Query the ingester regardless of age, and flush chunks
+# to the filesystem store within seconds so a query right after fetch finds them.
+querier:
+  query_ingesters_within: 8760h
+
+ingester:
+  chunk_idle_period: 5s
+  max_chunk_age: 1m
+  flush_check_period: 5s
+
+analytics:
+  reporting_enabled: false

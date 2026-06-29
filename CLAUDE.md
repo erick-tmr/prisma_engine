@@ -10,6 +10,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - `bin/pre-push-check` — local CI gauntlet; must pass before push. `SKIP_TESTS=1` for docs-only pushes.
 - `npm run test:js` — Vitest+jsdom unit tests for storefront ES modules (`test/javascript/*.test.js`). Node pinned in `.node-version`; `npm install` first. `pre-push-check` runs it too.
 - `SKIP_COVERAGE_FLOOR=1 bin/rails test:system` — Capybara + Cuprite (headless Chrome) E2E tests; needs Postgres up. `HEADLESS=0` shows the browser, `DENY_EXTERNAL=0` lifts the no-network fence. Not in `pre-push-check` (CI's `system-test` job runs it). See **System tests (E2E)**.
+- `deploy/fetch-production-logs.sh` — download production logs over SSH, then query them in the local Loki + Grafana stack under `deploy/log-analysis/`. Production logs are structured JSON (lograge). Runbook: `docs/log-analysis.md`.
 
 ## Stack invariants
 

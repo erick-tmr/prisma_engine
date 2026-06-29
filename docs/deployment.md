@@ -303,6 +303,13 @@ throwaway database.
 - An hourly job (e.g. `SyncPendingShipmentsJob`) appears in the logs.
 - `bin/kamal dbconsole` connects to host Postgres.
 
+## Production logs
+
+The app logs structured JSON (one line per request, via lograge) to STDOUT, captured
+by Docker's `json-file` driver. `config/deploy.yml` rotates it at `50m` x `3` (~150 MB
+of on-box history). `bin/kamal logs` tails it live. To download logs over SSH and query
+them locally in a Loki + Grafana stack (no SaaS), see `docs/log-analysis.md`.
+
 ## Troubleshooting
 
 - **Boot crash, `ActiveSupport::MessageEncryptor::InvalidMessage`**: `RAILS_MASTER_KEY`

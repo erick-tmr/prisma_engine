@@ -47,6 +47,21 @@ Rails.application.configure do
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
 
+  config.lograge.enabled = true
+  config.lograge.formatter = Lograge::Formatters::Json.new
+  config.lograge.custom_options = lambda do |event|
+    {
+      time: event.time.utc.iso8601,
+      exception: event.payload[:exception]&.first,
+      exception_message: event.payload[:exception_object]&.message
+    }.compact
+  end
+  config.lograge.custom_payload do |controller|
+    request = controller.request
+    user = controller.current_user if controller.respond_to?(:current_user, true)
+    { request_id: request.request_id, host: request.host, user_id: user&.id }.compact
+  end
+
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 

@@ -51,6 +51,10 @@ gem "faraday", "~> 2.14"
 # Pretty, history-tracked slugs for catalog URLs [https://github.com/norman/friendly_id]
 gem "friendly_id", "~> 5.5"
 
+# Condense controller request logs into single-line structured JSON for off-box
+# analysis, enabled in production only [https://github.com/roidrage/lograge]
+gem "lograge", "~> 0.14"
+
 group :development, :test do
   # Load environment variables from .env files [https://github.com/bkeepers/dotenv]
   gem "dotenv", "~> 3.1", require: "dotenv/load"
