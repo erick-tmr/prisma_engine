@@ -10,6 +10,7 @@ module StructuredLogging
     }.freeze
 
     def self.install
+      require "active_job/log_subscriber"
       ActiveJob::LogSubscriber.detach_from :active_job
       attach_to :active_job
     end

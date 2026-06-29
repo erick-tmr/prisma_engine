@@ -61,7 +61,7 @@ Rails.application.configure do
     { request_id: request.request_id, host: request.host, user_id: user&.id }.compact
   end
 
-  config.after_initialize do
+  ActiveSupport.on_load(:active_job) do
     StructuredLogging::ActiveJobLogSubscriber.install
   end
 
