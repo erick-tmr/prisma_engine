@@ -1,5 +1,6 @@
 class PagesController < ApplicationController
   def home
+    @banners    = HeroBanner.active.in_display_order.with_attached_image
     @classic    = Product.for_category("game-boy-classic").published.limit(8)
     @color      = Product.for_category("game-boy-color").published.limit(8)
     @miscelanea = Product.for_category("miscelanea").published.limit(8)

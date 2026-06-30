@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_29_215039) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_29_230000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -108,6 +108,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_215039) do
     t.integer "year", null: false
     t.index ["year", "month"], name: "index_game_of_the_months_on_year_and_month", unique: true
     t.check_constraint "month >= 1 AND month <= 12", name: "game_of_the_months_month_range"
+  end
+
+  create_table "hero_banners", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "alt", default: "", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "order_items", force: :cascade do |t|
