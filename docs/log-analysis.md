@@ -4,6 +4,17 @@ Production logs are structured JSON. This runbook covers downloading them off th
 and querying them locally in a Loki + Grafana stack. No external service, nothing to pay
 for, run on demand. Error tracking (Sentry) is deferred; this covers log search only.
 
+## Shortcuts
+
+`bin/log-analysis` wraps the whole flow (the sections below explain each step):
+
+```bash
+bin/log-analysis download    # fetch production logs over SSH
+bin/log-analysis rehydrate   # start the stack + ingest -> http://127.0.0.1:4000
+bin/log-analysis prune       # stop the stack and wipe ingested data (down -v)
+bin/log-analysis down        # stop the stack, keep ingested data
+```
+
 ## How logging works in production
 
 - Rails logs to STDOUT, captured by Docker's `json-file` driver
