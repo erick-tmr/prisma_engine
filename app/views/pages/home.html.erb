@@ -25,6 +25,28 @@
 <% end %>
 
 <section class="section">
+  <%= render "block_title", slug: "pedidos-de-jogos",
+                            label: "Pedidos de Jogos",
+                            icon: "clipboard-check" %>
+  <div class="row">
+    <% @pedidos.each do |product| %>
+      <%= render "products/card", product: product %>
+    <% end %>
+  </div>
+</section>
+
+<section class="section">
+  <%= render "block_title", slug: "miscelanea",
+                            label: "Extras & Acessórios",
+                            icon: "box-seam" %>
+  <div class="row">
+    <% @extras.each do |product| %>
+      <%= render "products/card", product: product %>
+    <% end %>
+  </div>
+</section>
+
+<section class="section">
   <%= render "block_title", slug: "game-boy-classic",
                             label: "Game Boy Classic" %>
   <div class="row">
@@ -40,17 +62,6 @@
                             logo: "game-boy-color-horizontal" %>
   <div class="row">
     <% @color.each do |product| %>
-      <%= render "products/card", product: product %>
-    <% end %>
-  </div>
-</section>
-
-<section class="section">
-  <%= render "block_title", slug: "miscelanea",
-                            label: "Miscelânea",
-                            icon: "box-seam" %>
-  <div class="row">
-    <% @miscelanea.each do |product| %>
       <%= render "products/card", product: product %>
     <% end %>
   </div>

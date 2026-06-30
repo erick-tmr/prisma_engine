@@ -19,6 +19,20 @@
         <% end %>
       </li>
       <li>
+        <%= link_to category_path(slug: "pedidos-de-jogos"),
+              class: "drawer__link" do %>
+          <i class="bi bi-clipboard-check me-2"></i> Pedidos de Jogos
+          <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("pedidos-de-jogos").published.count %></span>
+        <% end %>
+      </li>
+      <li>
+        <%= link_to category_path(slug: "miscelanea"),
+              class: "drawer__link" do %>
+          <i class="bi bi-box-seam me-2"></i> Extras &amp; Acessórios
+          <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("miscelanea").published.count %></span>
+        <% end %>
+      </li>
+      <li>
         <%= link_to category_path(slug: "game-boy-classic"),
               class: "drawer__link" do %>
           <i class="bi bi-controller me-2"></i> Game Boy Classic
@@ -30,13 +44,6 @@
               class: "drawer__link" do %>
           <i class="bi bi-palette me-2"></i> Game Boy Color
           <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("game-boy-color").published.count %></span>
-        <% end %>
-      </li>
-      <li>
-        <%= link_to category_path(slug: "miscelanea"),
-              class: "drawer__link" do %>
-          <i class="bi bi-box-seam me-2"></i> Miscelânea
-          <span class="badge text-bg-secondary ms-auto"><%= Product.for_category("miscelanea").published.count %></span>
         <% end %>
       </li>
     </ul>
@@ -55,18 +62,13 @@
       </li>
     </ul>
 
-    <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Parceiros</div>
+    <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Recomendações do Vini</div>
     <ul class="list-unstyled mb-0">
-      <% nav_partners.each do |p| %>
+      <% nav_recommendations.each do |recommendation| %>
         <li>
-          <a href="<%= p[:url] %>" target="_blank" rel="noopener noreferrer"
+          <a href="<%= recommendation.url %>" target="_blank" rel="noopener noreferrer"
              class="drawer__link">
-            <span class="partner-avatar me-2" style="--avatar-gradient: <%= p[:gradient] %>"><%= p[:initial] %></span>
-            <span class="partner-meta">
-              <strong><%= p[:name] %></strong>
-              <small><%= p[:tagline] %></small>
-            </span>
-            <i class="bi bi-youtube partner-yt" aria-hidden="true"></i>
+            <%= render "shared/recommendation_media", recommendation: recommendation %>
           </a>
         </li>
       <% end %>

@@ -8,14 +8,7 @@ module NavHelper
     SOCIAL_LINKS
   end
 
-  def nav_partners
-    NavHelper.partners
-  end
-
-  def self.partners
-    @partners ||= YAML.safe_load_file(Rails.root.join("config", "partners.yml"))
-                      .fetch("partners", [])
-                      .map { |attrs| attrs.transform_keys(&:to_sym).freeze }
-                      .freeze
+  def nav_recommendations
+    Recommendation.active.in_display_order
   end
 end

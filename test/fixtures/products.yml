@@ -20,7 +20,7 @@ metroid:
   legacy_image_path: /images/test-cartridge.png
 
 placeholder:
-  category: gb_color
+  category: pedidos
   name: "- Pokemon Hacks (Pedidos)"
   slug: pokemon-hacks-pedidos
   price_cents: 18000

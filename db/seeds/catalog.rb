@@ -8,25 +8,38 @@
 require "bigdecimal"
 
 # --- Categories (consoles) -------------------------------------------------
-categories = {
-  "game-boy-classic" => { name: "Game Boy Classic" },
-  "game-boy-color"   => { name: "Game Boy Color" },
+category_by_slug = {
+  "game-boy-classic" => "Game Boy Classic",
+  "game-boy-color"   => "Game Boy Color",
   # Game Boy Advance has no products yet — seeded for the near-future catalog.
-  "game-boy-advance" => { name: "Game Boy Advance" },
-  "miscelanea"       => { name: "Miscelânea" }
-}.transform_values do |attrs|
-  Category.find_or_create_by!(slug: attrs.fetch(:name).parameterize) do |c|
-    c.name = attrs[:name]
-  end
+  "game-boy-advance" => "Game Boy Advance",
+  "pedidos-de-jogos" => "Pedidos de Jogos",
+  "miscelanea"       => "Extras & Acessórios"
+}.to_h do |slug, name|
+  category = Category.find_or_create_by!(slug: slug) { |c| c.name = name }
+  category.update!(name: name) unless category.name == name
+  [ slug, category ]
 end
 
-category_by_slug = {
-  "game-boy-classic" => categories["game-boy-classic"],
-  "game-boy-color"   => categories["game-boy-color"],
-  "miscelanea"       => categories["miscelanea"]
-}
-
 # --- Products --------------------------------------------------------------
+def attach_primary_photo(product)
+  return if product.legacy_image_path.blank?
+
+  file = Rails.root.join("public", product.legacy_image_path.delete_prefix("/"))
+  return unless File.exist?(file)
+
+  photo = product.product_photos.in_display_order.first
+  if photo&.image&.attached?
+    return if photo.image.blob.checksum == OpenSSL::Digest::MD5.file(file).base64digest
+
+    photo.image.purge
+  else
+    photo = product.product_photos.create!(alt_text: product.name, position: 0)
+  end
+
+  photo.image.attach(io: File.open(file), filename: File.basename(file), content_type: "image/jpeg")
+end
+
 def infer_tag_slugs(name)
   slugs = []
   slugs << "pokemon" if name.match?(/pokemon/i)
@@ -89,22 +102,10 @@ raw.fetch("products").each do |entry|
     ProductTag.find_or_create_by!(product: product, tag: tag)
   end
 
-  # Attach the vendored image as a ProductPhoto; Product#image falls back to
-  # legacy_image_path so a missing file never breaks seeding or the storefront.
-  if product.legacy_image_path.present? && product.product_photos.empty?
-    file = Rails.root.join("public", product.legacy_image_path.delete_prefix("/"))
-    if File.exist?(file)
-      photo = product.product_photos.create!(alt_text: product.name, position: 0)
-      photo.image.attach(
-        io:           File.open(file),
-        filename:     File.basename(file),
-        content_type: "image/jpeg"
-      )
-    end
-  end
+  attach_primary_photo(product)
 end
 
-# --- Miscelânea (standalone parts) -----------------------------------------
+# --- Extras & Acessórios (standalone parts) --------------------------------
 misc_products = [
   { slug: "carcaca-de-plastico", name: "Carcaça de plástico", price_cents: 2000, weight_grams: 38,
     image: "/images/stores/uploads/6305129/conversions/large.jpg",
@@ -129,17 +130,7 @@ misc_products.each do |attrs|
   )
   product.save!
 
-  if product.legacy_image_path.present? && product.product_photos.empty?
-    file = Rails.root.join("public", product.legacy_image_path.delete_prefix("/"))
-    if File.exist?(file)
-      photo = product.product_photos.create!(alt_text: product.name, position: 0)
-      photo.image.attach(
-        io:           File.open(file),
-        filename:     File.basename(file),
-        content_type: "image/jpeg"
-      )
-    end
-  end
+  attach_primary_photo(product)
 end
 
 puts "Seeded: #{Category.count} categories, #{Product.count} products, " \
