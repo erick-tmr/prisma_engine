@@ -9,6 +9,31 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select ".cta-band"
   end
 
+  test "home page renders active hero banners, first eager and the rest lazy" do
+    2.times do |i|
+      banner = HeroBanner.new(alt: "Destaque #{i}", position: i, active: true)
+      banner.image.attach(
+        io: File.open(Rails.root.join("db/seeds/hero_banner.jpg")),
+        filename: "hero.jpg",
+        content_type: "image/jpeg"
+      )
+      banner.save!
+    end
+    HeroBanner.create!(active: false, position: 9) do |hidden|
+      hidden.image.attach(
+        io: File.open(Rails.root.join("db/seeds/hero_banner.jpg")),
+        filename: "hidden.jpg",
+        content_type: "image/jpeg"
+      )
+    end
+
+    get root_path
+    assert_response :success
+    assert_select "section.banner .banner__slot img", count: 2
+    assert_select "section.banner .banner__slot img[loading=eager]", count: 1
+    assert_select "section.banner .banner__slot img[loading=lazy]", count: 1
+  end
+
   test "home page still renders when no GameOfTheMonth is set for the current month" do
     GameOfTheMonth.destroy_all
     get root_path

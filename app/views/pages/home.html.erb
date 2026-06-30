@@ -3,28 +3,26 @@
   <%= stylesheet_link_tag "pages/home" %>
 <% end %>
 
-<section class="banner">
-  <div class="owl-carousel owl-theme"
-       data-loop="true"
-       data-nav="false"
-       data-dots="true"
-       data-autoplay="true"
-       data-items-xs="1"
-       data-items-sm="1"
-       data-items-md="1"
-       data-items-lg="1"
-       data-items-xl="1">
-    <div class="banner__slot">
-      <img src="/images/stores/uploads/2475313/conversions/large.jpg" alt="Banner Pokémon Yellow" width="1200" height="600" loading="eager">
+<% if @banners.any? %>
+  <section class="banner">
+    <div class="owl-carousel owl-theme"
+         data-loop="true"
+         data-nav="false"
+         data-dots="true"
+         data-autoplay="true"
+         data-items-xs="1"
+         data-items-sm="1"
+         data-items-md="1"
+         data-items-lg="1"
+         data-items-xl="1">
+      <% @banners.each_with_index do |banner, index| %>
+        <div class="banner__slot">
+          <img src="<%= Storefront::ImageSource.call(banner.image) %>" alt="<%= banner.alt %>" width="1110" height="550" loading="<%= index.zero? ? "eager" : "lazy" %>">
+        </div>
+      <% end %>
     </div>
-    <div class="banner__slot">
-      <img src="/images/stores/uploads/2690742/conversions/large.jpg" alt="Banner Game Boy Color" width="1200" height="600" loading="lazy">
-    </div>
-    <div class="banner__slot">
-      <img src="/images/stores/uploads/2475445/conversions/large.jpg" alt="Banner Pokémon Hack" width="1200" height="600" loading="lazy">
-    </div>
-  </div>
-</section>
+  </section>
+<% end %>
 
 <section class="section">
   <%= render "block_title", slug: "game-boy-classic",
