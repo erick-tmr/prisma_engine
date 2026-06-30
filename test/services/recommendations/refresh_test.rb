@@ -74,5 +74,27 @@ module Recommendations
         with_safe_url { Refresh.call(recommendation) }
       end
     end
+
+    test "call_all refreshes every recommendation" do
+      recommendation = Recommendation.create!(url: PAGE_URL, position: 0)
+      stub_page('<title>Site</title><link rel="icon" href="/fav.png">')
+      stub_favicon
+
+      with_safe_url { Refresh.call_all }
+
+      assert_equal "Site", recommendation.reload.title
+    end
+
+    test "call_all logs and continues when one recommendation fails" do
+      good = Recommendation.create!(url: PAGE_URL, position: 0)
+      Recommendation.create!(url: "https://bad.example/", position: 1)
+      stub_page('<title>Bom</title><link rel="icon" href="/fav.png">')
+      stub_favicon
+      stub_request(:get, "https://bad.example/").to_return(status: 500)
+
+      with_safe_url { Refresh.call_all }
+
+      assert_equal "Bom", good.reload.title
+    end
   end
 end

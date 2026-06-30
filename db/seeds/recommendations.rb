@@ -4,12 +4,8 @@
 ].each do |attrs|
   recommendation = Recommendation.find_or_create_by!(url: attrs[:url])
   recommendation.update!(position: attrs[:position])
-
-  begin
-    Recommendations::Refresh.call(recommendation)
-  rescue LinkPreview::Api::Error => error
-    warn "Recomendações: falha ao buscar #{recommendation.url}: #{error.message}"
-  end
 end
+
+RefreshRecommendationsJob.perform_later
 
 puts "Recomendações: #{Recommendation.count} ativa(s)"

@@ -13,6 +13,14 @@ module Recommendations
       recommendation.save!
     end
 
+    def call_all
+      Recommendation.find_each do |recommendation|
+        call(recommendation)
+      rescue LinkPreview::Api::Error => error
+        Rails.logger.warn("[Recommendations::Refresh] #{recommendation.url}: #{error.message}")
+      end
+    end
+
     def fetch_favicon_data_uri(favicon_url)
       asset = LinkPreview::Api::Asset.fetch(favicon_url)
       "data:#{asset[:content_type]};base64,#{Base64.strict_encode64(asset[:bytes])}"
