@@ -19,6 +19,7 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i + 5 %>
   host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+  port: <%= ENV.fetch("DATABASE_PORT", 5432) %>
   username: <%= ENV.fetch("DATABASE_USER", "prisma_engine") %>
   password: <%= ENV.fetch("DATABASE_PASSWORD", "prisma_engine") %>
 

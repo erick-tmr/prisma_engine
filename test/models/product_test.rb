@@ -58,7 +58,7 @@ class ProductTest < ActiveSupport::TestCase
     product = products(:metroid)
     photo = product.product_photos.create!(alt_text: product.name, position: 0)
     photo.image.attach(
-      io: File.open(Rails.root.join("public/images/stores/uploads/2475313/conversions/large.jpg")),
+      io: File.open(file_fixture("sample_product.jpg")),
       filename: "large.jpg",
       content_type: "image/jpeg"
     )
