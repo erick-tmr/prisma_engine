@@ -10,6 +10,10 @@ gb_advance:
   name: Game Boy Advance
   slug: game-boy-advance
 
+pedidos:
+  name: Pedidos de Jogos
+  slug: pedidos-de-jogos
+
 miscelanea:
-  name: Miscelânea
+  name: Extras & Acessórios
   slug: miscelanea

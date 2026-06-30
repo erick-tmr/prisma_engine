@@ -8,6 +8,11 @@ detectors:
     enabled: false        # don't demand a descriptive comment on every class/module
   TooManyStatements:
     max_statements: 8     # controller actions run a few lines; reek's default is 5
+  TooManyInstanceVariables:
+    exclude:
+      - PagesController   # the storefront landing action assembles cohesive page state
+                          # (hero banner, the product rows, game of the month) — a
+                          # view-model for one template, not a god object.
   TooManyMethods:
     exclude:
       - Order             # the made-to-order aggregate root: its API is the lifecycle

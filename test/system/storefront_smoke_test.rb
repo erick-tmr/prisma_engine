@@ -9,10 +9,10 @@ class StorefrontSmokeTest < ApplicationSystemTestCase
     assert_title "Prisma Games"
   end
 
-  test "the home page renders the Miscelânea section and CTA band" do
+  test "the home page renders the Extras & Acessórios section and CTA band" do
     visit root_path
 
-    assert_selector ".section-title__wordmark", text: /miscelânea/i
+    assert_selector ".section-title__wordmark", text: /extras & acessórios/i
     assert_selector ".product-card__thumb--ph", minimum: 1
     assert_selector ".cta-band__btn"
   end

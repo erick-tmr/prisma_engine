@@ -25,6 +25,9 @@ production:
   purge_payment_webhook_events:
     class: PurgePaymentWebhookEventsJob
     schedule: "0 3 1 * *"
+  refresh_recommendations:
+    class: RefreshRecommendationsJob
+    schedule: every day at 4am
 
 development:
   sync_pending_shipments:
@@ -33,3 +36,6 @@ development:
   recover_stuck_label_requests:
     class: Shipping::RecoverStuckLabelRequestsJob
     schedule: every hour at minute 30
+  refresh_recommendations:
+    class: RefreshRecommendationsJob
+    schedule: every day at 4am

@@ -49,17 +49,12 @@
 
           <div class="links-menu__panel" role="menu" data-links-menu="panel" hidden>
             <div class="links-menu__section-title">
-              <i class="bi bi-youtube links-menu__yt-ic" aria-hidden="true"></i> Parceiros YouTube
+              <i class="bi bi-patch-check-fill links-menu__trust-ic" aria-hidden="true"></i> Recomendações do Vini
             </div>
             <div class="links-menu__grid">
-              <% nav_partners.each do |p| %>
-                <%= link_to p[:url], class: "links-menu__row", target: "_blank", rel: "noopener noreferrer" do %>
-                  <span class="partner-avatar" style="--avatar-gradient: <%= p[:gradient] %>"><%= p[:initial] %></span>
-                  <span class="partner-meta">
-                    <strong><%= p[:name] %></strong>
-                    <small><%= p[:tagline] %></small>
-                  </span>
-                  <i class="bi bi-youtube partner-yt" aria-hidden="true"></i>
+              <% nav_recommendations.each do |recommendation| %>
+                <%= link_to recommendation.url, class: "links-menu__row", target: "_blank", rel: "noopener noreferrer" do %>
+                  <%= render "shared/recommendation_media", recommendation: recommendation %>
                 <% end %>
               <% end %>
             </div>
