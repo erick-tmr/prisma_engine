@@ -44,9 +44,9 @@ deploy/fetch-production-logs.sh
 
 This SSHes in, finds every app container (the live one plus Kamal's retained exited
 ones, so you get history across recent deploys), and copies each container's
-`*-json.log` files (rotation siblings included) into `tmp/production-logs/<container-id>/`.
-The download is read-only on the host. `tmp/` is gitignored: these logs may contain
-PII, so never commit them.
+`*-json.log` files (rotation siblings included) into `/tmp/prisma-production-logs/<container-id>/`.
+The download is read-only on the host. Writing under the system `/tmp` keeps these logs out
+of the repo and lets the OS reclaim the space; override the location with `PRODUCTION_LOG_DIR`.
 
 ## 2. Bring up the local stack
 
@@ -55,7 +55,7 @@ cd deploy/log-analysis
 docker compose up -d
 ```
 
-Loki, Grafana, and Promtail start. Promtail reads `tmp/production-logs/`, unwraps the
+Loki, Grafana, and Promtail start. Promtail reads `/tmp/prisma-production-logs/`, unwraps the
 Docker envelope, parses the JSON into labels (`event`, plus `method`/`status`/
 `controller`/`action` for requests and `job_class`/`queue`/`outcome` for jobs) and
 structured metadata (`request_id`, `user_id`, `duration`, `job_event`, `job_id`,
@@ -93,7 +93,7 @@ sum by (job_class) (count_over_time({job="prisma_engine", outcome="errored"}[1h]
 ```bash
 docker compose down       # stop; keeps the ingested data volume
 docker compose down -v    # stop and wipe ingested data
-rm -rf ../../tmp/production-logs   # delete the downloaded logs (may contain PII)
+rm -rf /tmp/prisma-production-logs   # delete the downloaded logs (the OS would reclaim /tmp anyway)
 ```
 
 To re-ingest fresh logs later, fetch again and `docker compose up -d`. Promtail tracks
@@ -121,11 +121,11 @@ double-wrapped, so extract `.log` first, then the inner field:
 duckdb -c "
   SELECT json_extract_string(json_extract_string(line, '\$.log'), '\$.status') AS status,
          count(*)
-  FROM read_csv('tmp/production-logs/**/*-json.log', columns={'line':'VARCHAR'}, delim='\x00')
+  FROM read_csv('/tmp/prisma-production-logs/**/*-json.log', columns={'line':'VARCHAR'}, delim='\x00')
   GROUP BY status ORDER BY 2 DESC"
 ```
 
-Or browse interactively with `lnav tmp/production-logs/`. These have no UI or label
+Or browse interactively with `lnav /tmp/prisma-production-logs/`. These have no UI or label
 filtering, but need zero setup. Loki + Grafana is preferred for real exploration and is
 forward-compatible with Grafana Cloud's free tier if logs later ship off-box.
 
@@ -135,7 +135,7 @@ forward-compatible with Grafana Cloud's free tier if logs later ship off-box.
   `reject_old_samples: false` in `loki-config.yaml` and that the `timestamp` stage in
   `promtail-config.yaml` parsed the envelope time.
 - **Lines show as one opaque JSON blob.** The Docker envelope was not unwrapped. Check a
-  raw sample (`head -1 tmp/production-logs/*/*-json.log`): the outer keys are
+  raw sample (`head -1 /tmp/prisma-production-logs/*/*-json.log`): the outer keys are
   `log`/`stream`/`time`, and Promtail's first `json` stage plus `output: source: log`
   must run before the inner parse.
 - **Loki rejects high-cardinality labels.** `request_id`, `user_id`, and `duration` are

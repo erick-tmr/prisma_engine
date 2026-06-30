@@ -26,7 +26,7 @@ LOG_HOST="${PRODUCTION_LOG_HOST:?set PRODUCTION_LOG_HOST (VPS IP/hostname) in .e
 LOG_USER="${PRODUCTION_LOG_USER:-root}"
 SSH_PORT="${PRODUCTION_LOG_SSH_PORT:-22}"
 SERVICE="${KAMAL_SERVICE:-prisma_engine}"
-DEST_DIR="${PRODUCTION_LOG_DIR:-tmp/production-logs}"
+DEST_DIR="${PRODUCTION_LOG_DIR:-/tmp/prisma-production-logs}"
 
 log() { echo "[$(date -Is)] $*"; }
 
