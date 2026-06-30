@@ -54,4 +54,4 @@ done
 
 log "done. next:"
 log "  cd deploy/log-analysis && docker compose up -d"
-log "  open http://127.0.0.1:3000  ->  Explore  ->  Loki"
+log "  open http://127.0.0.1:4000  ->  Explore  ->  Loki"

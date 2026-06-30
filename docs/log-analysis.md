@@ -61,13 +61,12 @@ Docker envelope, parses the JSON into labels (`event`, plus `method`/`status`/
 structured metadata (`request_id`, `user_id`, `duration`, `job_event`, `job_id`,
 `executions`), and ships it to Loki.
 
-Grafana listens on `http://127.0.0.1:3000`. This collides with a local `bin/dev` Rails
-server, so don't run both at once, or remap the Grafana port to `127.0.0.1:3001:3000`
-in `compose.yaml`.
+Grafana listens on `http://127.0.0.1:4000` (4000, not 3000, so it does not collide with a
+local `bin/dev` Rails server).
 
 ## 3. Query in Grafana
 
-Open `http://127.0.0.1:3000`, go to Explore (the Loki datasource is preconfigured).
+Open `http://127.0.0.1:4000`, go to Explore (the Loki datasource is preconfigured).
 Set the time range wide (last 7 days): rehydrated logs carry their original production
 timestamps, not "now". Example LogQL:
 
@@ -142,7 +141,7 @@ forward-compatible with Grafana Cloud's free tier if logs later ship off-box.
 - **Loki rejects high-cardinality labels.** `request_id`, `user_id`, and `duration` are
   structured metadata, not labels, by design. Only `method`/`status`/`controller`/`action`
   are labels.
-- **Grafana won't load / port busy.** A `bin/dev` server owns `127.0.0.1:3000`. Stop it or
-  remap the Grafana port.
+- **Grafana won't load / port busy.** Something else owns `127.0.0.1:4000`. Remap the
+  Grafana port in `compose.yaml` (`127.0.0.1:<port>:3000`).
 - **`structured_metadata` stage rejected by Promtail.** The image is older than 3.x. Drop
   those fields from the stage and extract them on demand in LogQL with `| json`.
