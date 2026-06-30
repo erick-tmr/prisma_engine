@@ -18,7 +18,7 @@ production:
     schedule: every hour
   recover_stuck_label_requests:
     class: Shipping::RecoverStuckLabelRequestsJob
-    schedule: every 10 minutes
+    schedule: every hour at minute 30
   cancel_expired_orders:
     class: CancelExpiredOrdersJob
     schedule: every hour
@@ -32,4 +32,4 @@ development:
     schedule: every hour
   recover_stuck_label_requests:
     class: Shipping::RecoverStuckLabelRequestsJob
-    schedule: every 10 minutes
+    schedule: every hour at minute 30
