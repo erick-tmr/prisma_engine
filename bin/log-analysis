@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Convenience wrapper around the local log-analysis workflow: download production
+# logs and query them in the local Loki + Grafana stack. Runbook: docs/log-analysis.md.
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE=(docker compose -f "$ROOT/deploy/log-analysis/compose.yaml")
+
+usage() {
+  cat <<USAGE
+Usage: bin/log-analysis <command>
+
+  download    Fetch production logs over SSH      (deploy/fetch-production-logs.sh)
+  rehydrate   Start the Loki + Grafana + Promtail stack, ingest the downloaded logs
+  prune       Stop the stack and wipe ingested data   (docker compose down -v)
+  down        Stop the stack, keep ingested data       (docker compose down)
+
+Grafana: http://127.0.0.1:4000   Runbook: docs/log-analysis.md
+USAGE
+}
+
+case "${1:-}" in
+  download)
+    "$ROOT/deploy/fetch-production-logs.sh"
+    ;;
+  rehydrate)
+    "${COMPOSE[@]}" up -d
+    echo "Grafana ready at http://127.0.0.1:4000  (Explore -> Loki)"
+    ;;
+  prune)
+    "${COMPOSE[@]}" down -v
+    ;;
+  down)
+    "${COMPOSE[@]}" down
+    ;;
+  ""|-h|--help|help)
+    usage
+    ;;
+  *)
+    echo "unknown command: $1" >&2
+    usage
+    exit 1
+    ;;
+esac
