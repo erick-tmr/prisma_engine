@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CHAIN=DOCKER-USER
+PORTS=80,443
+
+if ! iptables -L "$CHAIN" -n >/dev/null 2>&1; then
+  echo "DOCKER-USER chain absent; is Docker installed? Leaving firewall untouched." >&2
+  exit 0
+fi
+
+apply() {
+  local ipt="$1"; shift
+  "$ipt" -F "$CHAIN"
+  "$ipt" -A "$CHAIN" -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN
+  for cidr in "$@"; do
+    "$ipt" -A "$CHAIN" -s "$cidr" -p tcp -m multiport --dports "$PORTS" -j RETURN
+  done
+  "$ipt" -A "$CHAIN" -p tcp -m multiport --dports "$PORTS" -j DROP
+  "$ipt" -A "$CHAIN" -j RETURN
+}
+
+apply iptables {{ cloudflare_ipv4_ranges | join(' ') }}
+
+if ip6tables -L "$CHAIN" -n >/dev/null 2>&1; then
+  apply ip6tables {{ cloudflare_ipv6_ranges | join(' ') }}
+fi

@@ -1,0 +1,33 @@
+---
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Set the default incoming policy to deny
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Set the default outgoing policy to allow
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow the public service ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ ufw_allowed_ports }}"
+
+- name: Allow Postgres only from the Docker bridge range
+  community.general.ufw:
+    rule: allow
+    port: "{{ ufw_postgres_port }}"
+    proto: tcp
+    src: "{{ ufw_postgres_cidr }}"
+
+- name: Enable ufw
+  community.general.ufw:
+    state: enabled
