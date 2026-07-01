@@ -12,12 +12,17 @@ if game
 
   placeholder_image = Rails.root.join("public/images/stores/uploads/2475313/conversions/large.jpg")
 
-  if gotm.brindes.none? && File.exist?(placeholder_image)
-    [
-      { caption: "Adesivo Shantae",            weight_grams: 8, position: 0 },
-      { caption: "Cartela de cards exclusiva", weight_grams: 7, position: 1 }
-    ].each do |attrs|
-      brinde = gotm.brindes.build(attrs)
+  brinde_kit = [
+    { caption: "Pôster A5",         weight_grams: 5 },
+    { caption: "Cards x3",          weight_grams: 3 },
+    { caption: "Cartão postal",     weight_grams: 5 },
+    { caption: "Cartão de trivia",  weight_grams: 2 }
+  ]
+
+  if gotm.brindes.in_display_order.pluck(:caption) != brinde_kit.map { |b| b[:caption] } && File.exist?(placeholder_image)
+    gotm.brindes.destroy_all
+    brinde_kit.each_with_index do |attrs, index|
+      brinde = gotm.brindes.build(attrs.merge(position: index))
       brinde.image.attach(
         io:           File.open(placeholder_image),
         filename:     "brinde-placeholder.jpg",
