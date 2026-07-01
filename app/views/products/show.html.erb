@@ -123,7 +123,7 @@
     <section class="descr" aria-label="Descrição do produto">
       <h2 class="descr__title">Descrição</h2>
       <p class="descr__sub">Tudo sobre este cartucho</p>
-      <div class="descr__body"><%= simple_format(@product.description) %></div>
+      <div class="descr__body"><%= product_description @product.description %></div>
     </section>
   <% end %>
 

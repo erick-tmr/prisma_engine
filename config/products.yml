@@ -1,176 +1,394 @@
 products:
-  - id: "1041693-0"
-    short_id: "1041693"
-    slug: "pokemon-yellow-version"
-    title: "Pokemon - Yellow Version"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2475313/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1045017-0"
-    short_id: "1045017"
-    slug: "pokemon-blue-version"
-    title: "Pokemon - Blue Version"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2475346/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1052270-0"
-    short_id: "1052270"
-    slug: "game-boy-classiccolor-pedidos"
-    title: "Game Boy Classic/Color (Pedidos)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/6305352/conversions/large.jpg"
-    category: "pedidos-de-jogos"
-  - id: "1088265-0"
-    short_id: "1088265"
-    slug: "pokemon-red-version"
-    title: "Pokemon - Red Version"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2475355/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1088287-0"
-    short_id: "1088287"
-    slug: "pokemon-brown-version-romhack"
-    title: "Pokemon - Brown Version (RomHack)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2475409/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1088294-0"
-    short_id: "1088294"
-    slug: "pokemon-hack-red-version"
-    title: "Pokemon (Hack) - Red++ Version"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2475445/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1088299-0"
-    short_id: "1088299"
-    slug: "pokemon-green-version"
-    title: "Pokemon - Green Version"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2475454/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1170635-0"
-    short_id: "1170635"
-    slug: "pokemon-blue-kaizo-romhack"
-    title: "Pokemon - Blue Kaizo (RomHack)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2690731/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1170639-0"
-    short_id: "1170639"
-    slug: "pokemon-red-battle-factory-romhack"
-    title: "Pokemon - Red Battle Factory (RomHack)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2690742/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1290501-0"
-    short_id: "1290501"
-    slug: "the-legend-of-zelda-oracle-of-ages"
-    title: "The Legend of Zelda - Oracle of Ages"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2993107/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1290516-0"
-    short_id: "1290516"
-    slug: "the-legend-of-zelda-oracle-of-seasons"
-    title: "The Legend of Zelda - Oracle of Seasons"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2993196/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1290520-0"
-    short_id: "1290520"
-    slug: "pokemon-yellow-legacy-romhack"
-    title: "Pokemon - Yellow Legacy (RomHack)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2993202/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1338689-0"
-    short_id: "1338689"
-    slug: "metroid-ii-return-of-samus"
-    title: "Metroid II - Return of Samus"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3105612/conversions/large.jpg"
-    category: "game-boy-classic"
-  - id: "1402284-0"
-    short_id: "1402284"
-    slug: "survival-kids"
-    title: "Survival Kids"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3265985/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1402289-0"
-    short_id: "1402289"
-    slug: "pokemon-pinball"
-    title: "Pokemon Pinball (Sem Rumble)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3266035/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1402300-0"
-    short_id: "1402300"
-    slug: "kirbys-dream-land"
-    title: "Kirby's Dream Land"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3266054/conversions/large.jpg"
-    category: "game-boy-classic"
-  - id: "1402307-0"
-    short_id: "1402307"
-    slug: "kirbys-dream-land-2"
-    title: "Kirby's Dream Land 2"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3266068/conversions/large.jpg"
-    category: "game-boy-classic"
-  - id: "1510516-0"
-    short_id: "1510516"
-    slug: "pokemon-gold-patch-rtc"
-    title: "Pokemon - Gold (Patch RTC)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3516818/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1510546-0"
-    short_id: "1510546"
-    slug: "pokemon-silver-patch-rtc"
-    title: "Pokemon - Silver (Patch RTC)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3516859/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1544374-0"
-    short_id: "1544374"
-    slug: "pokemon-crystal-patch-rtc-gs-ball-event"
-    title: "Pokemon - Crystal (Patch RTC + GS Ball Event)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3588588/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1544380-0"
-    short_id: "1544380"
-    slug: "donkey-kong-land"
-    title: "Donkey Kong Land"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3588599/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "1623191-0"
-    short_id: "1623191"
-    slug: "pokemon-trading-card-game"
-    title: "Pokemon - Trading Card Game"
-    price_brl: 200.00
-    image: "/images/stores/uploads/3740446/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "2501145-0"
-    short_id: "2501145"
-    slug: "resident-evil-gaiden"
-    title: "Resident Evil Gaiden"
-    price_brl: 200.00
-    image: "/images/stores/uploads/6079624/conversions/large.jpg"
-    category: "game-boy-color"
-  - id: "2581296-0"
-    short_id: "2581296"
-    slug: "pokemon-hacks-pedidos"
-    title: "Pokémon Hacks (Pedidos)"
-    price_brl: 200.00
-    image: "/images/stores/uploads/2581296/conversions/large.jpg"
-    category: "pedidos-de-jogos"
-  - id: "2590722-0"
-    short_id: "2590722"
-    slug: "metal-gear-solid-jogo-do-mes"
-    title: "Metal Gear Solid"
-    price_brl: 200.00
-    image: "/images/stores/uploads/6332251/conversions/large.jpg"
-    category: "game-boy-color"
+  - id: '1544380'
+    slug: donkey-kong-land
+    title: Donkey Kong Land
+    price_brl: 190.0
+    category: game-boy-classic
+    images:
+    - "/images/stores/uploads/3588599/conversions/large.jpg"
+    - "/images/stores/uploads/3588600/conversions/large.jpg"
+    description: ''
+  - id: '1402300'
+    slug: kirbys-dream-land
+    title: Kirby's Dream Land
+    price_brl: 190.0
+    category: game-boy-classic
+    options:
+    - group: Versão
+      values:
+      - GB Classic (DMG)
+      - DX (Shell Rosa)
+    images:
+    - "/images/stores/uploads/3266054/conversions/large.jpg"
+    - "/images/stores/uploads/3266056/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Disponivel na versão preto/branco
+      e colorida (DX)*</li>\r\n</ul>\r\n*Versão DX funciona apenas no Gameboy Color<br
+      /><br /><br /><br /><strong>Para mais informações:<br /></strong>Colorização por
+      ShadowOne333<br /><a href=\"https://www.romhacking.net/hacks/5635/\">https://www.romhacking.net/hacks/5635/</a></p>"
+  - id: '1402307'
+    slug: kirbys-dream-land-2
+    title: Kirby's Dream Land 2
+    price_brl: 190.0
+    category: game-boy-classic
+    options:
+    - group: Versão
+      values:
+      - GB Classic (DMG)
+      - DX (Shell Rosa)
+    images:
+    - "/images/stores/uploads/3266068/conversions/large.jpg"
+    - "/images/stores/uploads/3266072/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Disponivel na versão preto/branco
+      e colorida (DX)*</li>\r\n</ul>\r\n*Versão DX funciona apenas no Gameboy Color<br
+      /><br /><br /><br /><strong>Para mais informações:<br /></strong>Colorização por
+      kkzero<br /><a href=\"https://www.romhacking.net/hacks/7724/\">https://www.romhacking.net/hacks/7724/</a></p>"
+  - id: '1338689'
+    slug: metroid-ii-return-of-samus
+    title: Metroid II - Return of Samus
+    price_brl: 190.0
+    category: game-boy-classic
+    options:
+    - group: Versão
+      values:
+      - GB Classic (DMG)
+      - DX (Shell Azul)
+    images:
+    - "/images/stores/uploads/3105612/conversions/large.jpg"
+    - "/images/stores/uploads/3105613/conversions/large.jpg"
+    description: ''
+  - id: '1170635'
+    slug: pokemon-blue-kaizo-romhack
+    title: Pokemon - Blue Kaizo (RomHack)
+    price_brl: 210.0
+    category: game-boy-classic
+    languages:
+    - Inglês
+    images:
+    - "/images/stores/uploads/2690730/conversions/large.jpg"
+    - "/images/stores/uploads/2690731/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre\r\n<ul>\r\n<li>Produzido no Brasil com Garantia e
+      qualidade</li>\r\n<li>Berço e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\n<p>Para
+      mais informações:<br />RomHack por SinisterHoodedFigure<br /><a href=\"https://www.romhacking.net/hacks/2277/\">https://www.romhacking.net/hacks/2277/</a></p></p>"
+  - id: '1045017'
+    slug: pokemon-blue-version
+    title: Pokemon - Blue Version
+    price_brl: 200.0
+    category: game-boy-classic
+    images:
+    - "/images/stores/uploads/2475345/conversions/large.jpg"
+    - "/images/stores/uploads/2475346/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Funciona corretamente no Transfer
+      Pak do Nintendo 64*</li>\r\n<li>Funciona trocas e evoluções por trocas</li>\r\n<li>Disponivel
+      em Inglês e Português</li>\r\n<li>Produzido no Brasil com Garantia e qualidade</li>\r\n<li>Berço
+      e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\n<p>*Apenas
+      a Versão em Inglês do Game<br /><br /><br /><br /><strong>Para mais informações:<br
+      /></strong>Tradução por Hyd (Participe do Discord)<br /><a href=\"https://hyd.neocities.org/\">https://hyd.neocities.org/</a></p></p>"
+  - id: '1088287'
+    slug: pokemon-brown-version-romhack
+    title: Pokemon - Brown Version (RomHack)
+    price_brl: 200.0
+    category: game-boy-classic
+    languages:
+    - Inglês
+    images:
+    - "/images/stores/uploads/2475408/conversions/large.jpg"
+    - "/images/stores/uploads/2475409/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre\r\n<ul>\r\n<li>Produzido no Brasil com Garantia e
+      qualidade</li>\r\n<li>Berço e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\n<p>HackRom
+      por Koolboyman<br /><a href=\"https://www.romhacking.net/hacks/134/\">https://www.romhacking.net/hacks/134/</a></p></p>"
+  - id: '1088299'
+    slug: pokemon-green-version
+    title: Pokemon - Green Version
+    price_brl: 210.0
+    category: game-boy-classic
+    images:
+    - "/images/stores/uploads/2475453/conversions/large.jpg"
+    - "/images/stores/uploads/2475454/conversions/large.jpg"
+    - "/images/stores/uploads/4207039/conversions/large.jpg"
+    - "/images/stores/uploads/4207043/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Funciona corretamente no Transfer
+      Pak do Nintendo 64*</li>\r\n<li>Funciona trocas e evoluções por trocas</li>\r\n<li>Disponivel
+      em Inglês, Português e Japonês</li>\r\n<li>Produzido no Brasil com Garantia e
+      qualidade</li>\r\n<li>Berço e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul></p>"
+  - id: '1170639'
+    slug: pokemon-red-battle-factory-romhack
+    title: Pokemon - Red Battle Factory (RomHack)
+    price_brl: 210.0
+    category: game-boy-classic
+    languages:
+    - Inglês
+    images:
+    - "/images/stores/uploads/2690741/conversions/large.jpg"
+    - "/images/stores/uploads/2690742/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre\r\n<ul>\r\n<li>Produzido no Brasil com Garantia e
+      qualidade</li>\r\n<li>Berço e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\nPara
+      mais informações:<br />RomHack por ShantyTown<br /><a href=\"https://www.romhacking.net/hacks/1966/\">https://www.romhacking.net/hacks/1966/<br
+      /></a></p>"
+  - id: '1088265'
+    slug: pokemon-red-version
+    title: Pokemon - Red Version
+    price_brl: 210.0
+    category: game-boy-classic
+    images:
+    - "/images/stores/uploads/2475354/conversions/large.jpg"
+    - "/images/stores/uploads/2475355/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Funciona corretamente no Transfer
+      Pak do Nintendo 64*</li>\r\n<li>Funciona trocas e evoluções por trocas</li>\r\n<li>Disponivel
+      em Inglês e Português</li>\r\n<li>Produzido no Brasil com Garantia e qualidade</li>\r\n<li>Berço
+      e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\n*Apenas
+      a Versão em Inglês do Game<br /><br /><br />\r\n<p><strong>Para mais informações:<br
+      /></strong>Tradução por Hyd<br /><a href=\"https://www.romhacking.net/translations/7097/\">https://www.romhacking.net/translations/7101/</a></p></p>"
+  - id: '1290520'
+    slug: pokemon-yellow-legacy-romhack
+    title: Pokemon - Yellow Legacy (RomHack)
+    price_brl: 210.0
+    category: game-boy-classic
+    languages:
+    - Inglês
+    images:
+    - "/images/stores/uploads/2993199/conversions/large.jpg"
+    - "/images/stores/uploads/2993202/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre\r\n<ul>\r\n<li>Produzido no Brasil com Garantia e
+      qualidade</li>\r\n<li>Berço e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\n<p>Para
+      mais Informações:<br />RomHack por SmithPlays<br /><a href=\"https://www.youtube.com/watch?v=jTH2fVqHPwc\">https://www.youtube.com/watch?v=jTH2fVqHPwc</a><br
+      /><a href=\"https://github.com/cRz-Shadows/Pokemon_Yellow_Legacy\">https://github.com/cRz-Shadows/Pokemon_Yellow_Legacy</a></p></p>"
+  - id: '1041693'
+    slug: pokemon-yellow-version
+    title: Pokemon - Yellow Version
+    price_brl: 200.0
+    category: game-boy-classic
+    images:
+    - "/images/stores/uploads/2475312/conversions/large.jpg"
+    - "/images/stores/uploads/2475313/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Funciona corretamente no Transfer
+      Pak do Nintendo 64*</li>\r\n<li>Funciona trocas e evoluções por trocas</li>\r\n<li>Disponivel
+      em Inglês e Português</li>\r\n<li>Produzido no Brasil com Garantia e qualidade</li>\r\n<li>Berço
+      e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul>\r\n*Apenas
+      a Versão em Inglês do Game<br /><br /><br /><br /><strong>Para mais informações:<br
+      /></strong>Tradução por Hyd<br /><a href=\"https://www.romhacking.net/translations/7097/\">https://www.romhacking.net/translations/7097/<br
+      /></a></p>"
+  - id: '1088294'
+    slug: pokemon-hack-red-version
+    title: Pokemon (Hack) - Red++ Version
+    price_brl: 200.0
+    category: game-boy-classic
+    languages:
+    - Inglês
+    images:
+    - "/images/stores/uploads/2475444/conversions/large.jpg"
+    - "/images/stores/uploads/2475445/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre\r\n<ul>\r\n<li>Produzido no Brasil com Garantia e
+      qualidade</li>\r\n<li>Berço e Caixa produzidos em papel mais grosso que o original</li>\r\n</ul></p>"
+  - id: '1544374'
+    slug: pokemon-crystal-patch-rtc-gs-ball-event
+    title: Pokemon - Crystal (Patch RTC + GS Ball Event)
+    price_brl: 230.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3588587/conversions/large.jpg"
+    - "/images/stores/uploads/3588588/conversions/large.jpg"
+    description: |-
+      <p>Nosso cartucho usa FRAM*, tornando desnecessario o uso de baterias<br />Os saves duram para sempre<br />
+      <ul>
+      <li>Disponivel em Inglês e Português</li>
+      <li>Com Patch** do Sistema de Relógio (RTC)</li>
+      <li>Com evento da Pokebola GS*** (Celebi)</li>
+      <li>Produzido no Brasil com Garantia e qualidade</li>
+      <li>Berço e Caixa produzidos em papel mais grosso que o original</li>
+      </ul>
+      *Por conta do sistema de save sem bateria (FRAM) pode ocorrer inconsistencias ao usar a GB Tower em alguns modelos de transferpak<br />
+      <p>**Rom modificada com ajuste manual de troca de hora/dia pelo menu POKEGEAR<br />Viabilizando o progresso de captura de Pokemon em horarios e dias especificos, bem como as EEVOLUTIONS<br /><br />***Agora após completar a Elite Four, você pode ir no Centro Pokemon em Goldenrod e Receber a tão sonhada Pokebola GS e liberar o Mitico Pokemon Cerebi!!!</p>
+      <p>OBS.: Pode Haver incompatibilidade com alguns modelos de Transfer Pak para se usar a GB Tower<br /><br /><br /><strong>Para mais informações:</strong><br />Modificação por Infininest<br /><a href="https://www.romhacking.net/hacks/4451/" rel="nofollow">https://www.romhacking.net/hacks/3841/</a><br />Tradução por R_Lopes (Tradu-Roms)<br /><a href="https://romhackers.org/traducoes/portatil/game-boy-color/pokemon-crystal-version-tradu-roms/" rel="nofollow">https://romhackers.org/traducoes/portatil/game-boy-color/pokemon-crystal-version-tradu-roms/</a><br />GS Ball Event por Rodi<br /><a href="https://www.romhacking.net/hacks/7356/" rel="nofollow">https://www.romhacking.net/hacks/7356/</a><br /><br /></p></p>
+  - id: '1510516'
+    slug: pokemon-gold-patch-rtc
+    title: Pokemon - Gold (Patch RTC)
+    price_brl: 210.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3516817/conversions/large.jpg"
+    - "/images/stores/uploads/3516818/conversions/large.jpg"
+    description: |-
+      <p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br />Os saves duram para sempre<br />
+      <ul>
+      <li>Funciona corretamente no Transfer Pak do Nintendo 64*</li>
+      <li>Disponivel em Inglês e Português</li>
+      <li>Com Patch** do Sistema de Relógio (RTC)</li>
+      <li>Produzido no Brasil com Garantia e qualidade</li>
+      <li>Berço e Caixa produzidos em papel mais grosso que o original</li>
+      </ul>
+      *Apenas a Versão em Inglês do Game, Mas pode ocorer alguma incompatibilidade com alguns modelos de TransferPak para o uso na GB Tower<br />
+      <p>**Rom modificada com ajuste manual de troca de hora/dia pelo menu POKEGEAR<br />Viabilizando o progresso de captura de Pokemon em horarios e dias especificos, bem como as EEVOLUTIONS<br /><br /><strong>Para mais informações:</strong><br />Modificação por Infininest<br /><a href="https://www.romhacking.net/hacks/4451/" rel="nofollow">https://www.romhacking.net/hacks/3841/</a><br />Tradução por Tradu-Roms<br /><a href="https://romhackers.org/traducoes/portatil/game-boy-color/pokemon-gold-version-r_lopes-e-night_shadown-tradu-roms/" rel="nofollow">https://romhackers.org/traducoes/portatil/game-boy-color/pokemon-gold-version-r_lopes-e-night_shadown-tradu-roms/</a></p></p>
+  - id: '1510546'
+    slug: pokemon-silver-patch-rtc
+    title: Pokemon - Silver (Patch RTC)
+    price_brl: 210.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3516857/conversions/large.jpg"
+    - "/images/stores/uploads/3516859/conversions/large.jpg"
+    description: |-
+      <p><p>Nosso cartucho usa FRAM*, tornando desnecessario o uso de baterias<br />Os saves duram para sempre</p>
+      <ul>
+      <li>Funciona corretamente no Transfer Pak do Nintendo 64**</li>
+      <li>Disponivel em Inglês e Português</li>
+      <li>Com Patch*** do Sistema de Relógio (RTC)</li>
+      <li>Produzido no Brasil com Garantia e qualidade</li>
+      <li>Berço e Caixa produzidos em papel mais grosso que o original</li>
+      </ul>
+      <p>*Por conta do sistema de save sem bateria (FRAM) pode ocorrer inconsistencias ao usar a GB Tower em alguns modelos de transferpak<br /><br />**Apenas a Versão em Inglês do Game, Mas pode ocorer alguma incompatibilidade com alguns modelos de TransferPak para o uso na GB Tower</p>
+      <p>***Rom modificada com ajuste manual de troca de hora/dia pelo menu POKEGEAR<br />Viabilizando o progresso de captura de Pokemon em horarios e dias especificos, bem como as EEVOLUTIONS</p>
+      <p><br /><br /><strong>Para mais informações:</strong><br />Modificação por Infininest <br /><a href="https://www.romhacking.net/hacks/4451/" rel="nofollow">https://www.romhacking.net/hacks/4450/</a><br />Tradução por Tradu-Roms<br /><a href="https://romhackers.org/traducoes/portatil/game-boy-color/pokemon-silver-version-tradu-roms/" rel="nofollow">https://romhackers.org/traducoes/portatil/game-boy-color/pokemon-silver-version-tradu-roms/</a></p></p>
+  - id: '1623191'
+    slug: pokemon-trading-card-game
+    title: Pokemon - Trading Card Game
+    price_brl: 190.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3740446/conversions/large.jpg"
+    - "/images/stores/uploads/3740440/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Disponivel em Inglês e Português</li>\r\n<li>Produzido
+      no Brasil com Garantia e qualidade</li>\r\n<li>Berço e Caixa produzidos em papel
+      mais grosso que o original</li>\r\n</ul>\r\n<br />\r\n<p><strong>Para mais informações:<br
+      /></strong>Tradução por Hyd (Participe do Discord)<br /><a href=\"https://hyd.neocities.org/\">https://hyd.neocities.org/</a></p></p>"
+  - id: '2501145'
+    slug: resident-evil-gaiden
+    title: Resident Evil Gaiden
+    price_brl: 190.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/6079624/conversions/large.jpg"
+    description: ''
+  - id: '2663549'
+    slug: shantae
+    title: Shantae
+    price_brl: 230.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/6524334/conversions/large.jpg"
+    description: |-
+      <p><p>Jogo Especial de <strong>4MB</strong></p>
+      <p>Projeto feito com FRAM, tornando desnecessario o uso de baterias<br />Os saves duram para sempre</p>
+      <ul>
+      <li>Produzido no Brasil com Garantia e qualide</li>
+      <li>Berço e Caixa produzidos em papel mais grosso que o original</li>
+      </ul></p>
+  - id: '1402284'
+    slug: survival-kids
+    title: Survival Kids
+    price_brl: 190.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3265985/conversions/large.jpg"
+    - "/images/stores/uploads/3265986/conversions/large.jpg"
+    description: "<p>Nosso cartucho usa FRAM, tornando desnecessario o uso de baterias<br
+      />Os saves duram para sempre<br />\r\n<ul>\r\n<li>Disponivel em Inglês e Português</li>\r\n<li>Produzido
+      no Brasil com Garantia e qualidade</li>\r\n<li>Berço e Caixa produzidos em papel
+      mais grosso que o original</li>\r\n</ul>\r\n<br />\r\n<p><strong>Para mais informações:<br
+      /></strong>Tradução por LobisOne<br /><a href=\"https://www.romhacking.net/translations/5446/\">https://www.romhacking.net/translations/5446/</a></p></p>"
+  - id: '1290501'
+    slug: the-legend-of-zelda-oracle-of-ages
+    title: The Legend of Zelda - Oracle of Ages
+    price_brl: 190.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/2993107/conversions/large.jpg"
+    - "/images/stores/uploads/2993108/conversions/large.jpg"
+    description: ''
+  - id: '1290516'
+    slug: the-legend-of-zelda-oracle-of-seasons
+    title: The Legend of Zelda - Oracle of Seasons
+    price_brl: 190.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/2993196/conversions/large.jpg"
+    - "/images/stores/uploads/2993197/conversions/large.jpg"
+    description: ''
+  - id: '1052270'
+    slug: game-boy-classiccolor-pedidos
+    title: Game Boy Classic/Color (Pedidos)
+    price_brl: 190.0
+    category: pedidos-de-jogos
+    images:
+    - "/images/stores/uploads/6305348/conversions/large.jpg"
+    - "/images/stores/uploads/6305352/conversions/large.jpg"
+    description: "<p><strong>Não encontrou o jogo que queria?<br /></strong>Esse item
+      serve para fazer pedidos de jogos que não tem disponivel no site<br /><br /><em>OBS.:
+      Todos os pedidos vão com as artes e carcaças conforme foram lançados na epoca</em><br
+      /><br /><strong><br /><span style=\"text-decoration: underline;\">Restrições de
+      jogos que não podem ser feitos</span><br /></strong>\r\n<ul>\r\n<li><strong>Jogos
+      com Rumble (Sistema de Vibração)</strong>\r\n<ul>\r\n<li><strong><a href=\"https://www.google.com/search?gs_ssp=eJzj4tTP1TcwKbAszDVg9BLOzixKqlQoycwpUchTKCnNTcpJBQChgwqN&q=kirby+tilt+n+tumble&oq=Kirby&gs_lcrp=EgZjaHJvbWUqDAgCEC4YQxiABBiKBTIPCAAQRRg5GOMCGLEDGIAEMgoIARAuGLEDGIAEMgwIAhAuGEMYgAQYigUyDAgDEC4YQxiABBiKBTIMCAQQLhhDGIAEGIoFMgoIBRAuGLEDGIAEMgcIBhAuGIAEMgoIBxAuGLEDGIAEMgwICBAuGEMYgAQYigUyCggJEC4YsQMYgATSAQgzMjA2ajBqOagCBrACAfEFekY1HZoNX_E&sourceid=chrome&ie=UTF-8\">FAÇA
+      O PEDIDO AQUI!</a><br /><br /></strong></li>\r\n</ul>\r\n</li>\r\n<li><strong>Jogos
+      de Pokemon</strong>\r\n<ul>\r\n<li><strong><a href=\"https://www.google.com/search?gs_ssp=eJzj4tTP1TcwKbAszDVg9BLOzixKqlQoycwpUchTKCnNTcpJBQChgwqN&q=kirby+tilt+n+tumble&oq=Kirby&gs_lcrp=EgZjaHJvbWUqDAgCEC4YQxiABBiKBTIPCAAQRRg5GOMCGLEDGIAEMgoIARAuGLEDGIAEMgwIAhAuGEMYgAQYigUyDAgDEC4YQxiABBiKBTIMCAQQLhhDGIAEGIoFMgoIBRAuGLEDGIAEMgcIBhAuGIAEMgoIBxAuGLEDGIAEMgwICBAuGEMYgAQYigUyCggJEC4YsQMYgATSAQgzMjA2ajBqOagCBrACAfEFekY1HZoNX_E&sourceid=chrome&ie=UTF-8\">FAÇA
+      O PEDIDO AQUI!</a><br /><br /></strong></li>\r\n</ul>\r\n</li>\r\n<li><strong>Jogos
+      de 4MB (ou maiores)</strong>\r\n<ul>\r\n<li>Shantae</li>\r\n<li>Metal Gear</li>\r\n<li>Perfect
+      Dark</li>\r\n<li>Harry Potter and the Philosopher's Stone</li>\r\n<li>Harry Potter
+      and the Chamber of Secret<br /><br /></li>\r\n</ul>\r\n</li>\r\n<li><strong>Jogos
+      com recursos especiais</strong>\r\n<ul>\r\n<li>Kirby Tilt 'n' Tumble<br /><br
+      /></li>\r\n</ul>\r\n</li>\r\n<li><strong>Jogos Independentes</strong></li>\r\n</ul></p>"
+  - id: '2581296'
+    slug: pokemon-hacks-pedidos
+    title: Pokémon Hacks (Pedidos)
+    price_brl: 190.0
+    category: pedidos-de-jogos
+    images:
+    - "/images/stores/uploads/6305251/conversions/large.jpg"
+    - "/images/stores/uploads/6305216/conversions/large.jpg"
+    description: |-
+      <p><strong>Não encontrou o jogo que queria?<br /></strong>Esse item serve para fazer pedidos de jogos que não tem disponivel no site<br /><br /><em>OBS.: Todos os pedidos vão com as artes e carcaças conforme foram lançados na epoca</em><br /><br /><strong><br /><span style="text-decoration: underline;">Restrições de jogos que não podem ser feitos</span><br /></strong>
+      <ul>
+      <li><strong>Jogos com Rumble (Sistema de Vibração)</strong>
+      <ul>
+      <li><strong><a href="https://www.google.com/search?gs_ssp=eJzj4tTP1TcwKbAszDVg9BLOzixKqlQoycwpUchTKCnNTcpJBQChgwqN&q=kirby+tilt+n+tumble&oq=Kirby&gs_lcrp=EgZjaHJvbWUqDAgCEC4YQxiABBiKBTIPCAAQRRg5GOMCGLEDGIAEMgoIARAuGLEDGIAEMgwIAhAuGEMYgAQYigUyDAgDEC4YQxiABBiKBTIMCAQQLhhDGIAEGIoFMgoIBRAuGLEDGIAEMgcIBhAuGIAEMgoIBxAuGLEDGIAEMgwICBAuGEMYgAQYigUyCggJEC4YsQMYgATSAQgzMjA2ajBqOagCBrACAfEFekY1HZoNX_E&sourceid=chrome&ie=UTF-8">FAÇA O PEDIDO AQUI!</a><br /><br /></strong></li>
+      </ul>
+      </li>
+      <li><strong>Jogos de até 2MB</strong>
+      <ul>
+      <li><strong><a href="https://www.prismagames.com.br/produto/game-boy-classic-pedidos/1052270?vid=1520392">FAÇA O PEDIDO AQUI!</a><br /><br /></strong></li>
+      </ul>
+      </li>
+      <li><strong>Jogos de 4MB (ou maiores)</strong>
+      <ul>
+      <li>Shantae</li>
+      <li>Metal Gear</li>
+      <li>Perfect Dark</li>
+      <li>Harry Potter and the Philosopher's Stone</li>
+      <li>Harry Potter and the Chamber of Secret<br /><br /></li>
+      </ul>
+      </li>
+      <li><strong>Jogos com recursos especiais</strong>
+      <ul>
+      <li>Kirby Tilt 'n' Tumble<br /><br /></li>
+      </ul>
+      </li>
+      <li><strong>Jogos Independentes</strong></li>
+      </ul></p>
+  - id: 1402289-c
+    slug: pokemon-pinball-c-rumble
+    title: Pokemon Pinball - C/ Rumble
+    price_brl: 210.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3266035/conversions/large.jpg"
+    - "/images/stores/uploads/3266036/conversions/large.jpg"
+    description: ''
+  - id: 1402289-s
+    slug: pokemon-pinball-s-rumble
+    title: Pokemon Pinball - S/ Rumble
+    price_brl: 190.0
+    category: game-boy-color
+    images:
+    - "/images/stores/uploads/3266035/conversions/large.jpg"
+    - "/images/stores/uploads/3266036/conversions/large.jpg"
+    description: ''
