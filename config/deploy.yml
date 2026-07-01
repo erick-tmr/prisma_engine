@@ -33,6 +33,7 @@ builder:
 
 env:
   clear:
+    TZ: America/Sao_Paulo
     PORT: 3000
     WEB_CONCURRENCY: 1
     RAILS_MAX_THREADS: 3
