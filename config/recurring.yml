@@ -25,6 +25,9 @@ production:
   purge_payment_webhook_events:
     class: PurgePaymentWebhookEventsJob
     schedule: "0 3 1 * *"
+  unpublish_ended_game_of_the_month:
+    class: UnpublishEndedGameOfTheMonthJob
+    schedule: "0 0 1 * *"
   refresh_recommendations:
     class: RefreshRecommendationsJob
     schedule: every day at 4am
