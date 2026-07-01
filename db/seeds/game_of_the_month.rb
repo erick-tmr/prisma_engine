@@ -5,9 +5,10 @@ if game
   gotm.note = "Shantae" if gotm.new_record?
   gotm.save!
 
-  GameOfTheMonthProduct.find_or_create_by!(game_of_the_month: gotm, product: game) do |gp|
-    gp.position = 0
+  gp = GameOfTheMonthProduct.find_or_create_by!(game_of_the_month: gotm, product: game) do |new_gp|
+    new_gp.position = 0
   end
+  gp.update!(blurb: "A pirata mais adorada do Game Boy Color parte numa aventura cheia de transformações e humor.") if gp.blurb.blank?
 
   placeholder_image = Rails.root.join("public/images/stores/uploads/2475313/conversions/large.jpg")
 

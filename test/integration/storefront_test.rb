@@ -34,10 +34,29 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select "section.banner .banner__slot img[loading=lazy]", count: 1
   end
 
-  test "home page still renders when no GameOfTheMonth is set for the current month" do
+  test "home page hides the Jogo do Mês band when no GameOfTheMonth is set for the current month" do
     GameOfTheMonth.destroy_all
     get root_path
     assert_response :success
+    assert_select ".gotm-band", false
+  end
+
+  test "home page hides the Jogo do Mês band when the current edition has no products yet" do
+    game_of_the_months(:current_month).game_of_the_month_products.destroy_all
+    get root_path
+    assert_response :success
+    assert_select ".gotm-band", false
+  end
+
+  test "home page renders the current Jogo do Mês carousel with every edition's product" do
+    get root_path
+    assert_response :success
+    assert_select ".gotm-band"
+    assert_select ".gotm-slide", count: 2
+    assert_select ".gotm-slide__title", text: products(:yellow).name
+    assert_select ".gotm-slide__title", text: products(:placeholder).name
+    assert_select ".gotm-slide__blurb", count: 2
+    assert_select ".gotm-brindes__thumbs .gotm-brinde", count: 4
   end
 
   test "catalog index lists products and filters by term" do

@@ -1,6 +1,6 @@
 <% content_for :title, "#{@product.title} — Prisma Games" %>
 <% content_for :head do %>
-  <%= stylesheet_link_tag "components/variant", "pages/product" %>
+  <%= stylesheet_link_tag "components/variant", "components/mes-pill", "pages/product" %>
 <% end %>
 
 <% photos = @product.product_photos.in_display_order.select { |p| p.image.attached? } %>

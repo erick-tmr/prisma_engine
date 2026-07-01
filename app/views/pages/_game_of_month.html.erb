@@ -1,0 +1,76 @@
+<%# locals: (gotm:) %>
+<% gotm_products = gotm.game_of_the_month_products.in_display_order %>
+<% brindes = gotm.brindes.in_display_order.first(4) %>
+
+<section class="gotm-band" data-gotm>
+  <div class="gotm">
+    <header class="gotm-header">
+      <span class="gotm-eyebrow"><i class="bi bi-stars"></i> Destaque do mês · <%= gotm_month_name(gotm.month) %> <%= gotm.year %></span>
+      <h2 class="gotm-heading">Jogo do Mês</h2>
+      <p class="gotm-tagline">Clássicos escolhidos a dedo, com um kit de brindes colecionáveis na mesma caixa, sem custo.</p>
+    </header>
+
+    <div class="gotm-carousel">
+      <button class="gotm-arrow gotm-arrow--prev" type="button" data-gotm-prev aria-label="Jogo anterior"><i class="bi bi-chevron-left"></i></button>
+      <div class="gotm-viewport">
+        <div class="gotm-track" data-gotm-track>
+          <% gotm_products.each do |gp| %>
+            <% product = gp.product %>
+            <article class="gotm-slide">
+              <a class="gotm-slide__media" href="<%= product_path(slug: product.slug) %>" aria-label="<%= product.title %>">
+                <% if brindes.any? %>
+                  <span class="gotm-ribbon"><i class="bi bi-gift"></i> Vai com brindes</span>
+                <% end %>
+                <img src="<%= product.image %>" alt="<%= product.title %>">
+              </a>
+              <div class="gotm-slide__info">
+                <div class="gotm-slide__eyebrow">
+                  <span class="mes-pill"><i class="bi bi-stars"></i> Jogo do Mês · <%= gotm_month_name(gotm.month) %> <%= gotm.year %></span>
+                  <span class="gotm-cat"><%= product.category_label %></span>
+                </div>
+                <h3 class="gotm-slide__title"><%= product.title %></h3>
+                <% if gp.blurb.present? %>
+                  <p class="gotm-slide__blurb"><%= gp.blurb %></p>
+                <% end %>
+
+                <% if brindes.any? %>
+                  <div class="gotm-brindes">
+                    <div class="gotm-brindes__head">
+                      <span class="gotm-brindes__gift"><i class="bi bi-gift"></i></span>
+                      <span class="gotm-brindes__lead">Acompanha <b><%= pluralize(brindes.size, "brinde colecionável", plural: "brindes colecionáveis") %></b>, sem custo</span>
+                      <%= link_to product_path(slug: product.slug),
+                            class: "gotm-brindes__more",
+                            "aria-label": "Ver os brindes inclusos com #{product.title}" do %>
+                        ver todos <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                      <% end %>
+                    </div>
+                    <div class="gotm-brindes__thumbs">
+                      <% brindes.each do |brinde| %>
+                        <figure class="gotm-brinde">
+                          <% if brinde.image.attached? %>
+                            <img src="<%= Storefront::ImageSource.call(brinde.image) %>" alt="<%= brinde.caption %>">
+                          <% end %>
+                          <figcaption><%= brinde.caption %></figcaption>
+                        </figure>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+
+                <div class="gotm-slide__foot">
+                  <span class="gotm-price"><%= product.price_formatted %> <small>à vista no Pix</small></span>
+                  <%= link_to product_path(slug: product.slug), class: "gotm-btn" do %>
+                    Ver jogo <i class="bi bi-arrow-right"></i>
+                  <% end %>
+                </div>
+              </div>
+            </article>
+          <% end %>
+        </div>
+      </div>
+      <button class="gotm-arrow gotm-arrow--next" type="button" data-gotm-next aria-label="Próximo jogo"><i class="bi bi-chevron-right"></i></button>
+    </div>
+    <div class="gotm-dots" data-gotm-dots></div>
+    <p class="gotm-count"><b data-gotm-cur>1</b> / <span data-gotm-total><%= gotm_products.size %></span></p>
+  </div>
+</section>

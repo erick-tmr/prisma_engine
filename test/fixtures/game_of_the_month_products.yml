@@ -2,11 +2,13 @@ current_pokemon_yellow:
   game_of_the_month: current_month
   product: yellow
   position: 0
+  blurb: Pikachu te segue por Kanto nesta releitura inspirada no anime.
 
 current_placeholder:
   game_of_the_month: current_month
   product: placeholder
   position: 1
+  blurb: Um clássico escondido, perfeito para quem já zerou os grandes nomes.
 
 past_metroid:
   game_of_the_month: past_month

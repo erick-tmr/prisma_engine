@@ -1,6 +1,6 @@
 <% content_for :title, "Prisma Games — Game Boy ❤️" %>
 <% content_for :head do %>
-  <%= stylesheet_link_tag "pages/home" %>
+  <%= stylesheet_link_tag "components/mes-pill", "pages/home" %>
 <% end %>
 
 <% if @banners.any? %>
@@ -22,6 +22,10 @@
       <% end %>
     </div>
   </section>
+<% end %>
+
+<% if @current_gotm && @current_gotm.game_of_the_month_products.any? %>
+  <%= render "game_of_month", gotm: @current_gotm %>
 <% end %>
 
 <section class="section">
@@ -80,3 +84,7 @@
     <% end %>
   </div>
 </section>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/game_of_month", type: "module" %>
+<% end %>
