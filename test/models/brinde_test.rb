@@ -10,7 +10,7 @@ class BrindeTest < ActiveSupport::TestCase
   test "with an image attached the record is valid" do
     brinde = Brinde.new(game_of_the_month: game_of_the_months(:current_month))
     brinde.image.attach(
-      io: File.open(Rails.root.join("public/images/stores/uploads/2475313/conversions/large.jpg")),
+      io: File.open(file_fixture("sample_product.jpg")),
       filename: "brinde.jpg",
       content_type: "image/jpeg"
     )

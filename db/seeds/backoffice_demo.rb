@@ -127,21 +127,24 @@ end
 # every demo order that has reached label emission. The address shown in the UI
 # comes from each order's own shipment; this is just the stand-in label PDF the
 # "Imprimir etiqueta Correios" action serves. Idempotent: create-or-refresh.
-sample_label = Base64.strict_encode64(File.binread(Rails.root.join("db/seeds/correios_label_sample.pdf")))
-labeled_statuses = %w[label_issued shipped delivered]
-demo_external_ids = (1..orders.size).map { |index| "demo-order-#{index}" }
+sample_label_path = Rails.root.join("db/seeds/correios_label_sample.pdf")
+if File.exist?(sample_label_path)
+  sample_label = Base64.strict_encode64(File.binread(sample_label_path))
+  labeled_statuses = %w[label_issued shipped delivered]
+  demo_external_ids = (1..orders.size).map { |index| "demo-order-#{index}" }
 
-Order.where(external_id: demo_external_ids, status: labeled_statuses).includes(:shipment).find_each do |order|
-  shipment = order.shipment
-  next unless shipment
+  Order.where(external_id: demo_external_ids, status: labeled_statuses).includes(:shipment).find_each do |order|
+    shipment = order.shipment
+    next unless shipment
 
-  label = shipment.shipping_label || shipment.build_shipping_label
-  label.update!(
-    state: :ready,
-    recibo_id: "demo-recibo-#{order.number}",
-    filename: "etiqueta-#{order.number}.pdf",
-    pdf_base64: sample_label
-  )
+    label = shipment.shipping_label || shipment.build_shipping_label
+    label.update!(
+      state: :ready,
+      recibo_id: "demo-recibo-#{order.number}",
+      filename: "etiqueta-#{order.number}.pdf",
+      pdf_base64: sample_label
+    )
+  end
 end
 
 # Dev-only backoffice operator so /admin is reachable locally.

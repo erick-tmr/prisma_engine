@@ -37,6 +37,11 @@
 
 /public/assets
 
+# Seed-only binaries: read once to populate R2, never served from the repo. Kept locally, never committed.
+/public/images/stores/uploads/
+/db/seeds/hero_banner.jpg
+/db/seeds/correios_label_sample.pdf
+
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 /config/credentials/*.key

@@ -4,7 +4,7 @@ class HeroBannerTest < ActiveSupport::TestCase
   def build_banner(**attrs)
     banner = HeroBanner.new(**attrs)
     banner.image.attach(
-      io: File.open(Rails.root.join("db/seeds/hero_banner.jpg")),
+      io: File.open(file_fixture("sample_product.jpg")),
       filename: "hero.jpg",
       content_type: "image/jpeg"
     )

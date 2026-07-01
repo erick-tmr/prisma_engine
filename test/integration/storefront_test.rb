@@ -13,7 +13,7 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     2.times do |i|
       banner = HeroBanner.new(alt: "Destaque #{i}", position: i, active: true)
       banner.image.attach(
-        io: File.open(Rails.root.join("db/seeds/hero_banner.jpg")),
+        io: File.open(file_fixture("sample_product.jpg")),
         filename: "hero.jpg",
         content_type: "image/jpeg"
       )
@@ -21,7 +21,7 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     end
     HeroBanner.create!(active: false, position: 9) do |hidden|
       hidden.image.attach(
-        io: File.open(Rails.root.join("db/seeds/hero_banner.jpg")),
+        io: File.open(file_fixture("sample_product.jpg")),
         filename: "hidden.jpg",
         content_type: "image/jpeg"
       )

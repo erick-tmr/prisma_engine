@@ -2,11 +2,9 @@ require "test_helper"
 
 module Storefront
   class ImageSourceTest < ActiveSupport::TestCase
-    IMAGE = Rails.root.join("public/images/stores/uploads/2475313/conversions/large.jpg")
-
     test "returns a same-origin blob path for a non-public (disk) service" do
       photo = products(:metroid).product_photos.create!(position: 0)
-      photo.image.attach(io: File.open(IMAGE), filename: "large.jpg", content_type: "image/jpeg")
+      photo.image.attach(io: File.open(file_fixture("sample_product.jpg")), filename: "large.jpg", content_type: "image/jpeg")
 
       assert_match %r{\A/rails/active_storage/}, Storefront::ImageSource.call(photo.image)
     end
