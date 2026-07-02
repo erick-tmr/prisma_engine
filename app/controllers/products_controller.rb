@@ -13,9 +13,11 @@ class ProductsController < ApplicationController
                       .includes(:category, :product_options, product_photos: { image_attachment: :blob })
                       .find(params[:slug])
 
-    gotm = GameOfTheMonth.current
-                         .includes(:products, brindes: { image_attachment: :blob })
-                         .first
-    @gotm = gotm if gotm&.products&.include?(@product)
+    @gotm_product = GameOfTheMonthProduct
+                      .joins(:game_of_the_month)
+                      .merge(GameOfTheMonth.current)
+                      .includes(:game_of_the_month, brindes: { image_attachment: :blob })
+                      .find_by(product_id: @product.id)
+    @gotm = @gotm_product&.game_of_the_month
   end
 end

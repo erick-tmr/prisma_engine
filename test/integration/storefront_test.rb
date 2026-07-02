@@ -9,6 +9,20 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select ".cta-band"
   end
 
+  test "home page lists the current Jogo do Mês pick before the rest of its category grid" do
+    filler = Product.create!(
+      name: "Zzz Filler Game", category: categories(:gb_color),
+      price_cents: 17_500, weight_grams: 22, published: true
+    )
+
+    get root_path
+
+    assert_response :success
+    assert_operator response.body.index(products(:yellow).name), :<,
+                    response.body.index(filler.name),
+                    "expected the Jogo do Mês pick to render before an ordinary product"
+  end
+
   test "home page renders active hero banners, first eager and the rest lazy" do
     2.times do |i|
       banner = HeroBanner.new(alt: "Destaque #{i}", position: i, active: true)
@@ -34,10 +48,30 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select "section.banner .banner__slot img[loading=lazy]", count: 1
   end
 
-  test "home page still renders when no GameOfTheMonth is set for the current month" do
+  test "home page hides the Jogo do Mês band when no GameOfTheMonth is set for the current month" do
     GameOfTheMonth.destroy_all
     get root_path
     assert_response :success
+    assert_select ".gotm-band", false
+  end
+
+  test "home page hides the Jogo do Mês band when the current edition has no products yet" do
+    game_of_the_months(:current_month).game_of_the_month_products.destroy_all
+    get root_path
+    assert_response :success
+    assert_select ".gotm-band", false
+  end
+
+  test "home page renders the current Jogo do Mês carousel with every edition's product" do
+    get root_path
+    assert_response :success
+    assert_select ".gotm-band"
+    assert_select ".gotm-slide", count: 2
+    assert_select ".gotm-slide__title", text: products(:yellow).name
+    assert_select ".gotm-slide__title", text: products(:placeholder).name
+    assert_select ".gotm-slide__blurb", count: 2
+    # Only yellow's slide has brindes (per-product kit); placeholder has none.
+    assert_select ".gotm-brindes__thumbs .gotm-brinde", count: 2
   end
 
   test "catalog index lists products and filters by term" do

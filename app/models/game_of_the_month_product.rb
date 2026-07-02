@@ -1,6 +1,7 @@
 class GameOfTheMonthProduct < ApplicationRecord
   belongs_to :game_of_the_month
   belongs_to :product
+  has_many :brindes, dependent: :destroy
 
   validates :product_id, uniqueness: { scope: :game_of_the_month_id }
   validates :position,

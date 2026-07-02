@@ -1,5 +1,6 @@
 class Brinde < ApplicationRecord
-  belongs_to :game_of_the_month
+  belongs_to :game_of_the_month_product
+  has_one :game_of_the_month, through: :game_of_the_month_product
 
   has_one_attached :image
 
