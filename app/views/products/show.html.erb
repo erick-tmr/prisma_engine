@@ -52,7 +52,7 @@
             <span class="mes-panel__month">Edição de <%= gotm_month_name(@gotm.month) %> · <%= @gotm.year %></span>
           </div>
           <p class="mes-panel__lead">Todo mês elegemos um clássico e mandamos junto um <b>kit de brindes colecionáveis</b> — sem custo extra.</p>
-          <% brindes = @gotm.brindes.in_display_order %>
+          <% brindes = @gotm_product.brindes.in_display_order %>
           <% if brindes.any? %>
             <div class="mes-incl">
               <% brindes.each do |brinde| %>
@@ -127,8 +127,8 @@
     </section>
   <% end %>
 
-  <% if @gotm %>
-    <%= render "products/gotm_freebies", gotm: @gotm %>
+  <% if @gotm_product %>
+    <%= render "products/gotm_freebies", gotm_product: @gotm_product %>
   <% end %>
 </div>
 

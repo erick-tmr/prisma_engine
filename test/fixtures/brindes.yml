@@ -2,13 +2,13 @@
 # by building new records in test/models/brinde_test.rb. Integration tests that need
 # a real attachment call `image.attach(io: ...)` in setUp.
 current_brinde_poster:
-  game_of_the_month: current_month
+  game_of_the_month_product: current_pokemon_yellow
   caption: Poster Pokémon exclusivo
   position: 0
   weight_grams: 10
 
 current_brinde_sticker:
-  game_of_the_month: current_month
+  game_of_the_month_product: current_pokemon_yellow
   caption: Cartela de stickers
   position: 1
   weight_grams: 5

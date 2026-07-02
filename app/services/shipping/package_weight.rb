@@ -3,11 +3,14 @@ module Shipping
     module_function
 
     def call(cart)
-      gotm          = GameOfTheMonth.current.first
-      gotm_ids      = gotm ? gotm.products.pluck(:id).to_set : Set.new
-      brindes_grams = gotm ? gotm.brindes.sum(:weight_grams) : 0
-      contents      = cart.total_weight_grams(gotm_product_ids: gotm_ids, brindes_weight_grams: brindes_grams)
+      gotm     = GameOfTheMonth.current.includes(game_of_the_month_products: :brindes).first
+      weights  = gotm ? brindes_weight_by_product_id(gotm) : {}
+      contents = cart.total_weight_grams(gotm_brindes_weight_by_product_id: weights)
       contents + Shipping::PACKAGE_OVERHEAD_GRAMS
+    end
+
+    def brindes_weight_by_product_id(gotm)
+      gotm.game_of_the_month_products.to_h { |gp| [ gp.product_id, gp.brindes.sum(&:weight_grams) ] }
     end
   end
 end

@@ -1,7 +1,7 @@
 class GameOfTheMonth < ApplicationRecord
   has_many :game_of_the_month_products, dependent: :destroy
   has_many :products, through: :game_of_the_month_products
-  has_many :brindes, dependent: :destroy
+  has_many :brindes, through: :game_of_the_month_products
 
   validates :year,
             presence: true,

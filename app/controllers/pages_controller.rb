@@ -8,9 +8,9 @@ class PagesController < ApplicationController
     @current_gotm = GameOfTheMonth.current
                                   .includes(
                                     game_of_the_month_products: {
-                                      product: [ :category, { product_photos: { image_attachment: :blob } } ]
-                                    },
-                                    brindes: { image_attachment: :blob }
+                                      product: [ :category, { product_photos: { image_attachment: :blob } } ],
+                                      brindes: { image_attachment: :blob }
+                                    }
                                   )
                                   .first
   end

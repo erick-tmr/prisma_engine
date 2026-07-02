@@ -114,11 +114,12 @@ module Cart
 
     # Total package weight for shipping quotes. The brindes contribution scales
     # by line quantity per the spec: a customer buying 2× a GOTM game gets 2×
-    # the brindes mass. Caller supplies the GOTM product ids + the brindes-set
-    # weight so the bag stays AR-free beyond what `lines` already loads.
-    def total_weight_grams(gotm_product_ids:, brindes_weight_grams:)
+    # that game's own brindes mass. Caller supplies each GOTM product's brindes
+    # weight keyed by product id, so the bag stays AR-free beyond what `lines`
+    # already loads.
+    def total_weight_grams(gotm_brindes_weight_by_product_id:)
       lines.sum do |line|
-        extra = gotm_product_ids.include?(line.product.id) ? brindes_weight_grams : 0
+        extra = gotm_brindes_weight_by_product_id.fetch(line.product.id, 0)
         (line.weight_grams + extra) * line.quantity
       end
     end
