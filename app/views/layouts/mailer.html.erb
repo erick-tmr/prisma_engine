@@ -11,13 +11,19 @@
   </head>
 
   <body style="margin:0;background-color:#eef1f5;">
-    <%= yield %>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#eef1f5;">
+      <tr>
+        <td align="center" style="padding:24px 12px;">
+          <%= yield %>
 
-    <% unless content_for?(:mailer_footer_rendered) %>
-      <hr style="margin-top: 24px; border: 0; border-top: 1px solid #e9ecef;">
-      <p style="font-size: 12px; color: #6c757d;">
-        <%= t("mailer.help_footer_html", email: t("mailer.support_email")) %>
-      </p>
-    <% end %>
+          <% unless content_for?(:mailer_footer_rendered) %>
+            <hr style="margin-top: 24px; border: 0; border-top: 1px solid #e9ecef;">
+            <p style="font-size: 12px; color: #6c757d;">
+              <%= t("mailer.help_footer_html", email: t("mailer.support_email")) %>
+            </p>
+          <% end %>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
