@@ -9,6 +9,20 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select ".cta-band"
   end
 
+  test "home page lists the current Jogo do Mês pick before the rest of its category grid" do
+    filler = Product.create!(
+      name: "Zzz Filler Game", category: categories(:gb_color),
+      price_cents: 17_500, weight_grams: 22, published: true
+    )
+
+    get root_path
+
+    assert_response :success
+    assert_operator response.body.index(products(:yellow).name), :<,
+                    response.body.index(filler.name),
+                    "expected the Jogo do Mês pick to render before an ordinary product"
+  end
+
   test "home page renders active hero banners, first eager and the rest lazy" do
     2.times do |i|
       banner = HeroBanner.new(alt: "Destaque #{i}", position: i, active: true)

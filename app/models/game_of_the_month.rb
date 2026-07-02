@@ -13,4 +13,10 @@ class GameOfTheMonth < ApplicationRecord
 
   scope :for_month, ->(year, month) { where(year: year, month: month) }
   scope :current,   -> { for_month(Time.current.year, Time.current.month) }
+
+  def self.feature_first(products)
+    gotm_ids = current.first&.product_ids || []
+    featured, rest = products.order(:id).partition { |product| gotm_ids.include?(product.id) }
+    featured + rest
+  end
 end
