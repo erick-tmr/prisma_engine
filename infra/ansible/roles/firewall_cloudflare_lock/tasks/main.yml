@@ -1,0 +1,58 @@
+---
+- name: Install the Cloudflare origin-lock script
+  ansible.builtin.template:
+    src: prisma-cf-firewall.sh.j2
+    dest: /usr/local/sbin/prisma-cf-firewall.sh
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Reapply the cloudflare lock
+
+- name: Install the origin-lock systemd service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/prisma-cf-firewall.service
+    content: |
+      [Unit]
+      Description=Lock published 80/443 to Cloudflare origins in DOCKER-USER
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=true
+      ExecStart=/usr/local/sbin/prisma-cf-firewall.sh
+
+      [Install]
+      WantedBy=multi-user.target
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd for firewall units
+
+- name: Ensure the docker.service drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Reapply the lock whenever Docker restarts
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/docker.service.d/10-cf-firewall.conf
+    content: |
+      [Service]
+      ExecStartPost=/usr/local/sbin/prisma-cf-firewall.sh
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd for firewall units
+
+- name: Enable the origin-lock service
+  ansible.builtin.systemd:
+    name: prisma-cf-firewall.service
+    enabled: true
+    daemon_reload: true
+
+- name: Apply the lock now
+  ansible.builtin.meta: flush_handlers

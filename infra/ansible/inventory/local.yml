@@ -1,0 +1,8 @@
+---
+all:
+  hosts:
+    prisma-test:
+      ansible_host: "{{ lookup('ansible.builtin.env', 'PRISMA_TEST_IP') }}"
+      ansible_user: ubuntu
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

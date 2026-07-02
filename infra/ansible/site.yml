@@ -1,0 +1,22 @@
+---
+- name: Configure the Prisma Engine host
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - role: base_os
+      tags: [base, base_os]
+    - role: ssh_hardening
+      tags: [base, ssh]
+    - role: firewall_ufw
+      tags: [base, firewall]
+    - role: unattended_upgrades
+      tags: [base, upgrades]
+    - role: fail2ban
+      tags: [base, fail2ban]
+    - role: postgres
+      tags: [base, postgres]
+    - role: pg_backup
+      tags: [base, backup]
+    - role: firewall_cloudflare_lock
+      tags: [firewall_edge]

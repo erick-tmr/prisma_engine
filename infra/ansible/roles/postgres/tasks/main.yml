@@ -1,0 +1,101 @@
+---
+- name: Assert the database password is provided
+  ansible.builtin.assert:
+    that:
+      - db_password | length > 0
+    fail_msg: >-
+      PRISMA_ENGINE_DATABASE_PASSWORD is empty. Source infra/bin/infra-env before
+      running, or export a dummy value for a local test.
+
+- name: Install the deb822 repository dependency
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+    update_cache: true
+
+- name: Create the PGDG keyring directory
+  ansible.builtin.file:
+    path: /usr/share/postgresql-common/pgdg
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the PGDG signing key
+  ansible.builtin.get_url:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    dest: /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add the PGDG apt repository
+  ansible.builtin.deb822_repository:
+    name: pgdg
+    types: [deb]
+    uris: "https://apt.postgresql.org/pub/repos/apt"
+    suites: "{{ ansible_facts['distribution_release'] }}-pgdg"
+    components: [main]
+    signed_by: /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    state: present
+
+- name: Install PostgreSQL and the Ansible driver
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ pg_version }}"
+      - "postgresql-client-{{ pg_version }}"
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Ensure the conf.d directory exists
+  ansible.builtin.file:
+    path: "{{ pg_conf_dir }}/conf.d"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0755"
+
+- name: Deploy the tuning drop-in
+  ansible.builtin.template:
+    src: 10-prisma-tuning.conf.j2
+    dest: "{{ pg_conf_dir }}/conf.d/10-prisma-tuning.conf"
+    owner: postgres
+    group: postgres
+    mode: "0644"
+  notify: Restart postgresql
+
+- name: Apply tuning before touching roles
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure PostgreSQL is running
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Create the application role
+  community.postgresql.postgresql_user:
+    name: "{{ pg_app_role }}"
+    password: "{{ db_password }}"
+    role_attr_flags: "LOGIN,CREATEDB"
+  become: true
+  become_user: postgres
+
+- name: Create the application databases
+  community.postgresql.postgresql_db:
+    name: "{{ item }}"
+    owner: "{{ pg_app_role }}"
+  loop: "{{ pg_app_databases }}"
+  become: true
+  become_user: postgres
+
+- name: Allow the app on the Docker bridge in pg_hba
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ pg_conf_dir }}/pg_hba.conf"
+    contype: host
+    databases: all
+    users: "{{ pg_app_role }}"
+    source: "{{ pg_hba_app_cidr }}"
+    method: scram-sha-256
+  notify: Reload postgresql

@@ -1,0 +1,75 @@
+---
+- name: Install rclone
+  ansible.builtin.apt:
+    name: rclone
+    state: present
+
+- name: Create the backup directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /opt/prisma_engine
+    - /etc/prisma_engine
+
+- name: Install the backup script
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../deploy/pg_backup.sh"
+    dest: /opt/prisma_engine/pg_backup.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the backup env file
+  ansible.builtin.template:
+    src: backup.env.j2
+    dest: /etc/prisma_engine/backup.env
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Install the pgpass file
+  ansible.builtin.template:
+    src: pgpass.j2
+    dest: /root/.pgpass
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Create the rclone config directory
+  ansible.builtin.file:
+    path: /root/.config/rclone
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Install the rclone config
+  ansible.builtin.template:
+    src: rclone.conf.j2
+    dest: /root/.config/rclone/rclone.conf
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Install the backup systemd units
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../deploy/systemd/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - prisma-pg-backup.service
+    - prisma-pg-backup.timer
+  notify: Reload systemd for backup units
+
+- name: Enable the nightly backup timer
+  ansible.builtin.systemd:
+    name: prisma-pg-backup.timer
+    enabled: true
+    state: started
+    daemon_reload: true

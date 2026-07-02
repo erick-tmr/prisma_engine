@@ -1,0 +1,9 @@
+---
+- name: Reload systemd for firewall units
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Reapply the cloudflare lock
+  ansible.builtin.systemd:
+    name: prisma-cf-firewall.service
+    state: restarted

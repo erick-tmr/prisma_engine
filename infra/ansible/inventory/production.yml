@@ -1,0 +1,8 @@
+---
+all:
+  hosts:
+    prisma-prod:
+      ansible_host: "{{ lookup('ansible.builtin.env', 'PRISMA_PROD_IP') | default('187.127.38.87', true) }}"
+      ansible_user: root
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
