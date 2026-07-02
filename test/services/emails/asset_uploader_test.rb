@@ -6,7 +6,9 @@ module Emails
     test "uploads every brand image under the emails/ prefix to the given bucket" do
       client = Aws::S3::Client.new(stub_responses: true)
 
-      keys = AssetUploader.new(client: client, bucket: "prisma-games-test").call
+      keys = File.stub(:binread, "png-bytes") do
+        AssetUploader.new(client: client, bucket: "prisma-games-test").call
+      end
 
       assert_equal %w[
         emails/dragon-fly.png
@@ -19,7 +21,7 @@ module Emails
       assert_equal keys, requests.map { |req| req[:params][:key] }
       assert(requests.all? { |req| req[:params][:bucket] == "prisma-games-test" })
       assert(requests.all? { |req| req[:params][:content_type] == "image/png" })
-      assert(requests.all? { |req| req[:params][:body].present? })
+      assert(requests.all? { |req| req[:params][:body] == "png-bytes" })
     end
 
     test "r2_client builds an S3 client pointed at the R2 endpoint" do

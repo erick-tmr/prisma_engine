@@ -9,8 +9,9 @@ set -Eeuo pipefail
 #
 # Runs entirely locally over the S3 API (no SSH). Reads a Cloudflare R2 API token
 # from .env: PROD_R2_ACCESS_KEY_ID + PROD_R2_SECRET_ACCESS_KEY (scoped to the prod
-# bucket, Object Read & Write). The images are read from THIS checkout's
-# public/images, so they must be present locally. dotenv loads .env at boot, so
+# bucket, Object Read & Write). The dragon art under public/images/emails/ is
+# gitignored (served from R2, never from the repo), so it must be present in THIS
+# local checkout for the upload to read. dotenv loads .env at boot, so
 # `rails runner` sees the vars; the prod bucket + creds are passed explicitly, so
 # the development Rails env this boots under is irrelevant. Runbook lives next to
 # the other one-off prod scripts in deploy/.
