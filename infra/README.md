@@ -43,12 +43,15 @@ a state file and the young Hostinger Terraform provider's recreate-is-data-loss 
 ## Secrets
 
 Bitwarden stays the single source of truth (same as `.kamal/secrets`). `bin/infra-env`
-unlocks it and exports the two secrets the roles read from the environment:
+unlocks the `prisma-engine-prod` item and exports what the roles read from the
+environment (all custom fields on that item, except the R2 endpoint):
 
-- `PRISMA_ENGINE_DATABASE_PASSWORD` (Bitwarden item `prisma-engine-prod`) → Postgres
-  role password + `/root/.pgpass`.
-- R2 access key / secret (Rails `credentials:show`) + endpoint (`config/storage.yml`)
-  → `/root/.config/rclone/rclone.conf`.
+- `PRISMA_ENGINE_DATABASE_PASSWORD` → Postgres role password + `/root/.pgpass`.
+- `HC_PING_URL` → backup failure heartbeat (optional; leave unset to disable).
+- `R2_BACKUP_ACCESS_KEY_ID` / `R2_BACKUP_SECRET_ACCESS_KEY` → the **dedicated** R2 API
+  token scoped to the backup bucket (kept separate from the app's Active Storage
+  token) → `/root/.config/rclone/rclone.conf`.
+- `R2_ENDPOINT` is read from `config/storage.yml` (same account, not a secret).
 
 ```bash
 source infra/bin/infra-env      # for real runs only

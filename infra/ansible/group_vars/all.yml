@@ -38,8 +38,8 @@ backup_bucket: "{{ lookup('ansible.builtin.env', 'BACKUP_BUCKET') | default('pri
 hc_ping_url: "{{ lookup('ansible.builtin.env', 'HC_PING_URL') | default('', true) }}"
 
 db_password: "{{ lookup('ansible.builtin.env', 'PRISMA_ENGINE_DATABASE_PASSWORD') }}"
-r2_access_key_id: "{{ lookup('ansible.builtin.env', 'R2_ACCESS_KEY_ID') }}"
-r2_secret_access_key: "{{ lookup('ansible.builtin.env', 'R2_SECRET_ACCESS_KEY') }}"
+r2_access_key_id: "{{ lookup('ansible.builtin.env', 'R2_BACKUP_ACCESS_KEY_ID') }}"
+r2_secret_access_key: "{{ lookup('ansible.builtin.env', 'R2_BACKUP_SECRET_ACCESS_KEY') }}"
 r2_endpoint: "{{ lookup('ansible.builtin.env', 'R2_ENDPOINT') }}"
 
 cloudflare_ipv4_ranges:
