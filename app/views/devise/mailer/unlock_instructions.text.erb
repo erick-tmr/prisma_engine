@@ -1,0 +1,11 @@
+<%= t("mailer.greeting", name: @resource.first_name) %>
+
+<%= t("unlock_mailer.heading") %>
+
+<%= t("unlock_mailer.intro") %>
+
+<%= t("unlock_mailer.disclaimer") %>
+
+<%= t("unlock_mailer.cta") %>: <%= unlock_url(@resource, unlock_token: @token) %>
+
+<%= t("mailer.signature") %>

@@ -8,5 +8,16 @@ module Users
       super
       @email = params[:email].presence
     end
+
+    def show
+      super
+      WelcomeMailer.account_created(resource).deliver_later if first_confirmation?
+    end
+
+    private
+
+    def first_confirmation?
+      resource.errors.empty? && resource.saved_change_to_confirmed_at.first.nil?
+    end
   end
 end

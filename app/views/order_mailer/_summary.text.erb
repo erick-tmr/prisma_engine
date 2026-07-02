@@ -1,5 +1,5 @@
 <%= t("order_mailer.summary_heading") %>
-<%= t("order_mailer.order_label") %>: <%= @order.number %>
+<%= t("order_mailer.order_label") %> <%= @order.number %>
 
 <% @order.order_items.each do |item| -%>
 - <%= item.quantity %>x <%= item.name %>: <%= format_brl(item.line_total_cents) %>

@@ -1,9 +1,16 @@
-<p><%= t("order_mailer.greeting", name: @order.user.first_name) %></p>
-
-<h1 style="font-size: 20px; color: #212529;"><%= t("order_mailer.payment_confirmed.heading") %></h1>
-
-<p><%= t("order_mailer.payment_confirmed.intro") %></p>
-
-<%= render "summary" %>
-
-<p><%= t("order_mailer.signature") %></p>
+<%= render layout: "shared/email_card", locals: {
+      badge_label: t("order_mailer.payment_confirmed.badge_label"),
+      badge_color: "#0f9d58",
+      hero_image: "dragon-fly.png",
+      hero_height: 150,
+      heading: t("order_mailer.payment_confirmed.heading"),
+      first_name: @order.user.first_name
+    } do %>
+  <tr>
+    <td style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("order_mailer.payment_confirmed.intro") %>
+    </td>
+  </tr>
+  <%= render "summary" %>
+  <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.payment_confirmed.cta") %>
+<% end %>

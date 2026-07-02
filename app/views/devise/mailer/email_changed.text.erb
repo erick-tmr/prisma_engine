@@ -1,0 +1,11 @@
+<%= t("mailer.greeting", name: @resource.first_name) %>
+
+<%= t("email_changed_mailer.heading") %>
+
+<%= t("email_changed_mailer.intro") %>
+
+<%= t("email_changed_mailer.new_email_label") %> <%= @resource.unconfirmed_email %>
+
+<%= t("email_changed_mailer.disclaimer") %>
+
+<%= t("mailer.signature") %>
