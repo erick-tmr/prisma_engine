@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/../.." && pwd)"
 bw_item="${BW_ITEM:-prisma-engine-prod}"
 
-for dep in bw jq ruby; do
+for dep in bw jq; do
   if ! command -v "$dep" >/dev/null 2>&1; then
     echo "infra-env: missing dependency '$dep'" >&2
     return 1 2>/dev/null || exit 1
@@ -18,22 +18,18 @@ fi
 bw sync >/dev/null 2>&1 || true
 
 item_json="$(bw get item "$bw_item")"
-PRISMA_ENGINE_DATABASE_PASSWORD="$(
-  printf '%s' "$item_json" | jq -r '.fields[]? | select(.name=="PRISMA_ENGINE_DATABASE_PASSWORD") | .value'
-)"
-export PRISMA_ENGINE_DATABASE_PASSWORD
+bw_field() {
+  printf '%s' "$item_json" | jq -r --arg n "$1" '[.fields[]? | select(.name==$n) | .value][0] // ""'
+}
 
-HC_PING_URL="$(
-  printf '%s' "$item_json" | jq -r '[.fields[]? | select(.name=="HC_PING_URL") | .value][0] // ""'
-)"
-export HC_PING_URL
-
-creds_yaml="$(cd "$repo_root" && bin/rails credentials:show --environment production 2>/dev/null)"
-R2_ACCESS_KEY_ID="$(printf '%s' "$creds_yaml" | ruby -ryaml -e 'puts((YAML.safe_load($stdin.read)["r2"] || {})["access_key_id"].to_s)')"
-R2_SECRET_ACCESS_KEY="$(printf '%s' "$creds_yaml" | ruby -ryaml -e 'puts((YAML.safe_load($stdin.read)["r2"] || {})["secret_access_key"].to_s)')"
+PRISMA_ENGINE_DATABASE_PASSWORD="$(bw_field PRISMA_ENGINE_DATABASE_PASSWORD)"
+HC_PING_URL="$(bw_field HC_PING_URL)"
+R2_BACKUP_ACCESS_KEY_ID="$(bw_field R2_BACKUP_ACCESS_KEY_ID)"
+R2_BACKUP_SECRET_ACCESS_KEY="$(bw_field R2_BACKUP_SECRET_ACCESS_KEY)"
 R2_ENDPOINT="$(awk -F'endpoint:[[:space:]]*' '/^[[:space:]]*endpoint:/{print $2; exit}' "$repo_root/config/storage.yml")"
-export R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_ENDPOINT
+export PRISMA_ENGINE_DATABASE_PASSWORD HC_PING_URL \
+  R2_BACKUP_ACCESS_KEY_ID R2_BACKUP_SECRET_ACCESS_KEY R2_ENDPOINT
 
 export BACKUP_BUCKET="${BACKUP_BUCKET:-prisma-engine-backups}"
 
-echo "infra-env: exported PRISMA_ENGINE_DATABASE_PASSWORD, R2_*, BACKUP_BUCKET, HC_PING_URL (bw item: ${bw_item})" >&2
+echo "infra-env: exported PRISMA_ENGINE_DATABASE_PASSWORD, HC_PING_URL, R2_BACKUP_*, R2_ENDPOINT, BACKUP_BUCKET (bw item: ${bw_item})" >&2
