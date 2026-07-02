@@ -259,7 +259,8 @@ chmod 600 /root/.config/rclone/rclone.conf
 echo '127.0.0.1:5432:prisma_engine_production:prisma_engine:STRONG_DB_PASSWORD' > /root/.pgpass
 chmod 600 /root/.pgpass
 
-# Backup bucket for the systemd unit
+# Backup bucket for the systemd unit (optionally add a HC_PING_URL line to enable
+# the failure heartbeat; see "Backups" in infra/README.md)
 echo 'R2_BUCKET=your-backup-bucket' > /etc/prisma_engine/backup.env
 chmod 600 /etc/prisma_engine/backup.env
 
@@ -276,7 +277,9 @@ journalctl -u prisma-pg-backup.service -n 50 --no-pager
 ```
 
 Retention: 14 daily, plus a weekly copy promoted on Sundays and kept 8 weeks. Tune via
-`KEEP_DAILY`/`KEEP_WEEKLY` in `/etc/prisma_engine/backup.env`.
+`KEEP_DAILY`/`KEEP_WEEKLY` in `/etc/prisma_engine/backup.env`. For the recommended
+server-side backstops (R2 lifecycle rules), tamper protection (R2 bucket locks), and
+failure alerting (heartbeat monitor), see the "Backups" section of `infra/README.md`.
 
 ### Restore drill (do this at go-live)
 

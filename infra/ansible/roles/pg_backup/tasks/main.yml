@@ -3,6 +3,8 @@
   ansible.builtin.apt:
     name: rclone
     state: present
+    update_cache: true
+    cache_valid_time: 3600
 
 - name: Create the backup directories
   ansible.builtin.file:

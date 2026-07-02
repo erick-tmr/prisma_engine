@@ -114,6 +114,48 @@ multipass delete --purge prisma-test
 `firewall_cloudflare_lock` role (needs Docker's `DOCKER-USER` chain) and Kamal +
 Let's Encrypt TLS (need public DNS + inbound 80/443). Neither is part of the local pass.
 
+## Backups: retention, immutability, and monitoring
+
+The `pg_backup` role installs the nightly job (`deploy/pg_backup.sh` + the systemd
+timer). Three things are configured outside Ansible, in the R2 dashboard and a
+heartbeat monitor:
+
+### Retention (R2 lifecycle rules)
+
+The script prunes its own uploads (daily kept 14 days, weekly 56 days), but that is
+client-side and fails silently if the job stops running. Add server-side lifecycle
+rules as a backstop (bucket → Settings → Object lifecycle rules), scoped by prefix
+and set a bit longer than the script so they only catch stragglers:
+
+| Prefix | Action |
+|--------|--------|
+| `postgres/daily/` | Delete after 21 days |
+| `postgres/weekly/` | Delete after 70 days |
+
+### Immutability (R2 bucket locks, optional but recommended)
+
+If the VPS is compromised the attacker holds the R2 token and could wipe every
+backup. An R2 **bucket lock** (WORM retention, ~14 days) makes recent dumps
+undeletable even with valid credentials. It can be added to an existing bucket.
+The backup script's prune is deliberately **non-fatal**: a locked object that cannot
+yet be deleted logs a warning instead of failing the job, and the lifecycle rules
+above reclaim it once the lock expires. Keep the lock retention shorter than or equal
+to the lifecycle delete age.
+
+### Failure monitoring (dead-man's-switch)
+
+The common failure is the job silently not running at all (box off, timer disabled),
+which a `systemd OnFailure` handler cannot catch. Instead the script pings a heartbeat
+URL: `/start` at the beginning, the base URL on success, `/fail` on error. If no
+success ping arrives on schedule, the monitor alerts you.
+
+- Create a check on [healthchecks.io](https://healthchecks.io) (hosted free tier or
+  self-hosted) with a daily schedule and a grace period.
+- Set its ping URL as `HC_PING_URL`, either as a field on the Bitwarden
+  `prisma-engine-prod` item (picked up by `infra/bin/infra-env`) or exported before the
+  run. The role writes it into `/etc/prisma_engine/backup.env`; leave it unset to
+  disable pings. Any URL works, so hosted vs self-hosted is just a different base URL.
+
 ## Full rebuild runbook (disaster recovery)
 
 1. Create the VPS + DNS (checklist above). Note the IP.
