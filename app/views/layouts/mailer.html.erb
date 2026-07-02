@@ -2,9 +2,15 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    <style>
+      :root { color-scheme: light; supported-color-schemes: light; }
+      body { margin: 0; background-color: #eef1f5; }
+    </style>
   </head>
 
-  <body>
+  <body style="margin:0;background-color:#eef1f5;">
     <%= yield %>
 
     <% unless content_for?(:mailer_footer_rendered) %>
