@@ -1,0 +1,15 @@
+<%= render layout: "shared/email_card", locals: {
+      badge_label: t("welcome_mailer.account_created.badge_label"),
+      badge_color: "#2e3192",
+      hero_image: "dragon-face.png",
+      hero_height: 180,
+      heading: t("welcome_mailer.account_created.heading"),
+      first_name: @user.first_name
+    } do %>
+  <tr>
+    <td style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("welcome_mailer.account_created.intro") %>
+    </td>
+  </tr>
+  <%= render "shared/email_cta", url: root_url, label: t("welcome_mailer.account_created.cta") %>
+<% end %>
