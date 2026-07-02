@@ -35,6 +35,7 @@ ufw_postgres_port: 5432
 ufw_postgres_cidr: 172.16.0.0/12
 
 backup_bucket: "{{ lookup('ansible.builtin.env', 'BACKUP_BUCKET') | default('prisma-engine-backups', true) }}"
+hc_ping_url: "{{ lookup('ansible.builtin.env', 'HC_PING_URL') | default('', true) }}"
 
 db_password: "{{ lookup('ansible.builtin.env', 'PRISMA_ENGINE_DATABASE_PASSWORD') }}"
 r2_access_key_id: "{{ lookup('ansible.builtin.env', 'R2_ACCESS_KEY_ID') }}"
