@@ -4,6 +4,8 @@
 current_brinde_poster:
   game_of_the_month_product: current_pokemon_yellow
   caption: Poster Pokémon exclusivo
+  kind: Pôster
+  description: Arte exclusiva da edição, impressa em A3.
   position: 0
   weight_grams: 10
 

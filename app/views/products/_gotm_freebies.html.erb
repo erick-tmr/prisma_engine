@@ -7,7 +7,7 @@
       <span class="freebies__gift"><i class="bi bi-gift"></i></span>
       <div class="freebies__txt">
         <h2 class="freebies__title">Brindes do mês — inclusos sem custo</h2>
-        <p class="freebies__sub">O kit colecionável que acompanha o Jogo do Mês, enviado na mesma caixa do seu jogo.</p>
+        <p class="freebies__sub">O kit colecionável que acompanha o Jogo do Mês. Os mesmos que mostramos no Instagram, na caixa junto com o seu jogo.</p>
       </div>
       <span class="freebies__flag"><i class="bi bi-box-seam"></i> Vai na mesma caixa</span>
     </div>
@@ -15,14 +15,26 @@
     <div class="freebies__grid">
       <% brindes.each_with_index do |brinde, index| %>
         <article class="free-card">
-          <div class="free-card__media">
-            <span class="free-card__num"><%= index + 1 %></span>
-            <% if brinde.image.attached? %>
-              <img src="<%= Storefront::ImageSource.call(brinde.image) %>" alt="<%= brinde.caption %>">
-            <% end %>
-          </div>
+          <% if brinde.image.attached? %>
+            <% src = Storefront::ImageSource.call(brinde.image) %>
+            <a class="free-card__media" href="<%= src %>" data-fancybox="brindes-<%= gotm_product.id %>" data-caption="<%= brinde.caption %>">
+              <span class="free-card__num"><%= index + 1 %></span>
+              <img src="<%= src %>" alt="<%= brinde.caption %>">
+              <span class="free-card__zoom" aria-hidden="true"><i class="bi bi-arrows-fullscreen"></i></span>
+            </a>
+          <% else %>
+            <div class="free-card__media">
+              <span class="free-card__num"><%= index + 1 %></span>
+            </div>
+          <% end %>
           <div class="free-card__body">
+            <% if brinde.kind.present? %>
+              <span class="free-card__kind"><%= brinde.kind %></span>
+            <% end %>
             <span class="free-card__title"><%= brinde.caption %></span>
+            <% if brinde.description.present? %>
+              <span class="free-card__desc"><%= brinde.description %></span>
+            <% end %>
             <span class="free-card__incl"><i class="bi bi-check-circle-fill"></i> Incluso</span>
           </div>
         </article>

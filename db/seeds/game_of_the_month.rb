@@ -11,20 +11,32 @@ end
 editions = [
   {
     slug: "mario-golf", name: "Mario Golf",
-    game_image: gotm_assets_dir.join("mario-golf-game2.jpeg"),
+    game_image: gotm_assets_dir.join("mario-golf-game2-cropped.jpeg"),
     brindes: [
-      { caption: "Pôster",          image: gotm_assets_dir.join("mario-golf-poster.jpeg"),      weight_grams: 5 },
-      { caption: "Cartão postal",   image: gotm_assets_dir.join("mario-golf-postal-card.jpeg"),  weight_grams: 5 },
-      { caption: "Cartão de trivia", image: gotm_assets_dir.join("mario-golf-trivia.jpeg"),      weight_grams: 2 }
+      { caption: "Pôster", kind: "Pôster",
+        description: "Arte exclusiva de Mario Golf, impressa em papel couché.",
+        image: gotm_assets_dir.join("mario-golf-poster.jpeg"), weight_grams: 5 },
+      { caption: "Cartão postal", kind: "Colecionável",
+        description: "Cartão postal ilustrado do campo de golfe de Mario Golf.",
+        image: gotm_assets_dir.join("mario-golf-postal-card.jpeg"), weight_grams: 5 },
+      { caption: "Cartão de trivia", kind: "Curiosidades",
+        description: "Cartão com curiosidades e recordes do jogo.",
+        image: gotm_assets_dir.join("mario-golf-trivia.jpeg"), weight_grams: 2 }
     ]
   },
   {
     slug: "mario-tennis", name: "Mario Tennis",
-    game_image: gotm_assets_dir.join("mario-tennis-game.jpeg"),
+    game_image: gotm_assets_dir.join("mario-tennis-game-cropped.jpeg"),
     brindes: [
-      { caption: "Pôster",          image: gotm_assets_dir.join("mario-tennis-poster.jpeg"),      weight_grams: 5 },
-      { caption: "Cartão postal",   image: gotm_assets_dir.join("mario-tennis-postal-card.jpeg"),  weight_grams: 5 },
-      { caption: "Cartão de trivia", image: gotm_assets_dir.join("mario-golf-trivia.jpeg"),        weight_grams: 2 }
+      { caption: "Pôster", kind: "Pôster",
+        description: "Arte exclusiva de Mario Tennis, impressa em papel couché.",
+        image: gotm_assets_dir.join("mario-tennis-poster.jpeg"), weight_grams: 5 },
+      { caption: "Cartão postal", kind: "Colecionável",
+        description: "Cartão postal ilustrado da Royal Tennis Academy.",
+        image: gotm_assets_dir.join("mario-tennis-postal-card.jpeg"), weight_grams: 5 },
+      { caption: "Cartão de trivia", kind: "Curiosidades",
+        description: "Cartão com curiosidades e recordes do jogo.",
+        image: gotm_assets_dir.join("mario-golf-trivia.jpeg"), weight_grams: 2 }
     ]
   }
 ]
@@ -69,7 +81,13 @@ if required_files.all? { |path| File.exist?(path) }
 
     gp.brindes.destroy_all
     edition[:brindes].each_with_index do |attrs, b_index|
-      brinde = gp.brindes.build(caption: attrs[:caption], weight_grams: attrs[:weight_grams], position: b_index)
+      brinde = gp.brindes.build(
+        caption:     attrs[:caption],
+        kind:        attrs[:kind],
+        description: attrs[:description],
+        weight_grams: attrs[:weight_grams],
+        position:    b_index
+      )
       attach_gotm_image!(brinde, attrs[:image])
       brinde.save!
     end
