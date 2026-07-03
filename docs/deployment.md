@@ -285,14 +285,19 @@ failure alerting (heartbeat monitor), see the "Backups" section of `infra/README
 
 ```bash
 rclone copy r2:your-backup-bucket/postgres/daily/<dumpfile> /tmp/restore/
+# pg_restore runs as the postgres user (below), so it must be able to read the dump
+chmod -R a+rX /tmp/restore
 sudo -u postgres createdb -O prisma_engine prisma_engine_restore
-pg_restore --no-owner --role=prisma_engine -d prisma_engine_restore /tmp/restore/<dumpfile>
+# run pg_restore as postgres; running it as root fails with `role "root" does not exist`
+sudo -u postgres pg_restore --no-owner --role=prisma_engine \
+  -d prisma_engine_restore /tmp/restore/<dumpfile>
 sudo -u postgres psql -d prisma_engine_restore -c \
   "SELECT (SELECT count(*) FROM orders) AS orders, (SELECT count(*) FROM products) AS products;"
+sudo -u postgres dropdb prisma_engine_restore   # drop the throwaway when the counts check out
 ```
 
-An untested backup is not a backup. Confirm the counts look right, then drop the
-throwaway database.
+An untested backup is not a backup. Confirm the counts look right (they should match
+the live database), then the final command drops the throwaway.
 
 ## 8. Verify end-to-end
 
