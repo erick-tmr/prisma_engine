@@ -115,6 +115,17 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert order.reload.awaiting_refund?
   end
 
+  test "cancelling an awaiting-components order parks it in awaiting_refund" do
+    sign_in users(:confirmed)
+    order = orders(:confirmed_paid)
+    order.transition_to!("awaiting_components")
+    post cancelar_account_order_path(order)
+    assert_redirected_to account_order_path(order)
+    follow_redirect!
+    assert_match(/reembolso será processado manualmente/, response.body)
+    assert order.reload.awaiting_refund?
+  end
+
   test "cancelling an order past the window is rejected without changing state" do
     sign_in users(:confirmed)
     order = orders(:producing)

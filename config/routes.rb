@@ -45,7 +45,9 @@ Rails.application.routes.draw do
     get    "relatorio-producao/:id", to: "production_reports#show", as: :production_report_batch, constraints: { id: /\d+/ }
     post   "etiquetas",         to: "labels#create_batch", as: :labels
     post   "etiquetas/:number", to: "labels#create",       as: :label, constraints: { number: /PG-\d+/ }
+    post   "etiquetas/impressao", to: "labels#print_sheet", as: :print_labels
     get    "pedidos/:number",           to: "orders#show",       as: :order,            constraints: { number: /PG-\d+/ }
+    post   "pedidos/lote",              to: "bulk_transitions#create", as: :bulk_transitions
     post   "pedidos/:number/transicao", to: "orders#transition", as: :order_transition, constraints: { number: /PG-\d+/ }
     get    "pedidos/:number/etiqueta",  to: "orders#label",      as: :order_label,      constraints: { number: /PG-\d+/ }
   end

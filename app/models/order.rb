@@ -35,7 +35,7 @@ class Order < ApplicationRecord
   TRANSITIONS = {
     "awaiting_payment"    => %w[payment_confirmed cancelled],
     "payment_confirmed"   => %w[awaiting_components in_production awaiting_refund],
-    "awaiting_components" => %w[in_production],
+    "awaiting_components" => %w[in_production awaiting_refund],
     "in_production"       => %w[label_issued production_issue],
     "production_issue"    => %w[in_production],
     "label_issued"        => %w[shipped],
@@ -46,7 +46,7 @@ class Order < ApplicationRecord
     "cancelled"           => %w[payment_confirmed]
   }.freeze
 
-  CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed].freeze
+  CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed awaiting_components].freeze
 
   scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
   scope :recent_first, -> { order(created_at: :desc) }

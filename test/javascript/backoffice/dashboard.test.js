@@ -3,10 +3,10 @@ import {
   STATUS_COLORS, ACTIONS, AVATAR_TINTS, SITUATION_TAGS, PRESETS, MONTHS_LONG,
   escapeHtml, parseISO, fmtDate, toISO, fmtBRL, formatCpf, formatPhone, initials, tintIndex, plural, viewForPath,
   sameDay, startOfMonth, addMonths, applyPreset, monthCells,
-  filterOrders, sortOrders, affectedBy, availableActions, applyAction, productionReportUrl,
+  filterOrders, sortOrders, affectedBy, availableActions, reconcileOrders, bulkFormBody, csrfHeader, productionReportUrl,
   filterClients, sortClients,
   ordersRowsHtml, clientsRowsHtml, reportsRowsHtml, bulkChipsHtml, statusOptionsHtml, calendarHtml, dpReadoutHtml, datePopHtml,
-  confirmText, toastMessage, initDashboard
+  confirmText, bulkToastMessage, skippedLabelsMessage, initDashboard
 } from "../../../app/javascript/backoffice/dashboard.js";
 
 const STATUSES = [
@@ -15,7 +15,7 @@ const STATUSES = [
 ];
 const STATUS_LABELS = Object.fromEntries(STATUSES.map((s) => [s, s.replace(/_/g, " ")]));
 const ACTION_LABELS = {
-  to_production: "Enviar para produção", issue_label: "Emitir etiqueta Correios",
+  to_production: "Enviar para produção", to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
   flag_issue: "Marcar problema", refund_done: "Reembolso processado", cancel: "Cancelar"
 };
 const SITUATION_LABELS = { active: "Ativo", pending: "Pendente", locked: "Bloqueado" };
@@ -178,7 +178,7 @@ describe("orders transforms", () => {
     expect(sortOrders([{ ...orders[0] }, { ...orders[0] }], { key: "total", dir: "asc" }, STATUSES)).toHaveLength(2);
   });
 
-  it("derives state-aware bulk actions and applies a transition", () => {
+  it("derives state-aware bulk actions", () => {
     const { orders } = sampleData();
     const confirmed = orders.filter((o) => o.status === "payment_confirmed");
     expect(affectedBy(ACTIONS.find((a) => a.id === "to_production"), confirmed)).toHaveLength(1);
@@ -188,11 +188,40 @@ describe("orders transforms", () => {
     expect(ids).toContain("to_production");
     expect(ids).toContain("cancel");
     expect(ids).not.toContain("refund_done");
+  });
 
-    const action = ACTIONS.find((a) => a.id === "to_production");
-    const affected = applyAction(action, confirmed);
-    expect(affected).toHaveLength(1);
-    expect(confirmed[0].status).toBe("in_production");
+  it("reconcileOrders updates matched rows from server truth and tallies outcomes", () => {
+    const orders = [{ n: "A", status: "payment_confirmed" }, { n: "B", status: "in_production" }];
+    const counts = reconcileOrders(orders, [
+      { number: "A", outcome: "done", status: "in_production" },
+      { number: "B", outcome: "queued", status: "in_production" },
+      { number: "Z", outcome: "skipped", status: "delivered" }
+    ]);
+    expect(orders[0].status).toBe("in_production");
+    expect(counts).toEqual({ done: 1, queued: 1, skipped: 1 });
+  });
+
+  it("bulkFormBody encodes the event and repeated order numbers", () => {
+    const body = bulkFormBody("to_production", ["PG-1", "PG-2"]);
+    expect(body.get("event")).toBe("to_production");
+    expect(body.getAll("order_numbers[]")).toEqual(["PG-1", "PG-2"]);
+  });
+
+  it("csrfHeader reads the meta token or falls back to empty", () => {
+    expect(csrfHeader({ querySelector: () => ({ content: "abc" }) })["X-CSRF-Token"]).toBe("abc");
+    expect(csrfHeader({ querySelector: () => null })["X-CSRF-Token"]).toBe("");
+  });
+
+  it("bulkToastMessage lists only the non-zero outcomes", () => {
+    expect(bulkToastMessage({ done: 2, queued: 0, skipped: 2 }, "Enviar")).toContain("2 atualizados");
+    const queued = bulkToastMessage({ done: 0, queued: 1, skipped: 0 }, "Etiqueta");
+    expect(queued).toContain("1 enfileirado");
+    expect(queued).not.toContain("ignorado");
+  });
+
+  it("skippedLabelsMessage pluralizes the skipped count", () => {
+    expect(skippedLabelsMessage(1)).toContain("1 etiqueta ignorada");
+    expect(skippedLabelsMessage(3)).toContain("3 etiquetas ignoradas");
   });
 
   it("productionReportUrl carries the active period or falls back to the base path", () => {
@@ -300,11 +329,9 @@ describe("template builders", () => {
     expect(html).toContain('class="dp-preset " data-p="7"');
   });
 
-  it("confirmText and toastMessage pluralize", () => {
+  it("confirmText pluralizes", () => {
     expect(confirmText(1)).toContain("1 pedido?");
     expect(confirmText(3)).toContain("3 pedidos?");
-    expect(toastMessage("Cancelar", 1)).toContain("1 pedido atualizado.");
-    expect(toastMessage("Cancelar", 2)).toContain("2 pedidos atualizados.");
   });
 
   it("exposes the expected constant shapes", () => {
@@ -318,8 +345,9 @@ describe("template builders", () => {
 //  initDashboard (jsdom)
 // ════════════════════════════════════════════════════════════════════════════
 function mountDashboard() {
+  document.head.innerHTML = `<meta name="csrf-token" content="test-token">`;
   document.body.innerHTML = `
-    <div class="app" data-dashboard="{}">
+    <div class="app" data-dashboard="{}" data-order-base="/admin/pedidos/" data-bulk-url="/admin/pedidos/lote" data-print-url="/admin/etiquetas/impressao">
       <aside class="sidebar">
         <nav>
           <a class="sb-link active" href="/admin" data-view="orders" data-title="Pedidos" data-crumb="Histórico de pedidos">x</a>
@@ -356,6 +384,7 @@ function mountDashboard() {
               <b id="bulk-n">0</b>
               <button id="bulk-clear" type="button"></button>
               <div id="bulk-actions"></div>
+              <button id="bulk-print" type="button" hidden></button>
             </div>
             <table class="tbl" id="orders-table">
               <thead>
@@ -411,6 +440,7 @@ function input(el, value) {
   el.value = value;
   el.dispatchEvent(new window.Event("input", { bubbles: true }));
 }
+const okJson = (data) => ({ ok: true, json: async () => data });
 
 describe("initDashboard", () => {
   let root;
@@ -424,6 +454,7 @@ describe("initDashboard", () => {
   afterEach(() => {
     destroy();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     window.history.pushState({}, "", "/"); // reset the URL pushed by tab navigation
   });
 
@@ -673,24 +704,97 @@ describe("initDashboard", () => {
     expect($("#bulk-n").textContent).toBe("1");
   });
 
-  it("applies a non-destructive bulk transition with a toast", () => {
-    click($('[data-check="PG-202606130002"]')); // payment_confirmed
-    click($('[data-check="PG-202606110003"]')); // in_production → production target stays valid
+  it("applies a bulk transition through the server, sending only eligible rows, and reconciles", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okJson({
+      event: "to_production",
+      results: [
+        { number: "PG-202606130002", outcome: "done", status: "in_production", reason: null },
+        { number: "PG-202606110003", outcome: "skipped", status: "in_production", reason: "not_available" }
+      ],
+      done: 1, queued: 0, skipped: 1
+    })));
+    click($('[data-check="PG-202606130002"]')); // payment_confirmed → eligible
+    click($('[data-check="PG-202606110003"]')); // in_production → not eligible for to_production
     click($("#bulk-actions").querySelector('[data-act="to_production"]'));
-    expect($("#toasts").querySelector(".toast-ok")).not.toBeNull();
+
+    await vi.waitFor(() => expect($("#toasts").querySelector(".toast-ok")).not.toBeNull());
+    const [url, opts] = fetch.mock.calls[0];
+    expect(url).toBe("/admin/pedidos/lote");
+    expect(opts.headers["X-CSRF-Token"]).toBe("test-token");
+    expect(opts.body.getAll("order_numbers[]")).toEqual(["PG-202606130002"]);
     expect($("#toasts").textContent).toContain("atualizado");
   });
 
-  it("confirms before cancelling and respects a declined confirm", () => {
+  it("warns when the bulk request fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    click($('[data-check="PG-202606130002"]'));
+    click($("#bulk-actions").querySelector('[data-act="to_production"]'));
+    await vi.waitFor(() => expect($("#toasts").querySelector(".toast-warn")).not.toBeNull());
+  });
+
+  it("confirms before cancelling and respects a declined confirm", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okJson({
+      results: [{ number: "PG-202606140001", outcome: "done", status: "cancelled", reason: null }],
+      done: 1, queued: 0, skipped: 0
+    })));
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     click($('[data-check="PG-202606140001"]')); // awaiting_payment → cancel available
     click($("#bulk-actions").querySelector('[data-act="cancel"]'));
     expect(confirmSpy).toHaveBeenCalledOnce();
-    expect($("#toasts").querySelector(".toast")).toBeNull(); // declined → nothing happened
+    expect(fetch).not.toHaveBeenCalled(); // declined → no request
 
     confirmSpy.mockReturnValue(true);
     click($("#bulk-actions").querySelector('[data-act="cancel"]'));
-    expect($("#toasts").querySelector(".toast-warn")).not.toBeNull();
+    await vi.waitFor(() => expect($("#toasts").querySelector(".toast-warn")).not.toBeNull());
+  });
+
+  it("shows the print chip only when a printable order is selected", () => {
+    click($('[data-check="PG-202606140001"]')); // awaiting_payment → not printable
+    expect($("#bulk-print").hidden).toBe(true);
+    click($('[data-check="PG-202605300004"]')); // delivered → printable
+    expect($("#bulk-print").hidden).toBe(false);
+  });
+
+  it("prints selected labels, opens the composed PDF and reports skips", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(["%PDF"]), headers: { get: () => "2" } }));
+    vi.stubGlobal("URL", { createObjectURL: () => "blob:sheet" });
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => {});
+    click($('[data-check="PG-202605300004"]')); // delivered → printable
+    click($("#bulk-print"));
+    await vi.waitFor(() => expect(openSpy).toHaveBeenCalledWith("blob:sheet", "_blank"));
+    expect(fetch.mock.calls[0][0]).toBe("/admin/etiquetas/impressao");
+    expect($("#toasts").textContent).toContain("ignoradas");
+  });
+
+  it("prints without a skip toast when every label is ready", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(["%PDF"]), headers: { get: () => null } }));
+    vi.stubGlobal("URL", { createObjectURL: () => "blob:sheet" });
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => {});
+    click($('[data-check="PG-202605300004"]'));
+    click($("#bulk-print"));
+    await vi.waitFor(() => expect(openSpy).toHaveBeenCalled());
+    expect($("#toasts").querySelector(".toast")).toBeNull();
+  });
+
+  it("warns when no label is ready to print", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
+    click($('[data-check="PG-202605300004"]'));
+    click($("#bulk-print"));
+    await vi.waitFor(() => expect($("#toasts").querySelector(".toast-warn")).not.toBeNull());
+  });
+
+  it("warns when the print request errors", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    click($('[data-check="PG-202605300004"]'));
+    click($("#bulk-print"));
+    await vi.waitFor(() => expect($("#toasts").querySelector(".toast-warn")).not.toBeNull());
+  });
+
+  it("does not request a print sheet when nothing printable is selected", () => {
+    vi.stubGlobal("fetch", vi.fn());
+    click($('[data-check="PG-202606140001"]')); // awaiting_payment → chip hidden
+    click($("#bulk-print"));
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("ignores clicks on the bulk bar background and clears the selection", () => {
@@ -765,15 +869,20 @@ describe("initDashboard", () => {
     expect(link.getAttribute("href")).toContain("ate=");
   });
 
-  it("auto-dismisses a toast after its timeout", () => {
+  it("auto-dismisses a toast after its timeout", async () => {
     vi.useFakeTimers();
     try {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okJson({
+        results: [{ number: "PG-202606130002", outcome: "done", status: "in_production", reason: null }],
+        done: 1, queued: 0, skipped: 0
+      })));
       click($('[data-check="PG-202606130002"]'));
       click($("#bulk-actions").querySelector('[data-act="to_production"]'));
+      await vi.advanceTimersByTimeAsync(0); // flush the fetch/json microtasks
       expect($("#toasts").querySelector(".toast")).not.toBeNull();
-      vi.advanceTimersByTime(3400);
+      await vi.advanceTimersByTimeAsync(3400);
       expect($("#toasts .toast").classList.contains("toast-leaving")).toBe(true);
-      vi.advanceTimersByTime(320);
+      await vi.advanceTimersByTimeAsync(320);
       expect($("#toasts").querySelector(".toast")).toBeNull();
     } finally {
       vi.useRealTimers();

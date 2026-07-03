@@ -63,6 +63,11 @@ module Admin
       assert_includes action[:form_data][:confirm], "Cancelar o pedido"
     end
 
+    test "available_actions for in_production offers only flag_issue, not a manual issue_label" do
+      actions = order_in("in_production").available_actions
+      assert_equal %w[flag_issue], actions.map { |a| a[:id] }
+    end
+
     test "available_actions is empty for terminal/automatic states" do
       %w[label_issued shipped delivered cancelled].each do |status|
         assert_empty order_in(status).available_actions, status
