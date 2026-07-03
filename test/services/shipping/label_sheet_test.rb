@@ -2,9 +2,11 @@ require "test_helper"
 
 module Shipping
   class LabelSheetTest < ActiveSupport::TestCase
-    def label_pdf(width: 200, height: 300)
+    def label_pdf
+      page = CombinePDF.create_page([ 0, 0, 595.276, 841.89 ])
+      page.textbox("ETIQUETA", x: 20, y: 620, width: 260, height: 40, font_size: 18)
       document = CombinePDF.new
-      document << CombinePDF.create_page([ 0, 0, width, height ])
+      document << page
       Base64.strict_encode64(document.to_pdf)
     end
 
@@ -56,6 +58,14 @@ module Shipping
       assert_equal 0, result.composed
       assert_equal 1, result.skipped
       assert_match(/\A%PDF/, result.pdf)
+    end
+
+    test "skips an order that has no label at all" do
+      bare = Order.create!(user: users(:confirmed), subtotal_cents: 32_000, total_cents: 34_990)
+      result = LabelSheet.call(orders: [ bare ])
+
+      assert_equal 0, result.composed
+      assert_equal 1, result.skipped
     end
   end
 end
