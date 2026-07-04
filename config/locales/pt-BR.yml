@@ -438,6 +438,7 @@ pt-BR:
         transition_done: "Status atualizado para %{status}."
         transition_invalid: "Esta ação não está disponível para o status atual do pedido."
         cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."
+        observation: "Observação do cliente"
       states:
         awaiting_payment:
           description: "Pedido criado. A confirmação do pagamento é automática via webhook da InfinitePay."
@@ -517,6 +518,7 @@ pt-BR:
         all_periods: "Todos os períodos"
         print: "Imprimir"
         checkbox_aria: "Marcar como produzido"
+        observation: "Observação"
   activerecord:
     attributes:
       user:

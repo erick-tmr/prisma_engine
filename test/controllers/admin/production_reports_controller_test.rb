@@ -105,6 +105,21 @@ module Admin
       assert_match "Lote ##{batch.id}", response.body
     end
 
+    test "the sheet shows the customer observation when the order has one" do
+      sign_in users(:admin)
+      noted = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 1_000, total_cents: 1_000,
+                            observation: "Entregar após as 18h")
+      noted.order_items.create!(product: products(:metroid), name: "Metroid II", unit_price_cents: 1_000, quantity: 1, chosen_options: [])
+
+      post admin_production_report_path
+      batch = ProductionBatch.order(:id).last
+
+      get admin_production_report_batch_path(batch)
+
+      assert_response :success
+      assert_select ".pr-order__note", text: /Observação:\s*Entregar após as 18h/
+    end
+
     test "confirming with no eligible orders redirects with an alert and records no batch" do
       sign_in users(:admin)
 

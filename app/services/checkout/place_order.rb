@@ -6,15 +6,16 @@ module Checkout
       end
     end
 
-    def self.call(user:, cart:, address_id:, shipping_service:)
-      new(user: user, cart: cart, address_id: address_id, shipping_service: shipping_service).call
+    def self.call(user:, cart:, address_id:, shipping_service:, observation: nil)
+      new(user: user, cart: cart, address_id: address_id, shipping_service: shipping_service, observation: observation).call
     end
 
-    def initialize(user:, cart:, address_id:, shipping_service:)
+    def initialize(user:, cart:, address_id:, shipping_service:, observation: nil)
       @user             = user
       @cart             = cart
       @address_id       = address_id
       @shipping_service = shipping_service.to_s
+      @observation      = observation
     end
 
     def call
@@ -34,7 +35,7 @@ module Checkout
 
     private
 
-    attr_reader :user, :cart, :address_id, :shipping_service
+    attr_reader :user, :cart, :address_id, :shipping_service, :observation
 
     def failure(error)
       Result.new(order: nil, error: error)
@@ -57,6 +58,7 @@ module Checkout
           user:                   user,
           subtotal_cents:         subtotal,
           total_cents:            subtotal + shipping,
+          observation:            observation,
           order_items_attributes: cart.lines.map { |line| item_attributes(line) }
         )
         order.create_shipment!(shipment_attributes(address, shipping))

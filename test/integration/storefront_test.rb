@@ -84,6 +84,24 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_match(/Pokemon/i, response.body)
   end
 
+  test "catalog index floats the current Jogo do Mês pick above ordinary products" do
+    ordinary = Product.create!(
+      name: "Aaa Ordinary Game", category: categories(:gb_color),
+      price_cents: 10_000, weight_grams: 20, published: true
+    )
+    featured = Product.create!(
+      name: "Zzz Featured Game", category: categories(:gb_color),
+      price_cents: 10_000, weight_grams: 20, published: true
+    )
+    game_of_the_months(:current_month).game_of_the_month_products.create!(product: featured, position: 0)
+
+    get products_path
+
+    assert_response :success
+    assert_operator response.body.index(featured.name), :<, response.body.index(ordinary.name),
+                    "expected the Jogo do Mês pick to render before an ordinary, lower-id product"
+  end
+
   test "product page renders with a clean slug and no legacy Meloja markers" do
     get product_path(slug: products(:yellow).slug)
     assert_response :success

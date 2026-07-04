@@ -58,6 +58,12 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = t
       <strong data-ship-dest></strong>
       <div class="checkout__ship-opts" data-ship-opts data-preselected="${preselected}" data-quote-url="/carrinho/frete"></div>
     </section>
+    <section id="step-observation">
+      <span class="checkout__step-flag" data-obs-flag></span>
+      <textarea name="observation" form="checkout-form" data-obs-input maxlength="280"></textarea>
+      <span data-obs-count></span>
+      <label><input type="checkbox" data-obs-none></label>
+    </section>
     <form id="checkout-form" action="/checkout" data-checkout-form>
       <input type="hidden" name="shipping_service" data-checkout-service>
       <div class="checkout__pay-error" data-pay-error><span data-pay-error-msg></span></div>
@@ -244,6 +250,7 @@ describe("bindEvents", () => {
     const co = mountCheckout();
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
     const form = document.querySelector("[data-checkout-form]");
 
     const ev = new Event("submit", { cancelable: true });
@@ -270,6 +277,7 @@ describe("bindEvents", () => {
     const co = mountCheckout({ popup: false });
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
     document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
 
     await flush();
@@ -284,6 +292,7 @@ describe("bindEvents", () => {
     const co = mountCheckout();
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
     document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
 
     await flush();
@@ -299,6 +308,7 @@ describe("bindEvents", () => {
     const co = mountCheckout({ popup: false });
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
     document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
 
     await flush();
@@ -316,6 +326,7 @@ describe("bindEvents", () => {
     const co = mountCheckout();
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
     const form = document.querySelector("[data-checkout-form]");
 
     form.dispatchEvent(new Event("submit", { cancelable: true }));
@@ -334,6 +345,66 @@ describe("bindEvents", () => {
     expect(ev.defaultPrevented).toBe(true);
     expect(document.querySelector("#step-shipping").classList.contains("is-invalid")).toBe(true);
     expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
+  });
+});
+
+describe("observation", () => {
+  it("updates the char counter and warns near the 280 limit", () => {
+    const co = mountCheckout();
+    co.bindEvents();
+    const input = document.querySelector("[data-obs-input]");
+    input.value = "deixar na portaria";
+    input.dispatchEvent(new Event("input"));
+    expect(document.querySelector("[data-obs-count]").textContent).toBe("18/280");
+    expect(document.querySelector("[data-obs-count]").classList.contains("is-warn")).toBe(false);
+
+    input.value = "x".repeat(265);
+    input.dispatchEvent(new Event("input"));
+    expect(document.querySelector("[data-obs-count]").textContent).toBe("265/280");
+    expect(document.querySelector("[data-obs-count]").classList.contains("is-warn")).toBe(true);
+  });
+
+  it("ticking 'no observation' disables + clears the textarea and confirms the step", () => {
+    const co = mountCheckout();
+    co.bindEvents();
+    const input = document.querySelector("[data-obs-input]");
+    const none = document.querySelector("[data-obs-none]");
+    input.value = "algo aqui";
+
+    none.checked = true;
+    none.dispatchEvent(new Event("change"));
+    expect(input.disabled).toBe(true);
+    expect(input.value).toBe("");
+    expect(document.querySelector("#step-observation").classList.contains("is-done")).toBe(true);
+    expect(document.querySelector("[data-obs-flag]").classList.contains("is-visible")).toBe(true);
+
+    none.checked = false;
+    none.dispatchEvent(new Event("change"));
+    expect(input.disabled).toBe(false);
+    expect(document.querySelector("#step-observation").classList.contains("is-done")).toBe(false);
+  });
+
+  it("typing a note confirms the step without the checkbox", () => {
+    const co = mountCheckout();
+    co.bindEvents();
+    const input = document.querySelector("[data-obs-input]");
+    input.value = "entregar após as 18h";
+    input.dispatchEvent(new Event("input"));
+    expect(co.obsSatisfied()).toBe(true);
+    expect(document.querySelector("#step-observation").classList.contains("is-done")).toBe(true);
+  });
+
+  it("blocks pay when the observation is neither written nor waived", () => {
+    const co = mountCheckout();
+    co.bindEvents();
+    document.querySelector("[data-checkout-service]").value = "pac";
+    const ev = new Event("submit", { cancelable: true });
+    document.querySelector("[data-checkout-form]").dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(true);
+    expect(document.querySelector("#step-observation").classList.contains("is-invalid")).toBe(true);
+    expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
+    expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Escreva uma observação/);
+    expect(openTab).not.toHaveBeenCalled();
   });
 });
 

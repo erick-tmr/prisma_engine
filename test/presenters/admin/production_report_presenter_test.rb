@@ -45,6 +45,13 @@ module Admin
       assert_equal [], ProductionReportPresenter.new(orders: [ order ]).rows.first.items.first.variants
     end
 
+    test "rows carry the customer observation" do
+      order = order_with([ { chosen_options: [] } ])
+      order.update!(observation: "Sem etiqueta repro")
+      row = ProductionReportPresenter.new(orders: [ order ]).rows.first
+      assert_equal "Sem etiqueta repro", row.observation
+    end
+
     test "for_batch reprints the batch's own orders, games only, with its stored period" do
       order = order_with([ { product: products(:metroid), name: "Metroid II" }, { product: products(:game_box), name: "Caixa" } ])
       batch = ProductionBatch.create!(period_from: Date.new(2026, 1, 1), period_to: Date.new(2026, 1, 31), orders_count: 1)

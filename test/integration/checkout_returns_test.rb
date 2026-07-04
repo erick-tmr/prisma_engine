@@ -89,6 +89,17 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     assert_no_match(/Cartão de crédito/, response.body)
   end
 
+  test "GET /checkout/retorno echoes the customer's observation when present" do
+    sign_in @user
+    order = create_order_for(@user)
+    order.update!(observation: "Entregar após as 18h")
+
+    get checkout_return_path, params: { order_nsu: order.number }
+
+    assert_response :success
+    assert_select ".pay-return__note-text", text: /Entregar após as 18h/
+  end
+
   test "POST /checkout/retorno/pagar regenerates the link and redirects to InfinitePay" do
     sign_in @user
     order = create_order_for(@user)
