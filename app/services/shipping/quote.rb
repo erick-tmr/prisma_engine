@@ -1,21 +1,4 @@
 module Shipping
-  # Live cart shipping quote — one batched preço call + one batched prazo
-  # call, eligibility filtered, results cached for 5 minutes.
-  #
-  #   Shipping::Quote.call(cep_destino: "01310100", weight_grams: 150)
-  #   → [
-  #       { key: :sedex,       label: "SEDEX",      eligible: true,
-  #         price_cents: 1984, price_formatted: "R$ 19.84", business_days: 2 },
-  #       { key: :pac,         label: "PAC",        eligible: true,
-  #         price_cents: 2890, price_formatted: "R$ 28.90", business_days: 7 },
-  #       { key: :mini_envios, label: "Mini Envios", eligible: false, reason: :too_heavy }
-  #     ]
-  #
-  # Eligibility rule: Correios swaps `coProduto` in the price response when a
-  # requested service isn't valid for the package (e.g. Mini Envios > 300g
-  # comes back as 04960). We compare requested code vs response code; on a
-  # mismatch the service is reported as ineligible with a `reason` so the UI
-  # can surface a friendly explanation.
   class Quote
     SERVICE_LABELS = {
       sedex:       "SEDEX",
@@ -68,17 +51,14 @@ module Shipping
     def build_service(key, code, preco, prazo)
       common = { key: key, label: SERVICE_LABELS.fetch(key) }
       tx_erro = preco && preco["txErro"]
-      # Correios returns 200 with a per-row txErro field when the request was
-      # accepted but the service itself can't be priced (bad CEP, coverage
-      # gaps, vendor errors). Bucket those so the controller can dispatch
-      # "all services failed for CEP" → 422 vs "something else" → 503.
       return common.merge(eligible: false, reason: classify_error(tx_erro)) if tx_erro
 
       if eligible?(code, preco, prazo)
+        price_cents = parse_price_cents(preco["pcFinal"]) + handling_fee_cents
         common.merge(
           eligible:        true,
-          price_cents:     parse_price_cents(preco["pcFinal"]),
-          price_formatted: HasMoney.format(parse_price_cents(preco["pcFinal"])),
+          price_cents:     price_cents,
+          price_formatted: HasMoney.format(price_cents),
           business_days:   prazo["prazoEntrega"].to_i
         )
       else
@@ -96,18 +76,17 @@ module Shipping
       key == :mini_envios ? :too_heavy : :unavailable
     end
 
-    # CEP-related txErro phrases ("CEP inexistente", "CEP inválido") all carry
-    # the substring "CEP". Anything else is an API-level issue the shopper
-    # can't fix from the cart, so we tag it for the "unexpected error" path.
     # :reek:ControlParameter — the method exists exactly to branch on the message.
     def classify_error(tx_erro)
       tx_erro.match?(/CEP/i) ? :invalid_cep : :api_error
     end
 
-    # Correios returns BR-decimal strings like "19,84". Convert to integer
-    # cents for the rest of the app (HasMoney works in cents).
     def parse_price_cents(raw)
       (raw.to_s.tr(",", ".").to_f * 100).round
+    end
+
+    def handling_fee_cents
+      @handling_fee_cents ||= StoreSetting.current.handling_fee_cents
     end
   end
 end

@@ -6,8 +6,6 @@ module Shipping
     PRAZO_URL = "#{Correios::Api::BASE_URL}/prazo/v1/nacional".freeze
 
     setup do
-      # Test env runs the null cache store; swap to in-memory so `Rails.cache.fetch`
-      # actually deduplicates calls inside Quote.
       @prev_cache = Rails.cache
       Rails.cache = ActiveSupport::Cache::MemoryStore.new
     end
@@ -26,9 +24,21 @@ module Shipping
       assert services.all? { |s| s[:eligible] }
       sedex = services.first
       assert_equal "SEDEX", sedex[:label]
-      assert_equal 1984,    sedex[:price_cents]
-      assert_equal "R$ 19.84", sedex[:price_formatted]
+      assert_equal 2284,    sedex[:price_cents]
+      assert_equal "R$ 22.84", sedex[:price_formatted]
       assert_equal 2,       sedex[:business_days]
+    end
+
+    test "adds the configurable store handling fee on top of the Correios price" do
+      StoreSetting.current.update!(handling_fee_cents: 500)
+      stub_preco(eligible: %w[03220 03298 04227])
+      stub_prazo(eligible: %w[03220 03298 04227])
+
+      services = Shipping::Quote.call(cep_destino: "01310100", weight_grams: 150)
+
+      sedex = services.first
+      assert_equal 2484, sedex[:price_cents]
+      assert_equal "R$ 24.84", sedex[:price_formatted]
     end
 
     test "Mini Envios coming back with a swapped coProduto is reported as ineligible with too_heavy" do
@@ -44,7 +54,6 @@ module Shipping
     end
 
     test "missing rows from either API are treated as ineligible" do
-      # Prazo skips PAC entirely (empty response) — service marked ineligible.
       stub_preco(eligible: %w[03220 03298 04227])
       stub_prazo(eligible: %w[03220 04227])
 
@@ -82,7 +91,6 @@ module Shipping
         Shipping::Quote.call(cep_destino: "01310100", weight_grams: 150)
       end
 
-      # Second call must hit the upstream again — failures aren't cached.
       assert_raises(Correios::Api::TransientError) do
         Shipping::Quote.call(cep_destino: "01310100", weight_grams: 150)
       end

@@ -30,8 +30,8 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     assert_equal %w[sedex pac mini_envios], keys
     assert body["services"].all? { |s| s["eligible"] }
     sedex = body["services"].first
-    assert_equal 1984, sedex["price_cents"]
-    assert_equal "R$ 19.84", sedex["price_formatted"]
+    assert_equal 2284, sedex["price_cents"]
+    assert_equal "R$ 22.84", sedex["price_formatted"]
     assert_equal 2, sedex["business_days"]
   end
 
@@ -50,9 +50,6 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
   end
 
   test "package weight sent to Correios includes the GOTM brindes mass per line × qty plus the caixa+flyer overhead" do
-    # Yellow is the fixture GOTM (brindes sum to 15g). 2x yellow with Com caixa
-    # → unit 60g + brindes 15g = 75g each, × 2 = 150g contents.
-    # Plus 52g caixa + flyer overhead = 202g total package weight.
     post cart_items_path, params: {
       product_id: products(:yellow).id, quantity: 2,
       option_ids: [ product_options(:yellow_caixa_com).id ]
@@ -115,16 +112,12 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
 
     assert_response :success
-    # Without a current GOTM, brindes contribute 0g. Yellow 22 + caixa 38 = 60g
-    # contents, + 52g caixa+flyer overhead = 112g.
     assert_requested(:post, PRECO_URL) do |req|
       JSON.parse(req.body)["parametrosProduto"].all? { |p| p["psObjeto"] == "112" }
     end
   end
 
   test "auth failures surface as 503 with the unexpected-error message" do
-    # 401 used to silently degrade to InvalidObjectError → \"CEP inválido.\".
-    # Now it surfaces as a genuine service-side problem.
     add_yellow_to_cart
     stub_request(:post, PRECO_URL).to_return(status: 401, body: "unauthorized")
     stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
@@ -224,13 +217,12 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
     line_id = Cart::Bag.from_cookie(JSON.parse(request.cookie_jar.signed[:cart].to_json)).items.first["id"]
 
-    # The quantity bump carries the chosen frete → heavier parcel makes the quote stale.
     patch cart_item_path(line_id), params: { quantity: 2, shipping_service: "sedex" }
     get cart_path
     assert_response :success
-    assert_no_match(/data-initial-quote=/, response.body)        # not restored as-is
-    assert_match(/data-recalc-cep="01310-100"/, response.body)   # re-quotes the same CEP
-    assert_match(/data-recalc-service="sedex"/, response.body)   # preserving the chosen service
+    assert_no_match(/data-initial-quote=/, response.body)
+    assert_match(/data-recalc-cep="01310-100"/, response.body)
+    assert_match(/data-recalc-service="sedex"/, response.body)
     assert_match(/value="01310-100"/, response.body)
   end
 
