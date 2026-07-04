@@ -23,7 +23,7 @@
 
   <ol class="pr-orders">
     <% @presenter.rows.each do |row| %>
-      <li class="pr-order pr-order--client-<%= row.client_tone %>">
+      <li class="pr-order">
         <div class="pr-order__head">
           <span class="pr-order__seq">#<%= row.seq %></span>
           <span class="pr-order__customer"><%= row.customer %></span>
@@ -38,7 +38,7 @@
               <span class="pr-item__name"><%= item.name %></span>
               <% item.variants.each do |value| %>
                 <% if (flag = variant_option_flag(value)) %>
-                  <span class="pr-item__lang pr-item__lang--<%= variant_language_slug(value) %>"><%= value %> <%= flag %></span>
+                  <span class="pr-item__flag"><%= flag %></span>
                 <% else %>
                   <span class="pr-item__variants"><%= value %></span>
                 <% end %>

@@ -6,11 +6,11 @@ module VariantDisplayHelper
   }.freeze
   GROUP_ICON_FALLBACK = "bi-sliders2".freeze
 
-  LANGUAGES = {
-    "Inglês"        => { flag: "🇺🇸", slug: "en" },
-    "Português BR"  => { flag: "🇧🇷", slug: "br" },
-    "Português"     => { flag: "🇧🇷", slug: "br" },
-    "Japonês"       => { flag: "🇯🇵", slug: "jp" }
+  LANGUAGE_FLAGS = {
+    "Inglês"        => "🇺🇸",
+    "Português BR"  => "🇧🇷",
+    "Português"     => "🇧🇷",
+    "Japonês"       => "🇯🇵"
   }.freeze
 
   def variant_group_icon(group_name)
@@ -18,10 +18,6 @@ module VariantDisplayHelper
   end
 
   def variant_option_flag(option_name)
-    LANGUAGES.dig(option_name.to_s, :flag)
-  end
-
-  def variant_language_slug(option_name)
-    LANGUAGES.dig(option_name.to_s, :slug)
+    LANGUAGE_FLAGS[option_name.to_s]
   end
 end
