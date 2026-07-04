@@ -7,7 +7,7 @@ module Admin
 
     test "non-admins are sent to the backoffice login" do
       post admin_bulk_transitions_path,
-           params: { event: "to_production", order_numbers: [ orders(:confirmed_paid).number ] }
+           params: { event: "to_components", order_numbers: [ orders(:confirmed_paid).number ] }
       assert_redirected_to admin_login_path
     end
 
@@ -15,13 +15,13 @@ module Admin
       sign_in users(:admin)
       order = orders(:confirmed_paid)
 
-      post admin_bulk_transitions_path, params: { event: "to_production", order_numbers: [ order.number ] }
+      post admin_bulk_transitions_path, params: { event: "to_components", order_numbers: [ order.number ] }
 
       assert_response :success
       body = JSON.parse(response.body)
       assert_equal 1, body["done"]
-      assert_equal "in_production", body["results"].first["status"]
-      assert order.reload.in_production?
+      assert_equal "awaiting_components", body["results"].first["status"]
+      assert order.reload.awaiting_components?
     end
 
     test "issue_label enqueues the batch label job" do

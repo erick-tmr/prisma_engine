@@ -27,7 +27,6 @@ export const STATUS_COLORS = {
 // are intentionally absent. "Cancelar" only touches unpaid orders; a paid order
 // is closed by processing its refund ("Reembolso processado") once awaiting_refund.
 export const ACTIONS = [
-  { id: "to_production", icon: "bi-tools", from: ["payment_confirmed", "awaiting_components", "production_issue"], to: "in_production" },
   { id: "to_components", icon: "bi-box-seam", from: ["payment_confirmed"], to: "awaiting_components" },
   { id: "issue_label", icon: "bi-upc-scan", from: ["in_production"], to: "label_issued" },
   { id: "flag_issue", icon: "bi-exclamation-triangle", from: ["in_production"], to: "production_issue" },

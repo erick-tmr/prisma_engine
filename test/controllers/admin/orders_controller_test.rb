@@ -23,7 +23,7 @@ module Admin
 
       assert_response :success
       assert_select ".od-head-num h1", text: order.number
-      assert_select "form[action=?]", admin_order_transition_path(order, event: "to_production")
+      assert_select "form[action=?]", admin_order_transition_path(order, event: "to_components")
       assert_select ".act-btn.primary"
     end
 
@@ -90,12 +90,12 @@ module Admin
       sign_in users(:admin)
       order = orders(:confirmed_paid)
 
-      post admin_order_transition_path(order, event: "to_production")
+      post admin_order_transition_path(order, event: "to_components")
       assert_redirected_to admin_order_path(order)
-      assert order.reload.in_production?
+      assert order.reload.awaiting_components?
 
       change = order.status_changes.chronological.last
-      assert_equal "in_production", change.to_status
+      assert_equal "awaiting_components", change.to_status
       assert_equal users(:admin), change.actor
 
       follow_redirect!
