@@ -393,7 +393,6 @@ pt-BR:
           title: "Nenhum relatório gerado"
           hint: "Gere um relatório de produção pela aba Pedidos."
       bulk_actions:
-        to_production: "Enviar para produção"
         to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
         flag_issue: "Marcar problema"

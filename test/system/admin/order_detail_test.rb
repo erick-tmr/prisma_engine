@@ -15,10 +15,10 @@ class AdminOrderDetailTest < ApplicationSystemTestCase
     assert_selector ".od-head-num h1", text: order.number
     assert_selector ".pill.pill-lg", text: I18n.t("account.orders.states.payment_confirmed.label")
 
-    find(".act-btn", text: I18n.t("admin.dashboard.bulk_actions.to_production")).click
+    find(".act-btn", text: I18n.t("admin.dashboard.bulk_actions.to_components")).click
 
     assert_selector ".od-flash--ok"
-    assert_selector ".pill.pill-lg", text: I18n.t("account.orders.states.in_production.label")
-    assert order.reload.in_production?
+    assert_selector ".pill.pill-lg", text: I18n.t("account.orders.states.awaiting_components.label")
+    assert order.reload.awaiting_components?
   end
 end

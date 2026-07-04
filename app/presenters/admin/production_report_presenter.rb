@@ -1,7 +1,9 @@
 module Admin
   class ProductionReportPresenter
-    Row = Data.define(:seq, :customer, :number, :placed_on, :items)
+    Row = Data.define(:seq, :customer, :number, :placed_on, :items, :client_tone)
     Item = Data.define(:quantity, :name, :variants)
+
+    CLIENT_TONES = 10
 
     def self.for_batch(batch)
       orders = batch.orders.includes(:user, order_items: { product: :category }).order(created_at: :asc)
@@ -23,7 +25,11 @@ module Admin
     end
 
     def rows
-      orders.each_with_index.map { |order, index| build_row(order, index) }
+      tones = {}
+      orders.each_with_index.map do |order, index|
+        tone = (tones[order.user_id] ||= tones.size % CLIENT_TONES)
+        build_row(order, index, tone)
+      end
     end
 
     def period_clause
@@ -43,22 +49,23 @@ module Admin
 
     private
 
-    def build_row(order, index)
+    def build_row(order, index, tone)
       Row.new(
         seq: index + 1,
         customer: order.user.full_name,
         number: order.number,
         placed_on: I18n.l(order.placed_at.to_date),
-        items: order.order_items.select(&:game?).map { |item| build_item(item) }
+        items: order.order_items.select(&:game?).map { |item| build_item(item) },
+        client_tone: tone
       )
     end
 
     def build_item(item)
-      Item.new(quantity: item.quantity, name: item.name, variants: variant_summary(item.chosen_options))
+      Item.new(quantity: item.quantity, name: item.name, variants: variant_values(item.chosen_options))
     end
 
-    def variant_summary(chosen_options)
-      chosen_options.map { |option| option.sub(/\A[^:]+:\s*/, "") }.join(" · ")
+    def variant_values(chosen_options)
+      chosen_options.map { |option| option.sub(/\A[^:]+:\s*/, "") }
     end
   end
 end
