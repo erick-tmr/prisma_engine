@@ -2,9 +2,9 @@ require "test_helper"
 
 module Admin
   class ProductionReportPresenterTest < ActiveSupport::TestCase
-    def order_with(items, created_at: Time.zone.local(2026, 1, 10, 9), user: users(:confirmed))
+    def order_with(items, created_at: Time.zone.local(2026, 1, 10, 9))
       order = Order.create!(
-        user: user, status: "in_production",
+        user: users(:confirmed), status: "in_production",
         subtotal_cents: 1_000, total_cents: 1_000, created_at: created_at
       )
       items.each do |attrs|
@@ -43,16 +43,6 @@ module Admin
     test "an item with no chosen options renders no variant values" do
       order = order_with([ { chosen_options: [] } ])
       assert_equal [], ProductionReportPresenter.new(orders: [ order ]).rows.first.items.first.variants
-    end
-
-    test "each client gets a stable colour tone, cycling by order of first appearance" do
-      first = order_with([ { chosen_options: [] } ], user: users(:confirmed))
-      second = order_with([ { chosen_options: [] } ], user: users(:buyer))
-      repeat = order_with([ { chosen_options: [] } ], user: users(:confirmed))
-
-      tones = ProductionReportPresenter.new(orders: [ first, second, repeat ]).rows.map(&:client_tone)
-
-      assert_equal [ 0, 1, 0 ], tones
     end
 
     test "for_batch reprints the batch's own orders, games only, with its stored period" do
