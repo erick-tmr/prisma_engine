@@ -23,7 +23,7 @@
 
   <ol class="pr-orders">
     <% @presenter.rows.each do |row| %>
-      <li class="pr-order">
+      <li class="pr-order pr-order--client-<%= row.client_tone %>">
         <div class="pr-order__head">
           <span class="pr-order__seq">#<%= row.seq %></span>
           <span class="pr-order__customer"><%= row.customer %></span>

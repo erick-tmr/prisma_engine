@@ -72,6 +72,7 @@ module Admin
       follow_redirect!
       assert_response :success
       assert_select ".pr-order"
+      assert_select ".pr-order--client-0" # first client is colour-coded
       assert_select ".pr-item__lang--en", text: /Inglês/ # language shows as a coloured flag badge
       assert_select ".pr-item__variants", text: "Transparente"
     end

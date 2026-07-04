@@ -242,10 +242,25 @@
 }
 
 .pr-order {
-  padding: var(--space-3) 0;
+  padding: var(--space-3) 0 var(--space-3) var(--space-3);
   border-bottom: 1px solid var(--pg-border);
+  border-left: 3px solid var(--pr-client, transparent);
   break-inside: avoid;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
+
+/* Each client gets a stable colour so a buyer's orders read as one block. */
+.pr-order--client-0 { --pr-client: #1f6feb; }
+.pr-order--client-1 { --pr-client: #c2410c; }
+.pr-order--client-2 { --pr-client: #15803d; }
+.pr-order--client-3 { --pr-client: #9333ea; }
+.pr-order--client-4 { --pr-client: #be123c; }
+.pr-order--client-5 { --pr-client: #0e7490; }
+.pr-order--client-6 { --pr-client: #a16207; }
+.pr-order--client-7 { --pr-client: #db2777; }
+.pr-order--client-8 { --pr-client: #4338ca; }
+.pr-order--client-9 { --pr-client: #65a30d; }
 
 .pr-order__head {
   display: flex;
@@ -264,6 +279,7 @@
   font-weight: 700;
   flex: 1;
   text-transform: uppercase;
+  color: var(--pr-client, inherit);
 }
 
 .pr-order__date {
@@ -388,8 +404,9 @@
   .pr-order {
     break-inside: avoid;
     page-break-inside: avoid;
-    padding: 4px 0;
+    padding: 4px 0 4px 8px;
     border-bottom: 1px solid #000;
+    border-left: 3px solid var(--pr-client, #000);
   }
 
   .pr-order__head {
