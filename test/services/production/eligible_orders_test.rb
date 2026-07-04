@@ -14,8 +14,8 @@ module Production
       order
     end
 
-    test "STATUSES mirror the to_production move" do
-      assert_equal Admin::OrderActions.lookup("to_production").from, EligibleOrders::STATUSES
+    test "STATUSES are the paid-to-produce states the report can pull from" do
+      assert_equal %w[payment_confirmed awaiting_components production_issue], EligibleOrders::STATUSES
     end
 
     test "returns only paid-to-produce orders that contain a game" do

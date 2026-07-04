@@ -11,8 +11,6 @@ module Admin
     end
 
     ALL = [
-      Action.new(id: "to_production", from: %w[payment_confirmed awaiting_components production_issue],
-                 to: "in_production", icon: "bi-tools", danger: false),
       Action.new(id: "to_components", from: %w[payment_confirmed],
                  to: "awaiting_components", icon: "bi-box-seam", danger: false),
       Action.new(id: "flag_issue", from: %w[in_production],

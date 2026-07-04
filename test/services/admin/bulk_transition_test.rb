@@ -13,24 +13,16 @@ module Admin
       producing = orders(:producing)
 
       result = BulkTransition.call(order_numbers: [ paid.number, producing.number ],
-                                   event: "to_production", actor: users(:admin))
+                                   event: "to_components", actor: users(:admin))
 
       assert_equal 1, result["done"]
       assert_equal 1, result["skipped"]
       assert_equal "done", row_for(result, paid)["outcome"]
-      assert_equal "in_production", row_for(result, paid)["status"]
+      assert_equal "awaiting_components", row_for(result, paid)["status"]
       assert_equal "not_available", row_for(result, producing)["reason"]
-      assert paid.reload.in_production?
+      assert paid.reload.awaiting_components?
       assert_equal users(:admin), paid.status_changes.chronological.last.actor
       assert producing.reload.in_production?
-    end
-
-    test "moves a paid order to awaiting_components" do
-      paid = orders(:confirmed_paid)
-      result = BulkTransition.call(order_numbers: [ paid.number ], event: "to_components", actor: users(:admin))
-
-      assert_equal "done", row_for(result, paid)["outcome"]
-      assert paid.reload.awaiting_components?
     end
 
     test "flags a producing order with a production issue" do
@@ -76,7 +68,7 @@ module Admin
     end
 
     test "an empty selection yields no results" do
-      result = BulkTransition.call(order_numbers: [], event: "to_production", actor: users(:admin))
+      result = BulkTransition.call(order_numbers: [], event: "to_components", actor: users(:admin))
 
       assert_empty result["results"]
       assert_equal 0, result["done"]

@@ -15,7 +15,7 @@ const STATUSES = [
 ];
 const STATUS_LABELS = Object.fromEntries(STATUSES.map((s) => [s, s.replace(/_/g, " ")]));
 const ACTION_LABELS = {
-  to_production: "Enviar para produção", to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
+  to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
   flag_issue: "Marcar problema", refund_done: "Reembolso processado", cancel: "Cancelar"
 };
 const SITUATION_LABELS = { active: "Ativo", pending: "Pendente", locked: "Bloqueado" };
@@ -181,11 +181,11 @@ describe("orders transforms", () => {
   it("derives state-aware bulk actions", () => {
     const { orders } = sampleData();
     const confirmed = orders.filter((o) => o.status === "payment_confirmed");
-    expect(affectedBy(ACTIONS.find((a) => a.id === "to_production"), confirmed)).toHaveLength(1);
+    expect(affectedBy(ACTIONS.find((a) => a.id === "to_components"), confirmed)).toHaveLength(1);
 
     const mixed = orders.filter((o) => ["awaiting_payment", "payment_confirmed", "in_production"].includes(o.status));
     const ids = availableActions(mixed).map((entry) => entry.action.id);
-    expect(ids).toContain("to_production");
+    expect(ids).toContain("to_components");
     expect(ids).toContain("cancel");
     expect(ids).not.toContain("refund_done");
   });
@@ -202,8 +202,8 @@ describe("orders transforms", () => {
   });
 
   it("bulkFormBody encodes the event and repeated order numbers", () => {
-    const body = bulkFormBody("to_production", ["PG-1", "PG-2"]);
-    expect(body.get("event")).toBe("to_production");
+    const body = bulkFormBody("to_components", ["PG-1", "PG-2"]);
+    expect(body.get("event")).toBe("to_components");
     expect(body.getAll("order_numbers[]")).toEqual(["PG-1", "PG-2"]);
   });
 
@@ -276,12 +276,12 @@ describe("template builders", () => {
   it("bulkChipsHtml shows the empty message, chips and a danger chip", () => {
     expect(bulkChipsHtml([], ACTION_LABELS)).toContain("bulk-none");
     const chips = bulkChipsHtml([
-      { action: ACTIONS.find((a) => a.id === "to_production"), count: 2 },
+      { action: ACTIONS.find((a) => a.id === "to_components"), count: 2 },
       { action: ACTIONS.find((a) => a.id === "cancel"), count: 1 }
     ], ACTION_LABELS);
-    expect(chips).toContain('data-act="to_production"');
+    expect(chips).toContain('data-act="to_components"');
     expect(chips).toContain("danger");
-    expect(chips).toContain("Enviar para produção");
+    expect(chips).toContain("Aguardar componentes");
   });
 
   it("reportsRowsHtml links each batch by its date to the reprint and pluralizes the order count", () => {
@@ -696,8 +696,8 @@ describe("initDashboard", () => {
     expect($("#bulk-actions").textContent).toContain("Nenhuma ação");
     expect($("#o-checkall").classList.contains("ind")).toBe(true);
 
-    click($('[data-check="PG-202606130002"]')); // + payment_confirmed → to_production appears
-    expect($("#bulk-actions").querySelector('[data-act="to_production"]')).not.toBeNull();
+    click($('[data-check="PG-202606130002"]')); // + payment_confirmed → to_components appears
+    expect($("#bulk-actions").querySelector('[data-act="to_components"]')).not.toBeNull();
     expect($("#bulk-n").textContent).toBe("2");
 
     click($('[data-check="PG-202606130002"]')); // click again → deselects that row
@@ -706,16 +706,16 @@ describe("initDashboard", () => {
 
   it("applies a bulk transition through the server, sending only eligible rows, and reconciles", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okJson({
-      event: "to_production",
+      event: "to_components",
       results: [
-        { number: "PG-202606130002", outcome: "done", status: "in_production", reason: null },
+        { number: "PG-202606130002", outcome: "done", status: "awaiting_components", reason: null },
         { number: "PG-202606110003", outcome: "skipped", status: "in_production", reason: "not_available" }
       ],
       done: 1, queued: 0, skipped: 1
     })));
     click($('[data-check="PG-202606130002"]')); // payment_confirmed → eligible
-    click($('[data-check="PG-202606110003"]')); // in_production → not eligible for to_production
-    click($("#bulk-actions").querySelector('[data-act="to_production"]'));
+    click($('[data-check="PG-202606110003"]')); // in_production → not eligible for to_components
+    click($("#bulk-actions").querySelector('[data-act="to_components"]'));
 
     await vi.waitFor(() => expect($("#toasts").querySelector(".toast-ok")).not.toBeNull());
     const [url, opts] = fetch.mock.calls[0];
@@ -728,7 +728,7 @@ describe("initDashboard", () => {
   it("warns when the bulk request fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
     click($('[data-check="PG-202606130002"]'));
-    click($("#bulk-actions").querySelector('[data-act="to_production"]'));
+    click($("#bulk-actions").querySelector('[data-act="to_components"]'));
     await vi.waitFor(() => expect($("#toasts").querySelector(".toast-warn")).not.toBeNull());
   });
 
@@ -873,11 +873,11 @@ describe("initDashboard", () => {
     vi.useFakeTimers();
     try {
       vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okJson({
-        results: [{ number: "PG-202606130002", outcome: "done", status: "in_production", reason: null }],
+        results: [{ number: "PG-202606130002", outcome: "done", status: "awaiting_components", reason: null }],
         done: 1, queued: 0, skipped: 0
       })));
       click($('[data-check="PG-202606130002"]'));
-      click($("#bulk-actions").querySelector('[data-act="to_production"]'));
+      click($("#bulk-actions").querySelector('[data-act="to_components"]'));
       await vi.advanceTimersByTimeAsync(0); // flush the fetch/json microtasks
       expect($("#toasts").querySelector(".toast")).not.toBeNull();
       await vi.advanceTimersByTimeAsync(3400);

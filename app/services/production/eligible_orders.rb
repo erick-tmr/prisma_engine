@@ -1,6 +1,6 @@
 module Production
   class EligibleOrders
-    STATUSES = Admin::OrderActions.lookup("to_production").from
+    STATUSES = %w[payment_confirmed awaiting_components production_issue].freeze
 
     def self.within(from: nil, to: nil)
       new(from: from, to: to).relation

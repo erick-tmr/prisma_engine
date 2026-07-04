@@ -47,13 +47,12 @@ module Admin
                    order_in("in_production").status_description
     end
 
-    test "available_actions for payment_confirmed: a primary move and a plain one, no confirm" do
+    test "available_actions for payment_confirmed: a single primary move, no confirm (production is report-only)" do
       actions = order_in("payment_confirmed").available_actions
-      assert_equal %w[to_production to_components], actions.map { |a| a[:id] }
+      assert_equal %w[to_components], actions.map { |a| a[:id] }
       assert_equal "act-btn primary", actions.first[:button_class]
-      assert_equal "act-btn", actions.second[:button_class]
       assert_equal({}, actions.first[:form_data])
-      assert_equal "Em produção", actions.first[:target_label]
+      assert_equal "Aguardando componentes", actions.first[:target_label]
     end
 
     test "available_actions for awaiting_payment: a danger cancel carrying a confirm prompt" do
