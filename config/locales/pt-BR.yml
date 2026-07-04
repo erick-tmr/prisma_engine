@@ -331,6 +331,7 @@ pt-BR:
       bulk:
         selected: "selecionados"
         clear: "Limpar seleção"
+        print_labels: "Imprimir etiquetas"
       views:
         orders:
           title: "Pedidos"
@@ -437,7 +438,6 @@ pt-BR:
         by: "por %{name}"
         transition_done: "Status atualizado para %{status}."
         transition_invalid: "Esta ação não está disponível para o status atual do pedido."
-        label_requested: "Emissão da etiqueta dos Correios iniciada."
         cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."
       states:
         awaiting_payment:

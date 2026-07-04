@@ -9,7 +9,7 @@ module Admin
     # Manual bulk transitions exposed in the order list, mirroring Order::TRANSITIONS.
     # System/customer-triggered transitions (payment webhook, Correios tracking, a
     # customer's refund request) are deliberately absent — see app/javascript/backoffice.
-    BULK_ACTION_IDS = %w[to_production issue_label flag_issue refund_done cancel].freeze
+    BULK_ACTION_IDS = %w[to_production to_components issue_label flag_issue refund_done cancel].freeze
     SITUATIONS = %w[active pending locked].freeze
 
     def orders

@@ -130,11 +130,11 @@ module Admin
       assert_select ".od-flash--ok"
     end
 
-    test "an event not available for the current state is rejected" do
+    test "an action not available for the current state is rejected" do
       sign_in users(:admin)
       order = orders(:confirmed_paid)
 
-      post admin_order_transition_path(order, event: "issue_label")
+      post admin_order_transition_path(order, event: "flag_issue")
       assert_redirected_to admin_order_path(order)
       assert order.reload.payment_confirmed?
 
@@ -151,15 +151,14 @@ module Admin
       assert order.reload.in_production?
     end
 
-    test "issue_label runs the Correios saga instead of a plain transition" do
+    test "the detail screen no longer offers a manual issue_label action" do
       sign_in users(:admin)
       order = orders(:producing)
+      get admin_order_path(order)
 
-      assert_enqueued_with(job: Shipping::CreatePrePostagemJob, args: [ order.id ]) do
-        post admin_order_transition_path(order, event: "issue_label")
-      end
-      assert_redirected_to admin_order_path(order)
-      assert order.reload.in_production?
+      assert_response :success
+      assert_select "form[action=?]", admin_order_transition_path(order, event: "flag_issue")
+      assert_select "form[action=?]", admin_order_transition_path(order, event: "issue_label"), count: 0
     end
 
     test "the label endpoint streams the stored Correios PDF" do

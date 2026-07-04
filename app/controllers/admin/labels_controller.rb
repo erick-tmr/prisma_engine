@@ -13,5 +13,14 @@ module Admin
       Shipping::EmitLabelsJob.perform_later(ids) if ids.any?
       render json: { enqueued: ids.size }, status: :accepted
     end
+
+    def print_sheet
+      orders = Order.where(number: Array(params[:order_numbers])).includes(shipment: :shipping_label)
+      sheet = Shipping::LabelSheet.call(orders: orders)
+      return head :unprocessable_entity if sheet.composed.zero?
+
+      response.set_header("X-Skipped-Count", sheet.skipped.to_s)
+      send_data sheet.pdf, type: "application/pdf", disposition: "inline", filename: "etiquetas.pdf"
+    end
   end
 end

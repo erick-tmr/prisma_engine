@@ -153,6 +153,15 @@ class OrderTest < ActiveSupport::TestCase
     assert order.awaiting_refund?
   end
 
+  test "cancel_by_customer! parks an awaiting_components order in awaiting_refund" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.transition_to!("awaiting_components")
+    order.cancel_by_customer!
+    assert order.awaiting_refund?
+  end
+
   test "awaiting_refund advances to cancelled but is no longer cancellable" do
     order = build_order
     order.save!
@@ -164,11 +173,13 @@ class OrderTest < ActiveSupport::TestCase
   end
 
 
-  test "cancellable? while awaiting or confirmed, not once in production" do
+  test "cancellable? while awaiting, confirmed or awaiting components, not once in production" do
     order = build_order
     order.save!
     assert order.cancellable?
     order.confirm_payment!
+    assert order.cancellable?
+    order.transition_to!("awaiting_components")
     assert order.cancellable?
     order.transition_to!("in_production")
     assert_not order.cancellable?

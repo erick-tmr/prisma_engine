@@ -2,9 +2,9 @@
 // status multi-select, column sorting and a state-aware bulk action bar. Real
 // data is handed in through the [data-dashboard] JSON island the server renders
 // (app/views/admin/dashboard/index.html.erb); the rich filtering/sorting/bulk
-// UX runs entirely client-side. Bulk transitions are MOCKED for now — they
-// update the in-memory rows + toast, but do not persist (the Order#transition_to!
-// endpoint is a deferred follow-up). Shipped as a self-contained native ES
+// UX runs entirely client-side. Bulk transitions POST the affected order numbers
+// to Admin::BulkTransitionsController and reconcile each row from the JSON
+// response. Shipped as a self-contained native ES
 // module via `javascript_include_tag "backoffice/dashboard", type: "module"`:
 // no importmap, no build step. The browser runs the guarded bootstrap at the
 // bottom; tests import the named functions and drive them against jsdom.
@@ -28,11 +28,14 @@ export const STATUS_COLORS = {
 // is closed by processing its refund ("Reembolso processado") once awaiting_refund.
 export const ACTIONS = [
   { id: "to_production", icon: "bi-tools", from: ["payment_confirmed", "awaiting_components", "production_issue"], to: "in_production" },
+  { id: "to_components", icon: "bi-box-seam", from: ["payment_confirmed"], to: "awaiting_components" },
   { id: "issue_label", icon: "bi-upc-scan", from: ["in_production"], to: "label_issued" },
   { id: "flag_issue", icon: "bi-exclamation-triangle", from: ["in_production"], to: "production_issue" },
   { id: "refund_done", icon: "bi-cash-coin", from: ["awaiting_refund"], to: "cancelled" },
   { id: "cancel", icon: "bi-x-circle", danger: true, from: ["awaiting_payment"], to: "cancelled" }
 ];
+
+export const PRINTABLE_LABEL_STATUSES = new Set(["label_issued", "shipped", "delivered", "delivery_issue"]);
 
 export const SITUATION_TAGS = {
   active: { cls: "tag-active", icon: "bi-check-circle-fill" },
@@ -203,10 +206,26 @@ export function availableActions(orders) {
     .filter((entry) => entry.count > 0);
 }
 
-export function applyAction(action, orders) {
-  const affected = affectedBy(action, orders);
-  affected.forEach((o) => { o.status = action.to; });
-  return affected;
+export function reconcileOrders(orders, results) {
+  const counts = { done: 0, queued: 0, skipped: 0 };
+  results.forEach((result) => {
+    counts[result.outcome] += 1;
+    const order = orders.find((o) => o.n === result.number);
+    if (order) order.status = result.status;
+  });
+  return counts;
+}
+
+export function bulkFormBody(event, numbers) {
+  const body = new URLSearchParams();
+  body.set("event", event);
+  numbers.forEach((n) => body.append("order_numbers[]", n));
+  return body;
+}
+
+export function csrfHeader(doc) {
+  const token = doc.querySelector('meta[name="csrf-token"]');
+  return { "X-CSRF-Token": token ? token.content : "" };
 }
 
 export function productionReportUrl(state, base) {
@@ -353,8 +372,16 @@ export function confirmText(count) {
   return `Cancelar ${count} ${plural(count, "pedido", "pedidos")}? Esta ação não pode ser desfeita.`;
 }
 
-export function toastMessage(label, count) {
-  return `<b>${escapeHtml(label)}</b> — ${count} ${plural(count, "pedido atualizado", "pedidos atualizados")}.`;
+export function bulkToastMessage(counts, label) {
+  const parts = [];
+  if (counts.done) parts.push(`${counts.done} ${plural(counts.done, "atualizado", "atualizados")}`);
+  if (counts.queued) parts.push(`${counts.queued} ${plural(counts.queued, "enfileirado", "enfileirados")}`);
+  if (counts.skipped) parts.push(`${counts.skipped} ${plural(counts.skipped, "ignorado", "ignorados")}`);
+  return `<b>${escapeHtml(label)}</b>: ${parts.join(", ")}.`;
+}
+
+export function skippedLabelsMessage(count) {
+  return `${count} ${plural(count, "etiqueta ignorada", "etiquetas ignoradas")} (sem etiqueta pronta).`;
 }
 
 // ── Orchestrator ─────────────────────────────────────────────────────────────
@@ -373,6 +400,8 @@ export function initDashboard(root, data, today) {
 
   const $ = (sel) => root.querySelector(sel);
   const orderBase = root.dataset.orderBase;
+  const bulkUrl = root.dataset.bulkUrl;
+  const printUrl = root.dataset.printUrl;
   const ordersBody = $("#orders-body");
   const ordersTable = $("#orders-table");
   const ordersEmpty = $("#orders-empty");
@@ -391,6 +420,7 @@ export function initDashboard(root, data, today) {
   const dateTrigger = $("#date-trigger");
   const dateClear = $("#date-clear");
   const bulkbar = $("#bulkbar");
+  const bulkPrint = $("#bulk-print");
   const sidebar = root.querySelector(".sidebar");
 
   const anyDateLabel = $("#date-trigger .val").textContent;
@@ -434,6 +464,7 @@ export function initDashboard(root, data, today) {
     $("#bulk-n").textContent = n;
     const selectedOrders = orders.filter((o) => state.selected.has(o.n));
     $("#bulk-actions").innerHTML = bulkChipsHtml(availableActions(selectedOrders), actionLabels);
+    bulkPrint.hidden = !selectedOrders.some((o) => PRINTABLE_LABEL_STATUSES.has(o.status));
   }
   function renderOrders() {
     const rows = sortOrders(filterOrders(orders, state), state.oSort, statuses);
@@ -461,7 +492,7 @@ export function initDashboard(root, data, today) {
     reportsCount.textContent = `${reports.length} ${plural(reports.length, "relatório", "relatórios")}`;
   }
 
-  // ── Toasts (mock feedback) ──
+  // ── Toasts ──
   function toast(kind, html) {
     const el = document.createElement("div");
     el.className = `toast ${kind === "warn" ? "toast-warn" : "toast-ok"}`;
@@ -484,13 +515,43 @@ export function initDashboard(root, data, today) {
     rows.forEach((o) => (allSel ? state.selected.delete(o.n) : state.selected.add(o.n)));
     renderOrders();
   }
-  function applyBulk(actionId) {
+  async function applyBulk(actionId) {
     const action = ACTIONS.find((a) => a.id === actionId);
-    const selectedOrders = orders.filter((o) => state.selected.has(o.n));
-    if (action.id === "cancel" && !window.confirm(confirmText(affectedBy(action, selectedOrders).length))) return;
-    const affected = applyAction(action, selectedOrders);
-    renderOrders();
-    toast(action.danger ? "warn" : "ok", toastMessage(actionLabels[action.id], affected.length));
+    const affected = affectedBy(action, orders.filter((o) => state.selected.has(o.n)));
+    if (action.id === "cancel" && !window.confirm(confirmText(affected.length))) return;
+    try {
+      const res = await fetch(bulkUrl, {
+        method: "POST",
+        headers: { ...csrfHeader(document), "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+        body: bulkFormBody(actionId, affected.map((o) => o.n))
+      });
+      const data = await res.json();
+      const counts = reconcileOrders(orders, data.results);
+      renderOrders();
+      toast(action.danger ? "warn" : "ok", bulkToastMessage(counts, actionLabels[action.id]));
+    } catch (e) {
+      toast("warn", "Não foi possível aplicar a ação. Tente novamente.");
+    }
+  }
+  async function printLabels() {
+    const numbers = orders
+      .filter((o) => state.selected.has(o.n) && PRINTABLE_LABEL_STATUSES.has(o.status))
+      .map((o) => o.n);
+    if (numbers.length === 0) return;
+    try {
+      const res = await fetch(printUrl, {
+        method: "POST",
+        headers: { ...csrfHeader(document), "Accept": "application/pdf", "Content-Type": "application/x-www-form-urlencoded" },
+        body: bulkFormBody("print", numbers)
+      });
+      if (!res.ok) { toast("warn", "Nenhuma etiqueta pronta para impressão."); return; }
+      const blob = await res.blob();
+      window.open(URL.createObjectURL(blob), "_blank");
+      const skipped = Number(res.headers.get("X-Skipped-Count"));
+      if (skipped > 0) toast("ok", skippedLabelsMessage(skipped));
+    } catch (e) {
+      toast("warn", "Não foi possível gerar as etiquetas. Tente novamente.");
+    }
   }
 
   // ── Filter triggers ──
@@ -712,6 +773,7 @@ export function initDashboard(root, data, today) {
     const chip = e.target.closest("[data-act]");
     if (chip) applyBulk(chip.dataset.act);
   });
+  bulkPrint.addEventListener("click", printLabels);
   clientsBody.addEventListener("click", (e) => row(e.target));
   reportsBody.addEventListener("click", (e) => {
     const link = e.target.closest("tr[data-report]")?.querySelector("a.cell-link");
