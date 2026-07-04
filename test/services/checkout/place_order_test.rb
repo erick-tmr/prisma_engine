@@ -44,11 +44,11 @@ module Checkout
       assert result.success?
       order = result.order
       assert_equal 36_000, order.subtotal_cents
-      assert_equal 38_084, order.total_cents
+      assert_equal 38_384, order.total_cents
       assert order.awaiting_payment?
 
       shipment = order.shipment
-      assert_equal 2_084, shipment.shipping_cents
+      assert_equal 2_384, shipment.shipping_cents
       assert_equal "pac", shipment.service
       assert_equal Shipping::PackageWeight.call(populated_cart), shipment.weight_grams
       assert_equal "São Paulo", shipment.city

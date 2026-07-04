@@ -1,4 +1,4 @@
-# Idempotent — safe to run repeatedly. Catalog data lives in db/seeds/.
+load Rails.root.join("db/seeds/store_setting.rb")
 load Rails.root.join("db/seeds/catalog.rb")
 load Rails.root.join("db/seeds/hero_banner.rb")
 load Rails.root.join("db/seeds/recommendations.rb")

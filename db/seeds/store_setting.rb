@@ -1,0 +1,1 @@
+StoreSetting.current
