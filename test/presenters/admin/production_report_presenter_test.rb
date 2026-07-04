@@ -26,7 +26,7 @@ module Admin
       assert_equal "10/01/2026", row.placed_on
       assert_equal 2, row.items.first.quantity
       assert_equal "Pokemon - Gold (Patch RTC)", row.items.first.name
-      assert_equal "Inglês · Com Caixa", row.items.first.variants
+      assert_equal [ "Inglês", "Com Caixa" ], row.items.first.variants
     end
 
     test "rows list only game items, stripping the group prefix and tolerating plain options" do
@@ -37,12 +37,12 @@ module Admin
       items = ProductionReportPresenter.new(orders: [ order ]).rows.first.items
 
       assert_equal [ "Metroid II" ], items.map(&:name) # the accessory line is dropped
-      assert_equal "Crystal · Edição limitada", items.first.variants
+      assert_equal [ "Crystal", "Edição limitada" ], items.first.variants
     end
 
-    test "an item with no chosen options renders an empty variant string" do
+    test "an item with no chosen options renders no variant values" do
       order = order_with([ { chosen_options: [] } ])
-      assert_equal "", ProductionReportPresenter.new(orders: [ order ]).rows.first.items.first.variants
+      assert_equal [], ProductionReportPresenter.new(orders: [ order ]).rows.first.items.first.variants
     end
 
     test "for_batch reprints the batch's own orders, games only, with its stored period" do

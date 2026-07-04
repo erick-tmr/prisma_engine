@@ -54,11 +54,11 @@ module Admin
     end
 
     def build_item(item)
-      Item.new(quantity: item.quantity, name: item.name, variants: variant_summary(item.chosen_options))
+      Item.new(quantity: item.quantity, name: item.name, variants: variant_values(item.chosen_options))
     end
 
-    def variant_summary(chosen_options)
-      chosen_options.map { |option| option.sub(/\A[^:]+:\s*/, "") }.join(" · ")
+    def variant_values(chosen_options)
+      chosen_options.map { |option| option.sub(/\A[^:]+:\s*/, "") }
     end
   end
 end

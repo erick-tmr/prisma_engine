@@ -11,6 +11,14 @@ class VariantDisplayHelperTest < ActionView::TestCase
   test "variant_option_flag returns a flag for known languages, nil otherwise" do
     assert_equal "🇧🇷", variant_option_flag("Português BR")
     assert_equal "🇺🇸", variant_option_flag("Inglês")
+    assert_equal "🇯🇵", variant_option_flag("Japonês")
     assert_nil variant_option_flag("Com caixa")
+  end
+
+  test "variant_language_slug returns a colour slug for known languages, nil otherwise" do
+    assert_equal "br", variant_language_slug("Português BR")
+    assert_equal "en", variant_language_slug("Inglês")
+    assert_equal "jp", variant_language_slug("Japonês")
+    assert_nil variant_language_slug("Com caixa")
   end
 end

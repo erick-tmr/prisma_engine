@@ -36,7 +36,13 @@
               <span class="pr-check" aria-label="<%= t("admin.production_report.report.checkbox_aria") %>"></span>
               <span class="pr-item__qty"><%= item.quantity %>x</span>
               <span class="pr-item__name"><%= item.name %></span>
-              <% if item.variants.present? %><span class="pr-item__variants"><%= item.variants %></span><% end %>
+              <% item.variants.each do |value| %>
+                <% if (flag = variant_option_flag(value)) %>
+                  <span class="pr-item__lang pr-item__lang--<%= variant_language_slug(value) %>"><%= value %> <%= flag %></span>
+                <% else %>
+                  <span class="pr-item__variants"><%= value %></span>
+                <% end %>
+              <% end %>
             </li>
           <% end %>
         </ul>
