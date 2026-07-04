@@ -1,8 +1,9 @@
 class ProductsController < ApplicationController
   def index
-    @query    = params[:term].to_s.strip
-    @products = Product.published.includes(:category)
-    @products = @products.where("products.name ILIKE ?", "%#{@query}%") if @query.present?
+    @query   = params[:term].to_s.strip
+    products = Product.published.includes(:category)
+    products = products.where("products.name ILIKE ?", "%#{@query}%") if @query.present?
+    @products = GameOfTheMonth.feature_first(products)
   end
 
   def show
