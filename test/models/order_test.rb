@@ -27,34 +27,28 @@ class OrderTest < ActiveSupport::TestCase
     assert order.awaiting_payment?
   end
 
-  test "create generates a PG-YYYYMMDD#### number with today's date" do
-    travel_to Time.zone.local(2026, 5, 22, 10, 0, 0) do
-      order = build_order
-      order.save!
-      assert_match(/\APG-20260522\d{4}\z/, order.number)
-    end
+  test "create generates a PG-##### number with five random digits" do
+    order = build_order
+    order.save!
+    assert_match(/\APG-\d{5}\z/, order.number)
   end
 
   test "a colliding draw is retried until a free number is found" do
-    travel_to Time.zone.local(2026, 5, 22) do
-      srand(1)
-      taken = build_order
-      taken.save!
-      srand(1)
-      order = build_order
-      order.save!
-      assert_not_equal taken.number, order.number
-    end
+    srand(1)
+    taken = build_order
+    taken.save!
+    srand(1)
+    order = build_order
+    order.save!
+    assert_not_equal taken.number, order.number
   end
 
   test "exhausting every draw raises rather than saving a duplicate" do
-    travel_to Time.zone.local(2026, 5, 22) do
-      srand(2)
-      Array.new(Order::NUMBER_ATTEMPTS) { "PG-20260522#{format('%04d', rand(10_000))}" }
-        .uniq.each { |n| build_order(number: n).save! }
-      srand(2)
-      assert_raises(Order::UnallocatableNumber) { build_order.save! }
-    end
+    srand(2)
+    Array.new(Order::NUMBER_ATTEMPTS) { "PG-#{format('%05d', rand(100_000))}" }
+      .uniq.each { |n| build_order(number: n).save! }
+    srand(2)
+    assert_raises(Order::UnallocatableNumber) { build_order.save! }
   end
 
   test "a provided number is not overwritten" do

@@ -145,7 +145,7 @@ class Order < ApplicationRecord
 
   def generate_unique_number
     NUMBER_ATTEMPTS.times do
-      candidate = "PG-#{Time.current.strftime('%Y%m%d')}#{format('%04d', rand(10_000))}"
+      candidate = "PG-#{format('%05d', rand(100_000))}"
       return candidate unless self.class.exists?(number: candidate)
     end
     raise UnallocatableNumber
