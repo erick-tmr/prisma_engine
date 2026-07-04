@@ -277,6 +277,22 @@
   color: var(--pg-muted);
 }
 
+.pr-order__note {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--pg-ink);
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.pr-order__note-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--text-xs);
+  letter-spacing: 0.03em;
+  color: var(--pg-muted);
+}
+
 .pr-items {
   list-style: none;
   margin: 0;
@@ -349,6 +365,8 @@
   .pr-sheet__meta,
   .pr-order__date,
   .pr-order__number,
+  .pr-order__note,
+  .pr-order__note-label,
   .pr-item__variants {
     color: #000;
   }

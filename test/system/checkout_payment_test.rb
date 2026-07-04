@@ -23,6 +23,7 @@ class CheckoutPaymentTest < ApplicationSystemTestCase
     assert_selector "[data-ship-opts] [data-ship-opt]", minimum: 1
 
     orders_before = @user.orders.count
+    find("[data-obs-none]").click
     find("[data-pay-btn]").click
 
     assert_current_path(%r{/checkout/retorno}, wait: 10)

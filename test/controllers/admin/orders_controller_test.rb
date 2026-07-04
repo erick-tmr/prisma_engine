@@ -27,6 +27,17 @@ module Admin
       assert_select ".act-btn.primary"
     end
 
+    test "show renders the customer observation panel when the order has one" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      order.update!(observation: "Cliente pediu embalagem extra")
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select ".od-meta-head", text: /Observação do cliente/
+      assert_select ".od-obs-text", text: /Cliente pediu embalagem extra/
+    end
+
     test "show renders the danger cancel action with a confirm prompt for an unpaid order" do
       sign_in users(:admin)
       get admin_order_path(orders(:awaiting))

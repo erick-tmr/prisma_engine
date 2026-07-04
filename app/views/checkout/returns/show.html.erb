@@ -148,6 +148,16 @@
         </div>
       </div>
     </div>
+
+    <% if @order.observation.present? %>
+      <div class="pay-return__note">
+        <i class="bi bi-chat-left-text"></i>
+        <div>
+          <span class="pay-return__note-label">Sua observação</span>
+          <span class="pay-return__note-text"><%= @order.observation %></span>
+        </div>
+      </div>
+    <% end %>
   </section>
 
   <% if @state == "success" %>

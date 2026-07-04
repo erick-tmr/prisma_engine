@@ -30,6 +30,9 @@
           <span class="pr-order__date"><%= row.placed_on %></span>
           <span class="pr-order__number"><%= row.number %></span>
         </div>
+        <% if row.observation.present? %>
+          <p class="pr-order__note"><span class="pr-order__note-label"><%= t("admin.production_report.report.observation") %>:</span> <%= row.observation %></p>
+        <% end %>
         <ul class="pr-items">
           <% row.items.each do |item| %>
             <li class="pr-item">

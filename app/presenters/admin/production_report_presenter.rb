@@ -1,6 +1,6 @@
 module Admin
   class ProductionReportPresenter
-    Row = Data.define(:seq, :customer, :number, :placed_on, :items)
+    Row = Data.define(:seq, :customer, :number, :placed_on, :items, :observation)
     Item = Data.define(:quantity, :name, :variants)
 
     def self.for_batch(batch)
@@ -49,7 +49,8 @@ module Admin
         customer: order.user.full_name,
         number: order.number,
         placed_on: I18n.l(order.placed_at.to_date),
-        items: order.order_items.select(&:game?).map { |item| build_item(item) }
+        items: order.order_items.select(&:game?).map { |item| build_item(item) },
+        observation: order.observation
       )
     end
 

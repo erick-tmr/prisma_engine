@@ -16,6 +16,11 @@ export function createCheckout(doc, openTab, navigate) {
   const shipFlag = doc.querySelector("[data-ship-flag]");
   const shipDest = doc.querySelector("[data-ship-dest]");
   const overlay = doc.querySelector("[data-redirect]");
+  const obsInput = doc.querySelector("[data-obs-input]");
+  const obsCount = doc.querySelector("[data-obs-count]");
+  const obsNone = doc.querySelector("[data-obs-none]");
+  const obsStep = doc.querySelector("#step-observation");
+  const obsFlag = doc.querySelector("[data-obs-flag]");
   /* v8 ignore next */
   const subtotal = parseInt(doc.querySelector("[data-subtotal]")?.dataset.subtotalCents || "0", 10);
   let shipping = null;
@@ -160,6 +165,26 @@ export function createCheckout(doc, openTab, navigate) {
     }
   }
 
+  function obsSatisfied() {
+    return obsNone.checked || obsInput.value.trim().length > 0;
+  }
+
+  function refreshObs() {
+    obsInput.disabled = obsNone.checked;
+    const n = obsInput.value.length;
+    obsCount.textContent = n + "/280";
+    obsCount.classList.toggle("is-warn", n >= 260);
+    if (obsSatisfied()) {
+      obsStep.classList.remove("is-invalid");
+      obsStep.classList.add("is-done");
+      obsFlag.classList.add("is-visible");
+      payError.classList.remove("is-visible");
+    } else {
+      obsStep.classList.remove("is-done");
+      obsFlag.classList.remove("is-visible");
+    }
+  }
+
   function bindEvents() {
     const addrList = doc.querySelector("[data-addr-list]");
     const addrForm = doc.querySelector("[data-addr-form]");
@@ -177,14 +202,29 @@ export function createCheckout(doc, openTab, navigate) {
       addrForm.classList.remove("is-open");
     });
 
+    obsInput.addEventListener("input", refreshObs);
+    obsNone.addEventListener("change", function () {
+      if (obsNone.checked) obsInput.value = "";
+      refreshObs();
+    });
+
     checkoutForm.addEventListener("submit", function (e) {
       e.preventDefault();
       if (submitting) return;
       if (!serviceInput.value) {
         shipStep.classList.add("is-invalid");
         shipStep.classList.remove("is-done");
+        doc.querySelector("[data-pay-error-msg]").textContent = "Escolha uma forma de envio antes de pagar.";
         payError.classList.add("is-visible");
         shipStep.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+      if (!obsSatisfied()) {
+        obsStep.classList.add("is-invalid");
+        obsStep.classList.remove("is-done");
+        doc.querySelector("[data-pay-error-msg]").textContent = "Escreva uma observação ou marque que não tem nenhuma.";
+        payError.classList.add("is-visible");
+        obsStep.scrollIntoView({ block: "center", behavior: "smooth" });
         return;
       }
       submitting = true;
@@ -196,6 +236,7 @@ export function createCheckout(doc, openTab, navigate) {
 
   function init() {
     bindEvents();
+    refreshObs();
     const selected = doc.querySelector("[data-addr-opt].is-selected") || doc.querySelector("[data-addr-opt]");
     if (selected) fetchQuote(selected.dataset.cep);
     else renderSummary();
@@ -203,7 +244,7 @@ export function createCheckout(doc, openTab, navigate) {
 
   return {
     renderSummary, selectShip, renderQuote, showShipError, fetchQuote,
-    fillSelected, selectAddress, bindEvents, init,
+    fillSelected, selectAddress, obsSatisfied, refreshObs, bindEvents, init,
     get shipping() { return shipping; }
   };
 }

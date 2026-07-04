@@ -72,6 +72,13 @@ module Checkout
       assert_equal [ "Com caixa" ], item.chosen_options
     end
 
+    test "stores the customer observation, trimming surrounding blanks to nil" do
+      stub_preco_prazo(all_eligible: true)
+
+      assert_equal "Entregar após as 18h", place(observation: "  Entregar após as 18h  ").order.observation
+      assert_nil place(observation: "   ").order.observation
+    end
+
     test "fails when the cart is empty" do
       result = PlaceOrder.call(user: @user, cart: Cart::Bag.new, address_id: @address.id, shipping_service: "pac")
       assert_not result.success?

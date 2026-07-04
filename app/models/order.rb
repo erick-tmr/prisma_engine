@@ -55,6 +55,8 @@ class Order < ApplicationRecord
   validates :subtotal_cents, :total_cents,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
+  normalizes :observation, with: ->(value) { value.strip.presence }
+
   before_validation :assign_number, on: :create
   after_create :record_initial_status
   before_destroy :prevent_destroy

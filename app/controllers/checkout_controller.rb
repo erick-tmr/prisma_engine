@@ -19,7 +19,8 @@ class CheckoutController < ApplicationController
   def create
     result = Checkout::PlaceOrder.call(
       user: current_user, cart: current_cart,
-      address_id: params[:address_id], shipping_service: params[:shipping_service]
+      address_id: params[:address_id], shipping_service: params[:shipping_service],
+      observation: params[:observation]
     )
     return render_create_failure(ERROR_MESSAGES.fetch(result.error)) unless result.success?
 

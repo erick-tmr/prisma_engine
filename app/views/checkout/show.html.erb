@@ -134,6 +134,30 @@
           </div>
         </section>
 
+        <section class="checkout__card checkout__step" data-step="observation" id="step-observation">
+          <div class="checkout__step-head">
+            <span class="checkout__step-num" data-step-num>3</span>
+            <h2>Observação do pedido</h2>
+            <span class="checkout__step-flag" data-obs-flag><i class="bi bi-check-circle-fill"></i> Confirmado</span>
+          </div>
+          <div class="checkout__step-body">
+            <div class="checkout__step-error"><i class="bi bi-exclamation-circle-fill"></i> Escreva uma observação ou marque que não tem nenhuma para continuar.</div>
+            <div class="checkout__obs-note">
+              <i class="bi bi-info-circle-fill"></i>
+              <span>Campo curto, só para um recado <strong>sobre este pedido</strong>: referência de entrega, preferência de embalagem ou detalhe do envio. Não é canal de atendimento e não altera itens, valores ou prazos.</span>
+            </div>
+            <div class="checkout__obs-field">
+              <%= text_area_tag :observation, nil, form: "checkout-form", class: "checkout__obs-input",
+                    maxlength: 280, data: { obs_input: true },
+                    placeholder: "Ex.: Entregar no período da tarde; deixar na portaria se eu não atender." %>
+              <span class="checkout__obs-count" data-obs-count>0/280</span>
+            </div>
+            <label class="checkout__obs-none">
+              <%= check_box_tag :no_observation, "1", false, data: { obs_none: true } %> Não tenho nenhuma observação sobre este pedido
+            </label>
+          </div>
+        </section>
+
       </div>
 
       <aside class="checkout__rail">

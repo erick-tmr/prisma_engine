@@ -101,6 +101,15 @@
             </div>
           </div>
 
+          <% if @presenter.observation.present? %>
+            <div class="panel">
+              <div class="od-meta">
+                <div class="od-meta-head"><i class="bi bi-chat-left-text"></i> <%= t("admin.orders.detail.observation") %></div>
+                <div class="od-meta-body"><div class="od-obs-text"><%= @presenter.observation %></div></div>
+              </div>
+            </div>
+          <% end %>
+
           <% if @presenter.shipping_visible? %>
             <div class="panel">
               <div class="panel-top">
