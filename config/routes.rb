@@ -37,6 +37,9 @@ Rails.application.routes.draw do
     root to: "dashboard#index"
     get    "clientes",   to: "dashboard#index", as: :clients
     get    "relatorios", to: "dashboard#index", as: :reports
+    resources :produtos, controller: "products", as: :products,
+              only: %i[index new create edit update],
+              path_names: { new: "novo", edit: "editar" }
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout

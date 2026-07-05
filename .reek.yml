@@ -19,6 +19,12 @@ detectors:
                           # transition set (cancel!/request_refund!/confirm_payment!/…)
                           # plus small read-model accessors the storefront renders.
                           # Each method is single-purpose — a rich domain, not a god object.
+      - Admin::ProductFormPresenter # a view-model: one small serializer per section of the
+                                    # editor graph (options/tags/photos/gotm/brindes) plus
+                                    # select/default accessors — cohesive, not a god object.
+      - Catalog::SaveProduct        # a command object: one small sync_* method per collection
+                                    # it persists (options/tags/photos/gotm/brindes), each
+                                    # single-purpose — a cohesive transaction, not a god object.
   LongParameterList:
     max_params: 4         # 4 keyword args is a clean request shape, not a smell —
                           # 5+ is where the smell genuinely lives (cf. Sandi Metz)

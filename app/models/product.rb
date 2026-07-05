@@ -9,6 +9,7 @@ class Product < ApplicationRecord
   has_many :questions, dependent: :destroy
   has_many :product_tags, dependent: :destroy
   has_many :tags, through: :product_tags
+  has_many :game_of_the_month_products, dependent: :destroy
 
   validates :name, presence: true
   validates :price_cents, numericality: { greater_than_or_equal_to: 0 }
