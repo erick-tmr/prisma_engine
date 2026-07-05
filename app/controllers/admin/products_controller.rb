@@ -1,5 +1,7 @@
 module Admin
   class ProductsController < Admin::BaseController
+    before_action :set_product, only: %i[edit update]
+
     def index
       @presenter = Admin::CatalogPresenter.new
     end
@@ -15,16 +17,21 @@ module Admin
     end
 
     def edit
-      @product = Product.friendly.find(params[:id])
       @presenter = Admin::ProductFormPresenter.new(@product)
     end
 
     def update
-      @product = Product.friendly.find(params[:id])
       persist(notice_key: "updated", template: :edit)
     end
 
     private
+
+    def set_product
+      # The catalog is a global, admin-managed resource, not a user-owned record;
+      # Admin::BaseController#require_admin already gates access, so there is no IDOR
+      # surface here to scope the lookup to current_user.
+      @product = Product.friendly.find(params[:id]) # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find
+    end
 
     def persist(notice_key:, template:)
       if Catalog::SaveProduct.call(product: @product, params: product_params).success?

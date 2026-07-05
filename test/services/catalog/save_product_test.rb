@@ -138,6 +138,18 @@ module Catalog
       assert_equal "renomeado", brindes.first.caption
     end
 
+    test "skips a new brinde that has no uploaded image" do
+      product = products(:metroid)
+
+      save(product, graph(gotm: { enabled: true, year: 2033, month: 4,
+        brindes: [ { key: "b-0", caption: "com imagem" }, { key: "no-file", caption: "sem imagem" } ] }),
+        brinde_files: { "b-0" => upload })
+
+      join = product.reload.game_of_the_month_products.first
+      assert_equal 1, join.brindes.size
+      assert_equal "com imagem", join.brindes.first.caption
+    end
+
     test "disabling Jogo do Mês destroys the join and its brindes" do
       product = products(:yellow)
       assert product.game_of_the_month_products.exists?

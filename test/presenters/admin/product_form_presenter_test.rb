@@ -48,6 +48,15 @@ module Admin
       assert_empty graph["options"]
     end
 
+    test "serializes the url of an attached photo" do
+      product = products(:game_box)
+      photo = product.product_photos.create!(position: 0, alt_text: "capa")
+      photo.image.attach(io: File.open(file_fixture("sample_product.jpg")), filename: "s.jpg", content_type: "image/jpeg")
+
+      graph = JSON.parse(Admin::ProductFormPresenter.new(product).graph_json)
+      assert graph["photos"].first["url"].present?
+    end
+
     test "echoes the submitted graph verbatim on re-render" do
       presenter = Admin::ProductFormPresenter.new(Product.new, submitted_graph: '{"tags":["kept"]}')
       assert_equal '{"tags":["kept"]}', presenter.graph_json
