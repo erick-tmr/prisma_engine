@@ -1,13 +1,3 @@
-// Backoffice catalog — product editor. Manages the nested collections the form
-// can't express as plain fields: photos (upload + reorder + alt), option groups
-// and values, tags, and the Game-of-the-Month module with its brindes. Hydrates
-// from the [data-graph] JSON the server renders, mirrors the working state back
-// into the hidden #f-graph field on submit, and validates client-side. Image
-// bytes ride along as per-slot multipart file inputs the command matches by key.
-// Self-contained native ES module — no cross-imports (the description RTE lives
-// in catalog-rte.js and coordinates through the DOM). Browser-only glue (file
-// dialogs, object URLs, drag events) is isolated and coverage-ignored.
-// See app/views/admin/products/_form.html.erb and Catalog::SaveProduct.
 
 export const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -23,7 +13,6 @@ const MSG = {
   gotmOn: "<b>Jogo do Mês</b> ativado — campos extras liberados abaixo."
 };
 
-// ── Pure helpers ─────────────────────────────────────────────────────────────
 export function plural(count, one, many) {
   return `${count} ${count === 1 ? one : many}`;
 }
@@ -97,7 +86,6 @@ export function validate(state, fields) {
   return null;
 }
 
-// ── Editor ───────────────────────────────────────────────────────────────────
 export function initEditor(root) {
   const form = root.querySelector("[data-catalog-editor]");
   if (!form) return null;
@@ -110,7 +98,6 @@ export function initEditor(root) {
 
   const toast = (kind, html) => pushToast(root, kind, html);
 
-  // -- photos --
   const renderPhotos = () => {
     els.photoGrid.replaceChildren();
     state.photos.forEach((photo, index) => els.photoGrid.appendChild(photoCard(photo, index)));
@@ -127,7 +114,7 @@ export function initEditor(root) {
     const card = elt("div", "photo-card");
     card.draggable = true;
     card.dataset.i = index;
-    const frame = elt("div", "photo-frame" + (imageUrl(photo) ? "" : " empty"));
+    const frame = elt("div", "photo-frame" + (imageUrl(photo) ? "" : " is-empty"));
     if (imageUrl(photo)) frame.style.backgroundImage = `url("${imageUrl(photo)}")`;
     frame.innerHTML = (imageUrl(photo) ? "" : `<div class="photo-empty-in"><i class="bi bi-image"></i><span>Enviar imagem</span></div>`) +
       (index === 0 ? `<span class="photo-cover-badge">Capa</span>` : "") +
@@ -168,7 +155,6 @@ export function initEditor(root) {
   const pickPhoto = (photo, rerender) => selectFile(els.photoFiles, photo, `product[photo_files][${photo.key}]`, rerender);
   const removePhotoFile = (photo) => dropFile(els.photoFiles, photo.key);
 
-  // -- option groups --
   const renderGroups = () => {
     els.optGroups.replaceChildren();
     if (!state.groups.length) {
@@ -230,7 +216,6 @@ export function initEditor(root) {
     return row;
   }
 
-  // -- tags --
   const renderTags = () => {
     els.tagEditor.replaceChildren();
     state.tags.forEach((tag, index) => {
@@ -260,7 +245,6 @@ export function initEditor(root) {
     }
   }
 
-  // -- game of the month --
   const gotmValues = () => ({
     enabled: els.gotmToggle.checked,
     year: parseInt(els.gotmYear.value, 10),
@@ -302,7 +286,7 @@ export function initEditor(root) {
     });
 
     const inner = elt("div", "brinde-inner");
-    const photo = elt("div", "brinde-photo" + (imageUrl(brinde) ? "" : " empty"));
+    const photo = elt("div", "brinde-photo" + (imageUrl(brinde) ? "" : " is-empty"));
     if (imageUrl(brinde)) photo.style.backgroundImage = `url("${imageUrl(brinde)}")`;
     photo.innerHTML = imageUrl(brinde) ? "" : `<div class="ph-in"><i class="bi bi-image"></i>Imagem<br>(obrigatória)</div><span class="req-dot"></span>`;
     photo.addEventListener("click", () => pickBrinde(brinde, renderBrindes));
@@ -353,7 +337,6 @@ export function initEditor(root) {
   const pickBrinde = (brinde, rerender) => selectFile(els.brindeFiles, brinde, `product[brinde_files][${brinde.key}]`, rerender);
   const removeBrindeFile = (brinde) => dropFile(els.brindeFiles, brinde.key);
 
-  // -- scalar fields --
   const updateSlugEcho = () => {
     els.slugEcho.textContent = els.slug.value || slugify(els.name.value) || "—";
   };
@@ -412,7 +395,6 @@ export function initEditor(root) {
   return { state, serialize: () => serialize(state, gotmValues()) };
 }
 
-// ── DOM/util factories (jsdom-safe) ──────────────────────────────────────────
 function collectElements(root) {
   const pick = (id) => root.querySelector(`#${id}`);
   return {
@@ -505,7 +487,7 @@ export function applyPickedFile(item, url, rerender) {
   rerender();
 }
 
-/* v8 ignore start -- file dialogs, object URLs and drag events are browser-only */
+/* v8 ignore start */
 function ensureFileInput(container, key, name, onPicked) {
   let input = container.querySelector(`input[data-key="${key}"]`);
   if (input) return input;
