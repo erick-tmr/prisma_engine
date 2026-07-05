@@ -61,6 +61,8 @@ module Admin
       assert_response :success
       assert_select "form[data-catalog-editor]"
       assert_select "#f-name[value=?]", product.name
+      # the editor previews a just-picked photo via a local blob: object URL
+      assert_includes response.headers["Content-Security-Policy"], "img-src 'self' data: blob:"
     end
 
     test "create persists a product and its graph, then redirects with a notice" do
