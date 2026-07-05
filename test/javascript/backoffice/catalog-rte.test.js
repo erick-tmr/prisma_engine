@@ -65,7 +65,7 @@ describe("initRte", () => {
     expect(source.value).toContain("<p>seed</p>");
     expect(api.getHtml()).toContain("<p>seed</p>");
 
-    click(bold); // commands are ignored while in source mode
+    click(bold);
     click(srcBtn);
     expect(api.isSource()).toBe(false);
     expect(bold.disabled).toBe(false);
@@ -121,7 +121,7 @@ describe("initRte", () => {
 
   it("restores the default text, exiting source mode first", () => {
     mount();
-    click(document.querySelector("#rte-source")); // enter source so restore must exit it
+    click(document.querySelector("#rte-source"));
     click(document.querySelector("#desc-restore"));
     expect(document.querySelector("#f-desc").innerHTML).toBe("<p>padrão</p>");
     expect(document.querySelector("#desc-default-tag").hidden).toBe(false);
@@ -139,7 +139,7 @@ describe("initRte", () => {
   it("works without the hidden field or optional controls", () => {
     const api = mount({ field: false, extras: false });
     expect(api.getHtml()).toBe("");
-    fire(document.querySelector("#f-desc"), "input"); // no default tag to hide, no field to sync
+    fire(document.querySelector("#f-desc"), "input");
     expect(api.isSource()).toBe(false);
   });
 });

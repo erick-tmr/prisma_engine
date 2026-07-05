@@ -1,13 +1,3 @@
-// Backoffice catalog — WYSIWYG description editor. A contenteditable surface
-// with a formatting toolbar and an HTML-source toggle. It owns the product
-// `description`: it seeds itself from the hidden #f-desc-field, mirrors edits
-// back into it (so catalog-editor.js just submits the form), and restores the
-// default text. Self-contained native ES module — no cross-imports (Propshaft
-// fingerprints filenames), coordinates with the editor purely through the DOM.
-// The browser-only editing APIs (execCommand, queryCommandState) are isolated
-// and coverage-ignored. See app/views/admin/products/_form.html.erb.
-
-// Light pretty-printer: block tags on their own lines, list items indented.
 export function prettyHtml(html) {
   const normalized = (html || "")
     .replace(/\s*\n\s*/g, "")
@@ -119,12 +109,12 @@ export function initRte(root) {
   return { getHtml, setHtml, sync, isSource: () => state.sourceMode };
 }
 
-/* v8 ignore start -- execCommand/queryCommandState are browser editing APIs absent in jsdom */
+/* v8 ignore start */
 function exec(cmd, value) {
   try {
     document.execCommand(cmd, false, value);
   } catch (_) {
-    /* older/headless engines may reject a command; the edit is simply a no-op */
+    return;
   }
 }
 
@@ -133,7 +123,7 @@ function configureDocument() {
     document.execCommand("defaultParagraphSeparator", false, "p");
     document.execCommand("styleWithCSS", false, false);
   } catch (_) {
-    /* execCommand configuration is best-effort */
+    return;
   }
 }
 

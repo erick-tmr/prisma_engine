@@ -1,12 +1,3 @@
-// Backoffice catalog list — client-side filtering of the server-rendered
-// product table by search, category and status. The rows carry the facts to
-// filter on as data-* attributes (see app/views/admin/products/index.html.erb);
-// this module only shows/hides them, keeps the result count in sync and routes
-// a row click to its editor. Self-contained native ES module via
-// `javascript_include_tag "backoffice/catalog", type: "module"` — no importmap,
-// no build step. The browser runs the guarded bootstrap at the bottom; tests
-// import the named functions and drive them against jsdom.
-
 export function plural(count, one, many) {
   return `${count} ${count === 1 ? one : many}`;
 }

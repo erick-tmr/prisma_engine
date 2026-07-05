@@ -1,11 +1,4 @@
 module Catalog
-  # Persists the whole product graph the backoffice editor submits: core
-  # attributes, option groups, tags, photos and the Game-of-the-Month module,
-  # all in one transaction. The nested collections travel as a JSON blob in
-  # `params[:graph]` (the editor's working state); image bytes travel as
-  # multipart files in `params[:photo_files]` / `params[:brinde_files]`, keyed
-  # by the client keys the JSON references. Lifts the ingest shape from
-  # db/seeds/catalog.rb (build_options / attach_photos / tag reconcile).
   class SaveProduct
     Result = Data.define(:product, :success) do
       def success?
@@ -56,7 +49,6 @@ module Catalog
       ActiveModel::Type::Boolean.new.cast(value)
     end
 
-    # --- core --------------------------------------------------------------
     def assign_core
       product.assign_attributes(
         name:         params[:name],
@@ -70,7 +62,6 @@ module Catalog
       product.slug = params[:slug] if params[:slug].present?
     end
 
-    # --- options -----------------------------------------------------------
     def sync_options
       kept = flatten_options.map do |attrs|
         option = product.product_options.find_or_initialize_by(
@@ -95,13 +86,11 @@ module Catalog
       end
     end
 
-    # --- tags --------------------------------------------------------------
     def sync_tags
       names = Array(graph["tags"]).map { |tag| tag.to_s.strip.downcase }.reject(&:blank?).uniq
       product.tags = names.map { |name| Tag.find_or_create_by!(name: name) }
     end
 
-    # --- photos ------------------------------------------------------------
     def sync_photos
       files = params[:photo_files] || {}
       kept = Array(graph["photos"]).each_with_index.filter_map do |meta, index|
@@ -122,7 +111,6 @@ module Catalog
       end
     end
 
-    # --- game of the month -------------------------------------------------
     def sync_gotm
       gotm = graph["gotm"] || {}
       return product.game_of_the_month_products.destroy_all unless boolean(gotm["enabled"])

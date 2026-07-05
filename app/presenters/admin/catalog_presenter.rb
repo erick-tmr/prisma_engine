@@ -1,8 +1,4 @@
 module Admin
-  # View-model for the backoffice catalog list. Loads the products the table
-  # renders and the per-row facts the design shows (category, option-group
-  # count, price, status), preloading the option-group counts and Game-of-the-
-  # Month membership so the table stays a single pass with no N+1.
   class CatalogPresenter
     def products
       @products ||= Product.includes(:category, product_photos: { image_attachment: :blob }).order(:name)

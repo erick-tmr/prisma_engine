@@ -1,9 +1,4 @@
 module Admin
-  # View-model for the product editor. Serializes the product's nested graph
-  # (option groups, tags, photos, Game-of-the-Month + brindes) into the JSON
-  # island the editor JS hydrates from, and supplies the select options and
-  # defaults the form needs. On a failed save it echoes the submitted graph
-  # back verbatim so the round-trip preserves the operator's in-flight edits.
   class ProductFormPresenter
     DEFAULT_DESCRIPTION = <<~HTML.strip
       <p>Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM, que não precisa de bateria, e seu progresso dura por anos, sem risco de perder os arquivos.</p>

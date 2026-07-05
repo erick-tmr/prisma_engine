@@ -61,7 +61,6 @@ module Admin
       assert_response :success
       assert_select "form[data-catalog-editor]"
       assert_select "#f-name[value=?]", product.name
-      # the editor previews a just-picked photo via a local blob: object URL
       assert_includes response.headers["Content-Security-Policy"], "img-src 'self' data: blob:"
     end
 
@@ -160,7 +159,7 @@ module Admin
 
     test "update turns Jogo do Mês off, removing the join and its brindes" do
       sign_in users(:admin)
-      product = products(:yellow) # fixtures link it to the current edition
+      product = products(:yellow)
 
       assert product.game_of_the_month_products.exists?
       patch admin_product_path(product), params: { product: base_params(

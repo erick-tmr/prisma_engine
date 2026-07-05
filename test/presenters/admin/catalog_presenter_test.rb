@@ -15,13 +15,13 @@ module Admin
     end
 
     test "counts distinct option groups per product" do
-      assert_equal 2, @presenter.option_group_count(products(:yellow)) # Idioma + Caixa
+      assert_equal 2, @presenter.option_group_count(products(:yellow))
       assert_equal 0, @presenter.option_group_count(products(:metroid))
     end
 
     test "flags status as gotm, published or draft" do
-      assert_equal :gotm, @presenter.status(products(:yellow)) # linked to an edition
-      assert_equal :published, @presenter.status(products(:game_box)) # published, never featured
+      assert_equal :gotm, @presenter.status(products(:yellow))
+      assert_equal :published, @presenter.status(products(:game_box))
       assert_equal :draft, @presenter.status(products(:hidden))
     end
   end

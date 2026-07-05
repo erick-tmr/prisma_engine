@@ -27,9 +27,6 @@ module Admin
     private
 
     def set_product
-      # The catalog is a global, admin-managed resource, not a user-owned record;
-      # Admin::BaseController#require_admin already gates access, so there is no IDOR
-      # surface here to scope the lookup to current_user.
       @product = Product.friendly.find(params[:id]) # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find
     end
 

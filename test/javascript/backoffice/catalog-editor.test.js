@@ -175,7 +175,7 @@ describe("initEditor", () => {
     mount();
     const frame = document.querySelector(".photo-frame");
     click(frame);
-    click(frame.querySelector(".drag")); // inside .photo-tools → ignored
+    click(frame.querySelector(".drag"));
     expect(HTMLInputElement.prototype.click).toHaveBeenCalledTimes(1);
   });
 
@@ -195,7 +195,7 @@ describe("initEditor", () => {
     setInput(rows[0].querySelector(".v-name"), "DX");
     setInput(rows[0].querySelector(".v-weight input"), "12");
     expect(api.state.groups[1].values[0]).toEqual({ name: "DX", weight: 12 });
-    setInput(rows[0].querySelector(".v-weight input"), ""); // empty weight → 0
+    setInput(rows[0].querySelector(".v-weight input"), "");
     expect(api.state.groups[1].values[0].weight).toBe(0);
 
     click(rows[0].querySelector(".v-remove"));
@@ -212,8 +212,8 @@ describe("initEditor", () => {
       .mockReturnValueOnce("Zelda").mockReturnValueOnce(null).mockReturnValueOnce("pokemon");
     click(document.querySelector(".tag-add"));
     expect(api.state.tags).toEqual([ "pokemon", "zelda" ]);
-    click(document.querySelector(".tag-add")); // cancelled
-    click(document.querySelector(".tag-add")); // duplicate ignored
+    click(document.querySelector(".tag-add"));
+    click(document.querySelector(".tag-add"));
     expect(api.state.tags).toEqual([ "pokemon", "zelda" ]);
     expect(prompt).toHaveBeenCalledTimes(3);
 
@@ -260,12 +260,12 @@ describe("initEditor", () => {
     expect(api.state.brindes[1].caption).toBe("Cartão");
     expect(api.state.brindes[1].description).toBe("trivia");
     expect(document.querySelector("#brinde-weight").textContent).toBe("8 g");
-    setInput(second.querySelector(".bi-weight input"), ""); // empty weight → 0
+    setInput(second.querySelector(".bi-weight input"), "");
     expect(document.querySelector("#brinde-weight").textContent).toBe("5 g");
 
     click(second.querySelector(".b-remove"));
     expect(api.state.brindes.length).toBe(1);
-    click(document.querySelector(".brinde-photo")); // pick image (stubbed)
+    click(document.querySelector(".brinde-photo"));
     expect(HTMLInputElement.prototype.click).toHaveBeenCalled();
   });
 
@@ -304,7 +304,7 @@ describe("initEditor", () => {
   it("serializes into the hidden graph field on a valid submit", () => {
     const api = mount();
     setInput(document.querySelector("#f-name"), "Novo Jogo");
-    document.querySelector("#f-gotm-pos").value = ""; // empty position → 0
+    document.querySelector("#f-gotm-pos").value = "";
     fire(document.querySelector("#ed-form"), "submit");
     const graph = JSON.parse(document.querySelector("#f-graph").value);
     expect(graph.tags).toEqual([ "pokemon" ]);
@@ -320,7 +320,7 @@ describe("initEditor", () => {
   });
 
   it("blocks submit and toasts when validation fails", () => {
-    mount(); // name is empty
+    mount();
     const form = document.querySelector("#ed-form");
     const event = new window.Event("submit", { bubbles: true, cancelable: true });
     form.dispatchEvent(event);

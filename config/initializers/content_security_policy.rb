@@ -6,9 +6,6 @@ Rails.application.configure do
     policy.script_src  :self
     policy.style_src   :self, :unsafe_inline
     policy.font_src    :self
-    # :blob lets the backoffice catalog editor preview a just-picked photo via a
-    # local object URL before it is uploaded; stored images load from :self (Disk)
-    # or the R2 public host.
     policy.img_src     :self, :data, :blob, *Array(Rails.application.config.x.r2_public_host.presence)
     policy.connect_src :self
     policy.object_src  :none
