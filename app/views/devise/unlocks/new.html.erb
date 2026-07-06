@@ -1,4 +1,4 @@
-<% content_for :title, t("auth.page_title.forgot_password") %>
+<% content_for :title, t("auth.page_title.unlock") %>
 <% content_for :head do %>
   <%= stylesheet_link_tag "pages/auth" %>
 <% end %>
@@ -15,27 +15,25 @@
 
     <div class="auth__form-side">
       <%= link_to new_session_path(resource_name), class: "account-back" do %>
-        <i class="bi bi-arrow-left"></i> <%= t("auth.passwords.back_to_sign_in") %>
+        <i class="bi bi-arrow-left"></i> <%= t("auth.unlocks.back_to_sign_in") %>
       <% end %>
 
-      <h1 class="auth__heading"><%= t("auth.passwords.new_heading") %></h1>
-      <p class="auth__sub"><%= t("auth.passwords.new_lede") %></p>
+      <h1 class="auth__heading"><%= t("auth.unlocks.new_heading") %></h1>
+      <p class="auth__sub"><%= t("auth.unlocks.new_lede") %></p>
 
-      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "auth__form", novalidate: true, data: { resend: "", resend_deadline: @resend_deadline&.iso8601, resend_wait_text: t("auth.resend.wait_text") } }) do |f| %>
+      <%= form_for(resource, as: resource_name, url: unlock_path(resource_name), html: { method: :post, class: "auth__form", novalidate: true, data: { resend: "", resend_deadline: @resend_deadline&.iso8601, resend_wait_text: t("auth.resend.wait_text") } }) do |f| %>
         <div class="field">
           <%= f.label :email, t("auth.fields.email"), class: "field__label" %>
           <%= f.email_field :email, value: @email, autofocus: true, autocomplete: "email", class: "field__input", required: true, placeholder: "voce@email.com" %>
         </div>
 
-        <%= f.submit t("auth.passwords.new_submit"), class: "button button--block auth__submit", data: { resend_submit: "" } %>
+        <%= f.submit t("auth.unlocks.new_submit"), class: "button button--block auth__submit", data: { resend_submit: "" } %>
         <span class="confirm__resend-status" data-resend-status aria-live="polite"></span>
       <% end %>
 
       <div class="auth__foot">
         <%= t("auth.passwords.remembered") %>
         <%= link_to t("auth.sign_in.submit"), new_session_path(resource_name) %>
-        <span class="auth__foot-sep">·</span>
-        <%= link_to t("auth.sign_in.sign_up"), new_registration_path(resource_name) %>
       </div>
     </div>
   </div>

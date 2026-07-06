@@ -23,6 +23,7 @@ pt-BR:
       forgot_password: "Recuperar acesso — Prisma Games"
       reset_password: "Definir nova senha — Prisma Games"
       resend_confirmation: "Reenviar e-mail de confirmação — Prisma Games"
+      unlock: "Desbloquear conta — Prisma Games"
     switch:
       sign_in: "Entrar"
       sign_up: "Criar conta"
@@ -66,6 +67,15 @@ pt-BR:
       new_heading: "Reenviar e-mail de confirmação"
       new_lede: "Não recebeu o e-mail de confirmação? Informe seu endereço e enviaremos outro."
       new_submit: "Reenviar instruções"
+    unlocks:
+      new_heading: "Desbloquear conta"
+      new_lede: "Informe o e-mail do seu cadastro e enviaremos um novo link para desbloquear sua conta."
+      new_submit: "Reenviar link de desbloqueio"
+      back_to_sign_in: "Voltar para o login"
+    resend:
+      cooldown: "Aguarde %{seconds} segundos antes de solicitar outro e-mail."
+      ip_limit: "Muitas solicitações em pouco tempo. Tente novamente mais tarde."
+      wait_text: "Aguarde {s}s para reenviar"
     fields:
       full_name: "Nome completo"
       email: "E-mail"

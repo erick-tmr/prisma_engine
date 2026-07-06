@@ -1,12 +1,13 @@
 module Users
   class ConfirmationsController < Devise::ConfirmationsController
-    # Surface `?email=...` so the post-registration redirect can pre-fill the
-    # confirm-email page with the pill (instead of asking the user to type it
-    # back). When the page is visited cold (no email param), the view falls
-    # back to an input field.
+    include EmailResendCooldown
+
+    enforce_resend_cooldown flow: :confirmation, redirect_to: :new_user_confirmation_path
+
     def new
       super
       @email = params[:email].presence
+      @resend_deadline = resend_deadline(:confirmation, @email)
     end
 
     def show
@@ -15,6 +16,10 @@ module Users
     end
 
     private
+
+    def after_resending_confirmation_instructions_path_for(_resource_name)
+      new_user_confirmation_path(email: resource.email)
+    end
 
     def first_confirmation?
       resource.errors.empty? && resource.saved_change_to_confirmed_at.first.nil?

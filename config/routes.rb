@@ -15,7 +15,9 @@ Rails.application.routes.draw do
              },
              controllers: {
                registrations: "users/registrations",
-               confirmations: "users/confirmations"
+               confirmations: "users/confirmations",
+               passwords: "users/passwords",
+               unlocks: "users/unlocks"
              }
 
   scope path: "minha-conta", module: "account", as: :account do
