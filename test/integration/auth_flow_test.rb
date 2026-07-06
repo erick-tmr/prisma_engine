@@ -47,7 +47,7 @@ class AuthFlowTest < ActionDispatch::IntegrationTest
     assert_difference "ActionMailer::Base.deliveries.size", 1 do
       post user_password_path, params: { user: { email: users(:confirmed).email } }
     end
-    assert_redirected_to new_user_session_path
+    assert_redirected_to new_user_password_path(email: users(:confirmed).email)
   end
 
   test "POST /entrar with an unconfirmed account is rejected with a pt-BR flash" do

@@ -223,3 +223,5 @@
 .confirm__resend { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--pg-border); }
 .confirm__resend .field { margin-bottom: 14px; }
 .confirm__resend-text { font-size: 13.5px; color: var(--pg-muted); margin: 0 0 12px; line-height: 1.5; }
+.confirm__resend-status:not(:empty) { display: block; margin-top: 10px; font-size: 13px; color: var(--pg-muted); }
+button[data-resend-submit]:disabled, input[data-resend-submit]:disabled { opacity: 0.6; cursor: not-allowed; }

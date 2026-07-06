@@ -41,7 +41,7 @@
 
       <div class="confirm__resend">
         <p class="confirm__resend-text"><%= t("auth.confirmations.resend_hint") %></p>
-        <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post, class: "auth__form", novalidate: true }) do |f| %>
+        <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post, class: "auth__form", novalidate: true, data: { resend: "", resend_deadline: @resend_deadline&.iso8601, resend_wait_text: t("auth.resend.wait_text") } }) do |f| %>
           <% if @email.present? %>
             <%= f.hidden_field :email, value: @email %>
           <% else %>
@@ -50,9 +50,10 @@
               <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "field__input", required: true, placeholder: "voce@email.com" %>
             </div>
           <% end %>
-          <button type="submit" class="button-ghost">
+          <button type="submit" class="button-ghost" data-resend-submit>
             <i class="bi bi-arrow-repeat"></i> <%= t("auth.confirmations.resend_submit") %>
           </button>
+          <span class="confirm__resend-status" data-resend-status aria-live="polite"></span>
         <% end %>
       </div>
 
@@ -65,3 +66,7 @@
     </div>
   </div>
 </div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/resend_cooldown", type: "module" %>
+<% end %>

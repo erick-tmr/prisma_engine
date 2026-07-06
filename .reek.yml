@@ -38,6 +38,11 @@ detectors:
                                 # cadence are cohesive configuration, not a god object.
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms
+  DataClump:
+    exclude:
+      - EmailResendCooldown # (flow, email) is a cache-key tuple threaded through the key
+                            # builder + reader + writer; centralizing normalization in one
+                            # key builder (not a value object) is the point, not a smell.
   UtilityFunction:
     enabled: false        # ActiveJob#perform and stateless private helpers (mappers,
                           # connection builders) are normal in jobs/service objects
