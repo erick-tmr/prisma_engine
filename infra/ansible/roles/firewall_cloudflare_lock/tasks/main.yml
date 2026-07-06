@@ -48,11 +48,15 @@
     mode: "0644"
   notify: Reload systemd for firewall units
 
-- name: Enable the origin-lock service
+- name: Reload systemd so the new unit is registered
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start the origin-lock service
   ansible.builtin.systemd:
     name: prisma-cf-firewall.service
     enabled: true
-    daemon_reload: true
+    state: started
 
-- name: Apply the lock now
+- name: Reapply the lock now if the script or drop-in changed
   ansible.builtin.meta: flush_handlers
