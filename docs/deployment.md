@@ -2,12 +2,13 @@
 
 Production runs on a single VPS in São Paulo: the Rails app (Docker, via Kamal) and
 PostgreSQL (installed on the host) live on the same box. Active Storage is on
-Cloudflare R2, email goes through Brevo, and TLS is terminated by kamal-proxy with a
-Let's Encrypt certificate. Background jobs run inside Puma (`SOLID_QUEUE_IN_PUMA=1`),
-so there is no separate worker process.
+Cloudflare R2, email goes through Brevo, and the site runs behind Cloudflare: TLS is
+terminated by kamal-proxy with a Cloudflare Origin certificate (edge SSL mode Full
+(Strict); see docs/cloudflare-launch.md). Background jobs run inside Puma
+(`SOLID_QUEUE_IN_PUMA=1`), so there is no separate worker process.
 
 ```
-Internet :443/:80 -> kamal-proxy (host, Let's Encrypt TLS)
+Internet :443/:80 -> Cloudflare (proxy + WAF) -> kamal-proxy (host, Cloudflare Origin cert)
                         -> app container :80 (Thruster -> Puma :3000 + solid_queue)
                              -> host PostgreSQL 17 (via host.docker.internal)
 nightly: systemd timer -> pg_dump primary -> rclone -> Cloudflare R2
@@ -139,12 +140,13 @@ If this fails after ufw is enabled, check the actual bridge subnet with
 
 ## 3. DNS
 
-Point both names at the VPS before running `kamal setup` (Let's Encrypt HTTP-01 needs
-them resolving):
+TLS is a Cloudflare Origin cert (no ACME challenge), so DNS does not gate `kamal setup`.
+Point both names at the VPS through Cloudflare (**proxied / orange**), and set the edge
+to Full (Strict). Full Cloudflare + cutover runbook: docs/cloudflare-launch.md.
 
 ```
-A   prismagames.com.br       -> VPS_IP
-A   www.prismagames.com.br   -> VPS_IP
+A   prismagames.com.br       -> VPS_IP   (proxied)
+A   www.prismagames.com.br   -> VPS_IP   (proxied)
 ```
 
 Also confirm the R2 public bucket is served from the public host committed in
@@ -303,8 +305,8 @@ the live database), then the final command drops the throwaway.
 
 - `bin/kamal logs`: `db:prepare` ran, no credential decrypt error, Puma up, solid_queue
   supervisor started.
-- `curl -I https://prismagames.com.br/up` returns 200 with a valid Let's Encrypt cert;
-  `http://` redirects to `https://` with no loop.
+- `curl -I https://prismagames.com.br/up` returns 200 through Cloudflare (a `cf-ray`
+  header is present); `http://` redirects to `https://` with no loop.
 - The storefront loads over HTTPS and product images render from the R2 public host.
 - Checkout creates an Order.
 - A registration or password-reset email is delivered through Brevo.

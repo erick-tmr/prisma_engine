@@ -37,8 +37,8 @@ a state file and the young Hostinger Terraform provider's recreate-is-data-loss 
 1. **Hostinger → create VPS**: plan **KVM1**, image **Ubuntu 24.04**, datacenter **São
    Paulo**. Attach the `prisma-vps-deploy` SSH public key. Note the assigned IP.
 2. **Cloudflare → DNS** (once the domain is live): `A  prismagames.com.br → <IP>` and
-   `A  www → <IP>`. Leave **grey cloud** (unproxied) until Let's Encrypt has issued via
-   `kamal setup`, then switch to **orange cloud** (proxied).
+   `A  www → <IP>`, **proxied (orange)**. TLS is a Cloudflare Origin cert (no ACME
+   challenge), so no grey-cloud window is needed. Cutover runbook: docs/cloudflare-launch.md.
 
 ## Secrets
 
@@ -114,8 +114,8 @@ multipass delete --purge prisma-test
 ```
 
 **Not covered locally** (verified the first time we apply to a real box): the
-`firewall_cloudflare_lock` role (needs Docker's `DOCKER-USER` chain) and Kamal +
-Let's Encrypt TLS (need public DNS + inbound 80/443). Neither is part of the local pass.
+`firewall_cloudflare_lock` role (needs Docker's `DOCKER-USER` chain) and Kamal TLS with
+the Cloudflare Origin cert (needs the cert/key in Bitwarden). Neither is in the local pass.
 
 ## Backups: retention, immutability, and monitoring
 
