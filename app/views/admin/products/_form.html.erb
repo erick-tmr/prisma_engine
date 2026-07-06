@@ -1,0 +1,292 @@
+<% new_record = @presenter.new_record? %>
+<% form_url = new_record ? admin_products_path : admin_product_path(@product) %>
+<% form_method = new_record ? :post : :patch %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app">
+  <%= render "admin/sidebar", active: "catalog", counts: nil %>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menu-toggle" type="button" aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.catalog.topbar_title") %></h1>
+        <span class="crumb"><%= t("admin.catalog.crumb") %></span>
+      </div>
+    </header>
+
+    <main class="content">
+      <%= link_to admin_products_path, class: "ed-back" do %>
+        <i class="bi bi-arrow-left"></i> <%= t("admin.catalog.form.back") %>
+      <% end %>
+
+      <div class="ed-head">
+        <div class="ed-head-main">
+          <h1 id="ed-title"><%= new_record ? t("admin.catalog.form.new_title") : @product.name %></h1>
+          <div class="ed-sub" id="ed-sub">
+            <%= new_record ? t("admin.catalog.form.new_sub") : t("admin.catalog.form.edit_sub", category: @product.category_label) %>
+          </div>
+        </div>
+        <div class="ed-head-actions">
+          <%= link_to t("admin.catalog.form.cancel"), admin_products_path, class: "btn-ghost" %>
+          <button class="btn-dark" type="submit" form="ed-form" id="ed-save"><i class="bi bi-check-lg"></i> <%= t("admin.catalog.form.save") %></button>
+        </div>
+      </div>
+
+      <%= form_with url: form_url, method: form_method, scope: :product,
+            html: { class: "ed-grid", id: "ed-form", autocomplete: "off", novalidate: true },
+            data: { catalog_editor: true, graph: @presenter.graph_json },
+            multipart: true do |form| %>
+        <%= form.hidden_field :graph, id: "f-graph", value: @presenter.graph_json %>
+        <%= form.hidden_field :description, id: "f-desc-field", value: @product.description %>
+        <div id="photo-files" class="vh" aria-hidden="true"></div>
+        <div id="brinde-files" class="vh" aria-hidden="true"></div>
+
+        <div class="ed-col-main">
+          <!-- Identificação -->
+          <div class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.identification") %></h2>
+                <div class="hint"><%= t("admin.catalog.form.identification_hint") %></div>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="field">
+                <label for="f-name"><%= t("admin.catalog.form.name") %> <span class="req">*</span></label>
+                <%= form.text_field :name, value: @product.name, class: "inp", id: "f-name", placeholder: t("admin.catalog.form.name_placeholder") %>
+              </div>
+
+              <div class="field slug-field gap-top">
+                <label for="f-slug"><%= t("admin.catalog.form.slug") %>
+                  <span class="lbl-note"><%= t("admin.catalog.form.slug_note") %></span>
+                </label>
+                <%= form.text_field :slug, value: @product.slug, class: "inp", id: "f-slug", placeholder: t("admin.catalog.form.slug_placeholder") %>
+                <div class="fhint"><span class="slug-prefix"><%= t("admin.catalog.form.slug_prefix") %></span><span id="slug-echo">—</span></div>
+              </div>
+
+              <div class="field-row r-price gap-top">
+                <div class="field">
+                  <label for="f-category"><%= t("admin.catalog.form.category") %> <span class="req">*</span></label>
+                  <%= form.select :category_id, @presenter.categories, {}, class: "inp", id: "f-category" %>
+                </div>
+                <div class="field">
+                  <label for="f-price"><%= t("admin.catalog.form.price") %>
+                    <span class="lbl-note"><%= t("admin.catalog.form.price_note") %></span>
+                  </label>
+                  <div class="inp-money">
+                    <span class="cur">R$</span>
+                    <%= form.text_field :price, value: @presenter.price_input, class: "inp", id: "f-price", inputmode: "decimal", placeholder: "0,00" %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field gap-top">
+                <label><%= t("admin.catalog.form.description") %>
+                  <span class="default-tag" id="desc-default-tag"<%= " hidden".html_safe unless @presenter.description_default? %>><i class="bi bi-magic"></i> <%= t("admin.catalog.form.description_default") %></span>
+                  <span class="lbl-note"><%= t("admin.catalog.form.description_note") %></span>
+                </label>
+                <div class="rte" id="rte" data-default="<%= @presenter.default_description %>">
+                  <div class="rte-toolbar" id="rte-toolbar">
+                    <button type="button" class="rte-btn" data-cmd="bold" title="Negrito"><i class="bi bi-type-bold"></i></button>
+                    <button type="button" class="rte-btn" data-cmd="italic" title="Itálico"><i class="bi bi-type-italic"></i></button>
+                    <button type="button" class="rte-btn" data-cmd="underline" title="Sublinhado"><i class="bi bi-type-underline"></i></button>
+                    <span class="rte-sep"></span>
+                    <button type="button" class="rte-btn" data-cmd="insertUnorderedList" title="Lista com marcadores"><i class="bi bi-list-ul"></i></button>
+                    <button type="button" class="rte-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="bi bi-list-ol"></i></button>
+                    <span class="rte-sep"></span>
+                    <button type="button" class="rte-btn" data-cmd="createLink" title="Inserir link"><i class="bi bi-link-45deg"></i></button>
+                    <button type="button" class="rte-btn" data-cmd="unlink" title="Remover link"><i class="bi bi-link-slash"></i></button>
+                    <button type="button" class="rte-btn" data-cmd="removeFormat" title="Limpar formatação"><i class="bi bi-eraser"></i></button>
+                    <span class="rte-spacer"></span>
+                    <button type="button" class="rte-btn rte-code" id="rte-source" title="Ver / editar HTML"><i class="bi bi-code-slash"></i> HTML</button>
+                  </div>
+                  <div class="rte-area" id="f-desc" contenteditable="true" spellcheck="true"></div>
+                  <textarea class="rte-html" id="f-desc-html" spellcheck="false" hidden></textarea>
+                </div>
+                <div class="fhint">
+                  <%= t("admin.catalog.form.description_hint_html") %> <code>description</code>.
+                  <button class="restore-default" id="desc-restore" type="button"><i class="bi bi-arrow-counterclockwise"></i> <%= t("admin.catalog.form.description_restore") %></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fotos -->
+          <div class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.photos") %></h2>
+                <div class="hint"><%= t("admin.catalog.form.photos_hint") %></div>
+              </div>
+              <div class="panel-top-right">
+                <span class="result-count" id="photo-count"></span>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="photo-grid" id="photo-grid"></div>
+            </div>
+          </div>
+
+          <!-- Opções -->
+          <div class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.options") %></h2>
+                <div class="hint"><%= t("admin.catalog.form.options_hint") %></div>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div id="opt-groups"></div>
+              <button class="add-block" id="add-group" type="button"><i class="bi bi-plus-lg"></i> <%= t("admin.catalog.form.add_group") %></button>
+              <div class="weight-note">
+                <i class="bi bi-info-circle"></i>
+                <span><%= t("admin.catalog.form.weight_note_html").html_safe %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jogo do Mês -->
+          <div class="panel" id="gotm-panel" hidden>
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <i class="bi bi-star-fill gotm-crown"></i> <%= t("admin.catalog.form.gotm") %></h2>
+                <div class="hint"><%= t("admin.catalog.form.gotm_hint") %></div>
+              </div>
+              <div class="panel-top-right">
+                <span class="gotm-edition" id="gotm-edition-badge"><i class="bi bi-calendar-event"></i> —</span>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="field-row r-3">
+                <div class="field">
+                  <label for="f-gotm-month"><%= t("admin.catalog.form.gotm_month") %></label>
+                  <select class="inp" id="f-gotm-month">
+                    <% @presenter.months.each do |name, number| %>
+                      <option value="<%= number %>"><%= name.capitalize %></option>
+                    <% end %>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="f-gotm-year"><%= t("admin.catalog.form.gotm_year") %></label>
+                  <select class="inp" id="f-gotm-year">
+                    <% @presenter.years.each do |year| %>
+                      <option value="<%= year %>"><%= year %></option>
+                    <% end %>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="f-gotm-pos"><%= t("admin.catalog.form.gotm_position") %></label>
+                  <div class="inp-suffix">
+                    <input class="inp" id="f-gotm-pos" type="number" min="0" value="0">
+                    <span class="sfx"><%= t("admin.catalog.form.gotm_position_suffix") %></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field gap-top">
+                <label for="f-blurb"><%= t("admin.catalog.form.blurb") %>
+                  <span class="lbl-note"><%= t("admin.catalog.form.blurb_note") %></span>
+                </label>
+                <textarea class="inp" id="f-blurb" rows="2" placeholder="<%= t("admin.catalog.form.blurb_placeholder") %>"></textarea>
+              </div>
+            </div>
+
+            <div class="panel-body">
+              <div class="field is-flush">
+                <label class="brinde-list-label"><%= t("admin.catalog.form.brindes") %>
+                  <span class="lbl-note"><%= t("admin.catalog.form.brindes_note") %></span>
+                </label>
+                <div id="brinde-list"></div>
+                <button class="add-block add-brinde" id="add-brinde" type="button"><i class="bi bi-gift"></i> <%= t("admin.catalog.form.add_brinde") %></button>
+                <div class="gotm-weight-summary">
+                  <i class="bi bi-box-seam"></i> <%= t("admin.catalog.form.brinde_weight_summary") %> <b id="brinde-weight">0 g</b>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="ed-col-side">
+          <!-- Publicação -->
+          <div class="side-card">
+            <div class="side-card-top"><h3><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.publication") %></h3></div>
+            <div class="side-card-body">
+              <div class="toggle-row">
+                <div class="tr-meta">
+                  <div class="tr-title" id="pub-title"><%= @product.published ? t("admin.catalog.form.published_title") : t("admin.catalog.form.draft_title") %></div>
+                  <div class="tr-desc"><%= t("admin.catalog.form.published_desc") %></div>
+                </div>
+                <label class="switch">
+                  <%= form.check_box :published, id: "f-published", checked: @product.published %>
+                  <span class="track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jogo do Mês toggle -->
+          <div class="side-card gotm-toggle-card" id="gotm-card">
+            <div class="side-card-body">
+              <div class="toggle-row is-bare">
+                <div class="tr-meta">
+                  <div class="tr-title"><i class="bi bi-star-fill"></i><%= t("admin.catalog.form.gotm_toggle_title") %></div>
+                  <div class="tr-desc"><%= t("admin.catalog.form.gotm_toggle_desc") %></div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="f-gotm">
+                  <span class="track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div class="side-card">
+            <div class="side-card-top"><h3><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.tags") %></h3></div>
+            <div class="side-card-body">
+              <div class="tag-editor" id="tag-editor"></div>
+            </div>
+          </div>
+
+          <!-- Logística & padrões -->
+          <div class="side-card">
+            <div class="side-card-top"><h3><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.logistics") %></h3></div>
+            <div class="side-card-body">
+              <div class="field is-default">
+                <label for="f-weight"><%= t("admin.catalog.form.weight_base") %>
+                  <span class="default-tag"><i class="bi bi-pin-angle"></i> <%= t("admin.catalog.form.weight_default_tag") %></span>
+                </label>
+                <div class="inp-suffix">
+                  <%= form.number_field :weight_grams, value: @product.weight_grams, class: "inp", id: "f-weight", min: 1 %>
+                  <span class="sfx"><%= t("admin.catalog.form.weight_suffix") %></span>
+                </div>
+                <div class="fhint"><%= t("admin.catalog.form.weight_hint") %>
+                  <button class="restore-default" id="weight-restore" type="button"><i class="bi bi-arrow-counterclockwise"></i> 60 g</button>
+                </div>
+              </div>
+
+              <div class="field is-default">
+                <label for="f-currency"><%= t("admin.catalog.form.currency") %>
+                  <span class="default-tag"><i class="bi bi-pin-angle"></i> <%= t("admin.catalog.form.currency_default_tag") %></span>
+                </label>
+                <%= form.select :currency, @presenter.currencies, {}, class: "inp", id: "f-currency" %>
+              </div>
+            </div>
+          </div>
+        </aside>
+      <% end %>
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite">
+  <% flash.each do |type, message| %>
+    <div class="toast toast-<%= type == "alert" ? "warn" : "ok" %>" data-toast>
+      <i class="bi <%= type == "alert" ? "bi-exclamation-circle-fill" : "bi-check-circle-fill" %>"></i>
+      <div class="tx"><%= message %></div>
+    </div>
+  <% end %>
+</div>

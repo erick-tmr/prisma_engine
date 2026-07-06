@@ -1,0 +1,12 @@
+<% content_for :title, t("admin.catalog.title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-dashboard", "pages/backoffice-catalog" %>
+<% end %>
+
+<%= render "form" %>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "backoffice/catalog-rte", type: "module" %>
+  <%= javascript_include_tag "backoffice/catalog-editor", type: "module" %>
+<% end %>

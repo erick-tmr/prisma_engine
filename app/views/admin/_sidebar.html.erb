@@ -18,6 +18,10 @@
         <% if counts %><span class="count"><%= counts[item[:view]] %></span><% end %>
       </a>
     <% end %>
+    <a class="sb-link<%= " active" if active == "catalog" %>" href="<%= admin_products_path %>">
+      <i class="bi bi-controller"></i> <%= t("admin.dashboard.nav.catalog") %>
+      <% if counts && counts["catalog"] %><span class="count"><%= counts["catalog"] %></span><% end %>
+    </a>
   </nav>
 
   <div class="sb-foot">
