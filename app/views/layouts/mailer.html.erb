@@ -6,7 +6,21 @@
     <meta name="supported-color-schemes" content="light">
     <style>
       :root { color-scheme: light; supported-color-schemes: light; }
-      body { margin: 0; background-color: #eef1f5; }
+      body { margin: 0; padding: 0; background-color: #eef1f5; -webkit-text-size-adjust: 100%; }
+      img { border: 0; outline: none; -ms-interpolation-mode: bicubic; }
+      table { border-collapse: collapse; }
+      a { text-decoration: none; }
+      @media only screen and (max-width: 600px) {
+        .container { width: 100% !important; max-width: 100% !important; border-radius: 0 !important; }
+        .px { padding-left: 22px !important; padding-right: 22px !important; }
+        .heropad { padding-left: 16px !important; padding-right: 16px !important; }
+        .h1 { font-size: 22px !important; line-height: 1.25 !important; }
+        .hero-img { height: 132px !important; }
+        .stack { display: block !important; width: 100% !important; }
+        .price { text-align: left !important; white-space: normal !important; padding-top: 0 !important; padding-bottom: 12px !important; font-weight: 700 !important; }
+        .item { padding-bottom: 2px !important; }
+        .btn a { display: block !important; text-align: center !important; }
+      }
     </style>
   </head>
 
