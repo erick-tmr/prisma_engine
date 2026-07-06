@@ -1,6 +1,5 @@
 # Single São Paulo VPS: Rails app + host-installed Postgres. Runbook: docs/deployment.md.
-# Secrets resolve from .kamal/secrets (Bitwarden). proxy.hosts is the temporary sslip.io
-# test host; swap to prismagames.com.br once the domain is live.
+# Secrets resolve from .kamal/secrets (Bitwarden).
 service: prisma_engine
 
 image: erick-tmr/prisma_engine
@@ -12,10 +11,16 @@ servers:
     options:
       add-host: host.docker.internal:host-gateway
 
+# TLS: Cloudflare Origin CA cert served by kamal-proxy; edge SSL mode is Full (Strict).
+# cert/key come from Bitwarden via .kamal/secrets. Rationale: docs/cloudflare-launch.md.
 proxy:
-  ssl: true
+  ssl:
+    certificate_pem: CLOUDFLARE_ORIGIN_CERT
+    private_key_pem: CLOUDFLARE_ORIGIN_KEY
   hosts:
-    - 187.127.38.87.sslip.io
+    - prismagames.com.br
+    - www.prismagames.com.br
+    - beta.prismagames.com.br
   app_port: 80
   healthcheck:
     path: /up
