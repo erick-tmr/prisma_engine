@@ -1,5 +1,5 @@
 <tr>
-  <td style="padding:22px 40px 0;">
+  <td class="px" style="padding:22px 40px 0;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;border-radius:12px;">
       <tr>
         <td style="padding:16px 18px 6px;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
@@ -9,14 +9,14 @@
       </tr>
       <tr>
         <td style="padding:0 18px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <% @order.order_items.each do |item| %>
+          <% @order.order_items.each do |item| %>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td style="padding:7px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:14px;color:#1a1d21;"><%= item.quantity %>x <%= item.name %></td>
-                <td style="padding:7px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:14px;color:#1a1d21;text-align:right;white-space:nowrap;"><%= format_brl(item.line_total_cents) %></td>
+                <td class="stack item" style="padding:7px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:14px;color:#1a1d21;vertical-align:top;"><%= item.quantity %>x <%= item.name %></td>
+                <td class="stack price" style="padding:7px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:14px;color:#1a1d21;text-align:right;white-space:nowrap;vertical-align:top;"><%= format_brl(item.line_total_cents) %></td>
               </tr>
-            <% end %>
-          </table>
+            </table>
+          <% end %>
         </td>
       </tr>
       <tr>
