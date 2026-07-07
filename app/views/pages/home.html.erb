@@ -3,6 +3,8 @@
   <%= stylesheet_link_tag "components/mes-pill", "pages/home" %>
 <% end %>
 
+<%= render "first_visit_warning" unless cookies[:pg_aviso_home_v1] %>
+
 <% if @banners.any? %>
   <section class="banner">
     <div class="owl-carousel owl-theme"

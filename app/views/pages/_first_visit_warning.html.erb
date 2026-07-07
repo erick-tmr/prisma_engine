@@ -1,0 +1,70 @@
+<% content_for :head do %>
+  <%= stylesheet_link_tag "components/first-visit-warning" %>
+<% end %>
+
+<div class="aviso-overlay" data-first-visit-warning role="dialog" aria-modal="true" aria-labelledby="aviso-title" aria-hidden="true">
+  <div class="aviso-card">
+    <span class="aviso-card__bar" aria-hidden="true"></span>
+    <div class="aviso-card__head">
+      <img class="aviso-card__logo" src="/images/prisma-games-logo.png" alt="Prisma Games">
+      <div class="aviso-titlerow">
+        <span class="aviso-tetris" aria-hidden="true">
+          <span class="tetro tetro--c3">
+            <span class="tcell"></span><span class="tcell tcell--on c-mag"></span><span class="tcell"></span>
+            <span class="tcell tcell--on c-mag"></span><span class="tcell tcell--on c-mag"></span><span class="tcell tcell--on c-mag"></span>
+          </span>
+          <span class="tetro tetro--c2">
+            <span class="tcell tcell--on c-gold"></span><span class="tcell tcell--on c-gold"></span>
+            <span class="tcell tcell--on c-gold"></span><span class="tcell tcell--on c-gold"></span>
+          </span>
+          <span class="tetro tetro--c3">
+            <span class="tcell"></span><span class="tcell tcell--on c-teal"></span><span class="tcell tcell--on c-teal"></span>
+            <span class="tcell tcell--on c-teal"></span><span class="tcell tcell--on c-teal"></span><span class="tcell"></span>
+          </span>
+        </span>
+        <span class="aviso-titlewrap">
+          <h2 class="aviso-card__title" id="aviso-title">Aviso Importante!</h2>
+          <span class="aviso-rainbow" aria-hidden="true"></span>
+        </span>
+        <span class="aviso-tetris" aria-hidden="true">
+          <span class="tetro tetro--c3">
+            <span class="tcell tcell--on c-mag"></span><span class="tcell tcell--on c-mag"></span><span class="tcell"></span>
+            <span class="tcell"></span><span class="tcell tcell--on c-mag"></span><span class="tcell tcell--on c-mag"></span>
+          </span>
+          <span class="tetro tetro--c2">
+            <span class="tcell tcell--on c-teal"></span><span class="tcell"></span>
+            <span class="tcell tcell--on c-teal"></span><span class="tcell"></span>
+            <span class="tcell tcell--on c-teal"></span><span class="tcell tcell--on c-teal"></span>
+          </span>
+          <span class="tetro tetro--c1">
+            <span class="tcell tcell--on c-indigo"></span>
+            <span class="tcell tcell--on c-indigo"></span>
+            <span class="tcell tcell--on c-indigo"></span>
+            <span class="tcell tcell--on c-indigo"></span>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="aviso-card__body" data-aviso-body tabindex="0">
+      <p>A <strong>Prisma Games</strong> está de cara nova, e com isso algumas mudanças importantes que você precisa conhecer antes de continuar:</p>
+      <ul class="aviso-list">
+        <li><i class="bi bi-stars"></i> Este é um <strong>site totalmente novo</strong>, reconstruído do zero para deixar sua experiência muito melhor.</li>
+        <li><i class="bi bi-database-x"></i> <strong>Não migramos os dados do site antigo.</strong> Por isso, será necessário <strong>criar uma nova conta</strong> para comprar e acompanhar seus pedidos.</li>
+        <li><i class="bi bi-clock-history"></i> <strong>Seus pedidos anteriores não aparecerão aqui.</strong> O histórico do site antigo não foi transferido, mas fique tranquilo, eles continuam válidos e nossa equipe segue à disposição para qualquer dúvida sobre eles.</li>
+      </ul>
+      <p>Agradecemos a sua compreensão e desejamos ótimas compras. Bem-vindo à nova Prisma Games! 🎮</p>
+    </div>
+
+    <div class="aviso-card__foot">
+      <div class="aviso-scrollhint" data-aviso-hint><i class="bi bi-arrow-down-circle"></i> Role até o final para continuar</div>
+      <button type="button" class="aviso-btn" data-aviso-ok disabled>
+        <i class="bi bi-check2-circle"></i> Li e compreendi toda a mensagem
+      </button>
+    </div>
+  </div>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/first_visit_warning", type: "module" %>
+<% end %>
