@@ -1,0 +1,130 @@
+.aviso-overlay {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(20, 22, 28, 0.62);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.aviso-overlay.is-open { opacity: 1; visibility: visible; }
+.aviso-card {
+  position: relative; width: 100%; max-width: 540px;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  display: flex; flex-direction: column;
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+  transform: translateY(16px) scale(0.98); transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.aviso-overlay.is-open .aviso-card { transform: translateY(0) scale(1); }
+.aviso-card__bar {
+  height: 6px; width: 100%; flex-shrink: 0;
+  background: var(--pg-rainbow); background-size: 200% 100%;
+}
+.aviso-card__head {
+  flex-shrink: 0; padding: 26px 34px 6px; text-align: center;
+}
+.aviso-card__logo { display: block; height: 56px; width: auto; margin: 0 auto 22px; }
+
+.aviso-titlerow {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+}
+.aviso-tetris {
+  display: flex; align-items: flex-end; align-self: flex-end; gap: 5px; flex-shrink: 0;
+}
+.tetro { display: grid; gap: 0; }
+.tetro--c1 { grid-template-columns: repeat(1, 10px); }
+.tetro--c2 { grid-template-columns: repeat(2, 10px); }
+.tetro--c3 { grid-template-columns: repeat(3, 10px); }
+.tcell { width: 10px; height: 10px; }
+.tcell--on {
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.5), inset -2px -2px 0 rgba(0, 0, 0, 0.28);
+}
+.c-mag { background: #b80a41; } .c-gold { background: #daac06; }
+.c-teal { background: #00938a; } .c-indigo { background: #4e4ba8; }
+.aviso-titlewrap { position: relative; display: inline-flex; align-items: center; }
+.aviso-rainbow {
+  position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px;
+  height: 5px; border-radius: 3px; background: var(--pg-rainbow); background-size: 200% 100%;
+  animation: rainbow-slide 3s linear infinite;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .aviso-overlay.is-open .tetro { animation: tetro-fall 0.8s linear both; }
+  .aviso-overlay.is-open .aviso-tetris:first-of-type .tetro:nth-child(1) { animation-delay: 0.05s; }
+  .aviso-overlay.is-open .aviso-tetris:first-of-type .tetro:nth-child(2) { animation-delay: 0.20s; }
+  .aviso-overlay.is-open .aviso-tetris:first-of-type .tetro:nth-child(3) { animation-delay: 0.36s; }
+  .aviso-overlay.is-open .aviso-tetris:last-of-type .tetro:nth-child(1) { animation-delay: 0.12s; }
+  .aviso-overlay.is-open .aviso-tetris:last-of-type .tetro:nth-child(2) { animation-delay: 0.29s; }
+  .aviso-overlay.is-open .aviso-tetris:last-of-type .tetro:nth-child(3) { animation-delay: 0.46s; }
+}
+@keyframes tetro-fall {
+  0%   { transform: translateY(-180px); opacity: 0; animation-timing-function: ease-in; }
+  8%   { opacity: 1; }
+  60%  { transform: translateY(0); animation-timing-function: ease-out; }
+  74%  { transform: translateY(-8px); animation-timing-function: ease-in; }
+  86%  { transform: translateY(0); animation-timing-function: ease-out; }
+  93%  { transform: translateY(-3px); animation-timing-function: ease-in; }
+  100% { transform: translateY(0); }
+}
+
+.aviso-card__title {
+  margin: 0; font-size: 27px; font-weight: 800; letter-spacing: -0.01em; color: var(--pg-ink);
+}
+.aviso-card__body {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 14px 34px 22px; margin-top: 8px;
+  color: #40454c; font-size: 15px; line-height: 1.6;
+}
+.aviso-card__body p { margin: 0 0 14px; }
+.aviso-card__body p:first-child { margin-top: 0; }
+.aviso-card__body strong { color: var(--pg-ink); font-weight: 700; }
+.aviso-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.aviso-list li {
+  position: relative; padding: 12px 14px 12px 46px;
+  background: var(--pg-bg); border: 1px solid var(--pg-border); border-radius: 11px;
+  font-size: 14.5px; line-height: 1.5;
+}
+.aviso-list li i {
+  position: absolute; left: 14px; top: 13px; font-size: 20px; color: var(--pg-navy);
+}
+.aviso-card__foot {
+  flex-shrink: 0; position: relative; padding: 18px 34px 26px;
+  background: #fff;
+}
+.aviso-scrollhint {
+  position: absolute; top: -46px; left: 0; right: 0; height: 46px; pointer-events: none;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px;
+  background: linear-gradient(to top, #fff 24%, rgba(255, 255, 255, 0));
+  font-size: 12.5px; font-weight: 600; color: var(--pg-muted);
+  transition: opacity 0.25s ease;
+}
+.aviso-scrollhint i { margin-right: 6px; animation: aviso-bob 1.2s ease-in-out infinite; }
+@keyframes aviso-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+.aviso-card.is-read .aviso-scrollhint { opacity: 0; }
+.aviso-btn {
+  width: 100%; border: 0; border-radius: 11px; padding: 15px 20px;
+  font: inherit; font-size: 15.5px; font-weight: 700; color: #fff;
+  background: var(--pg-navy); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.12s ease;
+}
+.aviso-btn:disabled { background: #c3c7ce; cursor: not-allowed; }
+.aviso-btn:not(:disabled):hover { background: #24276f; }
+.aviso-btn:not(:disabled):active { transform: translateY(1px); }
+@media (max-width: 560px) {
+  .aviso-overlay { padding: 12px; }
+  .aviso-card { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); border-radius: 14px; }
+  .aviso-card__head { padding: 22px 20px 4px; }
+  .aviso-card__logo { height: 46px; margin-bottom: 16px; }
+  .aviso-titlerow { gap: 10px; }
+  .aviso-card__body { padding: 12px 20px 20px; font-size: 14.5px; }
+  .aviso-list li { font-size: 14px; padding: 11px 12px 11px 42px; }
+  .aviso-list li i { top: 12px; font-size: 18px; }
+  .aviso-card__foot { padding: 14px 20px 20px; }
+  .aviso-card__title { font-size: 22px; }
+  .aviso-btn { font-size: 15px; padding: 14px 16px; }
+}
+@media (max-width: 400px) {
+  .aviso-card__title { font-size: 20px; }
+  .aviso-btn { font-size: 14px; gap: 7px; }
+}
