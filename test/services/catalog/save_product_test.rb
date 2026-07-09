@@ -37,6 +37,11 @@ module Catalog
       assert_equal "custom-slug", result.product.slug
     end
 
+    test "assigns the custom_order flag from the toggle" do
+      assert save(Product.new(name: "Sob Encomenda"), graph, custom_order: "1").product.custom_order?
+      assert_not save(Product.new(name: "Produto Normal"), graph, custom_order: "0").product.custom_order?
+    end
+
     test "syncs option groups into positioned rows and drops blanks" do
       product = Product.create!(name: "Base", category: categories(:gb_color), weight_grams: 60)
       save(product, graph(options: [

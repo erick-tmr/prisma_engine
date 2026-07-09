@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_04_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_09_120100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -129,6 +129,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_04_170000) do
     t.string "photo_path"
     t.bigint "product_id"
     t.integer "quantity", null: false
+    t.text "request_notes"
+    t.string "requested_game"
     t.integer "unit_price_cents", null: false
     t.datetime "updated_at", null: false
     t.index ["order_id"], name: "index_order_items_on_order_id"
@@ -223,6 +225,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_04_170000) do
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.string "currency", default: "BRL", null: false
+    t.boolean "custom_order"
     t.text "description"
     t.string "legacy_image_path"
     t.string "name", null: false

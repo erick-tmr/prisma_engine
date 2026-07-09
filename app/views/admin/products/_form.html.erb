@@ -227,6 +227,23 @@
             </div>
           </div>
 
+          <!-- Sob encomenda -->
+          <div class="side-card">
+            <div class="side-card-top"><h3><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.custom_order") %></h3></div>
+            <div class="side-card-body">
+              <div class="toggle-row">
+                <div class="tr-meta">
+                  <div class="tr-title"><%= t("admin.catalog.form.custom_order_title") %></div>
+                  <div class="tr-desc"><%= t("admin.catalog.form.custom_order_desc") %></div>
+                </div>
+                <label class="switch">
+                  <%= form.check_box :custom_order, id: "f-custom-order", checked: @product.custom_order %>
+                  <span class="track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
           <!-- Jogo do Mês toggle -->
           <div class="side-card gotm-toggle-card" id="gotm-card">
             <div class="side-card-body">

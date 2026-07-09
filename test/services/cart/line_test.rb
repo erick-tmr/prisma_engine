@@ -57,4 +57,19 @@ class Cart::LineTest < ActiveSupport::TestCase
     )
     assert_equal 22, line.weight_grams
   end
+
+  test "requested_game and request_notes default to nil" do
+    line = Cart::Line.new(id: "abc123", product: products(:yellow), quantity: 1, options: [])
+    assert_nil line.requested_game
+    assert_nil line.request_notes
+  end
+
+  test "requested_game and request_notes expose the made-to-order request" do
+    line = Cart::Line.new(
+      id: "abc123", product: products(:pedido_game), quantity: 1, options: [],
+      requested_game: "Pokemon Unbound", request_notes: "v2.1 please"
+    )
+    assert_equal "Pokemon Unbound", line.requested_game
+    assert_equal "v2.1 please", line.request_notes
+  end
 end

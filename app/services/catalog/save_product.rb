@@ -57,6 +57,7 @@ module Catalog
         weight_grams: params[:weight_grams],
         currency:     params[:currency],
         published:    boolean(params[:published]),
+        custom_order: boolean(params[:custom_order]),
         price_cents:  HasMoney.parse(params[:price])
       )
       product.slug = params[:slug] if params[:slug].present?

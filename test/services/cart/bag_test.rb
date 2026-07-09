@@ -9,6 +9,10 @@ class Cart::BagTest < ActiveSupport::TestCase
     [ product_options(:yellow_idioma_pt), product_options(:yellow_caixa_sem) ]
   end
 
+  def pedido
+    products(:pedido_game)
+  end
+
   test "from_cookie tolerates nil + non-hash + unknown version" do
     assert_equal [], Cart::Bag.from_cookie(nil).items
     assert_equal [], Cart::Bag.from_cookie("rubbish").items
@@ -65,6 +69,74 @@ class Cart::BagTest < ActiveSupport::TestCase
     bag.add(product: yellow, quantity: 1, option_ids: [ product_options(:yellow_idioma_pt).id ])
     bag.add(product: yellow, quantity: 1, option_ids: [ product_options(:yellow_idioma_en).id ])
     assert_equal 2, bag.items.length
+  end
+
+  test "add stores the made-to-order request and strips the game" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "  Pokemon Unbound  ", notes: "   " })
+    assert_equal({ "g" => "Pokemon Unbound" }, bag.items.first["r"])
+  end
+
+  test "add keeps request notes when present" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "Zelda", notes: "carcaça azul" })
+    assert_equal({ "g" => "Zelda", "n" => "carcaça azul" }, bag.items.first["r"])
+  end
+
+  test "add omits the request when the game is blank" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "  ", notes: "orphan note" })
+    refute bag.items.first.key?("r")
+  end
+
+  test "add merges lines carrying an identical request" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "Zelda", notes: "azul" })
+    bag.add(product: pedido, quantity: 2, option_ids: [], request: { game: "Zelda", notes: "azul" })
+    assert_equal 1, bag.items.length
+    assert_equal 3, bag.items.first["q"]
+  end
+
+  test "add keeps requests with different games on separate lines" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "Zelda" })
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "Metroid" })
+    assert_equal 2, bag.items.length
+  end
+
+  test "add caps the request game and notes lengths" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "g" * 200, notes: "n" * 800 })
+    request = bag.items.first["r"]
+    assert_equal 120, request["g"].length
+    assert_equal 500, request["n"].length
+  end
+
+  test "from_cookie hydrates a request and normalises a blank one away" do
+    bag = Cart::Bag.from_cookie({
+      "v" => 1,
+      "items" => [
+        { "id" => "withreq_", "p" => pedido.id, "q" => 1, "o" => [], "r" => { "g" => "Zelda", "n" => "azul" } },
+        { "id" => "blankg__", "p" => pedido.id, "q" => 1, "o" => [], "r" => { "g" => "  " } }
+      ]
+    })
+    assert_equal({ "g" => "Zelda", "n" => "azul" }, bag.items.find { |i| i["id"] == "withreq_" }["r"])
+    refute bag.items.find { |i| i["id"] == "blankg__" }.key?("r")
+  end
+
+  test "lines exposes the requested game and notes" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "Zelda", notes: "azul" })
+    line = bag.lines.first
+    assert_equal "Zelda", line.requested_game
+    assert_equal "azul", line.request_notes
+  end
+
+  test "to_cookie round-trips a request line" do
+    bag = Cart::Bag.new
+    bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "Zelda", notes: "azul" })
+    round_tripped = Cart::Bag.from_cookie(JSON.parse(bag.to_cookie.to_json))
+    assert_equal bag.items, round_tripped.items
   end
 
   test "add clamps quantity to the 1..99 range" do

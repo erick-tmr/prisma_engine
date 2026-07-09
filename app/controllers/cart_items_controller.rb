@@ -6,11 +6,17 @@ class CartItemsController < ApplicationController
     # on a published product is the expected lookup for any shopper.
     # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find
     product = Product.published.find(params[:product_id])
+    if product.custom_order? && params.dig(:request, :game).to_s.strip.empty?
+      flash[:error] = "Informe o nome do jogo para este pedido."
+      # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
+      return redirect_to product_path(product)
+    end
     cart = current_cart
     cart.add(
       product:    product,
       quantity:   params[:quantity],
-      option_ids: validated_option_ids(product, params[:option_ids])
+      option_ids: validated_option_ids(product, params[:option_ids]),
+      request:    request_for(product)
     )
     persist!(cart)
     flash[:cart_added] = "Produto adicionado ao carrinho."
@@ -53,6 +59,11 @@ class CartItemsController < ApplicationController
   def validated_option_ids(product, raw)
     valid_ids = product.product_options.pluck(:id).to_set
     Array(raw).map(&:to_i).select { |id| valid_ids.include?(id) }
+  end
+
+  def request_for(product)
+    return nil unless product.custom_order?
+    { game: params.dig(:request, :game), notes: params.dig(:request, :notes) }
   end
 
   def product_for_line(cart, line_id)

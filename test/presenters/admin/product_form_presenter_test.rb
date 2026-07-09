@@ -10,6 +10,7 @@ module Admin
       assert_equal 60, product.weight_grams
       assert_equal 19_000, product.price_cents
       assert product.published
+      assert_equal false, product.custom_order
       assert_equal Admin::ProductFormPresenter::DEFAULT_DESCRIPTION, product.description
     end
 

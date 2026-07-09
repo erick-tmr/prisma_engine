@@ -7,11 +7,13 @@ module Cart
   # Cookie payload shape (versioned so we can evolve later without exploding
   # everyone's existing cart):
   #
-  #   { "v" => 1, "items" => [{ "id" => "<8 chars>", "p" => 42, "q" => 1, "o" => [3, 7] }] }
+  #   { "v" => 1, "items" => [{ "id" => "<8 chars>", "p" => 42, "q" => 1, "o" => [3, 7],
+  #                             "r" => { "g" => "<game>", "n" => "<notes>" } }] }
   #
   # A line's `id` is a stable random token allocated at add-time; it survives
   # option edits so the in-cart variant editor can swap `o` without losing the
-  # line.
+  # line. `r` is the optional made-to-order request (game + notes); it is absent
+  # on regular lines and its `n` is dropped when blank.
   #
   # Reek's TooManyMethods threshold (15) is too tight for a service object that
   # owns the full cart vocabulary — add/update/remove × hydrated reads × cookie
@@ -22,6 +24,8 @@ module Cart
     VERSION = 1
     QUANTITY_RANGE = 1..99
     ID_LENGTH = 8
+    GAME_MAX_LENGTH = 120
+    NOTES_MAX_LENGTH = 500
 
     def self.from_cookie(payload)
       raw = payload.is_a?(Hash) && payload["v"] == VERSION ? Array(payload["items"]) : []
@@ -35,9 +39,20 @@ module Cart
       quantity   = row["q"].to_i
       option_ids = Array(row["o"]).map(&:to_i).sort
       return nil if id.empty? || product_id <= 0 || quantity <= 0
-      { "id" => id, "p" => product_id, "q" => quantity, "o" => option_ids }
+      base = { "id" => id, "p" => product_id, "q" => quantity, "o" => option_ids }
+      request = normalize_request(row["r"])
+      request ? base.merge("r" => request) : base
     end
     private_class_method :normalize_row
+
+    def self.normalize_request(raw)
+      return nil unless raw.is_a?(Hash)
+      game = raw["g"].to_s.strip[0, GAME_MAX_LENGTH]
+      return nil if game.empty?
+      notes = raw["n"].to_s.strip[0, NOTES_MAX_LENGTH]
+      request = { "g" => game }
+      notes.empty? ? request : request.merge("n" => notes)
+    end
 
     attr_reader :items
 
@@ -57,14 +72,17 @@ module Cart
       items.sum { |item| item["q"] }
     end
 
-    def add(product:, quantity:, option_ids: [])
+    def add(product:, quantity:, option_ids: [], request: nil)
       qty = clamp(quantity)
       ids = Array(option_ids).map(&:to_i).sort
-      existing = items.find { |item| item["p"] == product.id && item["o"] == ids }
+      req = self.class.normalize_request("g" => request&.dig(:game), "n" => request&.dig(:notes))
+      existing = items.find { |item| item["p"] == product.id && item["o"] == ids && item["r"] == req }
       if existing
         existing["q"] = clamp(existing["q"] + qty)
       else
-        items << { "id" => SecureRandom.alphanumeric(ID_LENGTH), "p" => product.id, "q" => qty, "o" => ids }
+        row = { "id" => SecureRandom.alphanumeric(ID_LENGTH), "p" => product.id, "q" => qty, "o" => ids }
+        row["r"] = req if req
+        items << row
       end
       self
     end
@@ -139,7 +157,9 @@ module Cart
       return nil unless product
       chosen = item["o"].map { |option_id| options_by_id[option_id] }
       return nil if chosen.any?(&:nil?) || chosen.any? { |opt| opt.product_id != product.id }
-      Line.new(id: item["id"], product: product, quantity: item["q"], options: chosen)
+      request = item["r"]
+      Line.new(id: item["id"], product: product, quantity: item["q"], options: chosen,
+               requested_game: request&.dig("g"), request_notes: request&.dig("n"))
     end
 
     def find_item(line_id)
