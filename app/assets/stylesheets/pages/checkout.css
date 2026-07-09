@@ -352,6 +352,49 @@
 .checkout__sum-item-cat { font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pg-faint); margin: 0 0 2px; }
 .checkout__sum-item-name { font-size: 13px; font-weight: 600; line-height: 1.3; margin: 0 0 4px; }
 .checkout__sum-item-opts { font-size: 11.5px; color: var(--pg-muted); line-height: 1.45; }
+.checkout__sum-thumb--pedido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pg-green-bg);
+  border-color: #cfe7d8;
+  color: var(--pg-green);
+  font-size: 22px;
+}
+.checkout__sum-item-pedido {
+  position: relative;
+  overflow: hidden;
+  margin-top: 7px;
+  border: 1px solid var(--pg-border);
+  border-radius: 9px;
+  background: #fafbfc;
+  padding: 8px 10px 9px 12px;
+}
+.checkout__sum-item-pedido::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--pg-rainbow-edge);
+}
+.checkout__sum-item-pedido-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pg-green);
+}
+.checkout__sum-item-pedido-head i { font-size: 11px; }
+.checkout__sum-item-pedido-row { font-size: 11.5px; line-height: 1.5; color: #374151; margin-top: 2px; }
+.checkout__sum-item-pedido-row .k { color: var(--pg-muted); font-weight: 600; }
+.checkout__sum-item-pedido-row .v { color: var(--pg-ink); font-weight: 600; }
+.checkout__sum-item-pedido-row .v.is-empty { color: #98a0aa; font-weight: 400; font-style: italic; }
 .checkout__sum-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
 .checkout__sum-item-price { font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 .checkout__sum-item-qty {

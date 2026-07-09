@@ -46,6 +46,24 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_select "input[name=address_id][value=?]", @address.id.to_s
   end
 
+  test "GET /checkout renders the made-to-order request block in the summary" do
+    sign_in @user
+    post cart_items_path, params: {
+      product_id: products(:pedido_game).id, quantity: 1,
+      request: { game: "Pokemon Unbound", notes: "carcaça translúcida roxa" }
+    }
+    post cart_items_path, params: {
+      product_id: products(:pedido_game).id, quantity: 1, request: { game: "Zelda Redux" }
+    }
+    get checkout_path
+
+    assert_response :success
+    assert_select ".checkout__sum-thumb--pedido i.bi-card-checklist", minimum: 1
+    assert_select ".checkout__sum-item-pedido-row .v", text: "Pokemon Unbound"
+    assert_select ".checkout__sum-item-pedido-row .v", text: "carcaça translúcida roxa"
+    assert_select ".checkout__sum-item-pedido-row .v.is-empty", text: "Sem observações"
+  end
+
   test "GET /checkout uses the minimal checkout chrome, not the storefront header" do
     sign_in @user
     add_yellow_to_cart

@@ -125,6 +125,30 @@ class CartTest < ActionDispatch::IntegrationTest
     assert_select ".chip--edition", count: 0
   end
 
+  test "a made-to-order line renders the request block instead of the variant editor" do
+    post cart_items_path, params: {
+      product_id: products(:pedido_game).id, quantity: 1,
+      request: { game: "Pokemon Unbound", notes: "carcaça translúcida roxa" }
+    }
+    get "/carrinho"
+
+    assert_response :success
+    assert_select ".cart-item.is-pedido"
+    assert_select ".cart-item__thumb--pedido i.bi-card-checklist"
+    assert_select ".cart-item__pedido-field .v", text: "Pokemon Unbound"
+    assert_select ".cart-item__pedido-field .v", text: "carcaça translúcida roxa"
+    assert_select ".cart-item.is-pedido [data-edit-toggle]", count: 0
+  end
+
+  test "a made-to-order line without notes shows the empty observations fallback" do
+    post cart_items_path, params: {
+      product_id: products(:pedido_game).id, quantity: 1, request: { game: "Zelda Redux" }
+    }
+    get "/carrinho"
+
+    assert_select ".cart-item__pedido-field .v.is-empty", text: "Sem observações"
+  end
+
   test "finalize bounces a guest to login and remembers the checkout return path" do
     post cart_finalize_path
     assert_redirected_to new_user_session_path

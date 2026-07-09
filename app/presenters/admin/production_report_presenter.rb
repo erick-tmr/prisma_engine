@@ -1,7 +1,7 @@
 module Admin
   class ProductionReportPresenter
     Row = Data.define(:seq, :customer, :number, :placed_on, :items, :observation)
-    Item = Data.define(:quantity, :name, :variants)
+    Item = Data.define(:quantity, :name, :variants, :requested_game, :request_notes)
 
     def self.for_batch(batch)
       orders = batch.orders.includes(:user, order_items: { product: :category }).order(created_at: :asc)
@@ -55,7 +55,13 @@ module Admin
     end
 
     def build_item(item)
-      Item.new(quantity: item.quantity, name: item.name, variants: variant_values(item.chosen_options))
+      Item.new(
+        quantity: item.quantity,
+        name: item.name,
+        variants: variant_values(item.chosen_options),
+        requested_game: item.requested_game,
+        request_notes: item.request_notes
+      )
     end
 
     def variant_values(chosen_options)

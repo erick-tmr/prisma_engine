@@ -635,6 +635,8 @@ pt-BR:
         print: "Imprimir"
         checkbox_aria: "Marcar como produzido"
         observation: "Observação"
+        requested_game: "Jogo solicitado"
+        request_notes: "Obs."
   activerecord:
     attributes:
       user:

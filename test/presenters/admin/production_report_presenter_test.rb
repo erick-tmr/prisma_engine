@@ -45,6 +45,22 @@ module Admin
       assert_equal [], ProductionReportPresenter.new(orders: [ order ]).rows.first.items.first.variants
     end
 
+    test "items carry the made-to-order requested game and notes" do
+      order = order_with([
+        { name: "Pokémon Hacks (Pedidos)", requested_game: "Pokémon Unbound", request_notes: "carcaça roxa" },
+        { name: "Metroid II" }
+      ])
+      items = ProductionReportPresenter.new(orders: [ order ]).rows.first.items
+
+      pedido = items.find { |item| item.name == "Pokémon Hacks (Pedidos)" }
+      assert_equal "Pokémon Unbound", pedido.requested_game
+      assert_equal "carcaça roxa", pedido.request_notes
+
+      plain = items.find { |item| item.name == "Metroid II" }
+      assert_nil plain.requested_game
+      assert_nil plain.request_notes
+    end
+
     test "rows carry the customer observation" do
       order = order_with([ { chosen_options: [] } ])
       order.update!(observation: "Sem etiqueta repro")

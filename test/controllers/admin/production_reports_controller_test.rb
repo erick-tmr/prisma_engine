@@ -105,6 +105,29 @@ module Admin
       assert_match "Lote ##{batch.id}", response.body
     end
 
+    test "the sheet shows the requested game and notes for made-to-order items" do
+      sign_in users(:admin)
+      pedido = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 38_000, total_cents: 38_000)
+      pedido.order_items.create!(
+        product: products(:pedido_game), name: "Pokémon Hacks (Pedidos)", unit_price_cents: 19_000, quantity: 1,
+        chosen_options: [ "Idioma: Inglês" ], requested_game: "Pokémon Unbound", request_notes: "carcaça translúcida roxa"
+      )
+      pedido.order_items.create!(
+        product: products(:pedido_game), name: "Game Boy Classic/Color (Pedidos)", unit_price_cents: 19_000, quantity: 1,
+        chosen_options: [], requested_game: "Zelda Redux"
+      )
+
+      post admin_production_report_path
+      batch = ProductionBatch.order(:id).last
+      get admin_production_report_batch_path(batch)
+
+      assert_response :success
+      assert_select ".pr-item__pedido-game", text: /Pokémon Unbound/
+      assert_select ".pr-item__pedido-game", text: /Zelda Redux/
+      assert_select ".pr-item__pedido-note", text: /carcaça translúcida roxa/
+      assert_select ".pr-item__pedido-note", count: 1
+    end
+
     test "the sheet shows the customer observation when the order has one" do
       sign_in users(:admin)
       noted = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 1_000, total_cents: 1_000,

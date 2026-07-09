@@ -77,6 +77,57 @@
   border: 1px solid var(--pg-border);
 }
 .cart-item__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cart-item__thumb--pedido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pg-green-bg);
+  border-color: #cfe7d8;
+  color: var(--pg-green);
+  font-size: 34px;
+}
+.cart-item__pedido {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--pg-border);
+  border-radius: 11px;
+  background: #fafbfc;
+  padding: 11px 13px 12px 15px;
+  margin: 0 0 14px;
+  max-width: 440px;
+}
+.cart-item__pedido::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--pg-rainbow-edge);
+}
+.cart-item__pedido-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--pg-muted);
+}
+.cart-item__pedido-head i { font-size: 13px; color: var(--pg-green); }
+.cart-item__pedido-field {
+  display: flex;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cart-item__pedido-field + .cart-item__pedido-field { border-top: 1px dashed var(--pg-border); }
+.cart-item__pedido-field .k { flex: 0 0 112px; color: var(--pg-muted); font-weight: 600; }
+.cart-item__pedido-field .v { flex: 1; min-width: 0; color: var(--pg-ink); font-weight: 600; white-space: pre-wrap; }
+.cart-item__pedido-field .v.is-empty { color: #98a0aa; font-weight: 400; font-style: italic; }
 .cart-item__cat {
   font-size: 10px;
   font-weight: 700;
@@ -403,6 +454,9 @@
 @media (max-width: 560px) {
   .cart-item { grid-template-columns: 72px 1fr; }
   .cart-item__thumb { width: 72px; height: 72px; }
+  .cart-item__thumb--pedido { font-size: 26px; }
   .cart-item__prices { grid-column: 2; text-align: left; display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
   .cart-item__unit { margin-top: 0; }
+  .cart-item__pedido-field { flex-direction: column; gap: 2px; }
+  .cart-item__pedido-field .k { flex: none; }
 }
