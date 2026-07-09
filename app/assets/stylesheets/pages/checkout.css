@@ -275,7 +275,7 @@
 
 .checkout__obs-note {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 9px;
   margin: 0 0 13px;
   background: #f4f7fb;
@@ -286,7 +286,7 @@
   color: #3f546b;
   line-height: 1.5;
 }
-.checkout__obs-note i { font-size: 15px; color: var(--pg-primary); flex-shrink: 0; margin-top: 1px; }
+.checkout__obs-note i { font-size: 15px; color: var(--pg-primary); flex-shrink: 0; }
 .checkout__obs-field { position: relative; }
 .checkout__obs-input {
   width: 100%;
