@@ -4,16 +4,23 @@ module Cart
   # deltas in the catalog reach the cart on the next render without a
   # cookie rewrite.
   class Line
-    def initialize(id:, product:, quantity:, options:, requested_game: nil, request_notes: nil)
+    def initialize(id:, product:, quantity:, options:, request: nil)
       @id = id
       @product = product
       @quantity = quantity
       @options = options
-      @requested_game = requested_game
-      @request_notes = request_notes
+      @request = request
     end
 
-    attr_reader :id, :product, :quantity, :options, :requested_game, :request_notes
+    attr_reader :id, :product, :quantity, :options
+
+    def requested_game
+      @request&.dig("g")
+    end
+
+    def request_notes
+      @request&.dig("n")
+    end
 
     def selected_for(group_name)
       options.find { |opt| opt.group_name == group_name }

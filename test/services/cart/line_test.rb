@@ -67,7 +67,7 @@ class Cart::LineTest < ActiveSupport::TestCase
   test "requested_game and request_notes expose the made-to-order request" do
     line = Cart::Line.new(
       id: "abc123", product: products(:pedido_game), quantity: 1, options: [],
-      requested_game: "Pokemon Unbound", request_notes: "v2.1 please"
+      request: { "g" => "Pokemon Unbound", "n" => "v2.1 please" }
     )
     assert_equal "Pokemon Unbound", line.requested_game
     assert_equal "v2.1 please", line.request_notes

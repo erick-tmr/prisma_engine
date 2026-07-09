@@ -37,13 +37,17 @@ module Cart
       id         = row["id"].to_s
       product_id = row["p"].to_i
       quantity   = row["q"].to_i
-      option_ids = Array(row["o"]).map(&:to_i).sort
       return nil if id.empty? || product_id <= 0 || quantity <= 0
-      base = { "id" => id, "p" => product_id, "q" => quantity, "o" => option_ids }
-      request = normalize_request(row["r"])
-      request ? base.merge("r" => request) : base
+      base = { "id" => id, "p" => product_id, "q" => quantity, "o" => Array(row["o"]).map(&:to_i).sort }
+      merge_request(base, row["r"])
     end
     private_class_method :normalize_row
+
+    def self.merge_request(base, raw)
+      request = normalize_request(raw)
+      request ? base.merge("r" => request) : base
+    end
+    private_class_method :merge_request
 
     def self.normalize_request(raw)
       return nil unless raw.is_a?(Hash)
@@ -80,9 +84,7 @@ module Cart
       if existing
         existing["q"] = clamp(existing["q"] + qty)
       else
-        row = { "id" => SecureRandom.alphanumeric(ID_LENGTH), "p" => product.id, "q" => qty, "o" => ids }
-        row["r"] = req if req
-        items << row
+        items << new_row(product, qty, ids, req)
       end
       self
     end
@@ -157,9 +159,7 @@ module Cart
       return nil unless product
       chosen = item["o"].map { |option_id| options_by_id[option_id] }
       return nil if chosen.any?(&:nil?) || chosen.any? { |opt| opt.product_id != product.id }
-      request = item["r"]
-      Line.new(id: item["id"], product: product, quantity: item["q"], options: chosen,
-               requested_game: request&.dig("g"), request_notes: request&.dig("n"))
+      Line.new(id: item["id"], product: product, quantity: item["q"], options: chosen, request: item["r"])
     end
 
     def find_item(line_id)
@@ -168,6 +168,12 @@ module Cart
 
     def clamp(qty)
       qty.to_i.clamp(QUANTITY_RANGE)
+    end
+
+    def new_row(product, qty, ids, req)
+      row = { "id" => SecureRandom.alphanumeric(ID_LENGTH), "p" => product.id, "q" => qty, "o" => ids }
+      row["r"] = req if req
+      row
     end
   end
 end

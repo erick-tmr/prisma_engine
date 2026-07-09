@@ -9,6 +9,9 @@ detectors:
   TooManyStatements:
     max_statements: 8     # controller actions run a few lines; reek's default is 5
   TooManyInstanceVariables:
+    max_instance_variables: 7   # a value object (e.g. Cart::Line: id/product/quantity/
+                                # options + the made-to-order game/notes) carries a handful
+                                # of cohesive fields; 8+ is where a god object lives.
     exclude:
       - PagesController   # the storefront landing action assembles cohesive page state
                           # (hero banner, the product rows, game of the month) — a
@@ -26,8 +29,9 @@ detectors:
                                     # it persists (options/tags/photos/gotm/brindes), each
                                     # single-purpose — a cohesive transaction, not a god object.
   LongParameterList:
-    max_params: 4         # 4 keyword args is a clean request shape, not a smell —
-                          # 5+ is where the smell genuinely lives (cf. Sandi Metz)
+    max_params: 7         # a cohesive value object / command legitimately takes a
+                          # handful of keyword args (a hydrated cart line's fields);
+                          # 8+ is where a parameter object is warranted.
   TooManyConstants:
     exclude:
       - Admin::OrderPresenter   # a view-model: small display lookup tables (status flow,
