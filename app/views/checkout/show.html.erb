@@ -173,16 +173,16 @@
             <% @cart.lines.each do |line| %>
               <% is_pedido = line.requested_game.present? %>
               <div class="checkout__sum-item">
-                <div class="checkout__sum-thumb<%= ' checkout__sum-thumb--pedido' if is_pedido %>">
-                  <% if is_pedido %>
-                    <i class="bi bi-card-checklist"></i>
-                  <% elsif line.product.image.present? %>
+                <%= link_to product_path(line.product), class: "checkout__sum-thumb#{' checkout__sum-thumb--pedido' if is_pedido && line.product.image.blank?}", aria: { label: line.product.title } do %>
+                  <% if line.product.image.present? %>
                     <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
+                  <% elsif is_pedido %>
+                    <i class="bi bi-card-checklist" aria-hidden="true"></i>
                   <% end %>
-                </div>
+                <% end %>
                 <div class="checkout__sum-item-body">
                   <p class="checkout__sum-item-cat"><%= line.product.category_label %></p>
-                  <p class="checkout__sum-item-name"><%= line.product.title %></p>
+                  <p class="checkout__sum-item-name"><%= link_to line.product.title, product_path(line.product) %></p>
                   <% if line.options.any? %>
                     <div class="checkout__sum-item-opts"><%= line.options.map { |o| (flag = variant_option_flag(o.name)) ? "#{o.name} #{flag}" : o.name }.join(" · ") %></div>
                   <% end %>

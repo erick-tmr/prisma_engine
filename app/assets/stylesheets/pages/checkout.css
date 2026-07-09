@@ -338,6 +338,7 @@
 .checkout__sum-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--pg-border); align-items: flex-start; }
 .checkout__sum-item:last-child { border-bottom: 0; }
 .checkout__sum-thumb {
+  display: block;
   width: 54px;
   height: 54px;
   border-radius: 9px;
@@ -351,6 +352,8 @@
 .checkout__sum-item-body { flex: 1; min-width: 0; }
 .checkout__sum-item-cat { font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pg-faint); margin: 0 0 2px; }
 .checkout__sum-item-name { font-size: 13px; font-weight: 600; line-height: 1.3; margin: 0 0 4px; }
+.checkout__sum-item-name a { color: inherit; text-decoration: none; }
+.checkout__sum-item-name a:hover { text-decoration: underline; }
 .checkout__sum-item-opts { font-size: 11.5px; color: var(--pg-muted); line-height: 1.45; }
 .checkout__sum-thumb--pedido {
   display: flex;

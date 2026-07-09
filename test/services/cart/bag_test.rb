@@ -109,7 +109,7 @@ class Cart::BagTest < ActiveSupport::TestCase
     bag.add(product: pedido, quantity: 1, option_ids: [], request: { game: "g" * 200, notes: "n" * 800 })
     request = bag.items.first["r"]
     assert_equal 120, request["g"].length
-    assert_equal 500, request["n"].length
+    assert_equal 280, request["n"].length
   end
 
   test "from_cookie hydrates a request and normalises a blank one away" do

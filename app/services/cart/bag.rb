@@ -25,7 +25,7 @@ module Cart
     QUANTITY_RANGE = 1..99
     ID_LENGTH = 8
     GAME_MAX_LENGTH = 120
-    NOTES_MAX_LENGTH = 500
+    NOTES_MAX_LENGTH = 280
 
     def self.from_cookie(payload)
       raw = payload.is_a?(Hash) && payload["v"] == VERSION ? Array(payload["items"]) : []

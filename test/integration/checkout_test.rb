@@ -42,6 +42,8 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_match(/Entrega e pagamento/, response.body)
     assert_match(/Cliente Confirmado/, response.body)
     assert_match(/Pokemon Yellow Version/, response.body)
+    assert_select ".checkout__sum-item-name a[href=?]", product_path(products(:yellow))
+    assert_select "a.checkout__sum-thumb[href=?]", product_path(products(:yellow))
     assert_select "form#checkout-form[action=?]", checkout_create_path
     assert_select "input[name=address_id][value=?]", @address.id.to_s
   end
@@ -53,12 +55,13 @@ class CheckoutTest < ActionDispatch::IntegrationTest
       request: { game: "Pokemon Unbound", notes: "carcaça translúcida roxa" }
     }
     post cart_items_path, params: {
-      product_id: products(:pedido_game).id, quantity: 1, request: { game: "Zelda Redux" }
+      product_id: products(:pedido_no_image).id, quantity: 1, request: { game: "Zelda Redux" }
     }
     get checkout_path
 
     assert_response :success
-    assert_select ".checkout__sum-thumb--pedido i.bi-card-checklist", minimum: 1
+    assert_select ".checkout__sum-thumb img"
+    assert_select ".checkout__sum-thumb--pedido i.bi-card-checklist"
     assert_select ".checkout__sum-item-pedido-row .v", text: "Pokemon Unbound"
     assert_select ".checkout__sum-item-pedido-row .v", text: "carcaça translúcida roxa"
     assert_select ".checkout__sum-item-pedido-row .v.is-empty", text: "Sem observações"
