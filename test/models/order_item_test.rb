@@ -45,6 +45,21 @@ class OrderItemTest < ActiveSupport::TestCase
     assert_not build_item(product: nil).game?
   end
 
+  test "custom_order? reflects whether a requested game is present" do
+    assert build_item(requested_game: "Zelda").custom_order?
+    assert_not build_item.custom_order?
+  end
+
+  test "requested_game and request_notes are trimmed, blank collapsing to nil" do
+    item = build_item(requested_game: "  Zelda  ", request_notes: "  carcaça azul  ")
+    assert_equal "Zelda", item.requested_game
+    assert_equal "carcaça azul", item.request_notes
+
+    blank = build_item(requested_game: "   ", request_notes: "   ")
+    assert_nil blank.requested_game
+    assert_nil blank.request_notes
+  end
+
   test "the games scope keeps cartridges and drops accessory items" do
     order.order_items.create!(name: "Metroid", unit_price_cents: 1, quantity: 1, product: products(:metroid))
     order.order_items.create!(name: "Caixa", unit_price_cents: 1, quantity: 1, product: products(:game_box))

@@ -15,6 +15,7 @@ module Admin
         price_cents:  19_000,
         currency:     "BRL",
         published:    true,
+        custom_order: false,
         description:  DEFAULT_DESCRIPTION
       )
     end

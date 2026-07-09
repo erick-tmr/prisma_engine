@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   bindCountdown,
   bindGallery,
+  bindPedido,
   bindStepper,
   bindVariantPills,
   clampQty,
@@ -219,6 +220,61 @@ describe("bindGallery", () => {
     document.body.innerHTML = `<div><button data-thumb data-src="/b.jpg"></button></div>`;
     bindGallery(document);
     expect(() => fire($("[data-thumb]"), "click")).not.toThrow();
+  });
+});
+
+describe("bindPedido", () => {
+  function mountPedido() {
+    document.body.innerHTML = `
+      <form data-pdp-form>
+        <div class="pedido-box" data-pedido-box>
+          <input type="text" data-pedido-game value="">
+          <textarea data-pedido-obs></textarea>
+        </div>
+        <button type="submit"></button>
+      </form>`;
+    bindPedido(document);
+  }
+
+  function submit() {
+    const event = new window.Event("submit", { bubbles: true, cancelable: true });
+    $("[data-pdp-form]").dispatchEvent(event);
+    return event;
+  }
+
+  it("blocks submit and flags the box when the game is empty", () => {
+    mountPedido();
+    const event = submit();
+    expect(event.defaultPrevented).toBe(true);
+    expect($("[data-pedido-box]").classList.contains("is-invalid")).toBe(true);
+  });
+
+  it("allows submit when the game is filled", () => {
+    mountPedido();
+    $("[data-pedido-game]").value = "Zelda";
+    const event = submit();
+    expect(event.defaultPrevented).toBe(false);
+    expect($("[data-pedido-box]").classList.contains("is-invalid")).toBe(false);
+  });
+
+  it("treats whitespace-only input as empty", () => {
+    mountPedido();
+    $("[data-pedido-game]").value = "   ";
+    expect(submit().defaultPrevented).toBe(true);
+  });
+
+  it("clears the invalid state on input", () => {
+    mountPedido();
+    const box = $("[data-pedido-box]");
+    box.classList.add("is-invalid");
+    fire($("[data-pedido-game]"), "input");
+    expect(box.classList.contains("is-invalid")).toBe(false);
+  });
+
+  it("no-ops when the form has no request box (regular product)", () => {
+    document.body.innerHTML = `<form data-pdp-form><button type="submit"></button></form>`;
+    expect(() => bindPedido(document)).not.toThrow();
+    expect(submit().defaultPrevented).toBe(false);
   });
 });
 

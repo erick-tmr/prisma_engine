@@ -38,6 +38,26 @@ module Admin
       assert_select ".od-obs-text", text: /Cliente pediu embalagem extra/
     end
 
+    test "show renders the made-to-order request panel per line with a blank-notes fallback" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      order.order_items.create!(
+        name: "Custom Order Game", unit_price_cents: 19_000, quantity: 1,
+        product: products(:pedido_game), requested_game: "Pokemon Unbound", request_notes: "v2.1, carcaça roxa"
+      )
+      order.order_items.create!(
+        name: "Custom Order Game", unit_price_cents: 19_000, quantity: 1,
+        product: products(:pedido_game), requested_game: "Zelda Redux"
+      )
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select ".od-item-pedido", count: 2
+      assert_select ".od-pedido-field .v", text: "Pokemon Unbound"
+      assert_select ".od-pedido-field .v", text: "v2.1, carcaça roxa"
+      assert_select ".od-pedido-field .v.is-empty", text: "Sem observações"
+    end
+
     test "show renders the danger cancel action with a confirm prompt for an unpaid order" do
       sign_in users(:admin)
       get admin_order_path(orders(:awaiting))

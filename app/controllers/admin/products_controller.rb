@@ -43,7 +43,7 @@ module Admin
     def product_params
       @product_params ||= params.require(:product).permit(
         :name, :slug, :category_id, :price, :description,
-        :weight_grams, :currency, :published, :graph,
+        :weight_grams, :currency, :published, :custom_order, :graph,
         photo_files: {}, brinde_files: {}
       )
     end

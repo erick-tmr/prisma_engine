@@ -37,6 +37,39 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     assert_select ".flash a.flash__cta[href=?]", cart_path
   end
 
+  test "PDP renders the pedido box only for a custom_order product" do
+    get product_path(slug: products(:pedido_game).slug)
+    assert_response :success
+    assert_select "[data-pedido-box]"
+    assert_select "input[data-pedido-game]"
+
+    get product_path(slug: products(:metroid).slug)
+    assert_select "[data-pedido-box]", count: 0
+  end
+
+  test "POST cart_items stores the request for a custom_order product" do
+    post cart_items_path, params: {
+      product_id: products(:pedido_game).id, quantity: 1,
+      request: { game: "Pokemon Unbound", notes: "v2.1, carcaça roxa" }
+    }
+    assert_redirected_to product_path(products(:pedido_game))
+    assert_equal "Produto adicionado ao carrinho.", flash[:cart_added]
+
+    get cart_path
+    assert_select ".cart-item", count: 1
+  end
+
+  test "POST cart_items rejects a custom_order product without a game name" do
+    post cart_items_path, params: {
+      product_id: products(:pedido_game).id, quantity: 1, request: { game: "   " }
+    }
+    assert_redirected_to product_path(products(:pedido_game))
+    assert_equal "Informe o nome do jogo para este pedido.", flash[:error]
+
+    get cart_path
+    assert_select ".cart-item", count: 0
+  end
+
   test "POST cart_items rejects foreign option_ids that do not belong to the product" do
     foreign = product_options(:yellow_idioma_pt) # belongs to yellow, not metroid
     post cart_items_path, params: {

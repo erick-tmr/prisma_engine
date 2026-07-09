@@ -26,6 +26,13 @@ module Checkout
       )
     end
 
+    def custom_order_cart
+      Cart::Bag.new.add(
+        product: products(:pedido_game), quantity: 1, option_ids: [],
+        request: { game: "Pokemon Unbound", notes: "v2.1, carcaça roxa" }
+      )
+    end
+
     def place(overrides = {})
       PlaceOrder.call(**{
         user: @user, cart: populated_cart,
@@ -62,6 +69,16 @@ module Checkout
       assert_equal 2, item.quantity
       assert_equal [ "Caixa: Com caixa" ], item.chosen_options
       assert_equal products(:yellow).image, item.photo_path
+      assert_nil item.requested_game
+      assert_nil item.request_notes
+    end
+
+    test "snapshots the made-to-order request onto the order item" do
+      stub_preco_prazo(all_eligible: true)
+
+      item = place(cart: custom_order_cart).order.order_items.sole
+      assert_equal "Pokemon Unbound", item.requested_game
+      assert_equal "v2.1, carcaça roxa", item.request_notes
     end
 
     test "snapshots a bare option label when the option has no group" do

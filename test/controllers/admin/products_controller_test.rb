@@ -81,6 +81,26 @@ module Admin
       assert_select ".toast", text: /Zelda DX/
     end
 
+    test "create stores the custom_order flag from the toggle" do
+      sign_in users(:admin)
+
+      post admin_products_path, params: { product: base_params(custom_order: "1") }
+      assert Product.find_by(name: "Zelda DX").custom_order?
+
+      post admin_products_path, params: { product: base_params(name: "Zelda DX Sequel", custom_order: "0") }
+      assert_not Product.find_by(name: "Zelda DX Sequel").custom_order?
+    end
+
+    test "edit reflects the custom_order flag in the toggle" do
+      sign_in users(:admin)
+
+      get edit_admin_product_path(products(:pedido_game))
+      assert_select "#f-custom-order[checked]"
+
+      get edit_admin_product_path(products(:yellow))
+      assert_select "#f-custom-order[checked]", count: 0
+    end
+
     test "create re-renders unprocessable when the product is invalid" do
       sign_in users(:admin)
 

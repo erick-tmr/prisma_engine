@@ -64,6 +64,27 @@
 .od-item-info .opts { font-size: 12px; color: var(--pg-muted); }
 .od-item-info .qty { font-size: 12.5px; color: var(--pg-muted); font-variant-numeric: tabular-nums; margin-top: 1px; }
 .od-item-line { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.od-item-pedido .od-item-thumb { background: var(--pg-green-bg); color: var(--pg-green); border-color: var(--pg-green); }
+.od-pedido-tag {
+  display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
+  border-radius: var(--radius-pill); font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--pg-green); background: var(--pg-green-bg);
+}
+.od-pedido {
+  position: relative; overflow: hidden; margin: 9px 0 4px; padding: 10px 12px 10px 14px;
+  border: 1px solid var(--pg-border); border-radius: 8px; background: #fbfbfc;
+}
+.od-pedido::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--bo-rainbow); }
+.od-pedido-head {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pg-muted);
+}
+.od-pedido-head i { font-size: 13px; }
+.od-pedido-field { display: flex; flex-direction: column; gap: 1px; margin-bottom: 7px; }
+.od-pedido-field:last-child { margin-bottom: 0; }
+.od-pedido-field .k { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pg-muted); }
+.od-pedido-field .v { font-size: 13.5px; color: var(--pg-ink); white-space: pre-wrap; }
+.od-pedido-field .v.is-empty { color: var(--pg-muted); font-style: italic; }
 
 .od-totals { padding: 16px 22px; background: #fcfcfd; }
 .od-totals .row-t {

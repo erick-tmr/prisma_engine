@@ -96,6 +96,32 @@
           </div>
         <% end %>
 
+        <% if @product.custom_order? %>
+          <div class="pedido-box" data-pedido-box>
+            <div class="pedido-box__head">
+              <i class="bi bi-card-checklist"></i>
+              <h2 class="pedido-box__title">Detalhes do seu pedido</h2>
+            </div>
+            <p class="pedido-box__sub">Produto sob encomenda. Diga qual jogo você quer que a gente produza.</p>
+            <div class="pedido-box__field">
+              <label for="pedido-game">Nome do jogo <span class="pedido-box__req">*</span></label>
+              <%= text_field_tag "request[game]", nil,
+                    id: "pedido-game", class: "pedido-box__input", maxlength: 120,
+                    autocomplete: "off", placeholder: "Ex.: Pokémon Unbound (romhack)",
+                    data: { pedido_game: true } %>
+              <p class="pedido-box__error">Informe o nome do jogo que você quer encomendar.</p>
+              <p class="pedido-box__hint">Digite o título exato do jogo ou romhack que você quer encomendar.</p>
+            </div>
+            <div class="pedido-box__field">
+              <label for="pedido-obs">Observações <span class="pedido-box__opt">opcional</span></label>
+              <%= text_area_tag "request[notes]", nil,
+                    id: "pedido-obs", class: "pedido-box__input pedido-box__textarea",
+                    maxlength: 500, rows: 3,
+                    placeholder: "Versão ou patch específico, link de referência, região, prazo desejado." %>
+            </div>
+          </div>
+        <% end %>
+
         <div class="buy__actions">
           <div class="stepper">
             <button type="button" class="stepper__btn" data-dec aria-label="Diminuir" disabled><i class="bi bi-dash"></i></button>

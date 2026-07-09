@@ -56,3 +56,14 @@ game_box:
   currency: BRL
   published: true
   weight_grams: 30
+
+pedido_game:
+  category: gb_color
+  name: Custom Order Game
+  slug: custom-order-game
+  price_cents: 19000
+  currency: BRL
+  published: true
+  weight_grams: 22
+  custom_order: true
+  legacy_image_path: /images/test-cartridge.png

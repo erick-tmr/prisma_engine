@@ -46,6 +46,14 @@
                   <span class="pr-item__variants"><%= value %></span>
                 <% end %>
               <% end %>
+              <% if item.requested_game.present? %>
+                <div class="pr-item__pedido">
+                  <span class="pr-item__pedido-game"><span class="pr-item__pedido-label"><%= t("admin.production_report.report.requested_game") %>:</span> <%= item.requested_game %></span>
+                  <% if item.request_notes.present? %>
+                    <span class="pr-item__pedido-note"><span class="pr-item__pedido-label"><%= t("admin.production_report.report.request_notes") %>:</span> <%= item.request_notes %></span>
+                  <% end %>
+                </div>
+              <% end %>
             </li>
           <% end %>
         </ul>

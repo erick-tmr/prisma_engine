@@ -171,15 +171,27 @@
 
           <div class="checkout__sum-items">
             <% @cart.lines.each do |line| %>
+              <% is_pedido = line.requested_game.present? %>
               <div class="checkout__sum-item">
-                <div class="checkout__sum-thumb">
-                  <% if line.product.image.present? %><img src="<%= line.product.image %>" alt="<%= line.product.title %>"><% end %>
+                <div class="checkout__sum-thumb<%= ' checkout__sum-thumb--pedido' if is_pedido %>">
+                  <% if is_pedido %>
+                    <i class="bi bi-card-checklist"></i>
+                  <% elsif line.product.image.present? %>
+                    <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
+                  <% end %>
                 </div>
                 <div class="checkout__sum-item-body">
                   <p class="checkout__sum-item-cat"><%= line.product.category_label %></p>
                   <p class="checkout__sum-item-name"><%= line.product.title %></p>
                   <% if line.options.any? %>
                     <div class="checkout__sum-item-opts"><%= line.options.map { |o| (flag = variant_option_flag(o.name)) ? "#{o.name} #{flag}" : o.name }.join(" · ") %></div>
+                  <% end %>
+                  <% if is_pedido %>
+                    <div class="checkout__sum-item-pedido">
+                      <div class="checkout__sum-item-pedido-head"><i class="bi bi-controller"></i> Seu pedido</div>
+                      <div class="checkout__sum-item-pedido-row"><span class="k">Jogo:</span> <span class="v"><%= line.requested_game %></span></div>
+                      <div class="checkout__sum-item-pedido-row"><span class="k">Obs.:</span> <span class="v<%= ' is-empty' if line.request_notes.blank? %>"><%= line.request_notes.presence || "Sem observações" %></span></div>
+                    </div>
                   <% end %>
                 </div>
                 <div class="checkout__sum-item-right">

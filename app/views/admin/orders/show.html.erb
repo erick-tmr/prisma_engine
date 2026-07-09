@@ -55,12 +55,25 @@
             </div>
             <div class="od-items">
               <% @presenter.order_items.each do |item| %>
-                <div class="od-item">
-                  <div class="od-item-thumb"><i class="bi bi-controller"></i></div>
+                <div class="od-item<%= " od-item-pedido" if item.custom_order? %>">
+                  <div class="od-item-thumb"><i class="bi <%= item.custom_order? ? "bi-card-checklist" : "bi-controller" %>"></i></div>
                   <div class="od-item-info">
-                    <div class="nm"><%= item.name %></div>
+                    <div class="nm"><%= item.name %><% if item.custom_order? %> <span class="od-pedido-tag"><%= t("admin.orders.detail.custom_order_tag") %></span><% end %></div>
                     <% if item.chosen_options.any? %>
                       <div class="opts"><%= item.chosen_options.join(" · ") %></div>
+                    <% end %>
+                    <% if item.custom_order? %>
+                      <div class="od-pedido">
+                        <div class="od-pedido-head"><i class="bi bi-controller"></i> <%= t("admin.orders.detail.request_heading") %></div>
+                        <div class="od-pedido-field">
+                          <span class="k"><%= t("admin.orders.detail.requested_game") %></span>
+                          <span class="v"><%= item.requested_game %></span>
+                        </div>
+                        <div class="od-pedido-field">
+                          <span class="k"><%= t("admin.orders.detail.request_notes") %></span>
+                          <span class="v<%= " is-empty" if item.request_notes.blank? %>"><%= item.request_notes.presence || t("admin.orders.detail.request_notes_blank") %></span>
+                        </div>
+                      </div>
                     <% end %>
                     <div class="qty"><%= item.quantity %> × <%= format_brl(item.unit_price_cents) %></div>
                   </div>

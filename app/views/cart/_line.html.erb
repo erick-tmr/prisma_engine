@@ -1,16 +1,12 @@
-<%#
-  Locals: line (Cart::Line), is_gotm (Boolean)
-  One row in the cart. The variant editor is a single PATCH form whose
-  hidden inputs hold the currently-selected option id per group; clicking
-  a pill rewrites its group's hidden input and submits via JS (see
-  cart/show.html.erb scripts block).
-%>
 <%
   grouped_options = line.product.product_options.in_display_order.group_by(&:group_name)
+  is_pedido = line.requested_game.present?
 %>
-<div class="cart-item<%= ' is-gotm' if is_gotm %>" data-cart-item data-row="<%= line.id %>">
-  <div class="cart-item__thumb">
-    <% if line.product.image.present? %>
+<div class="cart-item<%= ' is-gotm' if is_gotm %><%= ' is-pedido' if is_pedido %>" data-cart-item data-row="<%= line.id %>">
+  <div class="cart-item__thumb<%= ' cart-item__thumb--pedido' if is_pedido %>">
+    <% if is_pedido %>
+      <i class="bi bi-card-checklist"></i>
+    <% elsif line.product.image.present? %>
       <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
     <% end %>
   </div>
@@ -36,7 +32,19 @@
       <% end %>
     </div>
 
-    <% if grouped_options.any? %>
+    <% if is_pedido %>
+      <div class="cart-item__pedido">
+        <div class="cart-item__pedido-head"><i class="bi bi-controller"></i> Seu pedido</div>
+        <div class="cart-item__pedido-field">
+          <span class="k">Jogo solicitado</span>
+          <span class="v"><%= line.requested_game %></span>
+        </div>
+        <div class="cart-item__pedido-field">
+          <span class="k">Observações</span>
+          <span class="v<%= ' is-empty' if line.request_notes.blank? %>"><%= line.request_notes.presence || "Sem observações" %></span>
+        </div>
+      </div>
+    <% elsif grouped_options.any? %>
       <button type="button" class="cart-item__edit-btn" data-edit-toggle>
         <i class="bi bi-sliders2"></i>
         <span class="cart-item__edit-open">Editar variações</span>

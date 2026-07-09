@@ -500,6 +500,9 @@ pt-BR:
         published_title: "Publicado"
         draft_title: "Rascunho"
         published_desc: "Visível na loja para os clientes."
+        custom_order: "Sob encomenda"
+        custom_order_title: "Produto sob encomenda"
+        custom_order_desc: "Exibe o formulário de pedido na página do produto: o cliente informa qual jogo quer encomendar."
         gotm_toggle_title: "Jogo do Mês"
         gotm_toggle_desc: "Ativa os campos extras: edição, chamada e brindes."
         tags: "Tags"
@@ -547,6 +550,11 @@ pt-BR:
         transition_invalid: "Esta ação não está disponível para o status atual do pedido."
         cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."
         observation: "Observação do cliente"
+        custom_order_tag: "Sob encomenda"
+        request_heading: "Pedido do cliente"
+        requested_game: "Jogo solicitado"
+        request_notes: "Observações"
+        request_notes_blank: "Sem observações"
       states:
         awaiting_payment:
           description: "Pedido criado. A confirmação do pagamento é automática via webhook da InfinitePay."
@@ -627,6 +635,8 @@ pt-BR:
         print: "Imprimir"
         checkbox_aria: "Marcar como produzido"
         observation: "Observação"
+        requested_game: "Jogo solicitado"
+        request_notes: "Obs."
   activerecord:
     attributes:
       user:

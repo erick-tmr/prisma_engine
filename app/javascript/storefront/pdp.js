@@ -56,6 +56,22 @@ export function bindStepper(scope) {
   });
 }
 
+export function bindPedido(scope) {
+  scope.querySelectorAll("[data-pdp-form]").forEach(function (form) {
+    const box = form.querySelector("[data-pedido-box]");
+    if (!box) return;
+    const game = box.querySelector("[data-pedido-game]");
+    form.addEventListener("submit", function (event) {
+      if (game.value.trim() === "") {
+        event.preventDefault();
+        box.classList.add("is-invalid");
+        game.focus();
+      }
+    });
+    game.addEventListener("input", function () { box.classList.remove("is-invalid"); });
+  });
+}
+
 export function bindGallery(scope) {
   const thumbs = scope.querySelectorAll("[data-thumb]");
   thumbs.forEach(function (thumb) {
@@ -93,6 +109,7 @@ export function bindCountdown(scope, now) {
 export function initPdp(scope, now) {
   bindVariantPills(scope);
   bindStepper(scope);
+  bindPedido(scope);
   bindGallery(scope);
   bindCountdown(scope, now);
   scope.querySelectorAll("[data-pdp-form]").forEach(updatePrice);
