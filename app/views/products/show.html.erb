@@ -116,8 +116,8 @@
               <label for="pedido-obs">Observações <span class="pedido-box__opt">opcional</span></label>
               <%= text_area_tag "request[notes]", nil,
                     id: "pedido-obs", class: "pedido-box__input pedido-box__textarea",
-                    maxlength: 500, rows: 3,
-                    placeholder: "Versão ou patch específico, link de referência, região, prazo desejado." %>
+                    maxlength: 280, rows: 3,
+                    placeholder: "Versão ou patch específico, link de referência, região." %>
             </div>
           </div>
         <% end %>
