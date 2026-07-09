@@ -40,7 +40,8 @@ class CartTest < ActionDispatch::IntegrationTest
     get "/carrinho"
     assert_select "[data-head-count]", text: /2 itens/
     assert_select "[data-list-count]", text: /1 produto/
-    assert_select ".cart-item__title", text: /Pokemon Yellow Version/
+    assert_select ".cart-item__title a[href=?]", product_path(products(:yellow)), text: /Pokemon Yellow Version/
+    assert_select "a.cart-item__thumb[href=?]", product_path(products(:yellow))
   end
 
   test "adding the same product+options merges into one line" do

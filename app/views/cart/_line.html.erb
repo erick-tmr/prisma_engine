@@ -3,17 +3,17 @@
   is_pedido = line.requested_game.present?
 %>
 <div class="cart-item<%= ' is-gotm' if is_gotm %><%= ' is-pedido' if is_pedido %>" data-cart-item data-row="<%= line.id %>">
-  <div class="cart-item__thumb<%= ' cart-item__thumb--pedido' if is_pedido && line.product.image.blank? %>">
+  <%= link_to product_path(line.product), class: "cart-item__thumb#{' cart-item__thumb--pedido' if is_pedido && line.product.image.blank?}", aria: { label: line.product.title } do %>
     <% if line.product.image.present? %>
       <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
     <% elsif is_pedido %>
-      <i class="bi bi-card-checklist"></i>
+      <i class="bi bi-card-checklist" aria-hidden="true"></i>
     <% end %>
-  </div>
+  <% end %>
 
   <div>
     <p class="cart-item__cat"><%= line.product.category_label %></p>
-    <p class="cart-item__title"><%= line.product.title %></p>
+    <p class="cart-item__title"><%= link_to line.product.title, product_path(line.product) %></p>
 
     <div class="cart-item__meta">
       <% if is_gotm %>

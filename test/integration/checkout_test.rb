@@ -42,6 +42,8 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_match(/Entrega e pagamento/, response.body)
     assert_match(/Cliente Confirmado/, response.body)
     assert_match(/Pokemon Yellow Version/, response.body)
+    assert_select ".checkout__sum-item-name a[href=?]", product_path(products(:yellow))
+    assert_select "a.checkout__sum-thumb[href=?]", product_path(products(:yellow))
     assert_select "form#checkout-form[action=?]", checkout_create_path
     assert_select "input[name=address_id][value=?]", @address.id.to_s
   end
