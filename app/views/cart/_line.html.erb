@@ -3,11 +3,11 @@
   is_pedido = line.requested_game.present?
 %>
 <div class="cart-item<%= ' is-gotm' if is_gotm %><%= ' is-pedido' if is_pedido %>" data-cart-item data-row="<%= line.id %>">
-  <div class="cart-item__thumb<%= ' cart-item__thumb--pedido' if is_pedido %>">
-    <% if is_pedido %>
-      <i class="bi bi-card-checklist"></i>
-    <% elsif line.product.image.present? %>
+  <div class="cart-item__thumb<%= ' cart-item__thumb--pedido' if is_pedido && line.product.image.blank? %>">
+    <% if line.product.image.present? %>
       <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
+    <% elsif is_pedido %>
+      <i class="bi bi-card-checklist"></i>
     <% end %>
   </div>
 

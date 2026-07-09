@@ -125,7 +125,7 @@ class CartTest < ActionDispatch::IntegrationTest
     assert_select ".chip--edition", count: 0
   end
 
-  test "a made-to-order line renders the request block instead of the variant editor" do
+  test "a made-to-order line shows the product image and the request block, not the variant editor" do
     post cart_items_path, params: {
       product_id: products(:pedido_game).id, quantity: 1,
       request: { game: "Pokemon Unbound", notes: "carcaça translúcida roxa" }
@@ -134,18 +134,20 @@ class CartTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".cart-item.is-pedido"
-    assert_select ".cart-item__thumb--pedido i.bi-card-checklist"
+    assert_select ".cart-item.is-pedido .cart-item__thumb img"
+    assert_select ".cart-item__thumb--pedido", count: 0
     assert_select ".cart-item__pedido-field .v", text: "Pokemon Unbound"
     assert_select ".cart-item__pedido-field .v", text: "carcaça translúcida roxa"
     assert_select ".cart-item.is-pedido [data-edit-toggle]", count: 0
   end
 
-  test "a made-to-order line without notes shows the empty observations fallback" do
+  test "a made-to-order line with no image falls back to the checklist thumb and shows the empty observations" do
     post cart_items_path, params: {
-      product_id: products(:pedido_game).id, quantity: 1, request: { game: "Zelda Redux" }
+      product_id: products(:pedido_no_image).id, quantity: 1, request: { game: "Zelda Redux" }
     }
     get "/carrinho"
 
+    assert_select ".cart-item__thumb--pedido i.bi-card-checklist"
     assert_select ".cart-item__pedido-field .v.is-empty", text: "Sem observações"
   end
 

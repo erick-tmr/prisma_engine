@@ -67,3 +67,13 @@ pedido_game:
   weight_grams: 22
   custom_order: true
   legacy_image_path: /images/test-cartridge.png
+
+pedido_no_image:
+  category: gb_color
+  name: Custom Order No Image
+  slug: custom-order-no-image
+  price_cents: 19000
+  currency: BRL
+  published: true
+  weight_grams: 22
+  custom_order: true

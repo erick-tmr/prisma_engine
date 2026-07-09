@@ -173,11 +173,11 @@
             <% @cart.lines.each do |line| %>
               <% is_pedido = line.requested_game.present? %>
               <div class="checkout__sum-item">
-                <div class="checkout__sum-thumb<%= ' checkout__sum-thumb--pedido' if is_pedido %>">
-                  <% if is_pedido %>
-                    <i class="bi bi-card-checklist"></i>
-                  <% elsif line.product.image.present? %>
+                <div class="checkout__sum-thumb<%= ' checkout__sum-thumb--pedido' if is_pedido && line.product.image.blank? %>">
+                  <% if line.product.image.present? %>
                     <img src="<%= line.product.image %>" alt="<%= line.product.title %>">
+                  <% elsif is_pedido %>
+                    <i class="bi bi-card-checklist"></i>
                   <% end %>
                 </div>
                 <div class="checkout__sum-item-body">
