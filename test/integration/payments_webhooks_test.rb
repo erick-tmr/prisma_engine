@@ -60,11 +60,18 @@ class PaymentsWebhooksTest < ActionDispatch::IntegrationTest
     assert_equal 2, @order.payment_webhook_events.count
   end
 
-  test "a mismatched amount answers 200 but leaves the order awaiting payment" do
+  test "an insufficient amount answers 200 but leaves the order awaiting payment" do
     webhook(@order.webhook_token, paid_payload("paid_amount" => 1))
 
     assert_response :ok
     assert @order.reload.awaiting_payment?
+  end
+
+  test "a paid_amount above the order total (installment interest) confirms the order" do
+    webhook(@order.webhook_token, paid_payload("paid_amount" => @order.total_cents + 2_802))
+
+    assert_response :ok
+    assert @order.reload.payment_confirmed?
   end
 
   test "a mismatched order_nsu answers 200 but leaves the order awaiting payment" do

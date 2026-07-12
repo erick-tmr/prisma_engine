@@ -63,9 +63,14 @@ module Payments
       assert @order.reload.awaiting_payment?
     end
 
-    test "skips when paid_amount is not the order total" do
+    test "skips when paid_amount is below the order total" do
       call("paid_amount" => @order.total_cents - 1)
       assert @order.reload.awaiting_payment?
+    end
+
+    test "confirms when paid_amount exceeds the order total (installment interest)" do
+      call("paid_amount" => @order.total_cents + 3_173)
+      assert @order.reload.payment_confirmed?
     end
 
     test "confirms cleanly when the redirect already recorded the same transaction_nsu" do
