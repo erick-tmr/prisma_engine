@@ -11,7 +11,7 @@ module Payments
 
     def call
       return log_skip("order_nsu mismatch") unless reconciled?
-      return log_skip("paid_amount mismatch") unless amount_matches?
+      return log_skip("paid_amount below order total") unless amount_sufficient?
 
       order.with_lock { confirm! if confirmable? }
     end
@@ -24,8 +24,8 @@ module Payments
       payload["order_nsu"].to_s == order.number
     end
 
-    def amount_matches?
-      payload["paid_amount"].to_i == order.total_cents
+    def amount_sufficient?
+      payload["paid_amount"].to_i >= order.total_cents
     end
 
     def confirmable?
