@@ -516,83 +516,11 @@ jobs:
           license-check: false
           comment-summary-in-pr: on-failure
 
-  lighthouse:
-    name: Lighthouse (advisory)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    continue-on-error: true
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: prisma_engine
-          POSTGRES_PASSWORD: prisma_engine
-          POSTGRES_DB: prisma_engine_production
-        ports:
-          - 5432:5432
-        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
-    env:
-      RAILS_ENV: production
-      RAILS_SERVE_STATIC_FILES: "true"
-      PRISMA_ENGINE_DATABASE_PASSWORD: prisma_engine
-      # Boot on local Disk: this advisory audit has no R2 credentials and serves
-      # its seeded catalog locally.
-      ACTIVE_STORAGE_SERVICE: local
-    steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
-
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: .node-version
-          cache: npm
-
-      - name: Generate a throwaway SECRET_KEY_BASE
-        run: echo "SECRET_KEY_BASE=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
-
-      - name: Prepare database (schema + catalog seeds)
-        run: bin/rails db:prepare db:seed
-
-      - name: Precompile assets
-        run: bin/rails assets:precompile
-
-      - name: Run Lighthouse (collect + upload)
-        run: |
-          mkdir -p tmp
-          npx --yes @lhci/cli@0.14.0 collect 2>&1 | tee tmp/lighthouse.log || true
-          npx --yes @lhci/cli@0.14.0 upload 2>&1 | tee -a tmp/lighthouse.log || true
-
-      - name: Summarize Lighthouse scores
-        if: ${{ !cancelled() }}
-        run: |
-          {
-            echo "## Lighthouse (advisory)"
-            echo ""
-            bin/lighthouse-summary | tee lighthouse-report.txt
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload Lighthouse report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: lighthouse-report
-          path: lighthouse-report.txt
-          if-no-files-found: warn
-
   report:
     name: PR quality report
     runs-on: ubuntu-latest
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: [ coverage, code_quality, semgrep_diff, test_js, lighthouse ]
+    needs: [ coverage, code_quality, semgrep_diff, test_js ]
     permissions:
       contents: read
       pull-requests: write
@@ -634,8 +562,6 @@ jobs:
             echo '```'
             cat artifacts/semgrep-findings/semgrep-findings.txt 2>/dev/null || echo "n/a"
             echo '```'
-            echo "### Lighthouse (advisory)"
-            cat artifacts/lighthouse-report/lighthouse-report.txt 2>/dev/null || echo "n/a"
             echo ""
             echo "_Brakeman findings appear under **Security ▸ Code scanning**. Secret-scan and dependency-review report inline on failure._"
           } > comment.md
