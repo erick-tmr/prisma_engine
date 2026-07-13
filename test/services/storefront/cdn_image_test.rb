@@ -17,25 +17,25 @@ module Storefront
     end
 
     test "transform wraps a CDN URL with cdn-cgi options" do
-      assert_equal "#{HOST}/cdn-cgi/image/width=640,quality=78,format=auto,fit=scale-down,metadata=none/key123",
+      assert_equal "#{HOST}/cdn-cgi/image/width=640,quality=78,format=auto,fit=scale-down,metadata=none,onerror=redirect/key123",
                    CdnImage.transform("#{HOST}/key123", width: 640)
     end
 
     test "transform honours a custom quality" do
-      assert_equal "#{HOST}/cdn-cgi/image/width=240,quality=50,format=auto,fit=scale-down,metadata=none/key123",
+      assert_equal "#{HOST}/cdn-cgi/image/width=240,quality=50,format=auto,fit=scale-down,metadata=none,onerror=redirect/key123",
                    CdnImage.transform("#{HOST}/key123", width: 240, quality: 50)
     end
 
     test "transform tolerates a public host with a trailing slash" do
       Rails.application.config.x.r2_public_host = "#{HOST}/"
-      assert_equal "#{HOST}/cdn-cgi/image/width=640,quality=78,format=auto,fit=scale-down,metadata=none/key123",
+      assert_equal "#{HOST}/cdn-cgi/image/width=640,quality=78,format=auto,fit=scale-down,metadata=none,onerror=redirect/key123",
                    CdnImage.transform("#{HOST}/key123", width: 640)
     end
 
     test "srcset builds a descriptor for each width" do
       assert_equal(
-        "#{HOST}/cdn-cgi/image/width=320,quality=78,format=auto,fit=scale-down,metadata=none/k 320w, " \
-        "#{HOST}/cdn-cgi/image/width=640,quality=78,format=auto,fit=scale-down,metadata=none/k 640w",
+        "#{HOST}/cdn-cgi/image/width=320,quality=78,format=auto,fit=scale-down,metadata=none,onerror=redirect/k 320w, " \
+        "#{HOST}/cdn-cgi/image/width=640,quality=78,format=auto,fit=scale-down,metadata=none,onerror=redirect/k 640w",
         CdnImage.srcset("#{HOST}/k", widths: [ 320, 640 ])
       )
     end

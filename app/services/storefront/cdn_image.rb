@@ -19,7 +19,7 @@ module Storefront
     def transform(url, width:, quality: DEFAULT_QUALITY)
       return url unless transformable?(url)
 
-      options = "width=#{width},quality=#{quality},format=auto,fit=scale-down,metadata=none"
+      options = "width=#{width},quality=#{quality},format=auto,fit=scale-down,metadata=none,onerror=redirect"
       "#{host}/cdn-cgi/image/#{options}#{url.delete_prefix(host)}"
     end
 
