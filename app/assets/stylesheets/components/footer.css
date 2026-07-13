@@ -195,3 +195,11 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+
+.footer__bottom a {
+  color: #b3b8c0;
+}
+
+.footer__bottom a:hover {
+  color: #fff;
+}

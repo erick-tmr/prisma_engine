@@ -115,6 +115,12 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_match("contato@prismagames.com.br", response.body)
   end
 
+  test "footer credits the developer with a link to their site" do
+    get root_path
+    assert_response :success
+    assert_select "footer.footer a[href='https://ericktakeshi.com.br/']", text: /Erick Takeshi/
+  end
+
   test "unknown product slug returns 404" do
     get product_path(slug: "does-not-exist")
     assert_response :not_found
