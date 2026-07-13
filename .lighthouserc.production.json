@@ -1,0 +1,13 @@
+{
+  "ci": {
+    "collect": {
+      "url": ["https://prismagames.com.br/"],
+      "numberOfRuns": 3,
+      "settings": {
+        "chromeFlags": "--no-sandbox",
+        "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+      }
+    },
+    "upload": { "target": "filesystem", "outputDir": ".lighthouseci" }
+  }
+}

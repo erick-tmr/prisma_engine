@@ -1,0 +1,83 @@
+name: Lighthouse (production)
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "URL to audit (defaults to the production apex host)"
+        required: false
+        default: "https://prismagames.com.br"
+  push:
+    branches: [ main ]
+
+# Queue rather than cancel: don't let a later main-push kill an in-flight audit.
+concurrency:
+  group: lighthouse-production-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse_production:
+    name: Lighthouse (production, advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7   # only for the .lighthouserc.production.json config
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+
+      - name: Run Lighthouse against production
+        env:
+          TARGET_URL: ${{ inputs.url || 'https://prismagames.com.br' }}
+          CF_BYPASS_TOKEN: ${{ secrets.LIGHTHOUSE_CF_BYPASS_TOKEN }}
+        run: |
+          mkdir -p tmp
+          CONFIG=.lighthouserc.production.json
+          if [ -n "$CF_BYPASS_TOKEN" ]; then
+            jq --arg v "$CF_BYPASS_TOKEN" \
+               '.ci.collect.settings.extraHeaders = {"X-Prisma-Lighthouse": $v}' \
+               .lighthouserc.production.json > tmp/lighthouserc.generated.json
+            CONFIG=tmp/lighthouserc.generated.json
+            echo "Cloudflare bypass header injected."
+          else
+            echo "No LIGHTHOUSE_CF_BYPASS_TOKEN set — auditing without a bypass header."
+          fi
+          echo "Auditing: $TARGET_URL"
+          npx --yes @lhci/cli@0.14.0 autorun \
+            --config="$CONFIG" \
+            --collect.url="$TARGET_URL" \
+            2>&1 | tee tmp/lighthouse-production.log || true
+
+      - name: Summarize Lighthouse scores
+        if: ${{ !cancelled() }}
+        env:
+          TARGET_URL: ${{ inputs.url || 'https://prismagames.com.br' }}
+        run: |
+          M=.lighthouseci/manifest.json
+          {
+            echo "## Lighthouse (production, advisory)"
+            echo ""
+            echo "Target: $TARGET_URL"
+            echo ""
+            if [ -f "$M" ]; then
+              jq -r '.[] | select(.isRepresentativeRun) | "- **\(.url)** — Perf \((.summary.performance*100)|round) · A11y \((.summary.accessibility*100)|round) · Best-Practices \((.summary["best-practices"]*100)|round) · SEO \((.summary.seo*100)|round)"' "$M" | tee lighthouse-production-report.txt
+            else
+              echo "(no Lighthouse report produced — see the job log; a Cloudflare challenge / origin-lock may have blocked the audit)" | tee lighthouse-production-report.txt
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Lighthouse report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-production-report
+          path: |
+            lighthouse-production-report.txt
+            .lighthouseci
+          if-no-files-found: warn
