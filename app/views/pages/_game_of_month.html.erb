@@ -1,5 +1,5 @@
 <%# locals: (gotm:) %>
-<% gotm_products = gotm.game_of_the_month_products.in_display_order %>
+<% gotm_products = gotm.game_of_the_month_products.sort_by { |gp| [ gp.position, gp.id ] } %>
 
 <section class="gotm-band" data-gotm>
   <div class="gotm">
@@ -15,7 +15,7 @@
         <div class="gotm-track" data-gotm-track>
           <% gotm_products.each do |gp| %>
             <% product = gp.product %>
-            <% brindes = gp.brindes.in_display_order.first(4) %>
+            <% brindes = gp.brindes.sort_by { |brinde| [ brinde.position, brinde.id ] }.first(4) %>
             <article class="gotm-slide">
               <a class="gotm-slide__media" href="<%= product_path(slug: product.slug) %>" aria-label="<%= product.title %>">
                 <% if brindes.any? %>

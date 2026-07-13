@@ -64,13 +64,15 @@
 
     <div class="px-3 pt-3 pb-1 small text-muted text-uppercase">Recomendações do Vini</div>
     <ul class="list-unstyled mb-0">
-      <% nav_recommendations.each do |recommendation| %>
-        <li>
-          <a href="<%= recommendation.url %>" target="_blank" rel="noopener noreferrer"
-             class="drawer__link">
-            <%= render "shared/recommendation_media", recommendation: recommendation %>
-          </a>
-        </li>
+      <% cache [ "drawer-recommendations", nav_recommendations ] do %>
+        <% nav_recommendations.each do |recommendation| %>
+          <li>
+            <a href="<%= recommendation.url %>" target="_blank" rel="noopener noreferrer"
+               class="drawer__link">
+              <%= render "shared/recommendation_media", recommendation: recommendation %>
+            </a>
+          </li>
+        <% end %>
       <% end %>
     </ul>
 

@@ -43,11 +43,13 @@ class Product < ApplicationRecord
   end
 
   def image
-    photo = product_photos.in_display_order.first
-    if photo&.image&.attached?
-      Storefront::ImageSource.call(photo.image)
-    else
-      legacy_image_path
+    @image ||= begin
+      photo = product_photos.min_by(&:position)
+      if photo&.image&.attached?
+        Storefront::ImageSource.call(photo.image)
+      else
+        legacy_image_path
+      end
     end
   end
 

@@ -1,10 +1,6 @@
 class PagesController < ApplicationController
   def home
     @banners = HeroBanner.active.in_display_order.with_attached_image
-    @pedidos = GameOfTheMonth.feature_first(Product.for_category("pedidos-de-jogos").published).first(8)
-    @extras  = GameOfTheMonth.feature_first(Product.for_category("miscelanea").published).first(8)
-    @classic = GameOfTheMonth.feature_first(Product.for_category("game-boy-classic").published).first(8)
-    @color   = GameOfTheMonth.feature_first(Product.for_category("game-boy-color").published).first(8)
     @current_gotm = GameOfTheMonth.current
                                   .includes(
                                     game_of_the_month_products: {
@@ -13,8 +9,21 @@ class PagesController < ApplicationController
                                     }
                                   )
                                   .first
+    featured_ids = @current_gotm&.game_of_the_month_products&.map(&:product_id) || []
+
+    @pedidos = GameOfTheMonth.feature_first(published_cards_for("pedidos-de-jogos"), featured_ids).first(8)
+    @extras  = GameOfTheMonth.feature_first(published_cards_for("miscelanea"), featured_ids).first(8)
+    @classic = GameOfTheMonth.feature_first(published_cards_for("game-boy-classic"), featured_ids).first(8)
+    @color   = GameOfTheMonth.feature_first(published_cards_for("game-boy-color"), featured_ids).first(8)
   end
 
   def perguntas_frequentes; end
   def direitos; end
+
+  private
+
+  def published_cards_for(slug)
+    Product.for_category(slug).published
+           .includes(:category, product_photos: { image_attachment: :blob })
+  end
 end
