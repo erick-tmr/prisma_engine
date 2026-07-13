@@ -79,3 +79,4 @@ jobs:
             lighthouse-production-report.txt
             .lighthouseci
           if-no-files-found: warn
+          include-hidden-files: true
