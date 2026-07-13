@@ -27,6 +27,7 @@ Rails.application.configure do
   config.active_storage.service = (ENV["ACTIVE_STORAGE_SERVICE"].presence || "r2").to_sym
   config.x.r2_bucket = "prisma-games-prod"
   config.x.r2_public_host = "https://cdn.prismagames.com.br"
+  config.x.cdn_image_transforms = true
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true

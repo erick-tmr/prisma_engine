@@ -4,7 +4,7 @@
     <div class="product-card__thumb<%= " product-card__thumb--ph" unless product.image.present? %>">
       <span class="product-card__wishlist" aria-hidden="true"><i class="bi bi-heart"></i></span>
       <% if product.image.present? %>
-        <img src="<%= product.image %>" alt="<%= product.title %>" width="600" height="400" loading="lazy">
+        <%= storefront_image_tag product.image, preset: :card, alt: product.title, width: 600, height: 400, loading: "lazy" %>
       <% else %>
         <span class="product-card__ph-label">Foto em breve</span>
       <% end %>

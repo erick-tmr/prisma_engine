@@ -101,7 +101,7 @@
       <% @order.order_items.each do |item| %>
         <div class="pay-return__sum-item">
           <div class="pay-return__sum-thumb">
-            <% if item.photo_path.present? %><img src="<%= item.photo_path %>" alt="<%= item.name %>"><% end %>
+            <% if item.photo_path.present? %><%= storefront_image_tag item.photo_path, resize: 240, alt: item.name %><% end %>
           </div>
           <div class="pay-return__sum-item-body">
             <% if item.product&.category_label.present? %><p class="pay-return__sum-item-cat"><%= item.product.category_label %></p><% end %>

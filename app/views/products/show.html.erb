@@ -17,7 +17,7 @@
       <div class="gallery-main">
         <% if main_src.present? %>
           <a href="<%= main_src %>" class="gallery-main__zoom" data-fancybox="product-gallery" data-main-zoom>
-            <img src="<%= main_src %>" alt="<%= @product.title %>" data-main-img>
+            <%= storefront_image_tag main_src, resize: 960, alt: @product.title, data: { main_img: "" } %>
           </a>
         <% end %>
       </div>
@@ -26,8 +26,8 @@
         <div class="gallery-thumbs">
           <% photos.each_with_index do |photo, index| %>
             <% src = Storefront::ImageSource.call(photo.image) %>
-            <button type="button" class="thumb<%= ' is-selected' if index.zero? %>" data-thumb data-src="<%= src %>">
-              <img src="<%= src %>" alt="<%= photo.alt_text.presence || @product.title %>">
+            <button type="button" class="thumb<%= ' is-selected' if index.zero? %>" data-thumb data-src="<%= Storefront::CdnImage.transform(src, width: 960) %>" data-full="<%= src %>">
+              <%= storefront_image_tag src, resize: 240, alt: (photo.alt_text.presence || @product.title) %>
               <% if photo.alt_text.present? %><span class="thumb__tag"><%= photo.alt_text %></span><% end %>
             </button>
           <% end %>

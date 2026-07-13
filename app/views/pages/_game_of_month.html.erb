@@ -21,7 +21,7 @@
                 <% if brindes.any? %>
                   <span class="gotm-ribbon"><i class="bi bi-gift"></i> Vai com brindes</span>
                 <% end %>
-                <img src="<%= product.image %>" alt="<%= product.title %>">
+                <%= storefront_image_tag product.image, preset: :gotm, alt: product.title %>
               </a>
               <div class="gotm-slide__info">
                 <div class="gotm-slide__eyebrow">
@@ -48,7 +48,7 @@
                       <% brindes.each do |brinde| %>
                         <figure class="gotm-brinde">
                           <% if brinde.image.attached? %>
-                            <img src="<%= Storefront::ImageSource.call(brinde.image) %>" alt="<%= brinde.caption %>">
+                            <%= storefront_image_tag Storefront::ImageSource.call(brinde.image), resize: 240, alt: brinde.caption %>
                           <% end %>
                           <figcaption><%= brinde.caption %></figcaption>
                         </figure>
