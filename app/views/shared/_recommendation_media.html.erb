@@ -1,8 +1,8 @@
 <%# locals: (recommendation:) %>
-<% if recommendation.favicon_data_uri.present? %>
-  <img class="partner-avatar partner-avatar--img"
-       src="<%= recommendation.favicon_data_uri %>"
-       alt="" width="36" height="36" loading="lazy">
+<% if recommendation.favicon.attached? %>
+  <%= storefront_image_tag Storefront::ImageSource.call(recommendation.favicon),
+        class: "partner-avatar partner-avatar--img",
+        alt: "", width: 36, height: 36, loading: "lazy" %>
 <% else %>
   <span class="partner-avatar" style="--avatar-gradient: <%= recommendation.avatar_gradient %>"><%= recommendation.letter_avatar_initial %></span>
 <% end %>

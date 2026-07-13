@@ -48,7 +48,7 @@ class RecommendationTest < ActiveSupport::TestCase
   test "is valid without a favicon" do
     recommendation = Recommendation.new(url: "https://example.com")
     assert recommendation.valid?
-    assert_nil recommendation.favicon_data_uri
+    assert_not recommendation.favicon.attached?
   end
 
   test "active scope returns only active records" do

@@ -27,7 +27,10 @@ module Recommendations
       recommendation.reload
       assert_equal "Site", recommendation.title
       assert_equal "Desc", recommendation.tagline
-      assert_equal "data:image/png;base64,#{Base64.strict_encode64("IMG")}", recommendation.favicon_data_uri
+      assert recommendation.favicon.attached?
+      assert_equal "IMG", recommendation.favicon.download
+      assert_equal "image/png", recommendation.favicon.content_type
+      assert_equal "favicon.png", recommendation.favicon.filename.to_s
       assert_not_nil recommendation.fetched_at
     end
 
@@ -53,17 +56,18 @@ module Recommendations
 
       recommendation.reload
       assert_equal "Site", recommendation.title
-      assert_nil recommendation.favicon_data_uri
+      assert_not recommendation.favicon.attached?
     end
 
     test "keeps the existing favicon when a later fetch cannot retrieve one" do
-      recommendation = Recommendation.create!(url: PAGE_URL, favicon_data_uri: "data:image/png;base64,OLD=")
+      recommendation = Recommendation.create!(url: PAGE_URL)
+      recommendation.favicon.attach(io: StringIO.new("OLD"), filename: "favicon.png", content_type: "image/png")
       stub_page("<html><head></head></html>")
       stub_request(:get, "https://example.com/favicon.ico").to_return(status: 404)
 
       with_safe_url { Refresh.call(recommendation) }
 
-      assert_equal "data:image/png;base64,OLD=", recommendation.reload.favicon_data_uri
+      assert_equal "OLD", recommendation.reload.favicon.download
     end
 
     test "propagates a page fetch error" do

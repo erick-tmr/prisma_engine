@@ -18,6 +18,6 @@ class RefreshRecommendationsJobTest < ActiveJob::TestCase
     recommendation.reload
     assert_equal "Site", recommendation.title
     assert_equal "Desc", recommendation.tagline
-    assert recommendation.favicon_data_uri.present?
+    assert recommendation.favicon.attached?
   end
 end

@@ -3,9 +3,8 @@ require "test_helper"
 class RecommendationsNavTest < ActionDispatch::IntegrationTest
   test "home renders recommendations with favicon and letter-avatar fallbacks" do
     Recommendation.create!(
-      url: "https://hasicon.example/", title: "ComIconeXYZ", tagline: "tem favicon", position: 0,
-      favicon_data_uri: "data:image/svg+xml;base64,#{Base64.strict_encode64("<svg/>")}"
-    )
+      url: "https://hasicon.example/", title: "ComIconeXYZ", tagline: "tem favicon", position: 0
+    ).favicon.attach(io: StringIO.new("<svg/>"), filename: "favicon.svg", content_type: "image/svg+xml")
     Recommendation.create!(
       url: "https://noicon.example/", title: "SemIconeXYZ", tagline: "sem favicon", position: 1
     )

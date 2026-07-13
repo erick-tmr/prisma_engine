@@ -6,6 +6,8 @@ class Recommendation < ApplicationRecord
     "linear-gradient(135deg,#11998e,#38ef7d)"
   ].freeze
 
+  has_one_attached :favicon
+
   validates :url, presence: true, uniqueness: true
   validate :url_must_be_http
   validates :position,
