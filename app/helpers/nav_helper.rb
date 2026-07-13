@@ -9,6 +9,6 @@ module NavHelper
   end
 
   def nav_recommendations
-    Recommendation.active.in_display_order
+    @nav_recommendations ||= Recommendation.active.in_display_order.to_a
   end
 end

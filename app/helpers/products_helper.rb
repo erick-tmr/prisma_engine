@@ -6,4 +6,8 @@ module ProductsHelper
     with_targets = html.to_s.gsub(/<a\b/i, '<a target="_blank" rel="noopener noreferrer"')
     sanitize(with_targets, tags: DESCRIPTION_TAGS, attributes: DESCRIPTION_ATTRIBUTES)
   end
+
+  def product_cards_cache_key(products)
+    [ products, products.map(&:image) ]
+  end
 end

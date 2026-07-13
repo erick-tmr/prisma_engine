@@ -164,4 +164,25 @@ test "every static page route renders" do
     get root_path
     assert_select ".cookiealert", false, "accepted users should not get the banner at all"
   end
+
+  test "home page issues a bounded number of SQL queries (guards against the card N+1)" do
+    count = count_sql_queries { get root_path }
+    assert_operator count, :<=, 30,
+      "home page ran #{count} SQL queries; expected a bounded set. The product cards and " \
+      "Jogo do Mês band must render from eager-loaded associations, not per-card queries."
+  end
+
+  private
+
+  def count_sql_queries
+    queries = 0
+    counter = lambda do |*, payload|
+      next if payload[:name] == "SCHEMA" || payload[:cached]
+      next if /\A\s*(BEGIN|COMMIT|RELEASE|SAVEPOINT|ROLLBACK)/i.match?(payload[:sql])
+
+      queries += 1
+    end
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { yield }
+    queries
+  end
 end

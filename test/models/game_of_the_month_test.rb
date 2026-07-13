@@ -63,19 +63,28 @@ class GameOfTheMonthTest < ActiveSupport::TestCase
     assert_includes gotm.products, products(:placeholder)
   end
 
-  test "feature_first sorts the current picks ahead of the rest, by id within each group" do
+  test "current_product_ids returns the current edition's product ids" do
+    assert_equal game_of_the_months(:current_month).product_ids.sort,
+                 GameOfTheMonth.current_product_ids.sort
+  end
+
+  test "current_product_ids is empty when there is no current edition" do
+    GameOfTheMonth.destroy_all
+    assert_empty GameOfTheMonth.current_product_ids
+  end
+
+  test "feature_first sorts the featured ids ahead of the rest, by id within each group" do
+    featured_ids = [ products(:yellow).id, products(:placeholder).id ]
     ordered = GameOfTheMonth.feature_first(Product.where(id: [
       products(:metroid).id, products(:yellow).id, products(:placeholder).id
-    ]))
+    ]), featured_ids)
 
     featured = [ products(:yellow), products(:placeholder) ].sort_by(&:id)
     assert_equal featured + [ products(:metroid) ], ordered
   end
 
-  test "feature_first leaves plain id order when there is no current edition" do
-    GameOfTheMonth.destroy_all
-
-    ordered = GameOfTheMonth.feature_first(Product.where(id: [ products(:metroid).id, products(:yellow).id ]))
+  test "feature_first leaves plain id order when no ids are featured" do
+    ordered = GameOfTheMonth.feature_first(Product.where(id: [ products(:metroid).id, products(:yellow).id ]), [])
 
     assert_equal [ products(:yellow), products(:metroid) ].sort_by(&:id), ordered
   end

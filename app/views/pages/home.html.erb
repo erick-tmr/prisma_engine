@@ -31,7 +31,9 @@
 <% end %>
 
 <% if @current_gotm && @current_gotm.game_of_the_month_products.any? %>
-  <%= render "game_of_month", gotm: @current_gotm %>
+  <% cache gotm_band_cache_key(@current_gotm) do %>
+    <%= render "game_of_month", gotm: @current_gotm %>
+  <% end %>
 <% end %>
 
 <section class="section">
@@ -39,8 +41,8 @@
                             label: "Pedidos de Jogos",
                             icon: "clipboard-check" %>
   <div class="row">
-    <% @pedidos.each do |product| %>
-      <%= render "products/card", product: product %>
+    <% cache product_cards_cache_key(@pedidos) do %>
+      <%= render partial: "products/card", collection: @pedidos, as: :product %>
     <% end %>
   </div>
 </section>
@@ -50,8 +52,8 @@
                             label: "Extras & Acessórios",
                             icon: "box-seam" %>
   <div class="row">
-    <% @extras.each do |product| %>
-      <%= render "products/card", product: product %>
+    <% cache product_cards_cache_key(@extras) do %>
+      <%= render partial: "products/card", collection: @extras, as: :product %>
     <% end %>
   </div>
 </section>
@@ -60,8 +62,8 @@
   <%= render "block_title", slug: "game-boy-classic",
                             label: "Game Boy Classic" %>
   <div class="row">
-    <% @classic.each do |product| %>
-      <%= render "products/card", product: product %>
+    <% cache product_cards_cache_key(@classic) do %>
+      <%= render partial: "products/card", collection: @classic, as: :product %>
     <% end %>
   </div>
 </section>
@@ -71,8 +73,8 @@
                             label: "Game Boy Color",
                             logo: "game-boy-color-horizontal" %>
   <div class="row">
-    <% @color.each do |product| %>
-      <%= render "products/card", product: product %>
+    <% cache product_cards_cache_key(@color) do %>
+      <%= render partial: "products/card", collection: @color, as: :product %>
     <% end %>
   </div>
 </section>

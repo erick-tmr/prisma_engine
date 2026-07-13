@@ -52,9 +52,11 @@
               <i class="bi bi-patch-check-fill links-menu__trust-ic" aria-hidden="true"></i> Recomendações do Vini
             </div>
             <div class="links-menu__grid">
-              <% nav_recommendations.each do |recommendation| %>
-                <%= link_to recommendation.url, class: "links-menu__row", target: "_blank", rel: "noopener noreferrer" do %>
-                  <%= render "shared/recommendation_media", recommendation: recommendation %>
+              <% cache [ "nav-recommendations", nav_recommendations ] do %>
+                <% nav_recommendations.each do |recommendation| %>
+                  <%= link_to recommendation.url, class: "links-menu__row", target: "_blank", rel: "noopener noreferrer" do %>
+                    <%= render "shared/recommendation_media", recommendation: recommendation %>
+                  <% end %>
                 <% end %>
               <% end %>
             </div>
