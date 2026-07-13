@@ -210,6 +210,18 @@ describe("bindGallery", () => {
     expect(document.querySelectorAll("[data-thumb]")[0].classList.contains("is-selected")).toBe(false);
   });
 
+  it("uses data-full for the zoom href when present", () => {
+    document.body.innerHTML = `
+      <div class="gallery">
+        <a href="/main.jpg" data-main-zoom><img src="/main.jpg" data-main-img></a>
+        <button data-thumb data-src="/thumb-960.jpg" data-full="/original.jpg"></button>
+      </div>`;
+    bindGallery(document);
+    fire($("[data-thumb]"), "click");
+    expect($("[data-main-img]").getAttribute("src")).toBe("/thumb-960.jpg");
+    expect($("[data-main-zoom]").getAttribute("href")).toBe("/original.jpg");
+  });
+
   it("ignores a thumb with no source", () => {
     const before = $("[data-main-img]").getAttribute("src");
     fire(document.querySelectorAll("[data-thumb]")[2], "click");

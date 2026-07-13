@@ -82,7 +82,7 @@ export function bindGallery(scope) {
       const img = scope.querySelector("[data-main-img]");
       if (img) img.setAttribute("src", src);
       const zoom = scope.querySelector("[data-main-zoom]");
-      if (zoom) zoom.setAttribute("href", src);
+      if (zoom) zoom.setAttribute("href", thumb.dataset.full || src);
     });
   });
 }

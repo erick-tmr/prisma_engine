@@ -19,7 +19,7 @@
             <% src = Storefront::ImageSource.call(brinde.image) %>
             <a class="free-card__media" href="<%= src %>" data-fancybox="brindes-<%= gotm_product.id %>" data-caption="<%= brinde.caption %>">
               <span class="free-card__num"><%= index + 1 %></span>
-              <img src="<%= src %>" alt="<%= brinde.caption %>">
+              <%= storefront_image_tag src, resize: 240, alt: brinde.caption %>
               <span class="free-card__zoom" aria-hidden="true"><i class="bi bi-arrows-fullscreen"></i></span>
             </a>
           <% else %>
