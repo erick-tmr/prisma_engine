@@ -17,8 +17,7 @@ directly to R2, so nothing here needs to be committed again.
 
 The seeds resolve these from their original paths; the files just aren't tracked. Every
 seed that reads one is guarded with `File.exist?`, so a checkout that lacks them seeds the
-catalog data without images instead of crashing (this is what CI's advisory Lighthouse job
-and a fresh teammate clone do).
+catalog data without images instead of crashing (this is what a fresh teammate clone does).
 
 ## The local copy
 
