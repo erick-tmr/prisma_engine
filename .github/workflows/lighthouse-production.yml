@@ -49,27 +49,25 @@ jobs:
             echo "No LIGHTHOUSE_CF_BYPASS_TOKEN set — auditing without a bypass header."
           fi
           echo "Auditing: $TARGET_URL"
-          npx --yes @lhci/cli@0.14.0 autorun \
+          npx --yes @lhci/cli@0.14.0 collect \
             --config="$CONFIG" \
-            --collect.url="$TARGET_URL" \
+            --url="$TARGET_URL" \
             2>&1 | tee tmp/lighthouse-production.log || true
+          npx --yes @lhci/cli@0.14.0 upload \
+            --config="$CONFIG" \
+            2>&1 | tee -a tmp/lighthouse-production.log || true
 
       - name: Summarize Lighthouse scores
         if: ${{ !cancelled() }}
         env:
           TARGET_URL: ${{ inputs.url || 'https://prismagames.com.br' }}
         run: |
-          M=.lighthouseci/manifest.json
           {
             echo "## Lighthouse (production, advisory)"
             echo ""
             echo "Target: $TARGET_URL"
             echo ""
-            if [ -f "$M" ]; then
-              jq -r '.[] | select(.isRepresentativeRun) | "- **\(.url)** — Perf \((.summary.performance*100)|round) · A11y \((.summary.accessibility*100)|round) · Best-Practices \((.summary["best-practices"]*100)|round) · SEO \((.summary.seo*100)|round)"' "$M" | tee lighthouse-production-report.txt
-            else
-              echo "(no Lighthouse report produced — see the job log; a Cloudflare challenge / origin-lock may have blocked the audit)" | tee lighthouse-production-report.txt
-            fi
+            bin/lighthouse-summary | tee lighthouse-production-report.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Lighthouse report

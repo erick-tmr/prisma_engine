@@ -565,23 +565,19 @@ jobs:
       - name: Precompile assets
         run: bin/rails assets:precompile
 
-      - name: Run Lighthouse (autorun)
+      - name: Run Lighthouse (collect + upload)
         run: |
           mkdir -p tmp
-          npx --yes @lhci/cli@0.14.0 autorun 2>&1 | tee tmp/lighthouse.log || true
+          npx --yes @lhci/cli@0.14.0 collect 2>&1 | tee tmp/lighthouse.log || true
+          npx --yes @lhci/cli@0.14.0 upload 2>&1 | tee -a tmp/lighthouse.log || true
 
       - name: Summarize Lighthouse scores
         if: ${{ !cancelled() }}
         run: |
-          M=.lighthouseci/manifest.json
           {
             echo "## Lighthouse (advisory)"
             echo ""
-            if [ -f "$M" ]; then
-              jq -r '.[] | "- **\(.url)** — Perf \((.summary.performance*100)|round) · A11y \((.summary.accessibility*100)|round) · Best-Practices \((.summary["best-practices"]*100)|round) · SEO \((.summary.seo*100)|round)"' "$M" | tee lighthouse-report.txt
-            else
-              echo "(no Lighthouse report produced — see the job log)" | tee lighthouse-report.txt
-            fi
+            bin/lighthouse-summary | tee lighthouse-report.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Lighthouse report
