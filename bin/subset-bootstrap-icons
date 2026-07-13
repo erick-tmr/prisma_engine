@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Regenerate the subset Bootstrap Icons web fonts.
+
+The full upstream font ships ~2000 glyphs (~314 KB woff2+woff); the storefront
+uses ~120. This downloads the pinned upstream release, keeps only the glyphs
+whose `bi-*` classes appear in the app, and rewrites the vendored woff2/woff
+plus the icon manifest that `test/assets/bootstrap_icons_subset_test.rb` checks.
+
+Run it after adding a new `bi-*` icon (CI fails until the manifest includes it):
+
+    pip install fonttools brotli
+    bin/subset-bootstrap-icons
+
+Provenance: the codepoints come from the committed vendored CSS; the glyph
+outlines come from the pinned upstream release below. Bump VERSION together with
+the vendored `bootstrap-icons.css` when upgrading Bootstrap Icons.
+"""
+import io
+import re
+import sys
+import tarfile
+import urllib.request
+from pathlib import Path
+
+VERSION = "1.13.1"
+TARBALL = f"https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-{VERSION}.tgz"
+
+ROOT = Path(__file__).resolve().parent.parent
+CSS = ROOT / "app/assets/stylesheets/vendor/bootstrap-icons.css"
+FONT_DIR = ROOT / "app/assets/stylesheets/vendor/fonts"
+MANIFEST = FONT_DIR / "bootstrap-icons.subset.txt"
+SEARCH = ["app/views", "app/helpers", "app/javascript",
+          "app/assets/stylesheets/pages", "app/assets/stylesheets/components"]
+ICON_RE = re.compile(rb"bi-[a-z0-9-]+")
+
+try:
+    from fontTools.subset import Options, Subsetter
+    from fontTools.ttLib import TTFont
+except ImportError:
+    sys.exit("fonttools not installed. Run: pip install fonttools brotli")
+
+
+def codepoints():
+    css = CSS.read_text()
+    return dict(re.findall(r"\.(bi-[a-z0-9-]+)::before\{content:\"\\([0-9a-fA-F]+)\"\}", css))
+
+
+def used_icon_names():
+    names = set()
+    for directory in SEARCH:
+        for path in (ROOT / directory).rglob("*"):
+            if path.is_file():
+                names.update(m.decode() for m in ICON_RE.findall(path.read_bytes()))
+    return names
+
+
+def main():
+    cp = codepoints()
+    kept = sorted(name for name in used_icon_names() if name in cp)
+    unicodes = sorted({int(cp[name], 16) for name in kept})
+    print(f"Bootstrap Icons v{VERSION}: keeping {len(kept)} of {len(cp)} glyphs")
+
+    tar_bytes = urllib.request.urlopen(TARBALL).read()
+    tar = tarfile.open(fileobj=io.BytesIO(tar_bytes))
+
+    for flavor in ("woff2", "woff"):
+        raw = tar.extractfile(f"package/font/fonts/bootstrap-icons.{flavor}").read()
+        font = TTFont(io.BytesIO(raw))
+        options = Options()
+        options.flavor = flavor
+        subsetter = Subsetter(options=options)
+        subsetter.populate(unicodes=unicodes)
+        subsetter.subset(font)
+        out = FONT_DIR / f"bootstrap-icons.{flavor}"
+        font.save(out)
+        print(f"  wrote {out.relative_to(ROOT)} ({out.stat().st_size} bytes)")
+
+    MANIFEST.write_text("\n".join(kept) + "\n")
+    print(f"  wrote {MANIFEST.relative_to(ROOT)} ({len(kept)} icons)")
+
+
+if __name__ == "__main__":
+    main()
