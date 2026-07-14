@@ -6,8 +6,7 @@
 class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  allow_browser versions: { safari: 14, chrome: 86, firefox: 78, ie: false }
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
