@@ -84,6 +84,17 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_match(/Pokemon/i, response.body)
   end
 
+  test "catalog index escapes LIKE wildcards so a bare % is not a match-all" do
+    Product.create!(
+      name: "Wildcard Sentinel", category: categories(:gb_color),
+      price_cents: 10_000, weight_grams: 20, published: true
+    )
+
+    get products_path(term: "%")
+    assert_response :success
+    assert_no_match(/Wildcard Sentinel/, response.body)
+  end
+
   test "catalog index floats the current Jogo do Mês pick above ordinary products" do
     ordinary = Product.create!(
       name: "Aaa Ordinary Game", category: categories(:gb_color),
