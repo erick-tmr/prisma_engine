@@ -3,11 +3,11 @@ require "undercover/simplecov_formatter"
 
 SimpleCov.start "rails" do
   enable_coverage :branch
-  add_filter "/test/"
+  skip "/test/"
   # Devise views are templated above (Bootstrap 5 + i18n) but Rails 8 view
   # coverage would otherwise drag them into the 100% floor for branches we
   # don't introduce ourselves — system tests still exercise them end-to-end.
-  add_filter "/app/views/devise/"
+  skip "/app/views/devise/"
 
   # 100% floor — the suite refuses to pass below full line and branch coverage.
   # Combined with undercover (changed-line gate), this enforces both "every
