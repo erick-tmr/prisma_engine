@@ -38,7 +38,13 @@ Rails.application.configure do
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
-  config.logger = ActiveSupport::TaggedLogging.logger(STDOUT)
+  # Log to STDOUT (captured by Docker for `kamal app logs`) and to a rotating
+  # file on a persistent named volume (see config/deploy.yml), so the history
+  # survives container replacement on deploy. Runbook: docs/log-analysis.md.
+  config.logger = ActiveSupport::BroadcastLogger.new(
+    ActiveSupport::TaggedLogging.logger(STDOUT),
+    ActiveSupport::TaggedLogging.logger(Rails.root.join("log/#{Rails.env}.log"), 5, 50.megabytes)
+  )
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!).
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
@@ -59,7 +65,13 @@ Rails.application.configure do
   config.lograge.custom_payload do |controller|
     request = controller.request
     user = controller.current_user if controller.respond_to?(:current_user, true)
-    { request_id: request.request_id, host: request.host, user_id: user&.id }.compact
+    {
+      request_id: request.request_id,
+      host: request.host,
+      remote_ip: request.headers["CF-Connecting-IP"].presence || request.remote_ip,
+      user_agent: request.user_agent,
+      user_id: user&.id
+    }.compact
   end
 
   ActiveSupport.on_load(:active_job) do

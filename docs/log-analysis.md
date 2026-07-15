@@ -17,12 +17,20 @@ bin/log-analysis down        # stop the stack, keep ingested data
 
 ## How logging works in production
 
-- Rails logs to STDOUT, captured by Docker's `json-file` driver
-  (`config/deploy.yml` rotates it at `50m` x `3`, about 150 MB of on-box history).
+- Rails broadcasts its log to two sinks (`config/environments/production.rb`):
+  STDOUT (captured by Docker's `json-file` driver, a bounded ~150 MB live-tail
+  buffer for `kamal app logs`), and a rotating **file** `log/production.log`
+  (`50m` x `5`, ~300 MB). That file lives on the **persistent named volume**
+  `prisma_engine_logs` (`config/deploy.yml`), which is stored on the VPS disk and
+  **survives container replacement**, so a deploy no longer discards history. The
+  durable copy we download and analyze is this volume file, not the per-container
+  Docker log.
 - `lograge` (`config/environments/production.rb`) condenses each controller request
   into a single JSON line tagged `event: "request"`: `method`, `path`, `status`,
-  `controller`, `action`, `duration` (ms), plus `request_id`, `host`, and `user_id`.
-  Raw request params are not logged (PII).
+  `controller`, `action`, `duration` (ms), plus `request_id`, `host`, `remote_ip`
+  (the real client IP, read from Cloudflare's `CF-Connecting-IP` header, falling
+  back to `request.remote_ip`), `user_agent`, and `user_id`. Raw request params are
+  not logged (PII).
 - Active Job runs (Solid Queue is in-Puma, so jobs log to the same STDOUT) emit one
   JSON line per event tagged `event: "job"`, via
   `StructuredLogging::ActiveJobLogSubscriber`: `job_event` (enqueue/enqueue_at/perform/
@@ -36,9 +44,10 @@ bin/log-analysis down        # stop the stack, keep ingested data
 - Solid Queue's own supervisor/worker lifecycle lines, boot lines, and other
   `Rails.logger` output stay plain text. They are still queryable in Loki as raw
   lines, just without parsed fields.
-- Every line on disk is double-wrapped: the Docker envelope
-  `{"log":"<inner>\n","stream":"stdout","time":"..."}` around the inner stdout line.
-  The local stack unwraps this for you.
+- Each line in `log/production.log` is a single raw JSON object (the lograge
+  request line or the job line), or a plain-text Rails line for boot / SolidQueue
+  lifecycle output. There is no Docker json-file envelope to unwrap: Rails writes
+  these lines directly to the file.
 
 ## Prerequisites
 
@@ -53,11 +62,13 @@ bin/log-analysis down        # stop the stack, keep ingested data
 deploy/fetch-production-logs.sh
 ```
 
-This SSHes in, finds every app container (the live one plus Kamal's retained exited
-ones, so you get history across recent deploys), and copies each container's
-`*-json.log` files (rotation siblings included) into `/tmp/prisma-production-logs/<container-id>/`.
-The download is read-only on the host. Writing under the system `/tmp` keeps these logs out
-of the repo and lets the OS reclaim the space; override the location with `PRODUCTION_LOG_DIR`.
+This SSHes in, resolves the `prisma_engine_logs` volume's mountpoint on the host
+(`docker volume inspect`), and copies `production.log` plus its rotation siblings
+(`production.log.0`, `.1`, ...) into `/tmp/prisma-production-logs/prisma_engine_logs/`.
+Because the volume outlives containers, this is the full retained history, not just
+the current boot. The download is read-only on the host. Writing under the system
+`/tmp` keeps these logs out of the repo and lets the OS reclaim the space; override
+the location with `PRODUCTION_LOG_DIR` (and the volume name with `PRODUCTION_LOG_VOLUME`).
 
 ## 2. Bring up the local stack
 
@@ -66,11 +77,11 @@ cd deploy/log-analysis
 docker compose up -d
 ```
 
-Loki, Grafana, and Promtail start. Promtail reads `/tmp/prisma-production-logs/`, unwraps the
-Docker envelope, parses the JSON into labels (`event`, plus `method`/`status`/
-`controller`/`action` for requests and `job_class`/`queue`/`outcome` for jobs) and
-structured metadata (`request_id`, `user_id`, `duration`, `job_event`, `job_id`,
-`executions`), and ships it to Loki.
+Loki, Grafana, and Promtail start. Promtail reads `/tmp/prisma-production-logs/`, parses
+each raw JSON line into labels (`event`, plus `method`/`status`/`controller`/`action` for
+requests and `job_class`/`queue`/`outcome` for jobs) and structured metadata (`request_id`,
+`user_id`, `remote_ip`, `user_agent`, `duration`, `job_event`, `job_id`, `executions`), and
+ships it to Loki.
 
 Grafana listens on `http://127.0.0.1:4000` (4000, not 3000, so it does not collide with a
 local `bin/dev` Rails server).
@@ -88,6 +99,8 @@ timestamps, not "now". Example LogQL:
 {job="prisma_engine", controller="CartController"}         # one controller
 {job="prisma_engine"} | json | duration > 500              # requests slower than 500ms
 {job="prisma_engine"} | json | request_id="<id>"           # one request, end to end
+{job="prisma_engine"} | json | user_id="25"                # every request by one user (abuse trace)
+{job="prisma_engine"} | json | remote_ip="203.0.113.7"     # every request from one client IP
 
 {job="prisma_engine", event="job"}                         # all job events
 {job="prisma_engine", event="job", outcome="errored"}      # failed job runs
@@ -126,13 +139,12 @@ The authoritative check is post-deploy: fetch real logs and confirm they parse i
 ## Lighter alternative (no running service)
 
 For a quick look without the stack, query the downloaded ndjson directly. The lines are
-double-wrapped, so extract `.log` first, then the inner field:
+raw JSON now (no envelope), so read the field straight off each line:
 
 ```bash
 duckdb -c "
-  SELECT json_extract_string(json_extract_string(line, '\$.log'), '\$.status') AS status,
-         count(*)
-  FROM read_csv('/tmp/prisma-production-logs/**/*-json.log', columns={'line':'VARCHAR'}, delim='\x00')
+  SELECT json_extract_string(line, '\$.status') AS status, count(*)
+  FROM read_csv('/tmp/prisma-production-logs/**/*.log*', columns={'line':'VARCHAR'}, delim='\x00')
   GROUP BY status ORDER BY 2 DESC"
 ```
 
@@ -144,14 +156,14 @@ forward-compatible with Grafana Cloud's free tier if logs later ship off-box.
 
 - **No lines in Grafana.** Widen the time range (logs are old). Confirm
   `reject_old_samples: false` in `loki-config.yaml` and that the `timestamp` stage in
-  `promtail-config.yaml` parsed the envelope time.
-- **Lines show as one opaque JSON blob.** The Docker envelope was not unwrapped. Check a
-  raw sample (`head -1 /tmp/prisma-production-logs/*/*-json.log`): the outer keys are
-  `log`/`stream`/`time`, and Promtail's first `json` stage plus `output: source: log`
-  must run before the inner parse.
-- **Loki rejects high-cardinality labels.** `request_id`, `user_id`, and `duration` are
-  structured metadata, not labels, by design. Only `method`/`status`/`controller`/`action`
-  are labels.
+  `promtail-config.yaml` parsed the lograge `time` field.
+- **Nothing to fetch / empty download.** `deploy/fetch-production-logs.sh` reads the
+  `prisma_engine_logs` volume. It only exists once the deploy that adds it (`volumes:` in
+  `config/deploy.yml`) has run; before that, there is no volume to copy from. Confirm with
+  `ssh <host> docker volume inspect prisma_engine_logs`.
+- **Loki rejects high-cardinality labels.** `request_id`, `user_id`, `remote_ip`,
+  `user_agent`, and `duration` are structured metadata, not labels, by design. Only
+  `method`/`status`/`controller`/`action` are labels.
 - **Grafana won't load / port busy.** Something else owns `127.0.0.1:4000`. Remap the
   Grafana port in `compose.yaml` (`127.0.0.1:<port>:3000`).
 - **`structured_metadata` stage rejected by Promtail.** The image is older than 3.x. Drop
