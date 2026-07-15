@@ -464,11 +464,6 @@ GEM
     securerandom (0.4.1)
     simplecov (1.0.0)
     simplecov_json_formatter (0.1.4)
-    solid_cable (4.0.0)
-      actioncable (>= 7.2)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
     solid_cache (1.0.10)
       activejob (>= 7.2)
       activerecord (>= 7.2)
@@ -577,7 +572,6 @@ DEPENDENCIES
   reek
   rubocop-rails-omakase
   simplecov
-  solid_cable
   solid_cache
   solid_queue
   stimulus-rails

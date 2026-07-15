@@ -14,7 +14,6 @@ pg_app_databases:
   - prisma_engine_production
   - prisma_engine_production_cache
   - prisma_engine_production_queue
-  - prisma_engine_production_cable
 pg_hba_app_cidr: 172.16.0.0/12
 
 pg_tuning:
