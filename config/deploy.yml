@@ -56,9 +56,16 @@ env:
     # production.yml.enc (brevo.smtp_login / brevo.smtp_key, correios.api_token /
     # correios.cartao_api_token), decrypted at boot by RAILS_MASTER_KEY.
 
-# Docker json-file rotation for the app container: ~150 MB of on-box history
-# (3 x 50 MB), bounded, so deploy/fetch-production-logs.sh has something worth
-# downloading. Applies on the next deploy. Runbook: docs/log-analysis.md.
+# Durable logs: Rails writes lograge JSON to log/production.log on this named
+# volume, which lives on the VPS disk and survives container replacement, so a
+# deploy no longer discards the request history. deploy/fetch-production-logs.sh
+# reads it from the volume mountpoint. Runbook: docs/log-analysis.md.
+volumes:
+  - "prisma_engine_logs:/rails/log"
+
+# Docker json-file rotation for the app container's STDOUT: a bounded live-tail
+# buffer for `kamal app logs` (~150 MB, 3 x 50 MB). The durable copy is the named
+# volume above; this is short-term only. Applies on the next deploy.
 logging:
   driver: json-file
   options:

@@ -9,72 +9,64 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: production-json-file
+  - job_name: production-rails-log
     static_configs:
       - targets:
           - localhost
         labels:
           job: prisma_engine
-          __path__: /var/log/production/**/*-json.log*
+          __path__: /var/log/production/**/*.log*
 
-    # Each on-disk line is the Docker json-file envelope
-    #   {"log":"<inner stdout line>\n","stream":"stdout","time":"..."}
-    # where <inner> is either a lograge JSON object or a plain Rails log line.
+    # Each on-disk line is written straight by Rails to log/production.log on the
+    # persistent volume: a raw lograge JSON object (event="request") or a job JSON
+    # object (event="job"), or a plain Rails log line (boot / SolidQueue lifecycle).
+    # There is no Docker json-file envelope to unwrap anymore.
     pipeline_stages:
-      # 1. Unwrap the envelope: adopt the real production timestamp and promote
-      #    the inner stdout line to the working log text.
+      # Parse the JSON line. The json stage no-ops on non-JSON lines (boot output),
+      # which pass through as raw queryable text. `event` tells request lines from
+      # job lines apart; request-only fields (method/status/controller/action) and
+      # job-only fields (job_class/queue/outcome) are sparse, one set per line.
       - json:
           expressions:
-            log: log
-            stream: stream
-            envelope_time: time
+            event: event
+            line_time: time
+            method: method
+            path: path
+            status: status
+            controller: controller
+            action: action
+            duration: duration
+            request_id: request_id
+            user_id: user_id
+            remote_ip: remote_ip
+            user_agent: user_agent
+            job_class: job_class
+            queue: queue
+            outcome: outcome
+            job_event: job_event
+            job_id: job_id
+            executions: executions
+      # Adopt the real production timestamp; skip (keep ingest time) on the plain
+      # non-JSON lines that carry no `time` field.
       - timestamp:
-          source: envelope_time
+          source: line_time
           format: RFC3339Nano
+          action_on_failure: skip
       - labels:
-          stream:
-      - output:
-          source: log
-
-      # 2. Parse the inner lograge JSON. The json stage no-ops on non-JSON lines
-      #    (job/boot output), which pass through as raw queryable text.
-      - match:
-          selector: '{job="prisma_engine"}'
-          stages:
-            # Shared `event` label tells request lines (lograge) from job lines
-            # (StructuredLogging::ActiveJobLogSubscriber) apart. Request-only fields
-            # (method/status/controller/action) and job-only fields (job_class/queue/
-            # outcome) are sparse: each line carries one set, the other stays unset.
-            - json:
-                expressions:
-                  event: event
-                  method: method
-                  path: path
-                  status: status
-                  controller: controller
-                  action: action
-                  duration: duration
-                  request_id: request_id
-                  user_id: user_id
-                  job_class: job_class
-                  queue: queue
-                  outcome: outcome
-                  job_event: job_event
-                  job_id: job_id
-                  executions: executions
-            - labels:
-                event:
-                method:
-                status:
-                controller:
-                action:
-                job_class:
-                queue:
-                outcome:
-            - structured_metadata:
-                request_id:
-                user_id:
-                duration:
-                job_event:
-                job_id:
-                executions:
+          event:
+          method:
+          status:
+          controller:
+          action:
+          job_class:
+          queue:
+          outcome:
+      - structured_metadata:
+          request_id:
+          user_id:
+          remote_ip:
+          user_agent:
+          duration:
+          job_event:
+          job_id:
+          executions:
