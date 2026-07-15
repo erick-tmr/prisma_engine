@@ -6,8 +6,7 @@ module Admin
 
     test "lists every product ordered by name" do
       assert_equal Product.count, @presenter.count
-      names = @presenter.products.map(&:name)
-      assert_equal names.sort, names
+      assert_equal Product.order(:name).pluck(:name), @presenter.products.map(&:name)
     end
 
     test "exposes categories for the filter as [name, slug] pairs" do

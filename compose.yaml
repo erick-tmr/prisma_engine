@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17
     environment:
       POSTGRES_USER: prisma_engine
       POSTGRES_PASSWORD: prisma_engine
