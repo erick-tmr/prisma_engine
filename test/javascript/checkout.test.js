@@ -38,6 +38,15 @@ let payTab, openTab, navigate;
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+function submit() {
+  const ev = new Event("submit", { cancelable: true });
+  document.querySelector("[data-checkout-form]").dispatchEvent(ev);
+  return ev;
+}
+function agree() {
+  document.querySelector("[data-agree-confirm]").dispatchEvent(new Event("click"));
+}
+
 function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = true } = {}) {
   document.head.innerHTML = '<meta name="csrf-token" content="test-token">';
   document.body.innerHTML = `
@@ -76,6 +85,9 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = t
     <span data-mb-total></span>
     <span data-installment></span>
     <div data-redirect></div>
+    <div class="checkout__agree" data-agree-modal aria-hidden="true">
+      <div class="checkout__agree-card"><button data-agree-confirm>Ir para o pagamento</button></div>
+    </div>
   `;
   payTab = { location: { href: "" }, close: vi.fn() };
   openTab = vi.fn(() => (popup ? payTab : null));
@@ -83,7 +95,7 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = t
   return createCheckout(document, openTab, navigate);
 }
 
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => { vi.restoreAllMocks(); document.body.style.overflow = ""; });
 
 describe("money", () => {
   it("formats integer cents as pt-BR BRL", () => {
@@ -241,7 +253,7 @@ describe("bindEvents", () => {
     expect(document.querySelector('input[value="2"]').checked).toBe(true);
   });
 
-  it("submitting with a service opens a pay tab, posts the form, and sends this tab to the return page", async () => {
+  it("agreeing after submit opens a pay tab, posts the form, and sends this tab to the return page", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ payment_url: "https://pay.example/abc", return_url: "/checkout/retorno?order_nsu=PG-1" })
@@ -251,12 +263,15 @@ describe("bindEvents", () => {
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
     document.querySelector("[data-obs-none]").checked = true;
-    const form = document.querySelector("[data-checkout-form]");
 
-    const ev = new Event("submit", { cancelable: true });
-    form.dispatchEvent(ev);
+    const ev = submit();
     expect(ev.defaultPrevented).toBe(true);
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(true);
+    expect(openTab).not.toHaveBeenCalled();
+
+    agree();
     expect(openTab).toHaveBeenCalledOnce();
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(false);
     expect(document.querySelector("[data-redirect]").classList.contains("is-visible")).toBe(true);
 
     await flush();
@@ -278,7 +293,8 @@ describe("bindEvents", () => {
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
     document.querySelector("[data-obs-none]").checked = true;
-    document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
+    submit();
+    agree();
 
     await flush();
     expect(navigate).toHaveBeenCalledWith("https://pay.example/abc");
@@ -293,7 +309,8 @@ describe("bindEvents", () => {
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
     document.querySelector("[data-obs-none]").checked = true;
-    document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
+    submit();
+    agree();
 
     await flush();
     expect(payTab.close).toHaveBeenCalledOnce();
@@ -309,7 +326,8 @@ describe("bindEvents", () => {
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
     document.querySelector("[data-obs-none]").checked = true;
-    document.querySelector("[data-checkout-form]").dispatchEvent(new Event("submit", { cancelable: true }));
+    submit();
+    agree();
 
     await flush();
     expect(payTab.close).not.toHaveBeenCalled();
@@ -317,7 +335,7 @@ describe("bindEvents", () => {
     expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Não foi possível iniciar o pagamento/);
   });
 
-  it("ignores a second submit while a payment is already in flight", async () => {
+  it("ignores a second agree click while a payment is already in flight", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ payment_url: "https://pay.example/abc", return_url: "/checkout/retorno?order_nsu=PG-1" })
@@ -327,24 +345,105 @@ describe("bindEvents", () => {
     co.bindEvents();
     document.querySelector("[data-checkout-service]").value = "pac";
     document.querySelector("[data-obs-none]").checked = true;
-    const form = document.querySelector("[data-checkout-form]");
 
-    form.dispatchEvent(new Event("submit", { cancelable: true }));
-    form.dispatchEvent(new Event("submit", { cancelable: true }));
+    submit();
+    agree();
+    agree();
 
     await flush();
     expect(openTab).toHaveBeenCalledOnce();
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
-  it("submitting with no service is blocked and flags the shipping step", () => {
+  it("ignores a re-submit while a payment is already in flight", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ payment_url: "https://pay.example/abc", return_url: "/checkout/retorno?order_nsu=PG-1" })
+    });
+    vi.stubGlobal("fetch", fetchMock);
     const co = mountCheckout();
     co.bindEvents();
-    const ev = new Event("submit", { cancelable: true });
-    document.querySelector("[data-checkout-form]").dispatchEvent(ev);
+    document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
+
+    submit();
+    agree();
+    const ev = submit();
+
+    await flush();
+    expect(ev.defaultPrevented).toBe(true);
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(false);
+    expect(openTab).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("submitting with no service is blocked, flags the shipping step, and does not open the modal", () => {
+    const co = mountCheckout();
+    co.bindEvents();
+    const ev = submit();
     expect(ev.defaultPrevented).toBe(true);
     expect(document.querySelector("#step-shipping").classList.contains("is-invalid")).toBe(true);
     expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(false);
+    expect(openTab).not.toHaveBeenCalled();
+  });
+});
+
+describe("payment agreement modal", () => {
+  function mountValid() {
+    const co = mountCheckout();
+    co.bindEvents();
+    document.querySelector("[data-checkout-service]").value = "pac";
+    document.querySelector("[data-obs-none]").checked = true;
+    return co;
+  }
+
+  it("a valid submit opens the modal and locks the page without starting payment", () => {
+    mountValid();
+    submit();
+    const modal = document.querySelector("[data-agree-modal]");
+    expect(modal.classList.contains("is-open")).toBe(true);
+    expect(modal.getAttribute("aria-hidden")).toBe("false");
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(openTab).not.toHaveBeenCalled();
+    expect(document.querySelector("[data-redirect]").classList.contains("is-visible")).toBe(false);
+  });
+
+  it("clicking the backdrop dismisses the modal and unlocks the page", () => {
+    mountValid();
+    submit();
+    const modal = document.querySelector("[data-agree-modal]");
+    modal.dispatchEvent(new Event("click"));
+    expect(modal.classList.contains("is-open")).toBe(false);
+    expect(modal.getAttribute("aria-hidden")).toBe("true");
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("clicking inside the card does not dismiss the modal", () => {
+    mountValid();
+    submit();
+    const modal = document.querySelector("[data-agree-modal]");
+    modal.querySelector(".checkout__agree-card").dispatchEvent(new Event("click", { bubbles: true }));
+    expect(modal.classList.contains("is-open")).toBe(true);
+  });
+
+  it("Escape closes the modal when open", () => {
+    mountValid();
+    submit();
+    const modal = document.querySelector("[data-agree-modal]");
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(modal.classList.contains("is-open")).toBe(false);
+  });
+
+  it("Escape is a no-op when the modal is closed, and other keys are ignored while open", () => {
+    const co = mountValid();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(false);
+
+    submit();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(true);
+    expect(co).toBeTruthy();
   });
 });
 
@@ -404,6 +503,7 @@ describe("observation", () => {
     expect(document.querySelector("#step-observation").classList.contains("is-invalid")).toBe(true);
     expect(document.querySelector("[data-pay-error]").classList.contains("is-visible")).toBe(true);
     expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Escreva uma observação/);
+    expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(false);
     expect(openTab).not.toHaveBeenCalled();
   });
 });

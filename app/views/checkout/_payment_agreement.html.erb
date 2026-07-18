@@ -1,0 +1,26 @@
+<div class="checkout__agree" data-agree-modal role="dialog" aria-modal="true" aria-labelledby="agree-title" aria-hidden="true">
+  <div class="checkout__agree-card">
+    <div class="rainbow-bar rainbow-bar--top"></div>
+    <div class="checkout__agree-body">
+      <div class="checkout__agree-titlerow" aria-hidden="true">
+        <div class="checkout__agree-scene">
+          <span class="checkout__agree-hero"><span class="checkout__agree-hero-glow"></span><span class="checkout__agree-hero-grid"><span></span><span></span><span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span><span></span><span></span><span></span><span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span><span class="h"></span><span></span><span></span><span class="h"></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="h"></span><span></span><span></span><span class="s"></span><span class="e"></span><span class="s"></span><span class="s"></span><span class="e"></span><span class="s"></span><span></span><span></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="s"></span><span></span><span></span><span></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span></span><span></span><span></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span></span><span></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span><span></span><span></span><span></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span></span><span></span><span></span><span></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span></span><span></span><span></span><span></span><span class="b"></span><span class="b"></span><span class="b"></span><span class="b"></span><span></span><span></span></span></span>
+          <span class="checkout__agree-critter"><span class="checkout__agree-critter-shell"></span><span class="checkout__agree-critter-foot checkout__agree-critter-foot--l"></span><span class="checkout__agree-critter-foot checkout__agree-critter-foot--r"></span></span>
+          <span class="checkout__agree-puff">POW!</span>
+          <span class="checkout__agree-pipe"><span class="checkout__agree-pipe-top"></span><span class="checkout__agree-pipe-body"></span></span>
+        </div>
+      </div>
+      <div class="checkout__agree-eyebrow-row"><span class="checkout__agree-eyebrow"><i class="bi bi-joystick"></i> 1-UP · Continue?</span></div>
+      <h3 id="agree-title">Antes do castelo final: leu as Perguntas Frequentes?</h3>
+      <p>Todos os jogos são <strong>feitos sob encomenda</strong>, não temos nada a pronta entrega. Os <strong>prazos de produção</strong>, a política de envio, trocas e devoluções estão na página de <%= link_to "Perguntas Frequentes", perguntas_frequentes_path, class: "checkout__agree-link", target: "_blank", rel: "noopener" %>. Ao continuar, você declara que <strong>leu e entendeu</strong> essas condições.</p>
+      <div class="checkout__agree-actions">
+        <button type="button" class="checkout__btn checkout__btn--dark checkout__btn--block checkout__btn--pay" data-agree-confirm>
+          <i class="bi bi-check-lg"></i> Li e entendi a página de Perguntas Frequentes, ir para o pagamento
+        </button>
+        <%= link_to perguntas_frequentes_path, class: "checkout__agree-review", target: "_blank", rel: "noopener" do %>
+          <i class="bi bi-box-arrow-up-right"></i> Reler as Perguntas Frequentes
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
