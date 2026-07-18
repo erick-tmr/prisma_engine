@@ -19,6 +19,15 @@ class OrderStatusChangeTest < ActiveSupport::TestCase
     end
   end
 
+  test "a payment_confirmed change on an order that ends up merged sends no email" do
+    order = orders(:confirmed_paid)
+    order.update_column(:status, "merged")
+
+    assert_no_enqueued_emails do
+      order.status_changes.create!(from_status: "awaiting_payment", to_status: "payment_confirmed", automatic: true)
+    end
+  end
+
   test "belongs to an order and the acting operator" do
     change = order_status_changes(:delivered_production)
     assert_equal orders(:delivered), change.order

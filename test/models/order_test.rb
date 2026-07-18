@@ -338,4 +338,54 @@ class OrderTest < ActiveSupport::TestCase
 
     assert_equal [ stale.id ], Order.awaiting_payment_expired.pluck(:id)
   end
+
+  test "each mergeable state can transition to merged" do
+    %w[payment_confirmed awaiting_components production_issue].each do |state|
+      order = build_order
+      order.save!
+      order.update_column(:status, state)
+      order.transition_to!("merged")
+      assert order.reload.merged?
+    end
+  end
+
+  test "merged is terminal" do
+    order = build_order
+    order.save!
+    order.update_column(:status, "payment_confirmed")
+    order.transition_to!("merged")
+    assert_raises(Order::InvalidTransition) { order.transition_to!("in_production") }
+  end
+
+  test "a merged order counts as paid" do
+    order = build_order
+    order.save!
+    order.update_column(:status, "merged")
+    assert_equal :paid, order.payment_status
+    assert_not order.cancellable?
+  end
+
+  test "mergeable scopes to the three eligible states, oldest first" do
+    user = User.create!(
+      email: "merge-scope@example.com", password: "password123",
+      full_name: "Merge Scope", cpf: "39053344705", phone: "11900000000", confirmed_at: 1.day.ago
+    )
+    older = user.orders.create!(base_attrs)
+    older.update_columns(status: "production_issue", created_at: 3.days.ago)
+    newer = user.orders.create!(base_attrs)
+    newer.update_columns(status: "payment_confirmed", created_at: 1.day.ago)
+    user.orders.create!(base_attrs)
+
+    assert_equal [ older.id, newer.id ], user.orders.mergeable.pluck(:id)
+  end
+
+  test "merged_into links an absorbed order back to its master" do
+    master = build_order
+    master.save!
+    absorbed = build_order
+    absorbed.save!
+    absorbed.update!(merged_into: master)
+    assert_equal master, absorbed.reload.merged_into
+    assert_includes master.merged_orders, absorbed
+  end
 end

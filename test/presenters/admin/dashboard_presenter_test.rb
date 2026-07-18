@@ -9,7 +9,7 @@ module Admin
       assert_equal Order.count, payload.size
 
       awaiting = orders(:awaiting)
-      first = payload.first # recent_first → the 1h-old awaiting order leads
+      first = payload.first
       assert_equal awaiting.number, first["n"]
       assert_equal awaiting.user.full_name, first["clientName"]
       assert_equal awaiting.shipment.city, first["city"]
@@ -18,6 +18,14 @@ module Admin
       assert_equal "awaiting_payment", first["status"]
       assert_equal awaiting.total_cents, first["total"]
       assert_equal 1, first["items"]
+    end
+
+    test "orders exclude merged consolidations, which have no shipment to render" do
+      merged = orders(:awaiting).user.orders.create!(subtotal_cents: 100, total_cents: 100)
+      merged.update_column(:status, "merged")
+
+      numbers = DashboardPresenter.new.orders.map { |row| row["n"] }
+      assert_not_includes numbers, merged.number
     end
 
     test "clients exclude admins and derive situação plus order counts" do
@@ -64,7 +72,7 @@ module Admin
       reports = @presenter.reports
       assert_equal 2, reports.size
 
-      first = reports.first # recent_first → the open-ended batch leads
+      first = reports.first
       assert_equal open_ended.id, first["id"]
       assert_equal I18n.t("admin.production_report.report.system"), first["operator"]
       assert_equal I18n.t("admin.production_report.report.all_periods"), first["period"]

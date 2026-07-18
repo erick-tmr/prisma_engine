@@ -86,6 +86,7 @@ bi-people
 bi-person
 bi-person-vcard
 bi-person-x
+bi-piggy-bank
 bi-pin-angle
 bi-plus
 bi-plus-circle

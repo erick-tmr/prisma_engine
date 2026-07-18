@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_09_120100) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_18_120100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -137,6 +137,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_120100) do
     t.index ["product_id"], name: "index_order_items_on_product_id"
   end
 
+  create_table "order_merges", force: :cascade do |t|
+    t.jsonb "absorbed_order_ids", default: [], null: false
+    t.bigint "carrier_order_id", null: false
+    t.string "combined_service", null: false
+    t.integer "combined_shipping_cents", null: false
+    t.integer "combined_weight_grams", null: false
+    t.datetime "created_at", null: false
+    t.datetime "executed_at"
+    t.bigint "master_order_id", null: false
+    t.integer "paid_fretes_cents", null: false
+    t.datetime "updated_at", null: false
+    t.index ["carrier_order_id"], name: "index_order_merges_on_carrier_order_id", unique: true
+    t.index ["master_order_id"], name: "index_order_merges_on_master_order_id"
+  end
+
   create_table "order_status_changes", force: :cascade do |t|
     t.bigint "actor_id"
     t.boolean "automatic", default: false, null: false
@@ -152,6 +167,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_120100) do
   create_table "orders", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "external_id"
+    t.bigint "merged_into_id"
     t.string "number", null: false
     t.text "observation"
     t.string "payment_method"
@@ -164,6 +180,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_120100) do
     t.bigint "user_id", null: false
     t.string "webhook_token"
     t.index ["external_id"], name: "index_orders_on_external_id", unique: true
+    t.index ["merged_into_id"], name: "index_orders_on_merged_into_id"
     t.index ["number"], name: "index_orders_on_number", unique: true
     t.index ["production_batch_id"], name: "index_orders_on_production_batch_id"
     t.index ["user_id", "created_at"], name: "index_orders_on_user_id_and_created_at"
@@ -388,8 +405,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_120100) do
   add_foreign_key "game_of_the_month_products", "products"
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products", on_delete: :nullify
+  add_foreign_key "order_merges", "orders", column: "carrier_order_id"
+  add_foreign_key "order_merges", "orders", column: "master_order_id"
   add_foreign_key "order_status_changes", "orders"
   add_foreign_key "order_status_changes", "users", column: "actor_id"
+  add_foreign_key "orders", "orders", column: "merged_into_id"
   add_foreign_key "orders", "production_batches", on_delete: :nullify
   add_foreign_key "orders", "users"
   add_foreign_key "payment_webhook_events", "orders"

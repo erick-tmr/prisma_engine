@@ -1,7 +1,7 @@
 module Account
   class OrdersController < BaseController
     def index
-      @orders = current_user.orders.recent_first
+      @orders = current_user.orders.where.not(status: :merged).recent_first
     end
 
     def show

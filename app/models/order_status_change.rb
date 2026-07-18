@@ -18,6 +18,9 @@ class OrderStatusChange < ApplicationRecord
 
   def deliver_order_email
     action = NOTIFIED[to_status]
-    OrderMailer.public_send(action, order).deliver_later if action
+    return unless action
+    return if order.reload.merged?
+
+    OrderMailer.public_send(action, order).deliver_later
   end
 end

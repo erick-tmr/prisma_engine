@@ -157,6 +157,17 @@ pt-BR:
     heading: "Sua senha foi alterada com sucesso."
     intro: "Este é um aviso de que a senha da sua conta Prisma Games acabou de ser modificada. Se foi você, não precisa fazer mais nada."
     disclaimer: "Se você não reconhece essa alteração, redefina sua senha e fale com o suporte o quanto antes."
+  checkout:
+    merge:
+      lead_html:
+        one: "Você tem <strong>%{count} pedido ainda não enviado</strong>. Junte ele a esta compra para <strong>receber tudo numa única entrega</strong> e pagar o frete uma vez só."
+        other: "Você tem <strong>%{count} pedidos ainda não enviados</strong>. Junte eles a esta compra para <strong>receber tudo numa única entrega</strong> e pagar o frete uma vez só."
+      items:
+        one: "%{count} item"
+        other: "%{count} itens"
+      orders_paid:
+        one: "%{count} pedido · já pago"
+        other: "%{count} pedidos · já pagos"
   account:
     greeting_html: "Olá, %{name}"
     short_label: "Minha conta"
@@ -279,6 +290,9 @@ pt-BR:
         cancelled:
           label: "Cancelado"
           description: "Seu pedido foi cancelado."
+        merged:
+          label: "Consolidado"
+          description: "Este pedido foi juntado a outro para envio em uma única entrega."
       cancel:
         cancelled: "Pedido cancelado."
         awaiting_refund: "Cancelamento solicitado. O reembolso será processado manualmente e o pedido será encerrado assim que a devolução for concluída."
@@ -302,6 +316,7 @@ pt-BR:
         tracking: "Rastreamento"
         destination: "Destino"
         cancel: "Cancelar pedido"
+        merged_into_html: "Este pedido foi juntado ao pedido %{number} e será enviado em uma única entrega."
   admin:
     sessions:
       title: "Backoffice — Prisma Games"
@@ -578,6 +593,8 @@ pt-BR:
           description: "Cancelamento solicitado pelo cliente. Processe o reembolso para encerrar o pedido."
         cancelled:
           description: "Pedido cancelado. Nenhuma ação adicional."
+        merged:
+          description: "Pedido consolidado em outro. Fluxo encerrado."
       auto_next:
         label_issued: "O status avança para Enviado automaticamente quando os Correios registram a postagem."
         shipped: "O status avança para Entregue automaticamente pelo rastreio dos Correios."

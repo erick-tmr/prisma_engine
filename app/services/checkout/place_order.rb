@@ -59,7 +59,7 @@ module Checkout
           subtotal_cents:         subtotal,
           total_cents:            subtotal + shipping,
           observation:            observation,
-          order_items_attributes: cart.lines.map { |line| item_attributes(line) }
+          order_items_attributes: cart.lines.map { |line| Checkout::CartItems.attributes_for(line) }
         )
         order.create_shipment!(shipment_attributes(address, shipping))
         order
@@ -89,20 +89,6 @@ module Checkout
         neighborhood:  address.neighborhood,
         city:          address.city,
         state:         address.state
-      }
-    end
-
-    def item_attributes(line)
-      product = line.product
-      {
-        product_id:       product.id,
-        name:             product.title,
-        unit_price_cents: line.unit_price_cents,
-        quantity:         line.quantity,
-        chosen_options:   line.options.map { |opt| opt.group_name.present? ? "#{opt.group_name}: #{opt.name}" : opt.name },
-        photo_path:       product.image,
-        requested_game:   line.requested_game,
-        request_notes:    line.request_notes
       }
     end
   end

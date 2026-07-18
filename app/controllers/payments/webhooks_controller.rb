@@ -7,10 +7,8 @@ module Payments
         return head :unauthorized
       end
 
-      ActiveRecord::Base.transaction do
-        order.payment_webhook_events.create!(headers: captured_headers, payload: payload)
-        Payments::PaymentUpdate.call(order: order, payload: payload)
-      end
+      event = order.payment_webhook_events.create!(headers: captured_headers, payload: payload)
+      Payments::ProcessWebhookJob.perform_later(event.id)
       head :ok
     end
 

@@ -41,6 +41,29 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Você ainda não fez nenhum pedido/, response.body)
   end
 
+  test "index hides orders that were merged away" do
+    merged = users(:confirmed).orders.create!(subtotal_cents: 100, total_cents: 100)
+    merged.update_column(:status, "merged")
+
+    sign_in users(:confirmed)
+    get account_orders_path
+    assert_response :success
+    assert_no_match(/#{merged.number}/, response.body)
+  end
+
+  test "show on a merged order links to the order it was consolidated into" do
+    master = orders(:confirmed_paid)
+    merged = users(:confirmed).orders.create!(subtotal_cents: 0, total_cents: 0)
+    merged.update!(merged_into: master)
+    merged.update_column(:status, "merged")
+
+    sign_in users(:confirmed)
+    get account_order_path(merged)
+    assert_response :success
+    assert_match(/juntado ao pedido/, response.body)
+    assert_select "a[href=?]", account_order_path(master)
+  end
+
   test "show on a delivered order renders items, the tracking timeline and a paid Pix line" do
     sign_in users(:confirmed)
     get account_order_path(orders(:delivered))

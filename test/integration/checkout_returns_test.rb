@@ -20,9 +20,9 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :success
-    assert_match(/Pagamento em processamento/, response.body)        # awaiting webhook confirmation
+    assert_match(/Pagamento em processamento/, response.body)
     assert_select ".pay-return.pay-return--pending"
-    assert_select "[data-countdown][data-deadline]"                  # 24h cancel countdown
+    assert_select "[data-countdown][data-deadline]"
     order.reload
     assert_equal "txn-123", order.external_id
     assert_equal "https://recibo.infinitepay.io/txn-123", order.receipt_url
@@ -98,6 +98,21 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".pay-return__note-text", text: /Entregar após as 18h/
+  end
+
+  test "GET /checkout/retorno on a consolidated carrier shows the master order" do
+    sign_in @user
+    master = create_order_for(@user)
+    master.confirm_payment!
+    carrier = create_order_for(@user)
+    carrier.update!(merged_into: master)
+    carrier.update_column(:status, "merged")
+
+    get checkout_return_path, params: { order_nsu: carrier.number }
+
+    assert_response :success
+    assert_select ".pay-return.pay-return--success"
+    assert_match(/#{master.number}/, response.body)
   end
 
   test "POST /checkout/retorno/pagar regenerates the link and redirects to InfinitePay" do

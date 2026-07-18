@@ -291,6 +291,7 @@
 .status-pill--awaiting_refund    { background: #fbf1de; color: #9a7400; }
 .status-pill--production_issue   { background: #fbe3e3; color: #a31a1a; }
 .status-pill--cancelled          { background: #eceef1; color: #5b6470; }
+.status-pill--merged             { background: #e4f4ec; color: #1f8a5b; }
 
 .account-back {
   display: inline-flex;

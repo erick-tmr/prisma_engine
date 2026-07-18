@@ -7,9 +7,12 @@ class Order < ApplicationRecord
 
   belongs_to :user
   belongs_to :production_batch, optional: true
+  belongs_to :merged_into, class_name: "Order", optional: true
   has_one :shipment, dependent: :nullify
   has_one :shipping_label, through: :shipment
+  has_one :order_merge, foreign_key: :carrier_order_id, dependent: :destroy
   has_many :order_items, dependent: :destroy
+  has_many :merged_orders, class_name: "Order", foreign_key: :merged_into_id, dependent: :nullify
   has_many :payment_webhook_events, dependent: :destroy
   has_many :status_changes, class_name: "OrderStatusChange", dependent: :destroy
   accepts_nested_attributes_for :order_items
@@ -28,28 +31,32 @@ class Order < ApplicationRecord
     delivery_issue
     awaiting_refund
     cancelled
+    merged
   ].freeze
 
   enum :status, STATUSES.index_with(&:itself), default: "awaiting_payment", validate: true
 
   TRANSITIONS = {
     "awaiting_payment"    => %w[payment_confirmed cancelled],
-    "payment_confirmed"   => %w[awaiting_components in_production awaiting_refund],
-    "awaiting_components" => %w[in_production awaiting_refund],
+    "payment_confirmed"   => %w[awaiting_components in_production awaiting_refund merged],
+    "awaiting_components" => %w[in_production awaiting_refund merged],
     "in_production"       => %w[label_issued production_issue],
-    "production_issue"    => %w[in_production],
+    "production_issue"    => %w[in_production merged],
     "label_issued"        => %w[shipped],
     "shipped"             => %w[delivered delivery_issue],
     "delivered"           => [],
     "delivery_issue"      => %w[awaiting_refund shipped cancelled],
     "awaiting_refund"     => %w[cancelled],
-    "cancelled"           => %w[payment_confirmed]
+    "cancelled"           => %w[payment_confirmed],
+    "merged"              => []
   }.freeze
 
   CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed awaiting_components].freeze
+  MERGEABLE_STATUSES = Production::EligibleOrders::STATUSES
 
   scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
   scope :recent_first, -> { order(created_at: :desc) }
+  scope :mergeable, -> { where(status: MERGEABLE_STATUSES).order(created_at: :asc) }
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :total_cents,

@@ -25,18 +25,30 @@ export function createCheckout(doc, openTab, navigate) {
   const obsFlag = doc.querySelector("[data-obs-flag]");
   /* v8 ignore next */
   const subtotal = parseInt(doc.querySelector("[data-subtotal]")?.dataset.subtotalCents || "0", 10);
+  const mergeCard = doc.querySelector("[data-merge]");
+  const mergeCheck = doc.querySelector("[data-merge-check]");
+  const mergeSummary = doc.querySelector("[data-merge-summary]");
   let shipping = null;
+  let merge = null;
+  let mergeData = null;
   let submitting = false;
 
   function renderSummary() {
-    const total = subtotal + (shipping ? shipping.price : 0);
     const shipEl = doc.querySelector("[data-shipping]");
     const methodEl = doc.querySelector("[data-ship-method]");
-    if (shipping) {
+    let total;
+    if (merge) {
+      total = merge.amount_cents;
+      shipEl.textContent = money(merge.delta_cents);
+      shipEl.classList.remove("is-pending");
+      methodEl.textContent = "· " + merge.service_label;
+    } else if (shipping) {
+      total = subtotal + shipping.price;
       shipEl.textContent = money(shipping.price);
       shipEl.classList.remove("is-pending");
       methodEl.textContent = "· " + shipping.label;
     } else {
+      total = subtotal;
       shipEl.textContent = "Selecione o envio";
       shipEl.classList.add("is-pending");
       methodEl.textContent = "";
@@ -95,6 +107,56 @@ export function createCheckout(doc, openTab, navigate) {
     shipping = null;
     serviceInput.value = "";
     renderSummary();
+  }
+
+  function showMergeSavings(data) {
+    doc.querySelectorAll("[data-merge-savings]").forEach(function (el) { el.textContent = money(data.savings_cents); });
+    doc.querySelector("[data-merge-savings-line]").hidden = data.savings_cents <= 0;
+  }
+
+  function applyMerge(data) {
+    merge = data;
+    mergeCard.classList.add("is-merged");
+    if (mergeSummary) mergeSummary.hidden = false;
+    shipStep.classList.add("is-hidden");
+    payError.classList.remove("is-visible");
+    renderSummary();
+  }
+
+  function clearMerge() {
+    merge = null;
+    if (mergeCard) mergeCard.classList.remove("is-merged");
+    if (mergeSummary) mergeSummary.hidden = true;
+    shipStep.classList.remove("is-hidden");
+    renderSummary();
+  }
+
+  function failMerge(message) {
+    mergeCheck.checked = false;
+    clearMerge();
+    doc.querySelector("[data-pay-error-msg]").textContent = message;
+    payError.classList.add("is-visible");
+  }
+
+  async function fetchMergeQuote() {
+    const token = doc.querySelector('meta[name="csrf-token"]').content;
+    try {
+      const res = await fetch(mergeCard.dataset.quoteUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": token },
+        body: "{}"
+      });
+      const data = await res.json();
+      if (res.ok) {
+        mergeData = data;
+        showMergeSavings(data);
+        if (mergeCheck.checked) applyMerge(data);
+      } else if (mergeCheck.checked) {
+        failMerge(data.error);
+      }
+    } catch (e) {
+      if (mergeCheck.checked) failMerge("Não foi possível juntar os pedidos agora. Tente novamente.");
+    }
   }
 
   async function fetchQuote(digits) {
@@ -172,7 +234,7 @@ export function createCheckout(doc, openTab, navigate) {
   }
 
   function validate() {
-    if (!serviceInput.value) {
+    if (!merge && !serviceInput.value) {
       shipStep.classList.add("is-invalid");
       shipStep.classList.remove("is-done");
       doc.querySelector("[data-pay-error-msg]").textContent = "Escolha uma forma de envio antes de pagar.";
@@ -265,11 +327,19 @@ export function createCheckout(doc, openTab, navigate) {
     doc.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && agreeModal.classList.contains("is-open")) closeAgreement();
     });
+    if (mergeCheck) {
+      mergeCheck.addEventListener("change", function () {
+        if (!mergeCheck.checked) clearMerge();
+        else if (mergeData) applyMerge(mergeData);
+        else fetchMergeQuote();
+      });
+    }
   }
 
   function init() {
     bindEvents();
     refreshObs();
+    if (mergeCheck) fetchMergeQuote();
     const selected = doc.querySelector("[data-addr-opt].is-selected") || doc.querySelector("[data-addr-opt]");
     if (selected) fetchQuote(selected.dataset.cep);
     else renderSummary();
@@ -279,7 +349,10 @@ export function createCheckout(doc, openTab, navigate) {
     renderSummary, selectShip, renderQuote, showShipError, fetchQuote,
     fillSelected, selectAddress, obsSatisfied, refreshObs,
     validate, openAgreement, closeAgreement, beginPayment, bindEvents, init,
-    get shipping() { return shipping; }
+    applyMerge, clearMerge, failMerge, fetchMergeQuote, showMergeSavings,
+    get shipping() { return shipping; },
+    get merge() { return merge; },
+    get mergeData() { return mergeData; }
   };
 }
 
