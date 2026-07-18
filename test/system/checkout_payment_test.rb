@@ -26,6 +26,9 @@ class CheckoutPaymentTest < ApplicationSystemTestCase
     find("[data-obs-none]").click
     find("[data-pay-btn]").click
 
+    assert_selector "[data-agree-modal].is-open"
+    find("[data-agree-confirm]").click
+
     assert_current_path(%r{/checkout/retorno}, wait: 10)
     assert_equal orders_before + 1, @user.orders.count
   end

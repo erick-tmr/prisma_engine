@@ -16,6 +16,8 @@ export function createCheckout(doc, openTab, navigate) {
   const shipFlag = doc.querySelector("[data-ship-flag]");
   const shipDest = doc.querySelector("[data-ship-dest]");
   const overlay = doc.querySelector("[data-redirect]");
+  const agreeModal = doc.querySelector("[data-agree-modal]");
+  const agreeBtn = doc.querySelector("[data-agree-confirm]");
   const obsInput = doc.querySelector("[data-obs-input]");
   const obsCount = doc.querySelector("[data-obs-count]");
   const obsNone = doc.querySelector("[data-obs-none]");
@@ -169,6 +171,48 @@ export function createCheckout(doc, openTab, navigate) {
     return obsNone.checked || obsInput.value.trim().length > 0;
   }
 
+  function validate() {
+    if (!serviceInput.value) {
+      shipStep.classList.add("is-invalid");
+      shipStep.classList.remove("is-done");
+      doc.querySelector("[data-pay-error-msg]").textContent = "Escolha uma forma de envio antes de pagar.";
+      payError.classList.add("is-visible");
+      shipStep.scrollIntoView({ block: "center", behavior: "smooth" });
+      return false;
+    }
+    if (!obsSatisfied()) {
+      obsStep.classList.add("is-invalid");
+      obsStep.classList.remove("is-done");
+      doc.querySelector("[data-pay-error-msg]").textContent = "Escreva uma observação ou marque que não tem nenhuma.";
+      payError.classList.add("is-visible");
+      obsStep.scrollIntoView({ block: "center", behavior: "smooth" });
+      return false;
+    }
+    return true;
+  }
+
+  function openAgreement() {
+    agreeModal.classList.add("is-open");
+    agreeModal.setAttribute("aria-hidden", "false");
+    doc.body.style.overflow = "hidden";
+    agreeBtn.focus();
+  }
+
+  function closeAgreement() {
+    agreeModal.classList.remove("is-open");
+    agreeModal.setAttribute("aria-hidden", "true");
+    doc.body.style.overflow = "";
+  }
+
+  function beginPayment() {
+    if (submitting) return;
+    submitting = true;
+    closeAgreement();
+    const payTab = openTab();
+    overlay.classList.add("is-visible");
+    startPayment(payTab);
+  }
+
   function refreshObs() {
     obsInput.disabled = obsNone.checked;
     const n = obsInput.value.length;
@@ -211,26 +255,15 @@ export function createCheckout(doc, openTab, navigate) {
     checkoutForm.addEventListener("submit", function (e) {
       e.preventDefault();
       if (submitting) return;
-      if (!serviceInput.value) {
-        shipStep.classList.add("is-invalid");
-        shipStep.classList.remove("is-done");
-        doc.querySelector("[data-pay-error-msg]").textContent = "Escolha uma forma de envio antes de pagar.";
-        payError.classList.add("is-visible");
-        shipStep.scrollIntoView({ block: "center", behavior: "smooth" });
-        return;
-      }
-      if (!obsSatisfied()) {
-        obsStep.classList.add("is-invalid");
-        obsStep.classList.remove("is-done");
-        doc.querySelector("[data-pay-error-msg]").textContent = "Escreva uma observação ou marque que não tem nenhuma.";
-        payError.classList.add("is-visible");
-        obsStep.scrollIntoView({ block: "center", behavior: "smooth" });
-        return;
-      }
-      submitting = true;
-      const payTab = openTab();
-      overlay.classList.add("is-visible");
-      startPayment(payTab);
+      if (validate()) openAgreement();
+    });
+
+    agreeBtn.addEventListener("click", beginPayment);
+    agreeModal.addEventListener("click", function (e) {
+      if (e.target === agreeModal) closeAgreement();
+    });
+    doc.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && agreeModal.classList.contains("is-open")) closeAgreement();
     });
   }
 
@@ -244,7 +277,8 @@ export function createCheckout(doc, openTab, navigate) {
 
   return {
     renderSummary, selectShip, renderQuote, showShipError, fetchQuote,
-    fillSelected, selectAddress, obsSatisfied, refreshObs, bindEvents, init,
+    fillSelected, selectAddress, obsSatisfied, refreshObs,
+    validate, openAgreement, closeAgreement, beginPayment, bindEvents, init,
     get shipping() { return shipping; }
   };
 }
