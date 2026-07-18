@@ -2,8 +2,6 @@ require "test_helper"
 
 module Admin
   class OrderPresenterTest < ActiveSupport::TestCase
-    # Builds an order in any status by walking the real transition graph, with a
-    # shipment so the address/payment/tracking methods have something to read.
     PATHS = {
       "awaiting_payment"    => [],
       "payment_confirmed"   => %w[payment_confirmed],
@@ -15,7 +13,8 @@ module Admin
       "delivered"           => %w[payment_confirmed in_production label_issued shipped delivered],
       "delivery_issue"      => %w[payment_confirmed in_production label_issued shipped delivery_issue],
       "awaiting_refund"     => %w[payment_confirmed awaiting_refund],
-      "cancelled"           => %w[cancelled]
+      "cancelled"           => %w[cancelled],
+      "merged"              => %w[payment_confirmed merged]
     }.freeze
 
     def order_in(status, service: "pac")
@@ -45,6 +44,15 @@ module Admin
     test "status_description is the admin-facing copy" do
       assert_equal I18n.t("admin.orders.states.in_production.description"),
                    order_in("in_production").status_description
+    end
+
+    test "a merged order renders its lifecycle and description without breaking" do
+      presenter = order_in("merged")
+      assert_equal "Consolidado", presenter.status_label
+      assert_equal I18n.t("admin.orders.states.merged.description"), presenter.status_description
+      assert_empty presenter.available_actions
+      branch = presenter.lifecycle.find { |step| step.classes.include?("branch") }
+      assert_equal "Consolidado", branch.label
     end
 
     test "available_actions for payment_confirmed: a single primary move, no confirm (production is report-only)" do
@@ -79,10 +87,10 @@ module Admin
     end
 
     test "label_printable? only for a label_issued order with a ready stored label" do
-      assert OrderPresenter.new(orders(:labeled)).label_printable?  # label_issued + ready label
-      assert_not order_in("in_production").label_printable?         # not label_issued yet
-      assert_not order_in("label_issued").label_printable?          # label_issued but no stored label
-      assert_not OrderPresenter.new(orders(:shipped_order)).label_printable? # past label_issued
+      assert OrderPresenter.new(orders(:labeled)).label_printable?
+      assert_not order_in("in_production").label_printable?
+      assert_not order_in("label_issued").label_printable?
+      assert_not OrderPresenter.new(orders(:shipped_order)).label_printable?
     end
 
     test "lifecycle on the happy path marks done/current/upcoming without a branch" do

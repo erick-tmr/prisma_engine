@@ -76,6 +76,7 @@ Rails.application.routes.draw do
   get  "/checkout",          to: "checkout#show",           as: :checkout
   post "/checkout",          to: "checkout#create",         as: :checkout_create
   post "/checkout/endereco", to: "checkout#create_address", as: :checkout_address
+  post "/checkout/consolidacao", to: "checkout/merge_quotes#create", as: :checkout_merge_quote
   get  "/checkout/retorno",       to: "checkout/returns#show", as: :checkout_return
   post "/checkout/retorno/pagar", to: "checkout/returns#pay",  as: :checkout_pay
   post "/pagamentos/webhook/:token", to: "payments/webhooks#create", as: :payments_webhook

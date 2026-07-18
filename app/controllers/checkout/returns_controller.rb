@@ -10,6 +10,7 @@ module Checkout
       @order = current_user.orders.find_by!(number: params[:order_nsu])
       record_transaction if params[:transaction_nsu].present?
       @state = payment_state
+      @order = @order.merged_into if @order.merged? && @order.merged_into
     end
 
     def pay

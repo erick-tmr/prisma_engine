@@ -118,6 +118,8 @@
           </div>
         </section>
 
+        <%= render "merge" if @mergeable_orders.any? %>
+
         <section class="checkout__card checkout__step" data-step="shipping" id="step-shipping">
           <div class="checkout__step-head">
             <span class="checkout__step-num" data-step-num>2</span>
@@ -201,6 +203,25 @@
               </div>
             <% end %>
           </div>
+
+          <% if @mergeable_orders.any? %>
+            <div class="checkout__merge-summary" data-merge-summary hidden>
+              <div class="checkout__merge-summary-head">
+                <i class="bi bi-box-seam"></i> Pedidos juntados
+                <span class="n"><%= t("checkout.merge.orders_paid", count: @mergeable_orders.size) %></span>
+              </div>
+              <% @mergeable_orders.each do |order| %>
+                <div class="checkout__merge-summary-row">
+                  <span>#<%= order.number %> · <%= t("checkout.merge.items", count: order.order_items.sum(&:quantity)) %> · <%= HasMoney.format(order.total_cents) %></span>
+                  <span class="paid">Já pago</span>
+                </div>
+              <% end %>
+              <div class="checkout__merge-summary-note">
+                <i class="bi bi-truck"></i>
+                <span>Enviados nesta mesma entrega. Você economiza <strong data-merge-savings>—</strong> em frete.</span>
+              </div>
+            </div>
+          <% end %>
 
           <div class="checkout__sum-totals">
             <div class="checkout__sum-line">

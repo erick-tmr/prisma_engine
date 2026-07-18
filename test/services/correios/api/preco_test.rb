@@ -64,6 +64,20 @@ module Correios
         assert_equal "04227", rows.first["nuRequisicao"]
       end
 
+      test "accepts a 206 partial response and returns the services it priced" do
+        stub_request(:post, URL).to_return(status: 206,
+          body: [ { "coProduto" => "03220", "nuRequisicao" => "03220", "pcFinal" => "27,72" } ].to_json,
+          headers: { "Content-Type" => "application/json" })
+
+        rows = Correios::Api::Preco.fetch(
+          cep_origem: "37600000", cep_destino: "01310100",
+          weight_grams: 1340, service_codes: [ "03220", "03298", "04227" ]
+        )
+
+        assert_equal 1, rows.length
+        assert_equal "27,72", rows.first["pcFinal"]
+      end
+
       test "raises InvalidObjectError on a 400 (bad CEP / invalid contract)" do
         stub_request(:post, URL).to_return(status: 400, body: "{}")
 

@@ -116,9 +116,56 @@ class CheckoutTest < ActionDispatch::IntegrationTest
       assert_equal payments_webhook_url(order.webhook_token), body["webhook_url"]
       true
     end
-    # cart cleared → a follow-up quote sees an empty cart
+
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
     assert_response :unprocessable_entity
+  end
+
+  test "GET /checkout shows the merge offer when the customer has open paid orders" do
+    sign_in @user
+    add_yellow_to_cart
+    get checkout_path
+
+    assert_response :success
+    assert_select "section.checkout__merge[data-merge]"
+    assert_select "input[name=merge_everything]"
+    assert_select ".checkout__merge-order", 1
+    assert_select ".checkout__merge-thumbs"
+    assert_select ".checkout__merge .status-pill"
+  end
+
+  test "GET /checkout hides the merge offer when there is nothing to merge" do
+    sign_in users(:buyer)
+    post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
+    get checkout_path
+
+    assert_response :success
+    assert_select "section.checkout__merge", false
+  end
+
+  test "POST /checkout with merge_everything creates a carrier + merge plan and redirects to payment" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_links
+
+    assert_difference [ "Order.count", "OrderMerge.count" ], 1 do
+      post checkout_create_path, params: { merge_everything: "1" }
+    end
+
+    carrier = Order.last
+    assert carrier.order_merge.present?
+    assert_equal orders(:confirmed_paid), carrier.order_merge.master_order
+    assert_equal CHECKOUT_URL, response.headers["Location"]
+  end
+
+  test "POST /checkout with merge_everything but no eligible orders flashes the merge error" do
+    sign_in users(:buyer)
+    post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
+
+    post checkout_create_path, params: { merge_everything: "1" }
+    assert_redirected_to checkout_path
+    assert_match(/não tem outros pedidos/i, flash[:alert])
   end
 
   test "POST /checkout stores the customer observation on the order" do
@@ -145,7 +192,7 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal CHECKOUT_URL, response.parsed_body["payment_url"]
     assert_equal checkout_return_url(order_nsu: order.number), response.parsed_body["return_url"]
-    # cart cleared → a follow-up quote sees an empty cart
+
     post cart_quote_path, params: { cep: "01310-100" }, as: :json
     assert_response :unprocessable_entity
   end

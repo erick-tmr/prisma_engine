@@ -44,7 +44,7 @@ module Correios
         if PERMANENT_REJECTIONS.include?(response.status)
           raise Correios::Api::InvalidObjectError, "preco rejected: #{response.body}"
         end
-        raise_for_status(response)
+        raise_for_status(response, ok: [ 200, 206 ])
         parse(response.body)
       end
 

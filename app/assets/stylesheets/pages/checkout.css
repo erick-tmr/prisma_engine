@@ -878,3 +878,184 @@
   .pay-return__info-grid { grid-template-columns: 1fr; }
   .pay-return__info-cell + .pay-return__info-cell { border-left: 0; border-top: 1px solid var(--pg-border); }
 }
+
+
+/* ============================================================
+   MERGE ORDERS ("Juntar pedidos") — offer before shipping
+   ============================================================ */
+.checkout__step.is-hidden { display: none; }
+
+.checkout__merge-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--pg-green);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.checkout__merge-flag {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pg-green);
+  background: var(--pg-green-bg);
+  border: 1px solid #cdebd9;
+  border-radius: 7px;
+  padding: 4px 9px;
+}
+.checkout__merge-flag i { font-size: 13px; }
+.checkout__merge-lead { margin: 0 0 15px; font-size: 13.5px; line-height: 1.55; color: #4b5563; }
+.checkout__merge-lead strong { color: var(--pg-ink); font-weight: 700; }
+
+.checkout__merge-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  border: 1.5px solid var(--pg-border);
+  border-radius: 12px;
+  padding: 15px 16px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.16s, background 0.16s, box-shadow 0.16s;
+}
+.checkout__merge-toggle:hover { border-color: #cfd4da; }
+.checkout__merge-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.checkout__merge-box {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 2px solid #cfd4da;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  transition: background 0.16s, border-color 0.16s;
+}
+.checkout__merge-box i { opacity: 0; transform: scale(0.5); transition: opacity 0.16s, transform 0.16s; }
+.checkout__merge-toggle-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.checkout__merge-toggle-title { font-size: 14px; font-weight: 700; color: var(--pg-ink); }
+.checkout__merge-toggle-sub { font-size: 12.5px; line-height: 1.5; color: var(--pg-muted); }
+.checkout__merge-toggle-sub strong { color: var(--pg-green); font-weight: 700; }
+.checkout__merge.is-merged .checkout__merge-toggle { border-color: var(--pg-green); background: var(--pg-green-bg); box-shadow: 0 0 0 1px var(--pg-green); }
+.checkout__merge.is-merged .checkout__merge-box { background: var(--pg-green); border-color: var(--pg-green); }
+.checkout__merge.is-merged .checkout__merge-box i { opacity: 1; transform: none; }
+
+.checkout__merge-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.checkout__merge-order {
+  border: 1px solid var(--pg-border);
+  border-radius: 12px;
+  padding: 13px 15px;
+  background: #fcfcfd;
+  transition: border-color 0.16s, box-shadow 0.16s;
+}
+.checkout__merge.is-merged .checkout__merge-order { border-color: #cdebd9; box-shadow: 0 0 0 1px #cdebd9; }
+.checkout__merge-order-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.checkout__merge-order-id { display: flex; align-items: baseline; gap: 9px; margin-right: auto; min-width: 0; }
+.checkout__merge-order-id .num { font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.checkout__merge-order-id .date { font-size: 11.5px; color: var(--pg-muted); white-space: nowrap; }
+.checkout__merge-order-tag { display: none; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--pg-green); white-space: nowrap; }
+.checkout__merge-order-tag i { font-size: 12px; }
+.checkout__merge.is-merged .checkout__merge-order-tag { display: inline-flex; }
+
+.checkout__merge-order-items { display: flex; align-items: center; gap: 12px; }
+.checkout__merge-thumbs { display: flex; flex-shrink: 0; }
+.checkout__merge-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--pg-border);
+  background: #f0f0f0;
+  margin-left: -8px;
+  flex-shrink: 0;
+}
+.checkout__merge-thumb:first-child { margin-left: 0; }
+.checkout__merge-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.checkout__merge-thumb--pedido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef8f1;
+  border-color: #cfe7d8;
+  color: var(--pg-green);
+  font-size: 17px;
+}
+.checkout__merge-order-info { flex: 1; min-width: 0; }
+.checkout__merge-order-info .names { font-size: 12.5px; font-weight: 600; line-height: 1.4; color: #374151; }
+.checkout__merge-order-info .meta { font-size: 11.5px; color: var(--pg-muted); margin-top: 2px; display: block; }
+.checkout__merge-order-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; text-align: right; }
+.checkout__merge-order-right .total { font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.checkout__merge-order-right .paid { font-size: 10.5px; font-weight: 600; color: var(--pg-muted); }
+.checkout__merge-order-ship {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--pg-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.checkout__merge-order-ship .k { color: var(--pg-muted); }
+.checkout__merge-order-ship .amt { font-variant-numeric: tabular-nums; color: #4b5563; font-weight: 600; }
+.checkout__merge-order-ship .free { display: none; }
+.checkout__merge.is-merged .checkout__merge-order-ship .amt { text-decoration: line-through; color: var(--pg-faint); font-weight: 500; }
+.checkout__merge.is-merged .checkout__merge-order-ship .free { display: inline; margin-left: 7px; color: var(--pg-green); font-weight: 700; }
+
+.checkout__merge-fineprint { display: flex; align-items: flex-start; gap: 8px; margin: 15px 0 0; font-size: 11.5px; line-height: 1.55; color: var(--pg-muted); }
+.checkout__merge-fineprint i { font-size: 13px; color: var(--pg-faint); flex-shrink: 0; margin-top: 1px; }
+
+/* status pills — scoped to the merge card (the checkout layout does not load account.css) */
+.checkout__merge .status-pill { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 4px 10px 4px 8px; border-radius: 20px; white-space: nowrap; }
+.checkout__merge .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
+.checkout__merge .status-pill--payment_confirmed { background: #e3f3f1; color: #00736c; }
+.checkout__merge .status-pill--awaiting_components { background: #eef0f2; color: #5b636d; }
+.checkout__merge .status-pill--production_issue { background: var(--pg-red-bg); color: var(--pg-red); }
+
+/* rail: merged-orders summary block */
+.checkout__merge-summary { border-top: 1px dashed var(--pg-border); margin: 0 18px; padding: 14px 0 2px; }
+.checkout__merge-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pg-green);
+  margin-bottom: 9px;
+}
+.checkout__merge-summary-head i { font-size: 13px; }
+.checkout__merge-summary-head .n { margin-left: auto; color: var(--pg-muted); letter-spacing: 0; text-transform: none; font-weight: 600; }
+.checkout__merge-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  padding: 5px 0;
+  color: #374151;
+  font-variant-numeric: tabular-nums;
+}
+.checkout__merge-summary-row .paid {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pg-green);
+  background: var(--pg-green-bg);
+  border: 1px solid #cdebd9;
+  border-radius: 5px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+.checkout__merge-summary-note { display: flex; align-items: flex-start; gap: 7px; margin-top: 9px; font-size: 11px; line-height: 1.5; color: var(--pg-muted); }
+.checkout__merge-summary-note i { font-size: 12px; color: var(--pg-green); flex-shrink: 0; margin-top: 1px; }
+.checkout__merge-summary-note strong { color: var(--pg-green); font-weight: 700; }

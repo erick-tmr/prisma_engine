@@ -25,6 +25,13 @@
       </div>
     </div>
 
+    <% if @order.merged? %>
+      <div class="order-detail__status-banner">
+        <div class="sb-text">
+          <p><%= t("account.orders.show.merged_into_html", number: link_to("##{@order.merged_into.number}", account_order_path(@order.merged_into))) %></p>
+        </div>
+      </div>
+    <% else %>
     <div class="order-detail__subcard">
       <div class="order-detail__subcard-head"><%= t("account.orders.show.items") %></div>
 
@@ -102,6 +109,7 @@
         <%= button_to t("account.orders.show.cancel"), cancelar_account_order_path(@order),
               method: :post, class: "button-ghost button-ghost--danger" %>
       </div>
+    <% end %>
     <% end %>
   </div>
 </div>

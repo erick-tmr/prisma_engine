@@ -1,0 +1,57 @@
+<section class="checkout__card checkout__merge" id="step-merge" data-merge data-quote-url="<%= checkout_merge_quote_path %>">
+  <div class="checkout__step-head">
+    <span class="checkout__merge-badge"><i class="bi bi-box-seam"></i></span>
+    <h2>Juntar com seus outros pedidos</h2>
+    <span class="checkout__merge-flag"><i class="bi bi-piggy-bank"></i> Economize no frete</span>
+  </div>
+  <div class="checkout__step-body">
+    <p class="checkout__merge-lead"><%= t("checkout.merge.lead_html", count: @mergeable_orders.size) %></p>
+
+    <label class="checkout__merge-toggle" data-merge-toggle>
+      <%= check_box_tag :merge_everything, "1", false, form: "checkout-form", class: "checkout__merge-input", data: { merge_check: true } %>
+      <span class="checkout__merge-box"><i class="bi bi-check-lg"></i></span>
+      <span class="checkout__merge-toggle-body">
+        <span class="checkout__merge-toggle-title">Juntar todos os pedidos abaixo nesta entrega</span>
+        <span class="checkout__merge-toggle-sub">Enviamos tudo junto assim que todos os pedidos estiverem prontos.<span data-merge-savings-line hidden> Você economiza <strong data-merge-savings>—</strong> em frete.</span></span>
+      </span>
+    </label>
+
+    <div class="checkout__merge-list">
+      <% @mergeable_orders.each do |order| %>
+        <div class="checkout__merge-order" data-merge-order>
+          <div class="checkout__merge-order-head">
+            <span class="checkout__merge-order-id">
+              <span class="num">#<%= order.number %></span>
+              <span class="date"><%= l(order.placed_at.to_date, format: :long) %></span>
+            </span>
+            <span class="checkout__merge-order-tag"><i class="bi bi-check-circle-fill"></i> Será juntado</span>
+            <span class="status-pill status-pill--<%= order.status %>"><%= t("account.orders.states.#{order.status}.label") %></span>
+          </div>
+          <div class="checkout__merge-order-items">
+            <span class="checkout__merge-thumbs"><%= merge_order_thumbs(order) %></span>
+            <span class="checkout__merge-order-info">
+              <span class="names"><%= order.order_items.map(&:name).join(" · ") %></span>
+              <span class="meta"><%= merge_order_meta(order) %></span>
+            </span>
+            <span class="checkout__merge-order-right">
+              <span class="total tnum"><%= HasMoney.format(order.total_cents) %></span>
+              <span class="paid">Já pago</span>
+            </span>
+          </div>
+          <div class="checkout__merge-order-ship">
+            <span class="k">Frete se enviado separado</span>
+            <span class="v">
+              <span class="amt tnum"><%= HasMoney.format(order.shipment.shipping_cents) %></span>
+              <span class="free">Grátis ao juntar</span>
+            </span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <p class="checkout__merge-fineprint">
+      <i class="bi bi-info-circle"></i>
+      Só é possível juntar todos os pedidos de uma vez. Os itens desses pedidos já estão pagos: juntar não gera nova cobrança pelos itens, apenas o frete adicional da entrega combinada, quando houver.
+    </p>
+  </div>
+</section>

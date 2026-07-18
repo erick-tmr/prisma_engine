@@ -47,7 +47,7 @@ module Admin
     private
 
     def load_orders
-      Order.includes(:user, :order_items, :shipment).recent_first.map do |order|
+      Order.where.not(status: :merged).includes(:user, :order_items, :shipment).recent_first.map do |order|
         {
           "n" => order.number,
           "clientName" => order.user.full_name,

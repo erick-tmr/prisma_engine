@@ -78,5 +78,53 @@ module Payments
       call
       assert @order.reload.payment_confirmed?
     end
+
+    test "executes a pending merge once the carrier payment confirms" do
+      master, carrier, plan = build_merge_scenario
+
+      assert_no_enqueued_emails do
+        Payments::PaymentUpdate.call(order: carrier, payload: carrier_payload(carrier))
+      end
+
+      assert carrier.reload.merged?
+      assert_equal master, carrier.merged_into
+      assert plan.reload.executed_at.present?
+      assert_equal 2, master.reload.order_items.count
+    end
+
+    test "a duplicate webhook does not merge twice" do
+      _master, carrier, _plan = build_merge_scenario
+      2.times { Payments::PaymentUpdate.call(order: carrier, payload: carrier_payload(carrier)) }
+      assert_equal 1, carrier.reload.merged_into.order_items.where.not(name: "Item master").count
+    end
+
+    def build_merge_scenario
+      master = @order.user.orders.create!(subtotal_cents: 10_000, total_cents: 12_990, status: "payment_confirmed")
+      master.order_items.create!(name: "Item master", unit_price_cents: 10_000, quantity: 1)
+      master.create_shipment!(shipment_attrs(2_990))
+
+      carrier = @order.user.orders.create!(subtotal_cents: 3_000, total_cents: 4_184, status: "awaiting_payment")
+      carrier.order_items.create!(name: "Item novo", unit_price_cents: 3_000, quantity: 1)
+      carrier.create_shipment!(shipment_attrs(1_184))
+      plan = OrderMerge.create!(
+        carrier_order: carrier, master_order: master, absorbed_order_ids: [],
+        combined_weight_grams: 400, combined_service: "pac",
+        combined_shipping_cents: 3_500, paid_fretes_cents: 2_990
+      )
+      [ master, carrier, plan ]
+    end
+
+    def carrier_payload(carrier)
+      payload("order_nsu" => carrier.number, "paid_amount" => carrier.total_cents)
+    end
+
+    def shipment_attrs(frete)
+      {
+        service: "pac", shipping_cents: frete, weight_grams: 250,
+        height_cm: 4, width_cm: 16, length_cm: 24,
+        receiver_name: "Master", receiver_cpf: "39053344705", zip: "04534003",
+        street: "Rua", number: "1", neighborhood: "Itaim", city: "São Paulo", state: "SP"
+      }
+    end
   end
 end

@@ -47,9 +47,25 @@ function agree() {
   document.querySelector("[data-agree-confirm]").dispatchEvent(new Event("click"));
 }
 
-function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = true } = {}) {
+const MERGE_HTML = `
+    <section class="checkout__merge" data-merge data-quote-url="/checkout/consolidacao">
+      <label><input type="checkbox" data-merge-check></label>
+      <span data-merge-savings-line hidden> Você economiza <strong data-merge-savings>—</strong> em frete.</span>
+    </section>
+    <div class="checkout__merge-summary" data-merge-summary hidden>
+      <strong data-merge-savings>—</strong>
+    </div>`;
+
+const MERGE_QUOTE = {
+  master_number: "PG-00042", service: "sedex", service_label: "SEDEX",
+  combined_cents: 3500, paid_fretes_cents: 1200, delta_cents: 2300,
+  subtotal_cents: 48500, amount_cents: 50800, savings_cents: 900, order_count: 2
+};
+
+function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = true, merge = false } = {}) {
   document.head.innerHTML = '<meta name="csrf-token" content="test-token">';
   document.body.innerHTML = `
+    ${merge ? MERGE_HTML : ""}
     <section id="step-address">
       <div class="checkout__addr-selected">
         <span data-sel-receiver></span><span data-sel-cpf></span><span data-sel-street></span>
@@ -524,5 +540,140 @@ describe("init", () => {
     co.init();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(document.querySelector("[data-total]").textContent).toMatch(/485,00/);
+  });
+});
+
+describe("merge orders", () => {
+  const okFetch = () => vi.fn().mockResolvedValue({ ok: true, json: async () => MERGE_QUOTE });
+
+  it("shows the savings on load without applying the merge", async () => {
+    vi.stubGlobal("fetch", okFetch());
+    const co = mountCheckout({ merge: true });
+
+    await co.fetchMergeQuote();
+
+    expect(co.mergeData).toEqual(MERGE_QUOTE);
+    expect(co.merge).toBeNull();
+    expect(document.querySelector("[data-merge]").classList.contains("is-merged")).toBe(false);
+    expect(document.querySelector("[data-merge-savings-line]").hidden).toBe(false);
+    expect(document.querySelectorAll("[data-merge-savings]")[0].textContent).toMatch(/9,00/);
+  });
+
+  it("hides the savings line when there is nothing to save", () => {
+    const co = mountCheckout({ merge: true });
+    co.showMergeSavings({ ...MERGE_QUOTE, savings_cents: 0 });
+    expect(document.querySelector("[data-merge-savings-line]").hidden).toBe(true);
+  });
+
+  it("init fetches the quote so the savings show before checking", async () => {
+    vi.stubGlobal("fetch", okFetch());
+    const co = mountCheckout({ merge: true });
+    co.init();
+    await flush();
+    expect(co.mergeData).toEqual(MERGE_QUOTE);
+    expect(document.querySelector("[data-merge-savings-line]").hidden).toBe(false);
+  });
+
+  it("applyMerge overrides the total, reveals the summary, and hides shipping", () => {
+    const co = mountCheckout({ merge: true, preselected: "sedex" });
+    co.renderQuote(QUOTE);
+
+    co.applyMerge(MERGE_QUOTE);
+
+    expect(co.merge).toEqual(MERGE_QUOTE);
+    expect(document.querySelector("[data-merge]").classList.contains("is-merged")).toBe(true);
+    expect(document.querySelector("[data-merge-summary]").hidden).toBe(false);
+    expect(document.querySelector("#step-shipping").classList.contains("is-hidden")).toBe(true);
+    expect(document.querySelector("[data-shipping]").textContent).toMatch(/23,00/);
+    expect(document.querySelector("[data-ship-method]").textContent).toBe("· SEDEX");
+    expect(document.querySelector("[data-total]").textContent).toMatch(/508,00/);
+  });
+
+  it("clearMerge reverts to the cart-only total and re-shows shipping", () => {
+    const co = mountCheckout({ merge: true });
+    co.renderQuote(QUOTE);
+    co.applyMerge(MERGE_QUOTE);
+
+    co.clearMerge();
+
+    expect(co.merge).toBeNull();
+    expect(document.querySelector("[data-merge]").classList.contains("is-merged")).toBe(false);
+    expect(document.querySelector("[data-merge-summary]").hidden).toBe(true);
+    expect(document.querySelector("#step-shipping").classList.contains("is-hidden")).toBe(false);
+    expect(document.querySelector("[data-total]").textContent).toMatch(/523,40/);
+  });
+
+  it("checking the box applies the already-fetched quote without a second request", async () => {
+    const fetchMock = okFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    const co = mountCheckout({ merge: true });
+    co.bindEvents();
+    await co.fetchMergeQuote();
+    const afterLoad = fetchMock.mock.calls.length;
+
+    const box = document.querySelector("[data-merge-check]");
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    await flush();
+
+    expect(co.merge).toEqual(MERGE_QUOTE);
+    expect(fetchMock.mock.calls.length).toBe(afterLoad);
+  });
+
+  it("checking before the quote loads fetches then applies it", async () => {
+    const fetchMock = okFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    const co = mountCheckout({ merge: true });
+    co.bindEvents();
+
+    const box = document.querySelector("[data-merge-check]");
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    await flush();
+
+    expect(fetchMock.mock.calls[0][0]).toBe("/checkout/consolidacao");
+    expect(co.merge).toEqual(MERGE_QUOTE);
+  });
+
+  it("unchecking the box clears the merge", async () => {
+    vi.stubGlobal("fetch", okFetch());
+    const co = mountCheckout({ merge: true });
+    co.bindEvents();
+    const box = document.querySelector("[data-merge-check]");
+
+    box.checked = true; box.dispatchEvent(new Event("change")); await flush();
+    box.checked = false; box.dispatchEvent(new Event("change"));
+
+    expect(co.merge).toBeNull();
+  });
+
+  it("a failed merge quote while checked unchecks the box and shows the error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({ error: "Deu ruim." }) }));
+    const co = mountCheckout({ merge: true });
+    document.querySelector("[data-merge-check]").checked = true;
+
+    await co.fetchMergeQuote();
+
+    expect(co.merge).toBeNull();
+    expect(document.querySelector("[data-merge-check]").checked).toBe(false);
+    expect(document.querySelector("[data-pay-error-msg]").textContent).toBe("Deu ruim.");
+  });
+
+  it("a network error while checked surfaces a friendly message", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    const co = mountCheckout({ merge: true });
+    document.querySelector("[data-merge-check]").checked = true;
+
+    await co.fetchMergeQuote();
+
+    expect(co.merge).toBeNull();
+    expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Não foi possível juntar/);
+  });
+
+  it("validate skips the shipping requirement when merging", () => {
+    const co = mountCheckout({ merge: true });
+    co.applyMerge(MERGE_QUOTE);
+    document.querySelector("[data-obs-none]").checked = true;
+    expect(co.validate()).toBe(true);
   });
 });

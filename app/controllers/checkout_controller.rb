@@ -14,14 +14,11 @@ class CheckoutController < ApplicationController
     chosen_id  = session.delete("checkout_address_id").to_i
     @selected_address = @addresses.find { |addr| addr.id == chosen_id } || @addresses.first
     @selected_shipping_service = session["checkout_shipping_service"]
+    @mergeable_orders = current_user.orders.mergeable.includes(:shipment, :order_items)
   end
 
   def create
-    result = Checkout::PlaceOrder.call(
-      user: current_user, cart: current_cart,
-      address_id: params[:address_id], shipping_service: params[:shipping_service],
-      observation: params[:observation]
-    )
+    result = place_order
     return render_create_failure(ERROR_MESSAGES.fetch(result.error)) unless result.success?
 
     start_payment(result.order)
@@ -41,6 +38,22 @@ class CheckoutController < ApplicationController
   end
 
   private
+
+  def place_order
+    if merge_requested?
+      Checkout::PlaceMergeOrder.call(user: current_user, cart: current_cart, observation: params[:observation])
+    else
+      Checkout::PlaceOrder.call(
+        user: current_user, cart: current_cart,
+        address_id: params[:address_id], shipping_service: params[:shipping_service],
+        observation: params[:observation]
+      )
+    end
+  end
+
+  def merge_requested?
+    ActiveModel::Type::Boolean.new.cast(params[:merge_everything])
+  end
 
   def start_payment(order)
     payment_url = Payments::Checkout.start(

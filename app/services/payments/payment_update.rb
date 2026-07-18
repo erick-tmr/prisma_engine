@@ -39,6 +39,7 @@ module Payments
         payment_method: payload["capture_method"]
       )
       order.confirm_payment!(automatic: true)
+      Orders::Merge.call(order_merge: order.order_merge, actor: order.user) if order.order_merge&.pending?
     end
 
     def log_skip(reason)

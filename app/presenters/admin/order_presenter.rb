@@ -12,7 +12,8 @@ module Admin
       "production_issue"    => "in_production",
       "delivery_issue"      => "shipped",
       "awaiting_refund"     => "payment_confirmed",
-      "cancelled"           => "awaiting_payment"
+      "cancelled"           => "awaiting_payment",
+      "merged"              => "payment_confirmed"
     }.freeze
 
     # Flow steps the system advances on its own, surfaced as a small note.
