@@ -2,6 +2,8 @@ require "test_helper"
 
 module Catalog
   class SaveProductTest < ActiveSupport::TestCase
+    include ActiveJob::TestHelper
+
     def upload
       Rack::Test::UploadedFile.new(Rails.root.join("test/fixtures/files/sample_product.jpg"), "image/jpeg")
     end
@@ -218,6 +220,20 @@ module Catalog
 
       assert_not result.success?
       assert result.product.errors.of_kind?(:slug, :taken)
+    end
+
+    test "enqueues a catalog sync job after a successful save" do
+      result = nil
+      assert_enqueued_with(job: ProductCatalogSyncJob) do
+        result = save(Product.new(name: "Sincroniza"), graph)
+      end
+      assert_equal [ result.product.id ], enqueued_jobs.last[:args]
+    end
+
+    test "does not enqueue a catalog sync when the save fails" do
+      assert_no_enqueued_jobs only: ProductCatalogSyncJob do
+        save(Product.new(name: ""), graph, name: "")
+      end
     end
   end
 end
