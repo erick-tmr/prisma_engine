@@ -27,6 +27,28 @@ module Admin
       assert_select ".act-btn.primary"
     end
 
+    test "show renders a merged order whose shipment was destroyed instead of 500ing" do
+      sign_in users(:admin)
+      master = orders(:confirmed_paid)
+      merged = Order.create!(user: users(:confirmed), subtotal_cents: 1_500, total_cents: 3_063, payment_method: "pix")
+      Shipment.create!(
+        order: merged, service: "mini_envios", shipping_cents: 1_563,
+        receiver_name: "Cliente Confirmado", receiver_cpf: "52998224725", zip: "01310100",
+        street: "Rua das Flores", number: "150", neighborhood: "Centro", city: "São Paulo", state: "SP"
+      )
+      merged.confirm_payment!(automatic: true)
+      merged.shipment.destroy!
+      merged.update!(merged_into: master)
+      merged.transition_to!("merged", automatic: true)
+
+      get admin_order_path(merged)
+
+      assert_response :success
+      assert_select ".od-merged-note a[href=?]", admin_order_path(master), text: "##{master.number}"
+      assert_select ".od-items", count: 0
+      assert_select ".od-meta-head", text: /Endereço de entrega/, count: 0
+    end
+
     test "show renders the customer observation panel when the order has one" do
       sign_in users(:admin)
       order = orders(:confirmed_paid)
