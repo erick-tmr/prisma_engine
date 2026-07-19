@@ -278,8 +278,9 @@ export function createCheckout(doc, openTab, navigate) {
   function refreshObs() {
     obsInput.disabled = obsNone.checked;
     const n = obsInput.value.length;
-    obsCount.textContent = n + "/280";
-    obsCount.classList.toggle("is-warn", n >= 260);
+    const max = obsInput.maxLength;
+    obsCount.textContent = n + "/" + max;
+    obsCount.classList.toggle("is-warn", n >= max - 20);
     if (obsSatisfied()) {
       obsStep.classList.remove("is-invalid");
       obsStep.classList.add("is-done");

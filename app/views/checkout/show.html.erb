@@ -150,9 +150,9 @@
             </div>
             <div class="checkout__obs-field">
               <%= text_area_tag :observation, nil, form: "checkout-form", class: "checkout__obs-input",
-                    maxlength: 280, data: { obs_input: true },
+                    maxlength: Order::OBSERVATION_LIMIT, data: { obs_input: true },
                     placeholder: "Ex.: Entregar no período da tarde; deixar na portaria se eu não atender." %>
-              <span class="checkout__obs-count" data-obs-count>0/280</span>
+              <span class="checkout__obs-count" data-obs-count>0/<%= Order::OBSERVATION_LIMIT %></span>
             </div>
             <label class="checkout__obs-none">
               <%= check_box_tag :no_observation, "1", false, data: { obs_none: true } %> Não tenho nenhuma observação sobre este pedido

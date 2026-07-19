@@ -5,6 +5,9 @@ class Order < ApplicationRecord
   NUMBER_ATTEMPTS = 10
   EXPIRY_WINDOW = 24.hours
 
+  OBSERVATION_LIMIT = 280
+  OBSERVATION_STORAGE_LIMIT = OBSERVATION_LIMIT * 5
+
   belongs_to :user
   belongs_to :production_batch, optional: true
   belongs_to :merged_into, class_name: "Order", optional: true
@@ -61,6 +64,7 @@ class Order < ApplicationRecord
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :total_cents,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :observation, length: { maximum: OBSERVATION_LIMIT }, on: :create
 
   normalizes :observation, with: ->(value) { value.strip.presence }
 

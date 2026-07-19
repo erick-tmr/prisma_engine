@@ -17,9 +17,10 @@ module Orders
         carrier = order_merge.carrier_order.lock!
         return unless mergeable_target?(master)
 
+        folded = [ carrier ]
         fold(carrier.lock!, master)
-        absorb(master)
-        recompute(master)
+        folded.concat(absorb(master))
+        recompute(master, folded)
         finalize(carrier, master)
         order_merge.update!(executed_at: Time.current)
       end
@@ -45,6 +46,7 @@ module Orders
         fold(order, master)
         retire(order, master)
       end
+      foldable
     end
 
     def fold(source, master)
@@ -57,7 +59,7 @@ module Orders
       order.transition_to!("merged", actor: actor, automatic: true)
     end
 
-    def recompute(master)
+    def recompute(master, folded)
       master.reload
       subtotal = master.order_items.sum("unit_price_cents * quantity")
       frete = [ order_merge.combined_shipping_cents, master.shipment.shipping_cents ].max
@@ -66,7 +68,11 @@ module Orders
         weight_grams:   order_merge.combined_weight_grams,
         shipping_cents: frete
       )
-      master.update!(subtotal_cents: subtotal, total_cents: subtotal + frete)
+      master.update!(
+        subtotal_cents: subtotal,
+        total_cents:    subtotal + frete,
+        observation:    MergedObservation.call(master: master, folded: folded)
+      )
     end
 
     def finalize(carrier, master)
