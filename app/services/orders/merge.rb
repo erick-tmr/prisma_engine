@@ -15,20 +15,22 @@ module Orders
       Order.transaction do
         master  = order_merge.master_order.lock!
         carrier = order_merge.carrier_order.lock!
-        return unless mergeable_target?(master)
-
-        folded = [ carrier ]
-        fold(carrier.lock!, master)
-        folded.concat(absorb(master))
-        recompute(master, folded)
-        finalize(carrier, master)
-        order_merge.update!(executed_at: Time.current)
+        consolidate(master, carrier) if mergeable_target?(master)
       end
     end
 
     private
 
     attr_reader :order_merge, :actor
+
+    def consolidate(master, carrier)
+      folded = [ carrier ]
+      fold(carrier.lock!, master)
+      folded.concat(absorb(master))
+      recompute(master, folded)
+      finalize(carrier, master)
+      order_merge.update!(executed_at: Time.current)
+    end
 
     def mergeable_target?(master)
       shipment = master.shipment
@@ -39,14 +41,23 @@ module Orders
     end
 
     def absorb(master)
-      absorbed = Order.where(id: order_merge.absorbed_order_ids).lock!.to_a
-      foldable, skipped = absorbed.partition { |order| Order::MERGEABLE_STATUSES.include?(order.status) }
-      skipped.each { |order| Rails.logger.warn("Orders::Merge skipped ##{order.number}: no longer eligible") }
-      foldable.each do |order|
-        fold(order, master)
-        retire(order, master)
-      end
+      foldable, skipped = absorbed_orders.partition { |order| Order::MERGEABLE_STATUSES.include?(order.status) }
+      skipped.each { |order| log_ineligible(order) }
+      foldable.each { |order| fold_and_retire(order, master) }
       foldable
+    end
+
+    def absorbed_orders
+      Order.where(id: order_merge.absorbed_order_ids).lock!.to_a
+    end
+
+    def log_ineligible(order)
+      Rails.logger.warn("Orders::Merge skipped ##{order.number}: no longer eligible")
+    end
+
+    def fold_and_retire(order, master)
+      fold(order, master)
+      retire(order, master)
     end
 
     def fold(source, master)

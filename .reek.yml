@@ -40,6 +40,11 @@ detectors:
       - Shipping                # the shipping config namespace: services, package
                                 # dimensions, origin/card, and the pré-postagem poll
                                 # cadence are cohesive configuration, not a god object.
+      - Order                   # the made-to-order aggregate root: its constants are
+                                # cohesive domain config (status set, transition graph,
+                                # cancellable/mergeable subsets, number/expiry/observation
+                                # limits), not a god object — same rationale as the
+                                # TooManyMethods exclusion already granted to Order.
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms
   DataClump:
