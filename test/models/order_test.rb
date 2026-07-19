@@ -27,6 +27,17 @@ class OrderTest < ActiveSupport::TestCase
     assert order.awaiting_payment?
   end
 
+  test "an observation over the checkout limit is rejected on create" do
+    order = build_order(observation: "a" * (Order::OBSERVATION_LIMIT + 1))
+    assert_not order.valid?
+    assert_includes order.errors.attribute_names, :observation
+  end
+
+  test "an observation at the checkout limit is accepted" do
+    order = build_order(observation: "a" * Order::OBSERVATION_LIMIT)
+    assert order.valid?, order.errors.full_messages.to_sentence
+  end
+
   test "create generates a PG-##### number with five random digits" do
     order = build_order
     order.save!

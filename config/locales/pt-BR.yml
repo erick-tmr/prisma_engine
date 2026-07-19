@@ -570,6 +570,7 @@ pt-BR:
         requested_game: "Jogo solicitado"
         request_notes: "Observações"
         request_notes_blank: "Sem observações"
+        merged_into_html: "Este pedido foi consolidado no pedido %{number}. Os itens seguem na entrega desse pedido."
       states:
         awaiting_payment:
           description: "Pedido criado. A confirmação do pagamento é automática via webhook da InfinitePay."

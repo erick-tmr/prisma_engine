@@ -239,7 +239,9 @@ body {
 .st-shipped              { background: #e6f0fb; color: #2f7fd1; }
 .st-delivered            { background: #e4f4ec; color: #1f8a5b; }
 .st-awaiting_refund      { background: #fdeede; color: #b9650a; }
+.st-delivery_issue       { background: #fdece8; color: #c2410c; }
 .st-cancelled            { background: #f3f4f6; color: #9aa0a8; }
+.st-merged               { background: #eef2fb; color: #34495e; }
 
 .dotc-awaiting_payment { background: #6b7280; }
 .dotc-payment_confirmed { background: #00736c; }
@@ -250,7 +252,9 @@ body {
 .dotc-shipped { background: #2f7fd1; }
 .dotc-delivered { background: #1f8a5b; }
 .dotc-awaiting_refund { background: #b9650a; }
+.dotc-delivery_issue { background: #c2410c; }
 .dotc-cancelled { background: #9aa0a8; }
+.dotc-merged { background: #64748b; }
 
 /* mobile sidebar */
 #menu-toggle { display: none; }

@@ -67,6 +67,27 @@ module Orders
       assert @plan.reload.executed_at.present?
     end
 
+    test "carries the carrier and absorbed observations onto the master, labelled by order" do
+      @master.update_column(:observation, "Nota do master")
+      @absorbed.update_column(:observation, "Nota do absorvido")
+      @carrier.update_column(:observation, "Nota do carrinho")
+
+      Orders::Merge.call(order_merge: @plan, actor: @user)
+
+      observation = @master.reload.observation
+      assert_includes observation, "Nota do master"
+      assert_includes observation, "[#{@absorbed.number}] Nota do absorvido"
+      assert_includes observation, "[#{@carrier.number}] Nota do carrinho"
+    end
+
+    test "leaves the master note untouched when no folded order carries one" do
+      @master.update_column(:observation, "Só a nota do master")
+
+      Orders::Merge.call(order_merge: @plan, actor: @user)
+
+      assert_equal "Só a nota do master", @master.reload.observation
+    end
+
     test "is idempotent: a second run makes no further changes" do
       Orders::Merge.call(order_merge: @plan, actor: @user)
       items = @master.reload.order_items.count

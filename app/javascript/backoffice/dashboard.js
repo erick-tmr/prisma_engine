@@ -19,7 +19,8 @@ export const AVATAR_TINTS = ["#e4322b", "#f0851f", "#caa106", "#2aa564", "#2f7fd
 export const STATUS_COLORS = {
   awaiting_payment: "#6b7280", payment_confirmed: "#00736c", awaiting_components: "#9a7400",
   in_production: "#2a5db0", production_issue: "#c0392b", label_issued: "#6b4fb0",
-  shipped: "#2f7fd1", delivered: "#1f8a5b", awaiting_refund: "#b9650a", cancelled: "#9aa0a8"
+  shipped: "#2f7fd1", delivered: "#1f8a5b", awaiting_refund: "#b9650a",
+  delivery_issue: "#c2410c", cancelled: "#9aa0a8", merged: "#64748b"
 };
 
 // Manual bulk transitions only, mirroring Order::TRANSITIONS. System/customer
@@ -170,7 +171,11 @@ export function filterOrders(orders, state) {
   const query = state.oName.trim().toLowerCase();
   return orders.filter((o) => {
     if (query && !(o.clientName.toLowerCase().includes(query) || o.n.toLowerCase().includes(query))) return false;
-    if (state.statuses.size && !state.statuses.has(o.status)) return false;
+    if (state.statuses.size) {
+      if (!state.statuses.has(o.status)) return false;
+    } else if (o.status === "merged") {
+      return false;
+    }
     const date = parseISO(o.date);
     if (state.from && date < state.from) return false;
     if (state.to && date > state.to) return false;
@@ -261,13 +266,17 @@ export function sortClients(rows, sort) {
 export function ordersRowsHtml(rows, selected, statusLabels, orderBase) {
   return rows.map((o) => {
     const on = selected.has(o.n);
+    const check = o.status === "merged"
+      ? `<td class="checkcol"></td>`
+      : `<td class="checkcol"><span class="rowcheck ${on ? "on" : ""}" data-check="${escapeHtml(o.n)}" role="checkbox" aria-checked="${on}" tabindex="0"></span></td>`;
+    const place = o.city ? `${escapeHtml(o.city)}/${escapeHtml(o.uf)}` : "—";
     return `<tr data-order="${escapeHtml(o.n)}" class="${on ? "sel-row" : ""}">
-      <td class="checkcol"><span class="rowcheck ${on ? "on" : ""}" data-check="${escapeHtml(o.n)}" role="checkbox" aria-checked="${on}" tabindex="0"></span></td>
+      ${check}
       <td><a class="cell-mono cell-link" href="${escapeHtml(orderBase)}${encodeURIComponent(o.n)}">${escapeHtml(o.n)}</a></td>
       <td>
         <div class="who">
           <div class="who-av who-av--${tintIndex(o.clientName)}">${escapeHtml(initials(o.clientName))}</div>
-          <div class="who-meta"><div class="nm">${escapeHtml(o.clientName)}</div><div class="em">${escapeHtml(o.city)}/${escapeHtml(o.uf)}</div></div>
+          <div class="who-meta"><div class="nm">${escapeHtml(o.clientName)}</div><div class="em">${place}</div></div>
         </div>
       </td>
       <td class="cell-num">${fmtDate(o.date)}<div class="cell-sub">${o.items} ${plural(o.items, "item", "itens")}</div></td>
@@ -434,7 +443,16 @@ export function initDashboard(root, data, today) {
     trigger.classList.add("open");
     openPopEl = pop;
     openTriggerEl = trigger;
+    positionPop();
   }
+  function positionPop() {
+    if (!openPopEl || !openTriggerEl) return;
+    const rect = openTriggerEl.getBoundingClientRect();
+    openPopEl.style.top = `${rect.bottom + 8}px`;
+    openPopEl.style.left = `${rect.left}px`;
+  }
+  window.addEventListener("scroll", positionPop, true);
+  window.addEventListener("resize", positionPop);
   function closePop() {
     if (openPopEl) openPopEl.classList.remove("open");
     if (openTriggerEl) openTriggerEl.classList.remove("open");
@@ -451,10 +469,11 @@ export function initDashboard(root, data, today) {
     });
   }
   function syncCheckAll(rows) {
-    const selN = rows.filter((o) => state.selected.has(o.n)).length;
+    const selectable = rows.filter((o) => o.status !== "merged");
+    const selN = selectable.filter((o) => state.selected.has(o.n)).length;
     const checkall = $("#o-checkall");
-    checkall.classList.toggle("on", selN > 0 && selN === rows.length);
-    checkall.classList.toggle("ind", selN > 0 && selN < rows.length);
+    checkall.classList.toggle("on", selN > 0 && selN === selectable.length);
+    checkall.classList.toggle("ind", selN > 0 && selN < selectable.length);
   }
   function renderBulk() {
     const n = state.selected.size;
@@ -509,7 +528,7 @@ export function initDashboard(root, data, today) {
     renderOrders();
   }
   function toggleAll() {
-    const rows = filterOrders(orders, state);
+    const rows = filterOrders(orders, state).filter((o) => o.status !== "merged");
     const allSel = rows.length > 0 && rows.every((o) => state.selected.has(o.n));
     rows.forEach((o) => (allSel ? state.selected.delete(o.n) : state.selected.add(o.n)));
     renderOrders();
@@ -797,6 +816,8 @@ export function initDashboard(root, data, today) {
     document.removeEventListener("click", onDocClick);
     document.removeEventListener("keydown", onDocKeydown);
     window.removeEventListener("popstate", onPopState);
+    window.removeEventListener("scroll", positionPop, true);
+    window.removeEventListener("resize", positionPop);
   };
 }
 

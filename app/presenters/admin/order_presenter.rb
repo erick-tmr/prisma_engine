@@ -40,7 +40,8 @@ module Admin
     attr_reader :order
 
     delegate :number, :status, :order_items, :subtotal_cents, :total_cents,
-             :placed_at, :payment_method, :shipping_visible?, :observation, to: :order
+             :placed_at, :payment_method, :shipping_visible?, :observation,
+             :merged?, :merged_into, to: :order
 
     def status_label(value = status)
       I18n.t("account.orders.states.#{value}.label")

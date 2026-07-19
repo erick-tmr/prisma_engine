@@ -60,7 +60,7 @@
 .btn-ghost:hover { border-color: #cfd4da; background: #f7f8fa; }
 
 .pop {
-  position: absolute; z-index: 50; margin-top: 8px; left: 0; right: auto;
+  position: fixed; z-index: 60; top: 0; left: 0;
   background: #fff; border: 1px solid var(--pg-border); border-radius: 14px;
   box-shadow: var(--shadow-pop); padding: 8px;
   opacity: 0; transform: translateY(-6px) scale(0.99); pointer-events: none;

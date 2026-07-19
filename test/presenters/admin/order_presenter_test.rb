@@ -55,6 +55,17 @@ module Admin
       assert_equal "Consolidado", branch.label
     end
 
+    test "a merged order exposes its master pointer even after its shipment is destroyed" do
+      presenter = order_in("merged")
+      master = orders(:confirmed_paid)
+      presenter.order.shipment.destroy!
+      presenter.order.update!(merged_into: master)
+
+      fresh = OrderPresenter.new(presenter.order.reload)
+      assert_predicate fresh, :merged?
+      assert_equal master, fresh.merged_into
+    end
+
     test "available_actions for payment_confirmed: a single primary move, no confirm (production is report-only)" do
       actions = order_in("payment_confirmed").available_actions
       assert_equal %w[to_components], actions.map { |a| a[:id] }
