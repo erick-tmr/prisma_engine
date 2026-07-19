@@ -8,7 +8,7 @@ class PerguntasFrequentesTest < ApplicationSystemTestCase
     assert_selector ".faq-hero h1", text: "Perguntas frequentes"
     assert_text "O que é a Prisma Games?"
     assert_selector "[data-rail-link]", count: 4
-    assert_selector "[data-faq-item]", count: 7
+    assert_selector "[data-faq-item]", count: 5
 
     assert_selector "[data-faq-item].is-open", count: 1
 
