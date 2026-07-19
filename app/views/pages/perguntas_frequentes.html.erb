@@ -32,7 +32,7 @@
       <% [
         ["g-prisma",   "bi-info-circle", "A Prisma", 1],
         ["g-pedidos",  "bi-bag-check",   "Pedidos",  2],
-        ["g-entrega",  "bi-truck",       "Entrega",  3],
+        ["g-entrega",  "bi-truck",       "Entrega",  1],
         ["g-hardware", "bi-cpu",         "Hardware", 1],
       ].each do |id, icon, label, count| %>
         <a class="rail-link" href="#<%= id %>" data-rail-link data-target="<%= id %>">
@@ -170,55 +170,6 @@
                   <li>Em datas com feriados prolongados ou Fim de Ano.</li>
                   <li>Em épocas do ano como Natal, Black Friday e afins.</li>
                   <li>Problemas no estoque.</li>
-                </ul>
-              </div></div>
-            </div>
-          </article>
-
-          <article class="qa" data-faq-item>
-            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-rastreio">
-              <span class="qa__q-txt">Envio do meu produto não atualiza, o que aconteceu?</span>
-              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
-            </button>
-            <div class="qa__a" id="a-rastreio" role="region">
-              <div class="qa__a-inner"><div class="qa__a-body">
-                <p>
-                  Os produtos enviados pelo frete mais econômico (PAC Mini / Mini Envios) só
-                  atualizam o rastreamento em <b>dois momentos</b>:
-                </p>
-                <ul>
-                  <li>Quando o produto é postado.</li>
-                  <li>Quando ele sai para entrega.</li>
-                </ul>
-                <p>
-                  <b>⚠️ ATENÇÃO:</b> em períodos de maior volume postal, pode parecer que está
-                  parado, mas a sua encomenda continua a caminho; é só o fluxo fora do normal.
-                </p>
-              </div></div>
-            </div>
-          </article>
-
-          <article class="qa" data-faq-item>
-            <button class="qa__q" type="button" data-faq-toggle aria-expanded="false" aria-controls="a-status">
-              <span class="qa__q-txt">Por que o status da minha compra não altera? E por que aparece como "entregue" se eu não recebi nada?</span>
-              <span class="qa__chevron"><i class="bi bi-chevron-down"></i></span>
-            </button>
-            <div class="qa__a" id="a-status" role="region">
-              <div class="qa__a-inner"><div class="qa__a-body">
-                <p>
-                  A plataforma em que a Prisma Games está hospedada no momento não possui recursos
-                  para editar o nome dos status, então preciso trabalhar com as opções disponíveis.
-                  Assim sendo:
-                </p>
-                <ul>
-                  <li><b>🕒 Pendente:</b> aguardando pagamento · ordem de chegada dos pedidos.</li>
-                  <li><b>⏳ Em andamento:</b> separação dos insumos · encaminhado para a mesa de produção.</li>
-                  <li><b>🚚 Entregue:</b> etiqueta enviada para confirmação dos dados · código de rastreio enviado.</li>
-                </ul>
-                <p><b>⚠️ ATENÇÃO:</b></p>
-                <ul>
-                  <li>Todo o processo de atualização dos status é feito de maneira manual.</li>
-                  <li>Quando a etiqueta é emitida, o envio vai ser feito na próxima ida aos Correios.</li>
                 </ul>
               </div></div>
             </div>
