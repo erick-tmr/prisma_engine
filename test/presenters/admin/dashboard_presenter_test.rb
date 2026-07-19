@@ -20,12 +20,15 @@ module Admin
       assert_equal 1, first["items"]
     end
 
-    test "orders exclude merged consolidations, which have no shipment to render" do
+    test "orders include merged consolidations with a nil city, since their shipment is gone" do
       merged = orders(:awaiting).user.orders.create!(subtotal_cents: 100, total_cents: 100)
       merged.update_column(:status, "merged")
 
-      numbers = DashboardPresenter.new.orders.map { |row| row["n"] }
-      assert_not_includes numbers, merged.number
+      row = DashboardPresenter.new.orders.find { |entry| entry["n"] == merged.number }
+      assert_not_nil row, "a merged order should still appear in the dashboard data"
+      assert_equal "merged", row["status"]
+      assert_nil row["city"]
+      assert_nil row["uf"]
     end
 
     test "clients exclude admins and derive situação plus order counts" do

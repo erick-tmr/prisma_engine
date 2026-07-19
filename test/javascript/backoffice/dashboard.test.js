@@ -167,6 +167,15 @@ describe("orders transforms", () => {
     expect(filterOrders(orders, { ...base, to: new Date(2026, 4, 1) }).map((o) => o.n)).toEqual(["PG-202604220005"]);
   });
 
+  it("hides consolidated (merged) orders by default, revealing them only when their filter is on", () => {
+    const orders = [
+      { n: "PG-1", clientName: "Ana", city: "SP", uf: "SP", date: "2026-06-14", status: "delivered", total: 100, items: 1 },
+      { n: "PG-2", clientName: "Bia", city: null, uf: null, date: "2026-06-13", status: "merged", total: 50, items: 0 }
+    ];
+    expect(filterOrders(orders, { ...base }).map((o) => o.n)).toEqual(["PG-1"]);
+    expect(filterOrders(orders, { ...base, statuses: new Set(["merged"]) }).map((o) => o.n)).toEqual(["PG-2"]);
+  });
+
   it("sorts by client, total, status and date in both directions", () => {
     const { orders } = sampleData();
     expect(sortOrders(orders, { key: "client", dir: "asc" }, STATUSES)[0].clientName).toBe("Ana Cardoso");
@@ -263,6 +272,14 @@ describe("template builders", () => {
     expect(html).toContain('href="/admin/pedidos/PG-202606140001"');
   });
 
+  it("ordersRowsHtml renders a merged row without a checkbox and dashes its absent city", () => {
+    const rows = [{ n: "PG-9", clientName: "Ana", city: null, uf: null, date: "2026-06-14", status: "merged", total: 50, items: 0 }];
+    const html = ordersRowsHtml(rows, new Set(), STATUS_LABELS, "/admin/pedidos/");
+    expect(html).toContain("st-merged");
+    expect(html).not.toContain('data-check="PG-9"');
+    expect(html).toContain("—");
+  });
+
   it("clientsRowsHtml renders situação tags, masks contact data and dashes a missing city", () => {
     const { clients } = sampleData();
     const html = clientsRowsHtml(clients, SITUATION_LABELS);
@@ -335,7 +352,7 @@ describe("template builders", () => {
   });
 
   it("exposes the expected constant shapes", () => {
-    expect(Object.keys(STATUS_COLORS)).toHaveLength(10);
+    expect(Object.keys(STATUS_COLORS)).toHaveLength(12);
     expect(PRESETS).toHaveLength(6);
     expect(SITUATION_TAGS.locked.cls).toBe("tag-locked");
   });
@@ -850,6 +867,19 @@ describe("initDashboard", () => {
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
     expect($("#status-pop").classList.contains("open")).toBe(false);
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" })); // non-Escape → ignored
+  });
+
+  it("repositions an open popover on scroll and no-ops when none is open", () => {
+    window.dispatchEvent(new window.Event("scroll")); // no pop open: the guard is a no-op
+    window.dispatchEvent(new window.Event("resize"));
+
+    click($("#status-trigger"));
+    const pop = $("#status-pop");
+    expect(pop.classList.contains("open")).toBe(true);
+
+    pop.style.top = "";
+    window.dispatchEvent(new window.Event("scroll"));
+    expect(pop.style.top).not.toBe(""); // re-anchored to the trigger
   });
 
   it("rewrites the production report link with the active period on click", () => {
