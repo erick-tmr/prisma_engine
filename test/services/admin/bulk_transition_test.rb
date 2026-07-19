@@ -8,6 +8,27 @@ module Admin
       result["results"].find { |entry| entry["number"] == order.number }
     end
 
+    def merged_order
+      order = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000, payment_method: "pix")
+      order.confirm_payment!(automatic: true)
+      order.update!(merged_into: orders(:confirmed_paid))
+      order.transition_to!("merged", automatic: true)
+      order
+    end
+
+    test "never operates on a merged order: transitions and issue_label both skip it" do
+      merged = merged_order
+
+      %w[to_components issue_label].each do |event|
+        result = BulkTransition.call(order_numbers: [ merged.number ], event: event, actor: users(:admin))
+        row = row_for(result, merged)
+        assert_equal "skipped", row["outcome"], event
+        assert_equal "not_available", row["reason"], event
+      end
+
+      assert merged.reload.merged?
+    end
+
     test "applies a plain transition to eligible orders and skips the rest" do
       paid = orders(:confirmed_paid)
       producing = orders(:producing)
