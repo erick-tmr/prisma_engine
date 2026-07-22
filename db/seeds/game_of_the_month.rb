@@ -93,6 +93,6 @@ if required_files.all? { |path| File.exist?(path) }
     end
   end
 
-  puts "Jogo do Mês: #{gotm.note} (#{gotm.year}-#{gotm.month}) — " \
+  puts "Jogo do Mês: #{gotm.note} (#{gotm.year}-#{gotm.month}), " \
        "#{gotm.products.count} produto(s), #{gotm.brindes.count} brinde(s)"
 end

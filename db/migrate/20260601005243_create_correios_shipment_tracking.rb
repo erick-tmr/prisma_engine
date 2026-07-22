@@ -18,8 +18,8 @@ class CreateCorreiosShipmentTracking < ActiveRecord::Migration[8.1]
       t.integer :correios_status      # statusAtual
       t.string :correios_status_label # descStatusAtual
       t.datetime :correios_status_at  # dataHoraStatusAtual
-      t.datetime :posting_deadline    # prazoPostagem — post by this or it's cancelled
-      t.datetime :requested_at        # dataHora — pré-postagem request time
+      t.datetime :posting_deadline    # prazoPostagem: post by this or it's cancelled
+      t.datetime :requested_at        # dataHora: pré-postagem request time
       t.jsonb :pre_post_payload, null: false, default: {} # full raw pré-postagem response
       t.integer :tracking_state, null: false, default: 0  # see Shipment#tracking_state enum
       t.string :tracking_error        # last error a rastro response returned (e.g. SRO-019)
@@ -36,7 +36,7 @@ class CreateCorreiosShipmentTracking < ActiveRecord::Migration[8.1]
       t.string :tracking_code
       t.integer :position, null: false
       t.string :event_code # rastro "codigo" (e.g. BDE)
-      t.string :event_type # rastro "tipo" (e.g. 01) — code+type together identify the event (BDE/01 = entregue)
+      t.string :event_type # rastro "tipo" (e.g. 01); code+type together identify the event (BDE/01 = entregue)
       t.string :description
       t.datetime :occurred_at
       t.jsonb :payload, null: false, default: {}

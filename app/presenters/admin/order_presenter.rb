@@ -1,12 +1,7 @@
 module Admin
-  # View-model for the backoffice order detail screen. Keeps the per-state
-  # "variants" (available actions, lifecycle stepper, auto-next notes, history,
-  # payment badge) out of the ERB and in small, unit-tested methods. Raw money /
-  # dates stay raw — the view formats them with the usual helpers.
   class OrderPresenter
     FLOW = %w[awaiting_payment payment_confirmed in_production label_issued shipped delivered].freeze
 
-    # Where a non-linear state sits on the happy-path flow.
     BRANCH_ANCHOR = {
       "awaiting_components" => "payment_confirmed",
       "production_issue"    => "in_production",
@@ -16,14 +11,12 @@ module Admin
       "merged"              => "payment_confirmed"
     }.freeze
 
-    # Flow steps the system advances on its own, surfaced as a small note.
     AUTO_FLOW_NOTE = {
       "payment_confirmed" => "webhook",
       "shipped"           => "correios",
       "delivered"         => "correios"
     }.freeze
 
-    # States whose only "next step" is automatic, so no manual action is offered.
     AUTO_NEXT_STATUSES = %w[label_issued shipped delivered cancelled].freeze
 
     SERVICE_LABELS = { "pac" => "PAC", "sedex" => "SEDEX", "mini_envios" => "Mini Envios" }.freeze

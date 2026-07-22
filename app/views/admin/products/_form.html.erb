@@ -63,7 +63,7 @@
                   <span class="lbl-note"><%= t("admin.catalog.form.slug_note") %></span>
                 </label>
                 <%= form.text_field :slug, value: @product.slug, class: "inp", id: "f-slug", placeholder: t("admin.catalog.form.slug_placeholder") %>
-                <div class="fhint"><span class="slug-prefix"><%= t("admin.catalog.form.slug_prefix") %></span><span id="slug-echo">—</span></div>
+                <div class="fhint"><span class="slug-prefix"><%= t("admin.catalog.form.slug_prefix") %></span><span id="slug-echo">–</span></div>
               </div>
 
               <div class="field-row r-price gap-top">
@@ -147,6 +147,110 @@
             </div>
           </div>
 
+          <!-- Sob encomenda -->
+          <% co = @presenter.custom_order_form %>
+          <div class="panel custom-order-panel" id="custom-order-panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <i class="bi bi-card-checklist co-crown"></i> <%= t("admin.catalog.form.custom_order") %></h2>
+                <div class="hint"><%= t("admin.catalog.form.custom_order_hint") %></div>
+              </div>
+              <div class="panel-top-right">
+                <label class="switch">
+                  <%= form.check_box :custom_order, id: "f-custom-order", checked: @product.custom_order %>
+                  <span class="track"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="panel-body" id="co-body"<%= " hidden".html_safe unless @product.custom_order %>>
+              <div class="co-editor">
+                <%= form.fields_for :custom_order_form, co do |co_form| %>
+                  <div class="co-fields">
+                    <div class="co-subhead"><%= t("admin.catalog.form.co_group_header") %></div>
+                    <div class="field">
+                      <label for="f-co-title"><%= t("admin.catalog.form.co_title") %></label>
+                      <%= co_form.text_field :title, class: "inp", id: "f-co-title",
+                            maxlength: CustomOrderForm::LIMITS[:title], placeholder: CustomOrderForm::DEFAULTS[:title] %>
+                    </div>
+                    <div class="field gap-top">
+                      <label for="f-co-sub"><%= t("admin.catalog.form.co_subtitle") %></label>
+                      <%= co_form.text_area :subtitle, class: "inp co-ta", id: "f-co-sub", rows: 2,
+                            maxlength: CustomOrderForm::LIMITS[:subtitle], placeholder: CustomOrderForm::DEFAULTS[:subtitle] %>
+                    </div>
+
+                    <div class="co-subhead has-top">
+                      <%= t("admin.catalog.form.co_group_game") %>
+                      <span class="co-req-flag"><%= t("admin.catalog.form.co_flag_required") %></span>
+                    </div>
+                    <div class="field">
+                      <label for="f-co-game-label"><%= t("admin.catalog.form.co_label") %></label>
+                      <%= co_form.text_field :game_label, class: "inp", id: "f-co-game-label",
+                            maxlength: CustomOrderForm::LIMITS[:game_label], placeholder: CustomOrderForm::DEFAULTS[:game_label] %>
+                    </div>
+                    <div class="field gap-top">
+                      <label for="f-co-game-ph"><%= t("admin.catalog.form.co_placeholder") %>
+                        <span class="lbl-note"><%= t("admin.catalog.form.co_placeholder_note") %></span>
+                      </label>
+                      <%= co_form.text_field :game_placeholder, class: "inp", id: "f-co-game-ph",
+                            maxlength: CustomOrderForm::LIMITS[:game_placeholder], placeholder: CustomOrderForm::DEFAULTS[:game_placeholder] %>
+                    </div>
+                    <div class="field gap-top">
+                      <label for="f-co-game-hint"><%= t("admin.catalog.form.co_hint") %></label>
+                      <%= co_form.text_field :game_hint, class: "inp", id: "f-co-game-hint",
+                            maxlength: CustomOrderForm::LIMITS[:game_hint], placeholder: CustomOrderForm::DEFAULTS[:game_hint] %>
+                    </div>
+                    <div class="field gap-top">
+                      <label for="f-co-game-error"><%= t("admin.catalog.form.co_error") %>
+                        <span class="lbl-note"><%= t("admin.catalog.form.co_error_note") %></span>
+                      </label>
+                      <%= co_form.text_field :game_error, class: "inp", id: "f-co-game-error",
+                            maxlength: CustomOrderForm::LIMITS[:game_error], placeholder: CustomOrderForm::DEFAULTS[:game_error] %>
+                    </div>
+
+                    <div class="co-subhead has-top">
+                      <%= t("admin.catalog.form.co_group_notes") %>
+                      <span class="co-opt-flag"><%= t("admin.catalog.form.co_flag_optional") %></span>
+                    </div>
+                    <div class="field">
+                      <label for="f-co-obs-label"><%= t("admin.catalog.form.co_label") %></label>
+                      <%= co_form.text_field :notes_label, class: "inp", id: "f-co-obs-label",
+                            maxlength: CustomOrderForm::LIMITS[:notes_label], placeholder: CustomOrderForm::DEFAULTS[:notes_label] %>
+                    </div>
+                    <div class="field gap-top">
+                      <label for="f-co-obs-ph"><%= t("admin.catalog.form.co_placeholder") %>
+                        <span class="lbl-note"><%= t("admin.catalog.form.co_placeholder_note") %></span>
+                      </label>
+                      <%= co_form.text_field :notes_placeholder, class: "inp", id: "f-co-obs-ph",
+                            maxlength: CustomOrderForm::LIMITS[:notes_placeholder], placeholder: CustomOrderForm::DEFAULTS[:notes_placeholder] %>
+                    </div>
+
+                    <div class="co-restore-row">
+                      <button class="restore-default" id="co-restore" type="button"><i class="bi bi-arrow-counterclockwise"></i> <%= t("admin.catalog.form.co_restore") %></button>
+                    </div>
+                  </div>
+                <% end %>
+
+                <div class="co-preview-col">
+                  <div class="co-preview-lbl"><i class="bi bi-eye"></i> <%= t("admin.catalog.form.co_preview") %></div>
+                  <div class="co-preview" aria-hidden="true">
+                    <div class="cop-head"><i class="bi bi-card-checklist"></i><h4 id="cop-title"><%= co.text(:title) %></h4></div>
+                    <p class="cop-sub" id="cop-sub"><%= co.text(:subtitle) %></p>
+                    <div class="cop-field">
+                      <div class="cop-label"><span id="cop-game-label"><%= co.text(:game_label) %></span> <span class="cop-req">*</span></div>
+                      <div class="cop-input" id="cop-game-ph"><%= co.text(:game_placeholder) %></div>
+                      <div class="cop-hint" id="cop-game-hint"><%= co.text(:game_hint) %></div>
+                    </div>
+                    <div class="cop-field">
+                      <div class="cop-label"><span id="cop-obs-label"><%= co.text(:notes_label) %></span> <span class="cop-opt"><%= t("admin.catalog.form.co_flag_optional") %></span></div>
+                      <div class="cop-input cop-textarea" id="cop-obs-ph"><%= co.text(:notes_placeholder) %></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Jogo do Mês -->
           <div class="panel" id="gotm-panel" hidden>
             <div class="panel-top">
@@ -155,7 +259,7 @@
                 <div class="hint"><%= t("admin.catalog.form.gotm_hint") %></div>
               </div>
               <div class="panel-top-right">
-                <span class="gotm-edition" id="gotm-edition-badge"><i class="bi bi-calendar-event"></i> —</span>
+                <span class="gotm-edition" id="gotm-edition-badge"><i class="bi bi-calendar-event"></i> –</span>
               </div>
             </div>
 
@@ -221,23 +325,6 @@
                 </div>
                 <label class="switch">
                   <%= form.check_box :published, id: "f-published", checked: @product.published %>
-                  <span class="track"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sob encomenda -->
-          <div class="side-card">
-            <div class="side-card-top"><h3><span class="rbar" aria-hidden="true"></span> <%= t("admin.catalog.form.custom_order") %></h3></div>
-            <div class="side-card-body">
-              <div class="toggle-row">
-                <div class="tr-meta">
-                  <div class="tr-title"><%= t("admin.catalog.form.custom_order_title") %></div>
-                  <div class="tr-desc"><%= t("admin.catalog.form.custom_order_desc") %></div>
-                </div>
-                <label class="switch">
-                  <%= form.check_box :custom_order, id: "f-custom-order", checked: @product.custom_order %>
                   <span class="track"></span>
                 </label>
               </div>

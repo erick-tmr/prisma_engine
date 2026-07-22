@@ -67,7 +67,7 @@ end
 Rails.application.config.middleware.insert_before(
   ActionDispatch::HostAuthorization,
   PreviewBasicAuth,
-  "Prisma Games — preview"
+  "Prisma Games (preview)"
 ) do |user, pass|
   ActiveSupport::SecurityUtils.secure_compare(
     ::Digest::SHA256.hexdigest(user.to_s),

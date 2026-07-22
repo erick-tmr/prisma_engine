@@ -40,7 +40,7 @@ module Payments
 
         assert_equal 2, body["items"].size
         assert_equal({ "description" => "Cartucho Zelda", "quantity" => 1, "price" => 18_000 }, body["items"][0])
-        assert_equal "Frete — sedex", body["items"][1]["description"]
+        assert_equal "Frete: sedex", body["items"][1]["description"]
         assert_equal 1_984, body["items"][1]["price"]
 
         assert_equal "Cliente Confirmado", body["customer"]["name"]

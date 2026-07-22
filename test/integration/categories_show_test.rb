@@ -24,7 +24,7 @@ class CategoriesShowTest < ActionDispatch::IntegrationTest
     assert_select ".product-card"
   end
 
-  test "is reachable by slug alone — no category_id query needed" do
+  test "is reachable by slug alone: no category_id query needed" do
     get category_path(slug: "game-boy-color")
     assert_response :success
     assert_equal "/produtos/game-boy-color", category_path(slug: "game-boy-color")

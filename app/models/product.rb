@@ -4,6 +4,8 @@ class Product < ApplicationRecord
 
   belongs_to :category
 
+  has_one :custom_order_form, dependent: :destroy
+
   has_many :product_options, dependent: :destroy
   has_many :product_photos, dependent: :destroy
   has_many :questions, dependent: :destroy
@@ -23,12 +25,13 @@ class Product < ApplicationRecord
     published.where.not("products.name LIKE ?", "- %").limit(limit)
   }
 
-  # An unpriced product means "ask for the price" — not "R$ 0.00".
   def price_formatted
     price_cents.to_i.zero? ? "Sob consulta" : HasMoney.format(price_cents)
   end
 
-  # --- Storefront read interface preserved from the former YAML PORO ---
+  def custom_order_text
+    custom_order_form || CustomOrderForm.new
+  end
 
   def title
     name
@@ -49,10 +52,6 @@ class Product < ApplicationRecord
     end
   end
 
-  # Titles carry HTML entities (&#039;, &amp;) and emoji; unescape and strip
-  # anything non-alphanumeric before parameterize so generated slugs stay clean
-  # (e.g. "Kirby&#039;s Dream Land" -> "kirbys-dream-land"). friendly_id calls
-  # this publicly, so it must not be private.
   def normalize_friendly_id(value)
     CGI.unescapeHTML(value.to_s)
        .gsub(/[^\p{Latin}\p{Digit}\s-]/, "")

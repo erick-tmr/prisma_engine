@@ -1,8 +1,4 @@
 module Admin
-  # Canonical list of the manual status transitions an operator can drive from the
-  # order detail screen. Mirrors Order::TRANSITIONS (and the mocked dashboard.js
-  # ACTIONS): system/customer transitions — payment webhook, Correios shipped /
-  # delivered, a customer's refund request — are deliberately not here.
   module OrderActions
     Action = Data.define(:id, :from, :to, :icon, :danger) do
       def available_for?(status)

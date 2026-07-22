@@ -2,14 +2,6 @@ require "faraday"
 
 module Correios
   module Api
-    # Creates a Correios pré-postagem (the shipping object/label).
-    #
-    #   POST {base}/prepostagem/v1/prepostagens
-    #   Authorization: Bearer <correios.cartao_api_token>   # the cartão-de-postagem token
-    #
-    # Takes the already-built request body and returns the parsed response Hash.
-    # Knows nothing about Shipment or how the body is assembled — that's the
-    # domain's job (Shipping::CreatePrePostagem).
     class PrePostagem
       include Correios::Api::Client
 

@@ -70,7 +70,6 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select ".gotm-slide__title", text: products(:yellow).name
     assert_select ".gotm-slide__title", text: products(:placeholder).name
     assert_select ".gotm-slide__blurb", count: 2
-    # Only yellow's slide has brindes (per-product kit); placeholder has none.
     assert_select ".gotm-brindes__thumbs .gotm-brinde", count: 2
   end
 
@@ -162,7 +161,7 @@ test "every static page route renders" do
     end
   end
 
-  test "unknown static page slug 404s — no matching route" do
+  test "unknown static page slug 404s: no matching route" do
     get "/pagina/desconhecido"
     assert_response :not_found
   end

@@ -373,7 +373,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           {
-            echo "## Code smells — reek (changed files)"
+            echo "## Code smells: reek (changed files)"
             echo '```'
             cat reek-report.txt 2>/dev/null || echo "(none)"
             echo '```'
@@ -459,7 +459,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "${{ github.event_name }}" = "pull_request" ] && [ "$COUNT" -gt 0 ]; then
-            echo "::error::Semgrep reported $COUNT new finding(s) — see Render step above for details."
+            echo "::error::Semgrep reported $COUNT new finding(s); see Render step above for details."
             exit 1
           fi
 
@@ -543,11 +543,11 @@ jobs:
           {
             echo "## CI quality summary"
             echo ""
-            echo "### Coverage — Ruby (SimpleCov)"
+            echo "### Coverage: Ruby (SimpleCov)"
             echo "- Total line coverage: **${LINE}%**"
             echo "- Total branch coverage: **${BRANCH}%**"
             echo ""
-            echo "### Coverage — JS (Vitest, storefront modules)"
+            echo "### Coverage: JS (Vitest, storefront modules)"
             if [ -f "$JS" ]; then
               jq -r '.total | "- Lines: **\(.lines.pct)%** · Branches: **\(.branches.pct)%** · Functions: **\(.functions.pct)%** · Statements: **\(.statements.pct)%**"' "$JS"
             else
@@ -558,7 +558,7 @@ jobs:
             echo '```'
             cat artifacts/undercover-report/undercover-report.txt 2>/dev/null || echo "n/a"
             echo '```'
-            echo "### Code smells — reek (changed files)"
+            echo "### Code smells: reek (changed files)"
             echo '```'
             cat artifacts/reek-report/reek-report.txt 2>/dev/null || echo "none"
             echo '```'

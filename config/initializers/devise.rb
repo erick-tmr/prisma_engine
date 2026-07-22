@@ -10,7 +10,7 @@
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
   # Devise derives its tokens from Rails.application.secret_key_base by
-  # default — no override needed here. Set config.secret_key only to rotate
+  # default, so no override needed here. Set config.secret_key only to rotate
   # away from secret_key_base, which would invalidate every outstanding
   # confirmation / reset / unlock token in the database.
 
@@ -139,11 +139,11 @@ Devise.setup do |config|
 
   # Send a notification to the original email when the user's email is changed.
   # On so a compromised account that swaps the e-mail still alerts the real
-  # owner at their original address — they have a chance to react.
+  # owner at their original address, so they have a chance to react.
   config.send_email_changed_notification = true
 
   # Send a notification email when the user's password is changed.
-  # Same reasoning as send_email_changed_notification — the legitimate owner
+  # Same reasoning as send_email_changed_notification: the legitimate owner
   # gets a heads-up if someone else changed the password.
   config.send_password_change_notification = true
 
@@ -223,7 +223,7 @@ Devise.setup do |config|
   config.unlock_strategy = :email
 
   # Number of authentication tries before locking an account if lock_strategy
-  # is failed attempts. Default 20 is fine for a storefront — we're not a bank,
+  # is failed attempts. Default 20 is fine for a storefront; we're not a bank,
   # but it's still well below the rate at which an automated attacker would
   # blow through a password.
   config.maximum_attempts = 20

@@ -6,7 +6,7 @@ module Admin
     HTML
     DEFAULT_LANGUAGES = [ "Português BR", "Inglês", "Japonês" ].freeze
     DEFAULT_WEIGHT = 60
-    CURRENCIES = [ [ "BRL — Real (R$)", "BRL" ], [ "USD — Dólar (US$)", "USD" ], [ "EUR — Euro (€)", "EUR" ] ].freeze
+    CURRENCIES = [ [ "BRL · Real (R$)", "BRL" ], [ "USD · Dólar (US$)", "USD" ], [ "EUR · Euro (€)", "EUR" ] ].freeze
 
     def self.build_new
       Product.new(
@@ -45,6 +45,10 @@ module Admin
 
     def default_description
       DEFAULT_DESCRIPTION
+    end
+
+    def custom_order_form
+      product.custom_order_text
     end
 
     def graph_json

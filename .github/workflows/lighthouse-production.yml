@@ -46,7 +46,7 @@ jobs:
             CONFIG=tmp/lighthouserc.generated.json
             echo "Cloudflare bypass header injected."
           else
-            echo "No LIGHTHOUSE_CF_BYPASS_TOKEN set — auditing without a bypass header."
+            echo "No LIGHTHOUSE_CF_BYPASS_TOKEN set, auditing without a bypass header."
           fi
           echo "Auditing: $TARGET_URL"
           npx --yes @lhci/cli@0.14.0 collect \

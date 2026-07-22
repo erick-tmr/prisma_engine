@@ -28,11 +28,9 @@ class AccountPasswordFlowTest < ActionDispatch::IntegrationTest
     }
     assert_redirected_to account_password_path
 
-    # Session retained — visiting a protected page does not redirect to sign-in.
     get account_profile_path
     assert_response :success
 
-    # The new password is now the active one.
     assert users(:confirmed).reload.valid_password?("nova-senha-456")
   end
 

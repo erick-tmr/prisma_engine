@@ -2,20 +2,9 @@ require "faraday"
 
 module Correios
   module Api
-    # Queries the Correios deadline endpoint for one or more service codes in
-    # a single batched POST.
-    #
-    #   POST {base}/prazo/v1/nacional
-    #   Authorization: Bearer <correios.api_token>   # the contrato token, same as Cep/Tracking
-    #
-    # Returns the parsed JSON Array exactly as Correios sends it. We only
-    # consume `prazoEntrega` (business days) downstream; the response also
-    # carries `dataMaxima` and Saturday/Sunday delivery flags we ignore for
-    # now.
     class Prazo
       include Correios::Api::Client
 
-      # Same rule as Preco — only domain-validation rejections are "permanent".
       PERMANENT_REJECTIONS = [ 400, 422 ].freeze
 
       def self.fetch(cep_origem:, cep_destino:, service_codes:)

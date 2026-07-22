@@ -1,4 +1,4 @@
-# Catalog seed — idempotent.
+# Catalog seed: idempotent.
 #
 # config/products.yml is the single source of the real catalog (curated slugs,
 # titles, prices, images). It is intentionally retained as a one-time seed
@@ -11,7 +11,7 @@ require "bigdecimal"
 category_by_slug = {
   "game-boy-classic" => "Game Boy Classic",
   "game-boy-color"   => "Game Boy Color",
-  # Game Boy Advance has no products yet — seeded for the near-future catalog.
+  # Game Boy Advance has no products yet, seeded for the near-future catalog.
   "game-boy-advance" => "Game Boy Advance",
   "pedidos-de-jogos" => "Pedidos de Jogos",
   "miscelanea"       => "Extras & Acessórios"

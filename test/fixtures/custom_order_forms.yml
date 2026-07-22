@@ -1,0 +1,4 @@
+pedido_game_form:
+  product: pedido_game
+  title: "Monte seu cartucho"
+  game_error: "Diga qual romhack você quer."

@@ -1,19 +1,7 @@
 module Shipping
-  # Translates a freshly-synced shipment's tracking_state into the order's
-  # lifecycle, walking the linear shipping leg (label_issued → shipped →
-  # delivered) one OrderStatusChange at a time so a poll that jumps straight to
-  # delivered still records the intermediate shipped step. A terminal delivery
-  # problem (returned) walks the order to shipped and then to delivery_issue.
-  #
-  # Idempotent and guard-driven: an order already at or past the target, or one
-  # sitting off the shipping leg (cancelled, awaiting_refund, …), is left
-  # untouched — so no transition_to! ever hits its raise branch and the caller
-  # needs no rescue.
   class OrderProgress
     LEG = %w[label_issued shipped delivered].freeze
 
-    # tracking_state → how far along LEG the order should be, plus an optional
-    # branch status reached from the end of that walk.
     TARGETS = {
       "in_transit" => { advance_to: "shipped",   then_to: nil },
       "delivered"  => { advance_to: "delivered", then_to: nil },

@@ -1,8 +1,8 @@
-# Backoffice demo data — idempotent. Populates the admin dashboard locally with a
+# Backoffice demo data: idempotent. Populates the admin dashboard locally with a
 # realistic spread of customers (across situações) and orders (across every
 # Order::STATUSES value and a range of dates). Keyed on stable identifiers
 # (customer e-mail, order external_id) so re-running never duplicates. Test
-# fixtures stay separate — this is dev-only seed data.
+# fixtures stay separate; this is dev-only seed data.
 
 # CPF check digits via the official mod-11 algorithm (mirrors CpfValidator), so
 # every generated customer passes `cpf: true` validation.

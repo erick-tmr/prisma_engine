@@ -39,6 +39,26 @@ class AdminCatalogTest < ApplicationSystemTestCase
     end
   end
 
+  test "an operator turns a product into a made-to-order one and words its form" do
+    login_as_user(users(:admin))
+    visit edit_admin_product_path(products(:game_box))
+
+    assert_no_selector "#co-body", visible: true
+    find(".custom-order-panel .switch .track").click
+    assert_selector "#co-body", visible: true
+
+    fill_in "f-co-title", with: "Monte a sua caixa"
+    assert_selector "#cop-title", text: "Monte a sua caixa"
+
+    find("#ed-save").click
+    assert_current_path admin_products_path
+
+    products(:game_box).reload.tap do |product|
+      assert product.custom_order?
+      assert_equal "Monte a sua caixa", product.custom_order_form.title
+    end
+  end
+
   test "an operator creates a product from scratch" do
     login_as_user(users(:admin))
     visit new_admin_product_path

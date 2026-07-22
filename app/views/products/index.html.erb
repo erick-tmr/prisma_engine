@@ -1,11 +1,11 @@
-<% content_for :title, "Jogos — Prisma Games" %>
+<% content_for :title, "Jogos | Prisma Games" %>
 
 <div class="container">
   <header class="mb-4">
     <h1 class="h3 mb-1">Catálogo</h1>
     <% if @query.present? %>
       <p class="text-muted small mb-0">
-        Resultados para <strong><%= @query %></strong> — <%= pluralize(@products.size, "produto") %>
+        Resultados para <strong><%= @query %></strong>: <%= pluralize(@products.size, "produto") %>
       </p>
     <% else %>
       <p class="text-muted small mb-0"><%= pluralize(@products.size, "produto") %> disponíveis</p>

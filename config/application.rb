@@ -26,7 +26,7 @@ module PrismaEngine
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     # active_storage/ holds the custom R2 adapter, which Active Storage's configurator
-    # loads via its own `require` off $LOAD_PATH — keep Zeitwerk out of it.
+    # loads via its own `require` off $LOAD_PATH, so keep Zeitwerk out of it.
     config.autoload_lib(ignore: %w[assets tasks active_storage])
 
     config.i18n.default_locale = :"pt-BR"
