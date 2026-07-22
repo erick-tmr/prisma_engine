@@ -21,9 +21,10 @@
     </button>
   </header>
 
+  <% column_break_seq = @presenter.column_break_seq %>
   <ol class="pr-orders">
     <% @presenter.rows.each do |row| %>
-      <li class="pr-order">
+      <li class="<%= class_names("pr-order", "pr-order--column-break" => row.seq == column_break_seq) %>">
         <div class="pr-order__head">
           <span class="pr-order__seq">#<%= row.seq %></span>
           <span class="pr-order__customer"><%= row.customer %></span>
