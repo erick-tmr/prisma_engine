@@ -47,6 +47,10 @@ module Admin
       DEFAULT_DESCRIPTION
     end
 
+    def custom_order_form
+      product.custom_order_text
+    end
+
     def graph_json
       @submitted_graph.presence || build_graph.to_json
     end

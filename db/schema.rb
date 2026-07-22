@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_19_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_22_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -78,6 +78,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_120000) do
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_categories_on_slug", unique: true
+  end
+
+  create_table "custom_order_forms", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "game_error", limit: 120
+    t.string "game_hint", limit: 120
+    t.string "game_label", limit: 40
+    t.string "game_placeholder", limit: 80
+    t.string "notes_label", limit: 40
+    t.string "notes_placeholder", limit: 120
+    t.bigint "product_id", null: false
+    t.string "subtitle", limit: 180
+    t.string "title", limit: 60
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_custom_order_forms_on_product_id", unique: true
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
@@ -240,6 +255,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_120000) do
   end
 
   create_table "products", force: :cascade do |t|
+    t.string "catalog_sync_error"
+    t.datetime "catalog_synced_at"
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.string "currency", default: "BRL", null: false
@@ -252,6 +269,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_120000) do
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.integer "weight_grams", null: false
+    t.index ["catalog_synced_at"], name: "index_products_on_catalog_synced_at"
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["published"], name: "index_products_on_published"
     t.index ["slug"], name: "index_products_on_slug", unique: true
@@ -402,6 +420,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_120000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addresses", "users"
   add_foreign_key "brindes", "game_of_the_month_products"
+  add_foreign_key "custom_order_forms", "products"
   add_foreign_key "game_of_the_month_products", "game_of_the_months"
   add_foreign_key "game_of_the_month_products", "products"
   add_foreign_key "order_items", "orders"

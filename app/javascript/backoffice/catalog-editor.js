@@ -6,11 +6,24 @@ export const MONTHS = [
 export const DEFAULT_LANGUAGES = ["Português BR", "Inglês", "Japonês"];
 export const DEFAULT_WEIGHT = 60;
 
+export const CO_FIELDS = [
+  { input: "f-co-title", echo: "cop-title" },
+  { input: "f-co-sub", echo: "cop-sub" },
+  { input: "f-co-game-label", echo: "cop-game-label" },
+  { input: "f-co-game-ph", echo: "cop-game-ph" },
+  { input: "f-co-game-hint", echo: "cop-game-hint" },
+  { input: "f-co-game-error", echo: null },
+  { input: "f-co-obs-label", echo: "cop-obs-label" },
+  { input: "f-co-obs-ph", echo: "cop-obs-ph" }
+];
+
 const MSG = {
   nameRequired: "Dê um <b>nome</b> ao produto antes de salvar.",
   weightRequired: "O <b>peso base</b> precisa ser maior que zero.",
   brindeImage: "Cada <b>brinde</b> precisa de uma imagem.",
-  gotmOn: "<b>Jogo do Mês</b> ativado — campos extras liberados abaixo."
+  gotmOn: "<b>Jogo do Mês</b> ativado: campos extras liberados abaixo.",
+  customOrderOn: "<b>Sob encomenda</b> ativado: o formulário de pedido aparece na loja.",
+  customOrderRestored: "Textos do formulário restaurados ao padrão."
 };
 
 export function plural(count, one, many) {
@@ -261,6 +274,16 @@ export function initEditor(root) {
     updateBrindeWeight();
   };
 
+  const syncCustomOrder = () => {
+    els.coBody.hidden = !els.customOrder.checked;
+  };
+
+  const syncCoPreview = () => {
+    els.coFields.forEach(({ input, echo }) => {
+      if (echo) echo.textContent = input.value.trim() || input.placeholder;
+    });
+  };
+
   const renderBrindes = () => {
     els.brindeList.replaceChildren();
     if (!state.brindes.length) {
@@ -371,6 +394,17 @@ export function initEditor(root) {
   els.gotmMonth.addEventListener("change", syncGotm);
   els.gotmYear.addEventListener("change", syncGotm);
 
+  els.customOrder.addEventListener("change", () => {
+    syncCustomOrder();
+    if (els.customOrder.checked) toast("ok", MSG.customOrderOn);
+  });
+  els.coFields.forEach(({ input }) => input.addEventListener("input", syncCoPreview));
+  els.coRestore.addEventListener("click", () => {
+    els.coFields.forEach(({ input }) => (input.value = ""));
+    syncCoPreview();
+    toast("ok", MSG.customOrderRestored);
+  });
+
   form.addEventListener("submit", (event) => {
     const error = validate(state, { name: els.name.value, weight: parseInt(els.weight.value, 10), gotmEnabled: els.gotmToggle.checked });
     if (error) {
@@ -391,6 +425,8 @@ export function initEditor(root) {
   renderTags();
   renderBrindes();
   syncGotm();
+  syncCustomOrder();
+  syncCoPreview();
 
   return { state, serialize: () => serialize(state, gotmValues()) };
 }
@@ -407,6 +443,8 @@ function collectElements(root) {
     name: pick("f-name"), slug: pick("f-slug"), slugEcho: pick("slug-echo"),
     price: pick("f-price"), weight: pick("f-weight"), weightRestore: pick("weight-restore"),
     published: pick("f-published"), pubTitle: pick("pub-title"),
+    customOrder: pick("f-custom-order"), coBody: pick("co-body"), coRestore: pick("co-restore"),
+    coFields: CO_FIELDS.map(({ input, echo }) => ({ input: pick(input), echo: echo && pick(echo) })),
     graph: pick("f-graph"),
     menuToggle: pick("menu-toggle"), sidebar: root.querySelector("[data-sidebar]"),
     slugTouched: false

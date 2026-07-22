@@ -4,6 +4,8 @@ class Product < ApplicationRecord
 
   belongs_to :category
 
+  has_one :custom_order_form, dependent: :destroy
+
   has_many :product_options, dependent: :destroy
   has_many :product_photos, dependent: :destroy
   has_many :questions, dependent: :destroy
@@ -23,9 +25,13 @@ class Product < ApplicationRecord
     published.where.not("products.name LIKE ?", "- %").limit(limit)
   }
 
-  # An unpriced product means "ask for the price" — not "R$ 0.00".
+  # An unpriced product means "ask for the price", not "R$ 0.00".
   def price_formatted
     price_cents.to_i.zero? ? "Sob consulta" : HasMoney.format(price_cents)
+  end
+
+  def custom_order_text
+    custom_order_form || CustomOrderForm.new
   end
 
   # --- Storefront read interface preserved from the former YAML PORO ---

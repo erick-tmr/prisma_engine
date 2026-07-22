@@ -7,7 +7,7 @@ class CartItemsController < ApplicationController
     # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find
     product = Product.published.find(params[:product_id])
     if product.custom_order? && params.dig(:request, :game).to_s.strip.empty?
-      flash[:error] = "Informe o nome do jogo para este pedido."
+      flash[:error] = product.custom_order_text.text(:game_error)
       # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
       return redirect_to product_path(product)
     end

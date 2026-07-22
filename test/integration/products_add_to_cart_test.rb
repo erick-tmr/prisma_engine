@@ -47,6 +47,16 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     assert_select "[data-pedido-box]", count: 0
   end
 
+  test "the pedido box renders the per-product copy and falls back to the defaults" do
+    get product_path(slug: products(:pedido_game).slug)
+    assert_select ".pedido-box__title", text: "Monte seu cartucho"
+    assert_select ".pedido-box__error", text: "Diga qual romhack você quer."
+    assert_select ".pedido-box__sub", text: CustomOrderForm::DEFAULTS[:subtitle]
+
+    get product_path(slug: products(:pedido_no_image).slug)
+    assert_select ".pedido-box__title", text: CustomOrderForm::DEFAULTS[:title]
+  end
+
   test "POST cart_items stores the request for a custom_order product" do
     post cart_items_path, params: {
       product_id: products(:pedido_game).id, quantity: 1,
@@ -64,7 +74,7 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
       product_id: products(:pedido_game).id, quantity: 1, request: { game: "   " }
     }
     assert_redirected_to product_path(products(:pedido_game))
-    assert_equal "Informe o nome do jogo para este pedido.", flash[:error]
+    assert_equal "Diga qual romhack você quer.", flash[:error]
 
     get cart_path
     assert_select ".cart-item", count: 0

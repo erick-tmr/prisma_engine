@@ -37,6 +37,7 @@ module Catalog
       sync_tags
       sync_photos
       sync_gotm
+      sync_custom_order_form
     end
 
     def parse_graph(raw)
@@ -110,6 +111,14 @@ module Catalog
       elsif files[meta["key"]]
         product.product_photos.new.tap { |photo| photo.image.attach(files[meta["key"]]) }
       end
+    end
+
+    def sync_custom_order_form
+      submitted = params[:custom_order_form]
+      return if submitted.blank?
+
+      form = product.custom_order_form || product.build_custom_order_form
+      form.update!(CustomOrderForm::LIMITS.keys.index_with { |field| submitted[field].presence })
     end
 
     def sync_gotm

@@ -97,27 +97,28 @@
         <% end %>
 
         <% if @product.custom_order? %>
+          <% pedido = @product.custom_order_text %>
           <div class="pedido-box" data-pedido-box>
             <div class="pedido-box__head">
               <i class="bi bi-card-checklist"></i>
-              <h2 class="pedido-box__title">Detalhes do seu pedido</h2>
+              <h2 class="pedido-box__title"><%= pedido.text(:title) %></h2>
             </div>
-            <p class="pedido-box__sub">Produto sob encomenda. Diga qual jogo você quer que a gente produza.</p>
+            <p class="pedido-box__sub"><%= pedido.text(:subtitle) %></p>
             <div class="pedido-box__field">
-              <label for="pedido-game">Nome do jogo <span class="pedido-box__req">*</span></label>
+              <label for="pedido-game"><%= pedido.text(:game_label) %> <span class="pedido-box__req">*</span></label>
               <%= text_field_tag "request[game]", nil,
                     id: "pedido-game", class: "pedido-box__input", maxlength: 120,
-                    autocomplete: "off", placeholder: "Ex.: Pokémon Unbound (romhack)",
+                    autocomplete: "off", placeholder: pedido.text(:game_placeholder),
                     data: { pedido_game: true } %>
-              <p class="pedido-box__error">Informe o nome do jogo que você quer encomendar.</p>
-              <p class="pedido-box__hint">Digite o título exato do jogo ou romhack que você quer encomendar.</p>
+              <p class="pedido-box__error"><%= pedido.text(:game_error) %></p>
+              <p class="pedido-box__hint"><%= pedido.text(:game_hint) %></p>
             </div>
             <div class="pedido-box__field">
-              <label for="pedido-obs">Observações <span class="pedido-box__opt">opcional</span></label>
+              <label for="pedido-obs"><%= pedido.text(:notes_label) %> <span class="pedido-box__opt">opcional</span></label>
               <%= text_area_tag "request[notes]", nil,
                     id: "pedido-obs", class: "pedido-box__input pedido-box__textarea",
                     maxlength: 280, rows: 3,
-                    placeholder: "Versão ou patch específico, link de referência, região." %>
+                    placeholder: pedido.text(:notes_placeholder) %>
             </div>
           </div>
         <% end %>

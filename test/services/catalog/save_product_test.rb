@@ -42,6 +42,39 @@ module Catalog
       assert_not save(Product.new(name: "Produto Normal"), graph, custom_order: "0").product.custom_order?
     end
 
+    test "creates the custom order form from the submitted strings" do
+      result = save(Product.new(name: "Sob Encomenda"), graph, custom_order: "1",
+                    custom_order_form: { title: "Monte o seu", game_label: "Qual jogo?" })
+
+      form = result.product.custom_order_form
+      assert_equal "Monte o seu", form.title
+      assert_equal "Qual jogo?", form.game_label
+    end
+
+    test "stores a cleared string as nil so the default takes over again" do
+      product = products(:pedido_game)
+      save(product, graph, custom_order: "1", custom_order_form: { title: "  " })
+
+      form = product.reload.custom_order_form
+      assert_nil form.title
+      assert_equal CustomOrderForm::DEFAULTS[:title], form.text(:title)
+    end
+
+    test "keeps the saved copy when the toggle is switched off" do
+      product = products(:pedido_game)
+      save(product, graph, custom_order: "0", custom_order_form: { title: "Guardado" })
+
+      assert_not product.reload.custom_order?
+      assert_equal "Guardado", product.custom_order_form.title
+    end
+
+    test "leaves the form untouched when no strings are submitted" do
+      product = products(:metroid)
+      save(product, graph)
+
+      assert_nil product.reload.custom_order_form
+    end
+
     test "syncs option groups into positioned rows and drops blanks" do
       product = Product.create!(name: "Base", category: categories(:gb_color), weight_grams: 60)
       save(product, graph(options: [

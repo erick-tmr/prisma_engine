@@ -111,6 +111,38 @@ module Admin
       assert_select "#f-custom-order[checked]", count: 0
     end
 
+    test "create persists the nested custom order form strings" do
+      sign_in users(:admin)
+
+      post admin_products_path, params: { product: base_params(
+        custom_order: "1", custom_order_form: { title: "Monte o seu", notes_label: "Detalhes" }
+      ) }
+
+      form = Product.find_by(name: "Zelda DX").custom_order_form
+      assert_equal "Monte o seu", form.title
+      assert_equal "Detalhes", form.notes_label
+    end
+
+    test "edit renders the stored strings as values and the defaults as placeholders" do
+      sign_in users(:admin)
+
+      get edit_admin_product_path(products(:pedido_game))
+      assert_select "#f-co-title[value=?]", "Monte seu cartucho"
+      assert_select "#f-co-game-label[placeholder=?]", CustomOrderForm::DEFAULTS[:game_label]
+      assert_select "#cop-title", text: "Monte seu cartucho"
+      assert_select "#cop-sub", text: CustomOrderForm::DEFAULTS[:subtitle]
+    end
+
+    test "the custom order body is revealed only for a made-to-order product" do
+      sign_in users(:admin)
+
+      get edit_admin_product_path(products(:pedido_game))
+      assert_select "#co-body[hidden]", count: 0
+
+      get edit_admin_product_path(products(:yellow))
+      assert_select "#co-body[hidden]"
+    end
+
     test "create re-renders unprocessable when the product is invalid" do
       sign_in users(:admin)
 

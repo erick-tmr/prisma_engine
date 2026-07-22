@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  applyPickedFile, brindeWeight, formatPrice, hasImage, hydrate,
+  applyPickedFile, brindeWeight, CO_FIELDS, formatPrice, hasImage, hydrate,
   initEditor, moveItem, plural, serialize, slugify, validate
 } from "../../../app/javascript/backoffice/catalog-editor.js";
 
@@ -40,6 +40,9 @@ function mount(graph = defaultGraph()) {
           <select id="f-gotm-year"><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select>
           <input id="f-gotm-pos" type="number" value="0"><textarea id="f-blurb"></textarea><span id="gotm-edition-badge"></span>
           <div id="brinde-list"></div><div id="brinde-files"></div><b id="brinde-weight"></b><button id="add-brinde"></button>
+          <input id="f-custom-order" type="checkbox"><div id="co-body" hidden></div><button id="co-restore"></button>
+          ${CO_FIELDS.map(({ input, echo }) =>
+            `<input id="${input}" placeholder="padrão ${input}">${echo ? `<span id="${echo}"></span>` : ""}`).join("")}
         </form>
       </div>
     </div>
@@ -240,6 +243,46 @@ describe("initEditor", () => {
     toggle.checked = false;
     fire(toggle, "change");
     expect(document.querySelector("#gotm-panel").hidden).toBe(true);
+  });
+
+  it("reveals the sob-encomenda body and toasts when the switch goes on", () => {
+    mount();
+    const toggle = document.querySelector("#f-custom-order");
+    expect(document.querySelector("#co-body").hidden).toBe(true);
+
+    toggle.checked = true;
+    fire(toggle, "change");
+    expect(document.querySelector("#co-body").hidden).toBe(false);
+    expect(document.querySelector("#toasts .toast")).not.toBeNull();
+
+    toggle.checked = false;
+    fire(toggle, "change");
+    expect(document.querySelector("#co-body").hidden).toBe(true);
+  });
+
+  it("echoes the pedido-box copy into the preview, falling back to the placeholder", () => {
+    mount();
+    const title = document.querySelector("#f-co-title");
+    expect(document.querySelector("#cop-title").textContent).toBe("padrão f-co-title");
+
+    setInput(title, "Monte o seu");
+    expect(document.querySelector("#cop-title").textContent).toBe("Monte o seu");
+
+    setInput(title, "   ");
+    expect(document.querySelector("#cop-title").textContent).toBe("padrão f-co-title");
+  });
+
+  it("restores every string by clearing the inputs back to their placeholders", () => {
+    mount();
+    setInput(document.querySelector("#f-co-title"), "Monte o seu");
+    setInput(document.querySelector("#f-co-game-error"), "Diga o jogo.");
+
+    click(document.querySelector("#co-restore"));
+
+    expect(document.querySelector("#f-co-title").value).toBe("");
+    expect(document.querySelector("#f-co-game-error").value).toBe("");
+    expect(document.querySelector("#cop-title").textContent).toBe("padrão f-co-title");
+    expect(document.querySelector("#toasts .toast")).not.toBeNull();
   });
 
   it("edits brinde fields and totals their weight", () => {
