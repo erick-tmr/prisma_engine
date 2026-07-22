@@ -11,8 +11,7 @@ class CheckoutController < ApplicationController
     return redirect_to cart_path, notice: ERROR_MESSAGES[:empty_cart] if @cart.empty?
 
     @addresses = current_user.addresses.default_first
-    chosen_id  = session.delete("checkout_address_id").to_i
-    @selected_address = @addresses.find { |addr| addr.id == chosen_id } || @addresses.first
+    @selected_address = address_chosen_in_session || @addresses.first
     @selected_shipping_service = session["checkout_shipping_service"]
     @mergeable_orders = current_user.orders.mergeable.includes(:shipment, order_items: OrderItem::PHOTO_INCLUDES)
   end
@@ -38,6 +37,11 @@ class CheckoutController < ApplicationController
   end
 
   private
+
+  def address_chosen_in_session
+    chosen_id = session.delete("checkout_address_id").to_i
+    @addresses.find { |addr| addr.id == chosen_id }
+  end
 
   def place_order
     if merge_requested?
