@@ -31,6 +31,22 @@ class AccountHelperTest < ActionView::TestCase
     assert_equal "Debit card", order_payment_method_label("debit_card")
   end
 
+  test "order_payment_method_icon maps the real capture methods" do
+    assert_equal "bi-cash-coin", order_payment_method_icon("pix")
+    assert_equal "bi-credit-card", order_payment_method_icon("credit_card")
+  end
+
+  test "order_payment_method_icon falls back to a generic wallet" do
+    assert_equal "bi-wallet2", order_payment_method_icon(nil)
+    assert_equal "bi-wallet2", order_payment_method_icon("debit_card")
+  end
+
+  test "order_payment_status_icon marks paid with a check and anything else with an hourglass" do
+    assert_equal "bi-check-circle-fill", order_payment_status_icon(:paid)
+    assert_equal "bi-hourglass-split", order_payment_status_icon(:pending)
+    assert_equal "bi-hourglass-split", order_payment_status_icon("refunded")
+  end
+
   test "format_cpf masks 11 digits as 000.000.000-00" do
     assert_equal "111.444.777-35", format_cpf("11144477735")
   end

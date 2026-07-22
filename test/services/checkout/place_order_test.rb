@@ -68,7 +68,6 @@ module Checkout
       assert_equal 18_000, item.unit_price_cents
       assert_equal 2, item.quantity
       assert_equal [ "Caixa: Com caixa" ], item.chosen_options
-      assert_equal products(:yellow).image, item.photo_path
       assert_nil item.requested_game
       assert_nil item.request_notes
     end

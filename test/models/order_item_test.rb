@@ -44,6 +44,14 @@ class OrderItemTest < ActiveSupport::TestCase
     assert_not build_item.custom_order?
   end
 
+  test "image tracks the product's current photo rather than one snapshotted at order time" do
+    assert_equal products(:metroid).image, build_item(product: products(:metroid)).image
+  end
+
+  test "image is nil once the catalog link is gone" do
+    assert_nil build_item(product: nil).image
+  end
+
   test "requested_game and request_notes are trimmed, blank collapsing to nil" do
     item = build_item(requested_game: "  Zelda  ", request_notes: "  carcaça azul  ")
     assert_equal "Zelda", item.requested_game

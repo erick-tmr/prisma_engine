@@ -64,7 +64,14 @@
             <div class="od-items">
               <% @presenter.order_items.each do |item| %>
                 <div class="od-item<%= " od-item-pedido" if item.custom_order? %>">
-                  <div class="od-item-thumb"><i class="bi <%= item.custom_order? ? "bi-card-checklist" : "bi-controller" %>"></i></div>
+                  <% image = item.image %>
+                  <div class="od-item-thumb">
+                    <% if image.present? %>
+                      <%= storefront_image_tag image, resize: 120, alt: item.name, loading: "lazy" %>
+                    <% else %>
+                      <i class="bi <%= item.custom_order? ? "bi-card-checklist" : "bi-controller" %>"></i>
+                    <% end %>
+                  </div>
                   <div class="od-item-info">
                     <div class="nm"><%= item.name %><% if item.custom_order? %> <span class="od-pedido-tag"><%= t("admin.orders.detail.custom_order_tag") %></span><% end %></div>
                     <% if item.chosen_options.any? %>

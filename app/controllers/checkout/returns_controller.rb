@@ -7,10 +7,10 @@ module Checkout
     layout "checkout"
 
     def show
-      @order = current_user.orders.find_by!(number: params[:order_nsu])
+      @order = find_order(params[:order_nsu])
       record_transaction if params[:transaction_nsu].present?
       @state = payment_state
-      @order = @order.merged_into if @order.merged? && @order.merged_into
+      @order = find_order(@order.merged_into.number) if @order.merged? && @order.merged_into
     end
 
     def pay
@@ -29,6 +29,10 @@ module Checkout
     end
 
     private
+
+    def find_order(number)
+      current_user.orders.includes(order_items: OrderItem::PHOTO_INCLUDES).find_by!(number:)
+    end
 
     def record_transaction
       @order.update!(

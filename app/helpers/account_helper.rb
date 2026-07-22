@@ -4,6 +4,16 @@ module AccountHelper
     "credit_card" => "Cartão de crédito"
   }.freeze
 
+  ORDER_PAYMENT_METHOD_ICONS = {
+    "pix" => "bi-cash-coin",
+    "credit_card" => "bi-credit-card"
+  }.freeze
+
+  ORDER_PAYMENT_STATUS_ICONS = {
+    paid: "bi-check-circle-fill",
+    pending: "bi-hourglass-split"
+  }.freeze
+
   def account_section_active?(section_path)
     request.path == section_path || request.path.start_with?("#{section_path}/")
   end
@@ -42,5 +52,13 @@ module AccountHelper
     return t("account.orders.show.payment_method_pending") if method.blank?
 
     ORDER_PAYMENT_METHOD_LABELS.fetch(method.to_s, method.to_s.humanize)
+  end
+
+  def order_payment_method_icon(method)
+    ORDER_PAYMENT_METHOD_ICONS.fetch(method.to_s, "bi-wallet2")
+  end
+
+  def order_payment_status_icon(status)
+    ORDER_PAYMENT_STATUS_ICONS.fetch(status.to_sym, "bi-hourglass-split")
   end
 end

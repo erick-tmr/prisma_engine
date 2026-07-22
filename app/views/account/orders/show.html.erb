@@ -33,12 +33,17 @@
       </div>
     <% else %>
     <div class="order-detail__subcard">
-      <div class="order-detail__subcard-head"><%= t("account.orders.show.items") %></div>
+      <div class="order-detail__subcard-head"><i class="bi bi-bag"></i> <%= t("account.orders.show.items") %></div>
 
       <% @order.order_items.each do |item| %>
         <div class="order-detail__item">
-          <div class="order-detail__item-thumb d-flex align-items-center justify-content-center">
-            <i class="bi bi-controller order-detail__item-icon"></i>
+          <% image = item.image %>
+          <div class="order-detail__item-thumb<%= " order-detail__item-thumb--empty" if image.blank? %>">
+            <% if image.present? %>
+              <%= storefront_image_tag image, resize: 160, alt: item.name, loading: "lazy" %>
+            <% else %>
+              <i class="bi <%= item.custom_order? ? "bi-card-checklist" : "bi-controller" %> order-detail__item-icon"></i>
+            <% end %>
           </div>
           <div class="order-detail__item-info">
             <span class="name"><%= item.name %></span>
@@ -60,7 +65,7 @@
 
     <div class="order-detail__info-grid">
       <div class="order-detail__subcard">
-        <div class="order-detail__subcard-head"><%= t("account.orders.show.shipping_address") %></div>
+        <div class="order-detail__subcard-head"><i class="bi bi-geo-alt"></i> <%= t("account.orders.show.shipping_address") %></div>
         <div class="order-detail__info-body">
           <% address = @order.shipment.address %>
           <div class="strong"><%= address[:recipient] %></div>
@@ -70,17 +75,23 @@
         </div>
       </div>
       <div class="order-detail__subcard">
-        <div class="order-detail__subcard-head"><%= t("account.orders.show.payment") %></div>
+        <div class="order-detail__subcard-head"><i class="bi bi-wallet2"></i> <%= t("account.orders.show.payment") %></div>
         <div class="order-detail__info-body">
-          <div class="strong"><%= order_payment_method_label(@order.payment_method) %></div>
-          <div><%= t("account.orders.show.payment_status.#{@order.payment_status}") %></div>
+          <div class="order-detail__pay">
+            <i class="bi <%= order_payment_method_icon(@order.payment_method) %>"></i>
+            <%= order_payment_method_label(@order.payment_method) %>
+          </div>
+          <div class="order-detail__pay-status is-<%= @order.payment_status %>">
+            <i class="bi <%= order_payment_status_icon(@order.payment_status) %>"></i>
+            <%= t("account.orders.show.payment_status.#{@order.payment_status}") %>
+          </div>
         </div>
       </div>
     </div>
 
     <% if @order.shipping_visible? %>
       <div class="order-detail__subcard order-detail__subcard--flush">
-        <div class="order-detail__subcard-head"><%= t("account.orders.show.tracking") %></div>
+        <div class="order-detail__subcard-head"><i class="bi bi-truck"></i> <%= t("account.orders.show.tracking") %></div>
         <div class="order-detail__track">
           <% events = @order.tracking_events.sort_by(&:occurred_at).reverse %>
           <% events.each_with_index do |event, index| %>

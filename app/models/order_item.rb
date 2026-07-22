@@ -1,4 +1,6 @@
 class OrderItem < ApplicationRecord
+  PHOTO_INCLUDES = { product: { product_photos: { image_attachment: :blob } } }.freeze
+
   belongs_to :order
   belongs_to :product, optional: true
 
@@ -10,6 +12,10 @@ class OrderItem < ApplicationRecord
 
   def line_total_cents
     unit_price_cents * quantity
+  end
+
+  def image
+    product&.image
   end
 
   def custom_order?
