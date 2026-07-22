@@ -8,14 +8,8 @@ class OrderItem < ApplicationRecord
 
   normalizes :requested_game, :request_notes, with: ->(value) { value.strip.presence }
 
-  scope :games, -> { joins(product: :category).where.not(categories: { slug: Category::MISCELLANEOUS_SLUG }) }
-
   def line_total_cents
     unit_price_cents * quantity
-  end
-
-  def game?
-    product&.game? || false
   end
 
   def custom_order?

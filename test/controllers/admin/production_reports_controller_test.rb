@@ -57,13 +57,13 @@ module Admin
       batch = ProductionBatch.order(:id).last
       assert_redirected_to admin_production_report_batch_path(batch)
       assert_equal users(:admin), batch.operator
-      assert_equal 2, batch.orders_count
+      assert_equal 3, batch.orders_count
       assert eligible.reload.in_production?
       assert_equal batch, eligible.production_batch
       assert with_variants.reload.in_production?
       assert untouched.reload.awaiting_payment?
-      assert accessories_only.reload.payment_confirmed?, "an accessories-only order must not be sent to production"
-      assert_nil accessories_only.production_batch
+      assert accessories_only.reload.in_production?, "an accessories-only order is eligible too"
+      assert_equal batch, accessories_only.production_batch
 
       change = eligible.status_changes.chronological.last
       assert_equal "in_production", change.to_status
@@ -76,7 +76,7 @@ module Admin
       assert_select ".pr-item__variants", text: "Transparente"
     end
 
-    test "the sheet prints only the game items of a mixed order" do
+    test "the sheet prints every item of a mixed order" do
       sign_in users(:admin)
       mixed = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 1_000, total_cents: 1_000)
       mixed.order_items.create!(product: products(:metroid), name: "Metroid II", unit_price_cents: 1_000, quantity: 1, chosen_options: [])
@@ -87,7 +87,7 @@ module Admin
 
       assert_response :success
       assert_match "Metroid II", response.body
-      assert_no_match(/Caixa do jogo/, response.body)
+      assert_match "Caixa do jogo", response.body
     end
 
     test "show reprints a stored batch from its frozen orders" do

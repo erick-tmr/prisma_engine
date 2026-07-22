@@ -29,14 +29,14 @@ module Admin
       assert_equal [ "Inglês", "Com Caixa" ], row.items.first.variants
     end
 
-    test "rows list only game items, stripping the group prefix and tolerating plain options" do
+    test "rows list every item in creation order, stripping the group prefix and tolerating plain options" do
       order = order_with([
         { product: products(:metroid), name: "Metroid II", chosen_options: [ "ROM: Crystal", "Edição limitada" ] },
         { product: products(:game_box), name: "Caixa (estojo do jogo)" }
       ])
       items = ProductionReportPresenter.new(orders: [ order ]).rows.first.items
 
-      assert_equal [ "Metroid II" ], items.map(&:name) # the accessory line is dropped
+      assert_equal [ "Metroid II", "Caixa (estojo do jogo)" ], items.map(&:name)
       assert_equal [ "Crystal", "Edição limitada" ], items.first.variants
     end
 
@@ -68,7 +68,7 @@ module Admin
       assert_equal "Sem etiqueta repro", row.observation
     end
 
-    test "for_batch reprints the batch's own orders, games only, with its stored period" do
+    test "for_batch reprints the batch's own orders, every item, with its stored period" do
       order = order_with([ { product: products(:metroid), name: "Metroid II" }, { product: products(:game_box), name: "Caixa" } ])
       batch = ProductionBatch.create!(period_from: Date.new(2026, 1, 1), period_to: Date.new(2026, 1, 31), orders_count: 1)
       order.update!(production_batch: batch)
@@ -76,7 +76,7 @@ module Admin
       presenter = ProductionReportPresenter.for_batch(batch)
 
       assert_equal [ order.number ], presenter.orders.map(&:number)
-      assert_equal [ "Metroid II" ], presenter.rows.first.items.map(&:name)
+      assert_equal [ "Metroid II", "Caixa" ], presenter.rows.first.items.map(&:name)
       assert_equal "do período 01/01/2026 a 31/01/2026", presenter.period_clause
     end
 

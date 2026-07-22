@@ -39,12 +39,6 @@ class OrderItemTest < ActiveSupport::TestCase
     assert build_item(product: nil).valid?
   end
 
-  test "game? is true for a catalog game, false for an accessory or a detached snapshot" do
-    assert build_item(product: products(:metroid)).game?
-    assert_not build_item(product: products(:game_box)).game?
-    assert_not build_item(product: nil).game?
-  end
-
   test "custom_order? reflects whether a requested game is present" do
     assert build_item(requested_game: "Zelda").custom_order?
     assert_not build_item.custom_order?
@@ -58,14 +52,5 @@ class OrderItemTest < ActiveSupport::TestCase
     blank = build_item(requested_game: "   ", request_notes: "   ")
     assert_nil blank.requested_game
     assert_nil blank.request_notes
-  end
-
-  test "the games scope keeps cartridges and drops accessory items" do
-    order.order_items.create!(name: "Metroid", unit_price_cents: 1, quantity: 1, product: products(:metroid))
-    order.order_items.create!(name: "Caixa", unit_price_cents: 1, quantity: 1, product: products(:game_box))
-
-    names = order.order_items.games.pluck(:name)
-    assert_includes names, "Metroid"
-    assert_not_includes names, "Caixa"
   end
 end
