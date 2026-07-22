@@ -27,6 +27,16 @@ module Admin
       assert_select ".act-btn.primary"
     end
 
+    test "show renders the sidebar counts the dashboard already shows" do
+      sign_in users(:admin)
+      get admin_order_path(orders(:confirmed_paid))
+
+      assert_select ".sb-link[data-view=orders] .count", text: Order.count.to_s
+      assert_select ".sb-link[data-view=clients] .count", text: User.where(admin: false).count.to_s
+      assert_select ".sb-link[data-view=reports] .count", text: ProductionBatch.count.to_s
+      assert_select ".sb-nav a[href=?] .count", admin_products_path, text: Product.count.to_s
+    end
+
     test "show renders a merged order whose shipment was destroyed instead of 500ing" do
       sign_in users(:admin)
       master = orders(:confirmed_paid)

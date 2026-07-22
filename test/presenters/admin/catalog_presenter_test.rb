@@ -5,7 +5,6 @@ module Admin
     setup { @presenter = Admin::CatalogPresenter.new }
 
     test "lists every product ordered by name" do
-      assert_equal Product.count, @presenter.count
       assert_equal Product.order(:name).pluck(:name), @presenter.products.map(&:name)
     end
 

@@ -1,4 +1,5 @@
-<%# locals: (active:, counts: nil) %>
+<%# locals: (active:) %>
+<% counts = sidebar_counts %>
 <aside class="sidebar" data-sidebar>
   <div class="sb-brand">
     <span class="sb-word"><%= t("admin.dashboard.brand") %></span>
@@ -15,12 +16,12 @@
          data-title="<%= t("admin.dashboard.views.#{item[:view]}.title") %>"
          data-crumb="<%= t("admin.dashboard.views.#{item[:view]}.crumb") %>">
         <i class="bi <%= item[:icon] %>"></i> <%= t("admin.dashboard.nav.#{item[:view]}") %>
-        <% if counts %><span class="count"><%= counts[item[:view]] %></span><% end %>
+        <span class="count"><%= counts[item[:view]] %></span>
       </a>
     <% end %>
     <a class="sb-link<%= " active" if active == "catalog" %>" href="<%= admin_products_path %>">
       <i class="bi bi-controller"></i> <%= t("admin.dashboard.nav.catalog") %>
-      <% if counts && counts["catalog"] %><span class="count"><%= counts["catalog"] %></span><% end %>
+      <span class="count"><%= counts["catalog"] %></span>
     </a>
   </nav>
 

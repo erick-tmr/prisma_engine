@@ -24,10 +24,6 @@ module Admin
       @reports ||= load_reports
     end
 
-    def catalog_count
-      Product.count
-    end
-
     def to_h
       {
         "orders" => orders,

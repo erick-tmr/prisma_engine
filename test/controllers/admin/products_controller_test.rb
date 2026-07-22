@@ -44,6 +44,16 @@ module Admin
       assert_select "tr[data-row]"
     end
 
+    test "index renders every sidebar count, not just the catalog one" do
+      sign_in users(:admin)
+      get admin_products_path
+
+      assert_select ".sb-link[data-view=orders] .count", text: Order.count.to_s
+      assert_select ".sb-link[data-view=clients] .count", text: User.where(admin: false).count.to_s
+      assert_select ".sb-link[data-view=reports] .count", text: ProductionBatch.count.to_s
+      assert_select ".sb-nav a[href=?] .count", admin_products_path, text: Product.count.to_s
+    end
+
     test "new renders the editor with defaults" do
       sign_in users(:admin)
       get new_admin_product_path
