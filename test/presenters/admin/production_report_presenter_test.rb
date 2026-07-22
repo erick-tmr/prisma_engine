@@ -68,6 +68,34 @@ module Admin
       assert_equal "Sem etiqueta repro", row.observation
     end
 
+    test "the column break falls where the left column already holds half the sheet" do
+      short = order_with([ { name: "Metroid II" } ], created_at: Time.zone.local(2026, 1, 10, 9))
+      tall = order_with(Array.new(6) { { name: "Metroid II" } }, created_at: Time.zone.local(2026, 1, 11, 9))
+      trailing = order_with([ { name: "Metroid II" } ], created_at: Time.zone.local(2026, 1, 12, 9))
+
+      presenter = ProductionReportPresenter.new(orders: [ short, tall, trailing ])
+
+      assert_equal 3, presenter.column_break_seq
+    end
+
+    test "a wrapped observation and a made-to-order request count toward the column break" do
+      plain = order_with([ { name: "Metroid II" } ], created_at: Time.zone.local(2026, 1, 10, 9))
+      plain.update!(observation: "#{'a' * 120}\nsegunda linha")
+      pedido = order_with(
+        [ { name: "Pokémon Hacks (Pedidos)", requested_game: "Pokémon Unbound", request_notes: "carcaça roxa" } ],
+        created_at: Time.zone.local(2026, 1, 11, 9)
+      )
+
+      assert_equal 2, ProductionReportPresenter.new(orders: [ plain, pedido ]).column_break_seq
+    end
+
+    test "a sheet that cannot be split into two columns asks for no column break" do
+      only = order_with([ { name: "Metroid II" } ])
+
+      assert_nil ProductionReportPresenter.new(orders: [ only ]).column_break_seq
+      assert_nil ProductionReportPresenter.new(orders: []).column_break_seq
+    end
+
     test "for_batch reprints the batch's own orders, every item, with its stored period" do
       order = order_with([ { product: products(:metroid), name: "Metroid II" }, { product: products(:game_box), name: "Caixa" } ])
       batch = ProductionBatch.create!(period_from: Date.new(2026, 1, 1), period_to: Date.new(2026, 1, 31), orders_count: 1)

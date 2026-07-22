@@ -21,7 +21,7 @@ module Admin
 
     SERVICE_LABELS = { "pac" => "PAC", "sedex" => "SEDEX", "mini_envios" => "Mini Envios" }.freeze
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
-    PAYMENT_METHOD_ICONS = { "pix" => "bi-qr-code", "credit_card" => "bi-credit-card" }.freeze
+    PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze
 
     LifecycleStep = Data.define(:label, :classes, :auto_note)
     Payment = Data.define(:method_label, :icon, :status_class, :status_icon, :status_label)

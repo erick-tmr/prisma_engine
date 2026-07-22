@@ -154,7 +154,7 @@ module Admin
       payment = OrderPresenter.new(presenter.order.reload).payment
 
       assert_equal "Pix", payment.method_label
-      assert_equal "bi-qr-code", payment.icon
+      assert_equal "bi-cash-coin", payment.icon
       assert_equal "paid", payment.status_class
       assert_equal "bi-check-circle-fill", payment.status_icon
     end

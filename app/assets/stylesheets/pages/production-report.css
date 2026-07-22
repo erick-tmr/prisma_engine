@@ -233,11 +233,14 @@
   padding: 0;
 }
 
-/* Two columns on a wide screen, mirroring the printed sheet. */
 @media (min-width: 720px) {
   .pr-orders {
     column-count: 2;
     column-gap: var(--space-8);
+  }
+
+  .pr-order--column-break {
+    break-before: column;
   }
 }
 
@@ -410,7 +413,6 @@
     border-left-color: #000;
   }
 
-  /* Two-column flow doubles orders per page; each order stays whole. */
   .pr-orders {
     column-count: 2;
     column-gap: 9mm;
