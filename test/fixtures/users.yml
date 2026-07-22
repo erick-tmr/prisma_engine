@@ -1,5 +1,5 @@
 # Devise password hashing is parameterized by the Devise config (stretches +
-# pepper), so use Encryptor.digest here — never a pre-baked bcrypt string.
+# pepper), so use Encryptor.digest here, never a pre-baked bcrypt string.
 confirmed:
   email: confirmed@example.com
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
@@ -20,7 +20,7 @@ unconfirmed:
   created_at: <%= 1.hour.ago.to_fs(:db) %>
   updated_at: <%= 1.hour.ago.to_fs(:db) %>
 
-# Confirmed but with no orders — exercises the order-history empty state.
+# Confirmed but with no orders: exercises the order-history empty state.
 orderless:
   email: sempedidos@example.com
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
@@ -30,7 +30,7 @@ orderless:
   created_at: <%= 3.days.ago.to_fs(:db) %>
   updated_at: <%= 1.day.ago.to_fs(:db) %>
 
-# Confirmed customer locked out by Devise — exercises the "Bloqueado" situação.
+# Confirmed customer locked out by Devise: exercises the "Bloqueado" situação.
 locked:
   email: bloqueado@example.com
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
@@ -42,7 +42,7 @@ locked:
   created_at: <%= 6.days.ago.to_fs(:db) %>
   updated_at: <%= 1.day.ago.to_fs(:db) %>
 
-# Backoffice operator — the only confirmed fixture with admin access.
+# Backoffice operator: the only confirmed fixture with admin access.
 admin:
   email: admin@example.com
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
@@ -66,7 +66,7 @@ buyer:
   created_at: <%= 12.days.ago.to_fs(:db) %>
   updated_at: <%= 2.days.ago.to_fs(:db) %>
 
-# Admin flag set but unconfirmed — must NOT be able to log into the backoffice.
+# Admin flag set but unconfirmed: must NOT be able to log into the backoffice.
 unconfirmed_admin:
   email: admin-pendente@example.com
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>

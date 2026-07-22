@@ -82,11 +82,11 @@ group :development do
   gem "web-console"
 
   # Preview Devise (confirmation / password-reset) emails in the browser via
-  # a mounted /cartas inbox — the plain letter_opener gem hands the email
+  # a mounted /cartas inbox; the plain letter_opener gem hands the email
   # file to Launchy, which on many setups hijacks the focused tab.
   gem "letter_opener_web", "~> 3.0"
 
-  # Memory profiling, run on demand — see CLAUDE.md "Investigating memory"
+  # Memory profiling, run on demand; see CLAUDE.md "Investigating memory"
   gem "derailed_benchmarks", require: false
   gem "memory_profiler", require: false
 end

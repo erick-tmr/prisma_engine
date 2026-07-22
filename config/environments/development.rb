@@ -61,7 +61,7 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 
   # Send Devise confirmation / password-reset mails to a local /cartas inbox
-  # (mounted in config/routes.rb) instead of SMTP — zero-infra preview during
+  # (mounted in config/routes.rb) instead of SMTP: zero-infra preview during
   # local development, and the email lives in its own tab so the focused app
   # tab is never replaced.
   config.action_mailer.delivery_method = :letter_opener_web

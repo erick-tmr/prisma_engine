@@ -361,7 +361,7 @@ export function initEditor(root) {
   const removeBrindeFile = (brinde) => dropFile(els.brindeFiles, brinde.key);
 
   const updateSlugEcho = () => {
-    els.slugEcho.textContent = els.slug.value || slugify(els.name.value) || "—";
+    els.slugEcho.textContent = els.slug.value || slugify(els.name.value) || "–";
   };
 
   els.name.addEventListener("input", () => {

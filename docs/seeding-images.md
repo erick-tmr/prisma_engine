@@ -11,9 +11,9 @@ directly to R2, so nothing here needs to be committed again.
 
 ## What is gitignored
 
-- `public/images/stores/uploads/` — the catalog product images (`<id>/conversions/large.jpg`)
-- `db/seeds/hero_banner.jpg` — the homepage hero
-- `db/seeds/correios_label_sample.pdf` — the demo Correios label (read by `backoffice_demo.rb`)
+- `public/images/stores/uploads/`: the catalog product images (`<id>/conversions/large.jpg`)
+- `db/seeds/hero_banner.jpg`: the homepage hero
+- `db/seeds/correios_label_sample.pdf`: the demo Correios label (read by `backoffice_demo.rb`)
 
 The seeds resolve these from their original paths; the files just aren't tracked. Every
 seed that reads one is guarded with `File.exist?`, so a checkout that lacks them seeds the

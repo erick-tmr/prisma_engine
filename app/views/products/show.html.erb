@@ -1,4 +1,4 @@
-<% content_for :title, "#{@product.title} — Prisma Games" %>
+<% content_for :title, "#{@product.title} | Prisma Games" %>
 <% content_for :head do %>
   <%= stylesheet_link_tag "components/variant", "components/mes-pill", "pages/product" %>
 <% end %>
@@ -51,7 +51,7 @@
             <h2 class="mes-panel__title">É o Jogo do Mês na Prisma</h2>
             <span class="mes-panel__month">Edição de <%= gotm_month_name(@gotm.month) %> · <%= @gotm.year %></span>
           </div>
-          <p class="mes-panel__lead">Todo mês elegemos um clássico e mandamos junto um <b>kit de brindes colecionáveis</b> — sem custo extra.</p>
+          <p class="mes-panel__lead">Todo mês elegemos um clássico e mandamos junto um <b>kit de brindes colecionáveis</b>, sem custo extra.</p>
           <% brindes = @gotm_product.brindes.in_display_order %>
           <% if brindes.any? %>
             <div class="mes-incl">
@@ -62,7 +62,7 @@
           <% end %>
           <div class="mes-deadline" data-gotm-countdown data-gotm-year="<%= @gotm.year %>" data-gotm-month="<%= @gotm.month %>">
             <i class="bi bi-clock-history"></i>
-            <span>Os brindes acompanham o jogo <b>enquanto for o destaque do mês</b> — <b data-countdown-text>termina em breve</b>.</span>
+            <span>Os brindes acompanham o jogo <b>enquanto for o destaque do mês</b>: <b data-countdown-text>termina em breve</b>.</span>
           </div>
         </section>
       <% end %>

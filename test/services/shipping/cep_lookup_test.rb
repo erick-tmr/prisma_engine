@@ -19,7 +19,7 @@ module Shipping
     end
 
     test "town-wide CEP: uses localidade as neighborhood and localidadeSuperior as city" do
-      # The user's example: 37665000 — Costas (distrito) de Paraisópolis/MG. No
+      # The user's example: 37665000, Costas (distrito) de Paraisópolis/MG. No
       # logradouro, no bairro; the Correios convention is to surface the
       # district as the bairro and the municipality as the city.
       stub_cep("37665000",
@@ -35,7 +35,7 @@ module Shipping
     end
 
     test "town-wide CEP where localidade matches the city: emits no neighborhood" do
-      # Pure municipal CEP — nothing useful to put in bairro.
+      # Pure municipal CEP: nothing useful to put in bairro.
       stub_cep("11000000",
         "uf" => "SP",
         "localidade" => "Santos",
@@ -47,7 +47,7 @@ module Shipping
     end
 
     test "real Cambuí response (37600000): only state + city, no street or neighborhood" do
-      # Captured from the live API — the v2 endpoint omits localidadeSuperior
+      # Captured from the live API: the v2 endpoint omits localidadeSuperior
       # and nomeMunicipio for town-wide CEPs; localidade IS the city. The
       # response also has no bairro and no logradouro, so the client has to
       # clear those fields rather than keep stale values from a prior CEP.
@@ -62,7 +62,7 @@ module Shipping
     end
 
     test "real Orfanato response (03131010): full street + bairro + city + state" do
-      # Captured from the live API — confirms that for a street CEP, localidade
+      # Captured from the live API: confirms that for a street CEP, localidade
       # holds the municipality (there is no nomeMunicipio in the v2 payload).
       stub_cep("03131010",
         "cep" => "03131010", "uf" => "SP", "logradouro" => "Rua Orfanato",

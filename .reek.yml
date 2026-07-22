@@ -1,4 +1,4 @@
-# Reek configuration — keeps the signal high on a small Rails app.
+# Reek configuration: keeps the signal high on a small Rails app.
 # Reek runs advisory-only in CI (the `code_quality` job in
 # .github/workflows/ci.yml), on changed files. These overrides silence
 # Rails-idiomatic patterns that aren't real smells; the value is catching
@@ -14,20 +14,20 @@ detectors:
                                 # of cohesive fields; 8+ is where a god object lives.
     exclude:
       - PagesController   # the storefront landing action assembles cohesive page state
-                          # (hero banner, the product rows, game of the month) — a
+                          # (hero banner, the product rows, game of the month): a
                           # view-model for one template, not a god object.
   TooManyMethods:
     exclude:
       - Order             # the made-to-order aggregate root: its API is the lifecycle
                           # transition set (cancel!/request_refund!/confirm_payment!/…)
                           # plus small read-model accessors the storefront renders.
-                          # Each method is single-purpose — a rich domain, not a god object.
+                          # Each method is single-purpose: a rich domain, not a god object.
       - Admin::ProductFormPresenter # a view-model: one small serializer per section of the
                                     # editor graph (options/tags/photos/gotm/brindes) plus
-                                    # select/default accessors — cohesive, not a god object.
+                                    # select/default accessors: cohesive, not a god object.
       - Catalog::SaveProduct        # a command object: one small sync_* method per collection
                                     # it persists (options/tags/photos/gotm/brindes), each
-                                    # single-purpose — a cohesive transaction, not a god object.
+                                    # single-purpose: a cohesive transaction, not a god object.
   LongParameterList:
     max_params: 7         # a cohesive value object / command legitimately takes a
                           # handful of keyword args (a hydrated cart line's fields);
@@ -43,7 +43,7 @@ detectors:
       - Order                   # the made-to-order aggregate root: its constants are
                                 # cohesive domain config (status set, transition graph,
                                 # cancellable/mergeable subsets, number/expiry/observation
-                                # limits), not a god object — same rationale as the
+                                # limits), not a god object; same rationale as the
                                 # TooManyMethods exclusion already granted to Order.
   DuplicateMethodCall:
     enabled: false        # noisy on view/controller idioms

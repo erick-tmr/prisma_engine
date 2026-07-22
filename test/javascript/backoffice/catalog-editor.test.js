@@ -67,7 +67,7 @@ describe("pure helpers", () => {
   });
 
   it("slugify normalizes accents and separators", () => {
-    expect(slugify("Pokémon — Crystal RTC!")).toBe("pokemon-crystal-rtc");
+    expect(slugify("Pokémon · Crystal RTC!")).toBe("pokemon-crystal-rtc");
     expect(slugify("")).toBe("");
   });
 

@@ -1,4 +1,4 @@
-# Hero banner seed — idempotent. The homepage hero is stored on R2 via Active
+# Hero banner seed: idempotent. The homepage hero is stored on R2 via Active
 # Storage so editorial can swap it through the console (or a future admin)
 # without a deploy. Only bootstraps when no banner exists yet; re-seeding never
 # duplicates it.

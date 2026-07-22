@@ -1,6 +1,6 @@
 // Cart page behaviour, extracted from the inline view script so it can be unit
 // tested (see test/javascript/cart.test.js). Shipped as a self-contained native
-// ES module via `javascript_include_tag "storefront/cart", type: "module"` —
+// ES module via `javascript_include_tag "storefront/cart", type: "module"`:
 // no importmap, no build step. The browser runs the guarded auto-init at the
 // bottom; tests import the named functions and drive them against a jsdom
 // fixture. Keep this in sync with app/views/cart/show.html.erb's data hooks.
@@ -142,7 +142,7 @@ export function createCartShipping(root) {
 
   function renderQuote(data) {
     // A successful quote clears any prior error (e.g. a retry after the
-    // Correios API was briefly unavailable) — the input handler only clears it
+    // Correios API was briefly unavailable); the input handler only clears it
     // on keystroke, so re-calculating the same CEP wouldn't otherwise.
     clearCepError();
     destCity.textContent = data.destination.city + ", " + data.destination.state;
@@ -249,7 +249,7 @@ export function createCartShipping(root) {
 }
 
 // ── Browser auto-init (inert under a test import: no [data-cart-shipping]) ───
-// Bootstrap glue — excluded from coverage (the exported functions above carry
+// Bootstrap glue, excluded from coverage (the exported functions above carry
 // the logic and are unit-tested directly).
 
 /* v8 ignore start */

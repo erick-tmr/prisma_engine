@@ -1,4 +1,4 @@
-<% content_for :title, "Status do pagamento — Prisma Games" %>
+<% content_for :title, "Status do pagamento | Prisma Games" %>
 <% content_for :checkout_bare, true %>
 <%
   first_name = @order.user.first_name
@@ -23,10 +23,10 @@
         <p>Tudo certo, <b><%= first_name %></b>! Recebemos o pagamento e seu pedido já entrou na fila de separação.</p>
       <% elsif @state == "failed" %>
         <h1>Pedido cancelado por falta de pagamento</h1>
-        <p>Não recebemos o pagamento dentro do prazo de <b>24 horas</b>, então este pedido foi cancelado automaticamente. Nenhum valor foi cobrado — você pode refazer o pedido quando quiser.</p>
+        <p>Não recebemos o pagamento dentro do prazo de <b>24 horas</b>, então este pedido foi cancelado automaticamente. Nenhum valor foi cobrado, você pode refazer o pedido quando quiser.</p>
       <% else %>
         <h1>Pagamento em processamento</h1>
-        <p>Falta pouco, <b><%= first_name %></b>. Ainda não recebemos a confirmação do pagamento — conclua na página do nosso parceiro. Guardamos seus itens por <b>24 horas</b>.</p>
+        <p>Falta pouco, <b><%= first_name %></b>. Ainda não recebemos a confirmação do pagamento. Conclua na página do nosso parceiro. Guardamos seus itens por <b>24 horas</b>.</p>
       <% end %>
 
       <div class="pay-return__hero-meta">
@@ -129,8 +129,8 @@
         <div class="pay-return__info-body">
           <% ship = @order.shipment %>
           <div class="strong"><%= ship.receiver_name %></div>
-          <div><%= "#{ship.street}, #{ship.number}" %><%= " — #{ship.complement}" if ship.complement.present? %></div>
-          <div><%= "#{ship.neighborhood} · #{ship.city} — #{ship.state}" %></div>
+          <div><%= "#{ship.street}, #{ship.number}" %><%= ", #{ship.complement}" if ship.complement.present? %></div>
+          <div><%= "#{ship.neighborhood} · #{ship.city} · #{ship.state}" %></div>
           <div>CEP <%= fmt_cep.call(ship.zip) %></div>
         </div>
       </div>

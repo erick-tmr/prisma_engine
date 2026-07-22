@@ -244,7 +244,7 @@ describe("orders transforms", () => {
 });
 
 describe("clients transforms", () => {
-  it("filters by name, email, cpf or city — and returns all when blank", () => {
+  it("filters by name, email, cpf or city, and returns all when blank", () => {
     const { clients } = sampleData();
     expect(filterClients(clients, "")).toHaveLength(3);
     expect(filterClients(clients, "bruno")).toHaveLength(1);
@@ -277,7 +277,7 @@ describe("template builders", () => {
     const html = ordersRowsHtml(rows, new Set(), STATUS_LABELS, "/admin/pedidos/");
     expect(html).toContain("st-merged");
     expect(html).not.toContain('data-check="PG-9"');
-    expect(html).toContain("—");
+    expect(html).toContain("–");
   });
 
   it("clientsRowsHtml renders situação tags, masks contact data and dashes a missing city", () => {
@@ -287,7 +287,7 @@ describe("template builders", () => {
     expect(html).toContain("312.445.778-09");
     expect(html).toContain("(11) 98876-5521");
     expect(html).toContain("Bloqueado");
-    expect(html).toContain(">—<"); // Bruno: missing city and phone
+    expect(html).toContain(">–<"); // Bruno: missing city and phone
   });
 
   it("bulkChipsHtml shows the empty message, chips and a danger chip", () => {
@@ -322,7 +322,7 @@ describe("template builders", () => {
     const sel = { from: null, to: null };
     const left = calendarHtml(new Date(2026, 5, 1), "L", sel, TODAY);
     expect(left).toContain('data-nav="prev"');
-    // Each calendar must be wrapped in a .dp-cal column — the CSS lays
+    // Each calendar must be wrapped in a .dp-cal column: the CSS lays
     // .dp-cals > .dp-cal out side by side; without the wrapper the grids
     // collapse and overflow the popover (a layout bug jsdom can't see).
     expect(left.startsWith('<div class="dp-cal">')).toBe(true);

@@ -2,7 +2,7 @@ class CartQuotesController < ApplicationController
   # Body copy for each ineligibility reason `Shipping::Quote` emits. Kept
   # alongside the controller so it's obvious which strings reach the user.
   INELIGIBLE_MESSAGES = {
-    too_heavy:   "Não disponível para este pedido — provavelmente muitos jogos. " \
+    too_heavy:   "Não disponível para este pedido, provavelmente muitos jogos. " \
                  "O Mini Envios aceita pacotes de até 300g.",
     invalid_cep: "CEP não atendido por este serviço.",
     api_error:   "Erro temporário. Tente novamente em instantes.",
@@ -25,7 +25,7 @@ class CartQuotesController < ApplicationController
   rescue Correios::Api::TransientError
     render_error(:service_unavailable, "Correios indisponível. Tente novamente em instantes.")
   rescue Correios::Api::Error
-    # Auth/config errors (401, 403, malformed body) — the shopper can't fix
+    # Auth/config errors (401, 403, malformed body): the shopper can't fix
     # this. Surface a generic "unexpected" so they don't think their CEP is wrong.
     render_error(:service_unavailable, UNEXPECTED_ERROR_MESSAGE)
   end

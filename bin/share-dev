@@ -82,7 +82,7 @@ cleanup() {
   # Puma traps SIGTERM as a graceful shutdown and waits for keep-alive
   # connections (cloudflared holds one open). Send TERM, give it 5s, then KILL.
   if kill -0 "$RAILS_PID" 2>/dev/null; then
-    echo "==> Stopping Rails (pid $RAILS_PID) — graceful, then forced after 5s"
+    echo "==> Stopping Rails (pid $RAILS_PID): graceful, then forced after 5s"
     kill -TERM "$RAILS_PID" 2>/dev/null || true
     for _ in $(seq 1 10); do
       kill -0 "$RAILS_PID" 2>/dev/null || break
@@ -100,7 +100,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # 4. Wait for Rails to answer (probe on /up, which auth-blocks but still 401s
-#    fast — proving the app is up).
+#    fast, proving the app is up).
 for _ in $(seq 1 30); do
   code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PORT}/up" || true)"
   if [ "$code" = "401" ] || [ "$code" = "200" ]; then break; fi
@@ -122,7 +122,7 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
-# 6. Auto-stop after SHARE_TIMEOUT — only if it was set. Empty = run forever.
+# 6. Auto-stop after SHARE_TIMEOUT, only if it was set. Empty = run forever.
 if [ -n "$SHARE_TIMEOUT" ]; then
   ( sleep "$SHARE_TIMEOUT" ; echo; echo "==> SHARE_TIMEOUT (${SHARE_TIMEOUT}) reached, shutting down"; kill "$RAILS_PID" "$TUNNEL_PID" 2>/dev/null || true ) &
   TIMEOUT_PID=$!

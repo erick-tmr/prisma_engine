@@ -31,7 +31,7 @@ export function bindAddressForm(scope) {
 
   // CEP blur → look the address up and fill street/neighborhood/city/state.
   scope.querySelectorAll("[data-mask-cep]").forEach(function (cep) {
-    // Treat a CEP already in the field on load (edit flow) as the baseline —
+    // Treat a CEP already in the field on load (edit flow) as the baseline,
     // don't refetch unless the customer actually changes it.
     let last = cep.value.replace(/\D/g, "");
     if (last.length !== 8) last = null;
@@ -43,7 +43,7 @@ export function bindAddressForm(scope) {
       const data = await lookupCep(form.dataset.cepLookupUrl, digits);
       if (!data) return;
       last = digits;
-      // Always replace — a sparse (town-wide) response would otherwise leave
+      // Always replace: a sparse (town-wide) response would otherwise leave
       // stale values from the previous CEP behind.
       ["street", "neighborhood", "city", "state"].forEach(function (field) {
         setField(form, field, data[field] || "");

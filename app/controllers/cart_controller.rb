@@ -16,14 +16,14 @@ class CartController < ApplicationController
     @quote = build_quote
   end
 
-  # Checkout — the redirect target below — accepts a customer-chosen shipping
+  # Checkout, the redirect target below, accepts a customer-chosen shipping
   # service. That choice is untrusted input: the cart's ineligibility rendering
   # is UX only, and a hand-edited DOM can submit any service code. The server
   # MUST re-call `Shipping::Quote.call(cep_destino:, weight_grams:)` at order
   # creation and reject unless the chosen `key` shows up with `eligible: true`
   # in the fresh quote. Correios itself will refuse the pré-postagem for an
   # ineligible service+weight combo (`Shipping::CreatePrePostagem` raises), but
-  # that's the third line of defence — we should fail first, in our own code,
+  # that's the third line of defence; we should fail first, in our own code,
   # with a friendly message.
   def finalize
     remember_shipping_choice

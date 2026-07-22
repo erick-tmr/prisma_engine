@@ -8,7 +8,7 @@ module Correios
     #   Authorization: Bearer <correios.cartao_api_token>   # the cartão-de-postagem token
     #
     # Takes the already-built request body and returns the parsed response Hash.
-    # Knows nothing about Shipment or how the body is assembled — that's the
+    # Knows nothing about Shipment or how the body is assembled: that's the
     # domain's job (Shipping::CreatePrePostagem).
     class PrePostagem
       include Correios::Api::Client

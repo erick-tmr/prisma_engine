@@ -286,7 +286,7 @@ class OrderTest < ActiveSupport::TestCase
     end
   end
 
-  test "an order cannot be destroyed — it is kept for history" do
+  test "an order cannot be destroyed: it is kept for history" do
     order = build_order
     order.save!
     assert_not order.destroy

@@ -1,6 +1,6 @@
 // Backoffice order detail behaviour: confirm a dangerous transition (Cancelar)
 // before its form submits, and toggle the mobile sidebar. Self-contained native
-// ES module via `javascript_include_tag "backoffice/order", type: "module"` — no
+// ES module via `javascript_include_tag "backoffice/order", type: "module"`: no
 // importmap, no build step. The browser runs the guarded bootstrap at the bottom;
 // tests import the named functions and drive them against a jsdom fixture. Keep
 // the data hooks in sync with app/views/admin/orders/show.html.erb.

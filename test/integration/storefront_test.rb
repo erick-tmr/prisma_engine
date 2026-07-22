@@ -162,7 +162,7 @@ test "every static page route renders" do
     end
   end
 
-  test "unknown static page slug 404s — no matching route" do
+  test "unknown static page slug 404s: no matching route" do
     get "/pagina/desconhecido"
     assert_response :not_found
   end

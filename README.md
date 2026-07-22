@@ -1,14 +1,14 @@
 # prisma_engine
 
-Rails 8 ecommerce platform for Prisma Games — a Brazilian retro Game Boy cartridge store. Made-to-order fulfillment workflow with Pix/parcelamento payments, Correios shipping, NF-e issuance, and an operator workbench for the artisan.
+Rails 8 ecommerce platform for Prisma Games, a Brazilian retro Game Boy cartridge store. Made-to-order fulfillment workflow with Pix/parcelamento payments, Correios shipping, NF-e issuance, and an operator workbench for the artisan.
 
 See `docs/architecture.md` for the full architecture and `CLAUDE.md` for the working contract used during AI-assisted development.
 
 ## Prerequisites
 
-- Docker Engine + `docker-compose-plugin` (host install — see Docker docs)
+- Docker Engine + `docker-compose-plugin` (host install; see Docker docs)
 - `libpq-dev` (host install via apt)
-- `mise` for Ruby version management — `curl https://mise.run | sh`
+- `mise` for Ruby version management: `curl https://mise.run | sh`
 
 ## Setup
 
@@ -23,14 +23,14 @@ bin/setup                   # bundle install, docker compose up postgres, db:pre
 ## Daily commands
 
 ```bash
-bin/dev                  # Rails server (Puma) — needs `docker compose up -d` first
+bin/dev                  # Rails server (Puma); needs `docker compose up -d` first
 bin/rails console        # Rails console
 bin/rails test           # Minitest, SimpleCov report at coverage/index.html
-bin/pre-push-check       # CI parity gate — run before `git push`
+bin/pre-push-check       # CI parity gate; run before `git push`
 bin/share-dev            # public Cloudflare Tunnel for client previews (basic-auth gated)
 ```
 
-`bin/pre-push-check` runs the local subset of the CI gauntlet — rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → semgrep diff-mode (if semgrep or docker is installed) → tests → undercover (changed-line coverage). Fail-fast. `SKIP_TESTS=1 bin/pre-push-check` skips tests + undercover for docs-only pushes. The local pass does **not** cover `Semgrep (new findings)`, `Dependency review`, or `system-test` — those run only in GitHub Actions, so verify CI on the PR (`gh pr checks <N>`). See `CLAUDE.md` § CI quality gates for the full contract.
+`bin/pre-push-check` runs the local subset of the CI gauntlet: rubocop → brakeman → bundler-audit → importmap audit → reek (advisory) → gitleaks (if installed) → semgrep diff-mode (if semgrep or docker is installed) → tests → undercover (changed-line coverage). Fail-fast. `SKIP_TESTS=1 bin/pre-push-check` skips tests + undercover for docs-only pushes. The local pass does **not** cover `Semgrep (new findings)`, `Dependency review`, or `system-test`; those run only in GitHub Actions, so verify CI on the PR (`gh pr checks <N>`). See `CLAUDE.md` § CI quality gates for the full contract.
 
 ## Sharing the prototype
 
@@ -58,8 +58,8 @@ Storefront frontend port from prismagames.com.br has shipped:
 - Bootstrap 4 + jQuery storefront layout, four shared partials (`shared/_header`, `_nav`, `_footer`, `_cookie_banner`), plus a left-side category drawer (`shared/_drawer`).
 - 143 product images vendored under `public/images/`.
 
-ActiveRecord catalog is in place — `Category`, `Product` (FriendlyId-slugged, history-enabled), `ProductOption`, `ProductPhoto` (Active Storage), `Tag` / `ProductTag`, `Question`.
+ActiveRecord catalog is in place: `Category`, `Product` (FriendlyId-slugged, history-enabled), `ProductOption`, `ProductPhoto` (Active Storage), `Tag` / `ProductTag`, `Question`.
 
 Correios integration shipped: pré-postagem creation (`Shipping::CreatePrePostagem` → `Correios::Api::PrePostagem`) and hourly rastro polling (`SyncPendingShipmentsJob` → `SyncShipmentJob`). See `docs/architecture.md` § 1.1 for the three-layer pattern any new vendor follows.
 
-Cart, checkout, InfinitePay, NF-e issuance, and the admin workbench land next — see `docs/architecture.md` § 4 (Domain Problems) and § 5 (MVP Build Order).
+Cart, checkout, InfinitePay, NF-e issuance, and the admin workbench land next. See `docs/architecture.md` § 4 (Domain Problems) and § 5 (MVP Build Order).

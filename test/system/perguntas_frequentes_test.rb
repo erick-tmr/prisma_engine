@@ -4,7 +4,7 @@ class PerguntasFrequentesTest < ApplicationSystemTestCase
   test "renders the FAQ and toggles answers independently" do
     visit perguntas_frequentes_path
 
-    assert_title "Perguntas frequentes — Prisma Games"
+    assert_title "Perguntas frequentes | Prisma Games"
     assert_selector ".faq-hero h1", text: "Perguntas frequentes"
     assert_text "O que é a Prisma Games?"
     assert_selector "[data-rail-link]", count: 4

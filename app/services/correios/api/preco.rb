@@ -13,13 +13,13 @@ module Correios
     # happens in Shipping::Quote.
     #
     # The vendor swaps `coProduto` in the response when a requested service
-    # isn't eligible for the given package — e.g. Mini Envios (04227) over
+    # isn't eligible for the given package, e.g. Mini Envios (04227) over
     # 300g comes back as 04960. The domain layer compares request vs response
     # codes to surface that as a domain-level "ineligible" flag.
     class Preco
       include Correios::Api::Client
 
-      # Validation-style 4xx returns Correios maps to "permanent business error" —
+      # Validation-style 4xx returns Correios maps to "permanent business error":
       # bad CEP, bad weight, malformed payload. Everything else (401/403/429/5xx)
       # falls through to raise_for_status which classifies auth as Error and
       # rate-limit/outage as TransientError.

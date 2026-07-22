@@ -1,7 +1,7 @@
 // Backoffice login behaviour (show/hide password + caps-lock awareness),
 // extracted so it can be unit tested (see test/javascript/backoffice/login.test.js).
 // Shipped as a self-contained native ES module via
-// `javascript_include_tag "backoffice/login", type: "module"` — no importmap,
+// `javascript_include_tag "backoffice/login", type: "module"`: no importmap,
 // no build step. The browser runs the guarded auto-init at the bottom; tests
 // import the named functions and drive them against a jsdom fixture. Keep this
 // in sync with app/views/admin/sessions/new.html.erb's data hooks.

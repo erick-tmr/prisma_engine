@@ -6,10 +6,10 @@ SimpleCov.start "rails" do
   skip "/test/"
   # Devise views are templated above (Bootstrap 5 + i18n) but Rails 8 view
   # coverage would otherwise drag them into the 100% floor for branches we
-  # don't introduce ourselves — system tests still exercise them end-to-end.
+  # don't introduce ourselves; system tests still exercise them end-to-end.
   skip "/app/views/devise/"
 
-  # 100% floor — the suite refuses to pass below full line and branch coverage.
+  # 100% floor: the suite refuses to pass below full line and branch coverage.
   # Combined with undercover (changed-line gate), this enforces both "every
   # changed line is tested" and "no regressions in existing coverage." Mark
   # genuinely untestable lines (Rails scaffold stubs, defensive guards behind
@@ -45,7 +45,7 @@ module ActiveSupport
 
     # Once the suite crosses the parallelization threshold it forks workers, and
     # SimpleCov tracks coverage per process. Give each worker a unique result name
-    # and flush its result on teardown so the parent merges them — otherwise the
+    # and flush its result on teardown so the parent merges them, otherwise the
     # merged coverage.json undercover reads looks nearly empty.
     parallelize_setup do |worker|
       SimpleCov.command_name "#{SimpleCov.command_name}-#{worker}"

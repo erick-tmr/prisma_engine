@@ -4,12 +4,12 @@ set -euo pipefail
 MANIFEST="${1:-.lighthouseci/manifest.json}"
 
 if [ ! -f "$MANIFEST" ]; then
-  echo "(no Lighthouse report produced — see the job log)"
+  echo "(no Lighthouse report produced; see the job log)"
   exit 0
 fi
 
 jq -r '.[] | select(.isRepresentativeRun) |
-  "- **\(.url)** — Perf \((.summary.performance*100)|round) · A11y \((.summary.accessibility*100)|round) · Best-Practices \((.summary["best-practices"]*100)|round) · SEO \((.summary.seo*100)|round)"' "$MANIFEST"
+  "- **\(.url)**: Perf \((.summary.performance*100)|round) · A11y \((.summary.accessibility*100)|round) · Best-Practices \((.summary["best-practices"]*100)|round) · SEO \((.summary.seo*100)|round)"' "$MANIFEST"
 
 REP="$(jq -r '[.[] | select(.isRepresentativeRun) | .jsonPath][0] // empty' "$MANIFEST")"
 if [ -n "$REP" ] && [ ! -f "$REP" ]; then
@@ -31,7 +31,7 @@ OPPORTUNITIES="$(jq -r '[ .audits | to_entries[] | .value
   | select(.details.type? == "opportunity")
   | select((.details.overallSavingsMs // 0) > 0) ]
   | sort_by(-.details.overallSavingsMs) | .[]
-  | "- \(.title) — ~\((.details.overallSavingsMs)|round) ms"' "$REP" | head -8)"
+  | "- \(.title): ~\((.details.overallSavingsMs)|round) ms"' "$REP" | head -8)"
 
 if [ -n "$OPPORTUNITIES" ]; then
   echo ""

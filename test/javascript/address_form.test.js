@@ -32,7 +32,7 @@ const blur = (form) =>
   form.querySelector("[data-mask-cep]").dispatchEvent(new window.Event("blur", { bubbles: true }));
 const val = (form, field) => form.querySelector('[name="address[' + field + ']"]').value;
 
-describe("bindAddressForm — receiver self", () => {
+describe("bindAddressForm: receiver self", () => {
   it("fills name + CPF from the form data attrs when checked, clears when unchecked", () => {
     const form = mountAddressForm();
     const toggle = form.querySelector("[data-receiver-self]");
@@ -49,7 +49,7 @@ describe("bindAddressForm — receiver self", () => {
   });
 });
 
-describe("bindAddressForm — CEP lookup", () => {
+describe("bindAddressForm: CEP lookup", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("does not look up a CEP shorter than 8 digits", () => {

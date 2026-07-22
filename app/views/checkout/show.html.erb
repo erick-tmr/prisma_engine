@@ -1,4 +1,4 @@
-<% content_for :title, "Checkout — Prisma Games" %>
+<% content_for :title, "Checkout | Prisma Games" %>
 <%
   selected = @selected_address
   fmt_cep  = ->(zip) { "#{zip[0, 5]}-#{zip[5, 3]}" }
@@ -31,7 +31,7 @@
                   <p class="checkout__addr-receiver">Entregar para <strong data-sel-receiver><%= selected.receiver_name %></strong> · CPF <span data-sel-cpf><%= format_cpf(selected.receiver_cpf) %></span></p>
                   <p class="checkout__addr-street" data-sel-street><%= "#{selected.street}, #{selected.number}" %></p>
                   <div class="checkout__addr-line" data-sel-line1><%= [ selected.complement, selected.neighborhood ].compact_blank.join(" · ") %></div>
-                  <div class="checkout__addr-line" data-sel-line2><%= "#{selected.city} — #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" %></div>
+                  <div class="checkout__addr-line" data-sel-line2><%= "#{selected.city} · #{selected.state} · CEP #{fmt_cep.call(selected.zip)}" %></div>
                   <span class="checkout__badge<%= ' is-hidden' unless selected.default? %>" data-sel-badge><i class="bi bi-check-circle-fill"></i> Endereço padrão</span>
                 <% end %>
               </div>
@@ -45,7 +45,7 @@
                        data-receiver="<%= addr.receiver_name %>" data-cpf="<%= format_cpf(addr.receiver_cpf) %>"
                        data-street="<%= "#{addr.street}, #{addr.number}" %>"
                        data-line1="<%= [ addr.complement, addr.neighborhood ].compact_blank.join(' · ') %>"
-                       data-line2="<%= "#{addr.city} — #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %>"
+                       data-line2="<%= "#{addr.city} · #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %>"
                        data-default="<%= addr.default? ? '1' : '0' %>"
                        data-city="<%= "#{addr.city}, #{addr.state}" %>" data-cep="<%= addr.zip %>">
                   <%= radio_button_tag "address_id", addr.id, addr.id == selected&.id,
@@ -53,8 +53,8 @@
                   <span class="checkout__addr-radio"></span>
                   <div class="checkout__addr-body">
                     <p class="checkout__addr-receiver">Para <strong><%= addr.receiver_name %></strong> · CPF <%= format_cpf(addr.receiver_cpf) %></p>
-                    <p class="checkout__addr-street"><%= "#{addr.street}, #{addr.number}" %><%= " — #{addr.complement}" if addr.complement.present? %></p>
-                    <div class="checkout__addr-line"><%= "#{addr.neighborhood} · #{addr.city} — #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %></div>
+                    <p class="checkout__addr-street"><%= "#{addr.street}, #{addr.number}" %><%= ", #{addr.complement}" if addr.complement.present? %></p>
+                    <div class="checkout__addr-line"><%= "#{addr.neighborhood} · #{addr.city} · #{addr.state} · CEP #{fmt_cep.call(addr.zip)}" %></div>
                     <% if addr.default? %><span class="checkout__badge"><i class="bi bi-check-circle-fill"></i> Endereço padrão</span><% end %>
                   </div>
                 </label>
@@ -107,7 +107,7 @@
                 </div>
                 <div class="field checkout__col--2">
                   <%= f.label :state, "UF", class: "field__label" %>
-                  <%= f.select :state, Address::UF_LIST, { include_blank: "—" }, name: "address[state]", class: "field__input", required: true %>
+                  <%= f.select :state, Address::UF_LIST, { include_blank: "–" }, name: "address[state]", class: "field__input", required: true %>
                 </div>
               </div>
               <div class="checkout__form-actions">
@@ -218,7 +218,7 @@
               <% end %>
               <div class="checkout__merge-summary-note">
                 <i class="bi bi-truck"></i>
-                <span>Enviados nesta mesma entrega. Você economiza <strong data-merge-savings>—</strong> em frete.</span>
+                <span>Enviados nesta mesma entrega. Você economiza <strong data-merge-savings>–</strong> em frete.</span>
               </div>
             </div>
           <% end %>
@@ -277,7 +277,7 @@
       <div class="checkout__redirect-body">
         <div class="checkout__spinner"></div>
         <h3>Abrindo o pagamento…</h3>
-        <p>O pagamento abre em uma nova aba. Conclua por lá — esta página acompanha o status do pedido.</p>
+        <p>O pagamento abre em uma nova aba. Conclua por lá, esta página acompanha o status do pedido.</p>
       </div>
     </div>
   </div>

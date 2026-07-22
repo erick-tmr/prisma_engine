@@ -105,9 +105,9 @@
                 <div class="od-meta-head"><i class="bi bi-geo-alt"></i> <%= t("admin.orders.detail.address") %></div>
                 <div class="od-meta-body">
                   <div class="strong"><%= address[:recipient] %></div>
-                  <div><%= address[:street] %>, <%= address[:number] %><% if address[:complement].present? %> — <%= address[:complement] %><% end %></div>
+                  <div><%= address[:street] %>, <%= address[:number] %><% if address[:complement].present? %>, <%= address[:complement] %><% end %></div>
                   <div><%= address[:neighborhood] %></div>
-                  <div><%= address[:city] %> — <%= address[:state] %> · CEP <%= number_to_cep(address[:zip]) %></div>
+                  <div><%= address[:city] %> · <%= address[:state] %> · CEP <%= number_to_cep(address[:zip]) %></div>
                 </div>
               </div>
               <% end %>

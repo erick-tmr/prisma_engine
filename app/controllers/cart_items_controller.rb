@@ -55,7 +55,7 @@ class CartItemsController < ApplicationController
 
   # Only keep option ids that actually belong to the product. Belt-and-braces
   # against direct POSTs that try to attach a foreign option for a free price
-  # delta — the PDP form already submits valid ids.
+  # delta; the PDP form already submits valid ids.
   def validated_option_ids(product, raw)
     valid_ids = product.product_options.pluck(:id).to_set
     Array(raw).map(&:to_i).select { |id| valid_ids.include?(id) }

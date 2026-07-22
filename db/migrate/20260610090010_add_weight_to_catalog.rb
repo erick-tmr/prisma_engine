@@ -1,7 +1,7 @@
 class AddWeightToCatalog < ActiveRecord::Migration[8.1]
   # weight_grams lands on products NOT NULL; existing rows backfill to 22g
   # (PCB + shell baseline per the cart spec). Options + brindes default 0 and
-  # we lift "Com caixa" to 38g — every other existing option matches the base
+  # we lift "Com caixa" to 38g; every other existing option matches the base
   # game weight, so 0 is the right starting point.
   def change
     add_column :products,        :weight_grams,        :integer

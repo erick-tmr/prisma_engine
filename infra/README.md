@@ -1,4 +1,4 @@
-# infra/ — reproducible VPS configuration
+# infra/: reproducible VPS configuration
 
 This directory captures the production host's configuration as code so a blank
 Ubuntu 24.04 box can be brought to the exact production state deterministically and
@@ -67,11 +67,11 @@ The play splits into two tag passes because the `DOCKER-USER` chain only exists 
 ```bash
 cd infra/ansible
 
-# Pass A — everything except the origin-lock (safe on a bare box, before Kamal)
+# Pass A: everything except the origin-lock (safe on a bare box, before Kamal)
 ansible-playbook -i inventory/production.yml site.yml --tags base --check --diff   # preview
 ansible-playbook -i inventory/production.yml site.yml --tags base                  # apply
 
-# Pass B — the Cloudflare origin-lock only (after `kamal setup`)
+# Pass B: the Cloudflare origin-lock only (after `kamal setup`)
 ansible-playbook -i inventory/production.yml site.yml --tags firewall_edge
 ```
 
@@ -94,7 +94,7 @@ EOF
 # 2. Point the inventory at it (ubuntu user, become: true handles sudo)
 export PRISMA_TEST_IP="$(multipass info prisma-test | awk '/IPv4/{print $2}')"
 
-# 3. A local run needs no real secrets — a dummy DB password is enough
+# 3. A local run needs no real secrets: a dummy DB password is enough
 export PRISMA_ENGINE_DATABASE_PASSWORD=localtestpassword
 
 # 4. Converge, then prove idempotency (second run must report 0 changed)

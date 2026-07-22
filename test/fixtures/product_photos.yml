@@ -1,4 +1,4 @@
-# No Active Storage attachment here — exercises the legacy_image_path fallback.
+# No Active Storage attachment here: exercises the legacy_image_path fallback.
 yellow_photo:
   product: yellow
   alt_text: Pokemon Yellow Version

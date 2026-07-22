@@ -96,7 +96,7 @@ class Order < ApplicationRecord
     CANCELLABLE_STATUSES.include?(status)
   end
 
-  # :reek:BooleanParameter — `automatic` distinguishes system-driven transitions
+  # :reek:BooleanParameter (`automatic` distinguishes system-driven transitions
   # (webhook, Correios, expiry) from operator moves; a flag is the clean shape here.
   def transition_to!(next_status, actor: nil, automatic: false)
     target = next_status.to_s

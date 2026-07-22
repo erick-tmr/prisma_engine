@@ -2,7 +2,7 @@ module Admin
   # View-model for the backoffice order detail screen. Keeps the per-state
   # "variants" (available actions, lifecycle stepper, auto-next notes, history,
   # payment badge) out of the ERB and in small, unit-tested methods. Raw money /
-  # dates stay raw — the view formats them with the usual helpers.
+  # dates stay raw: the view formats them with the usual helpers.
   class OrderPresenter
     FLOW = %w[awaiting_payment payment_confirmed in_production label_issued shipped delivered].freeze
 

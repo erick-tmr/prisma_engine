@@ -175,7 +175,7 @@ class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
 
   test "GET lookup_cep accepts a hyphenated CEP" do
     sign_in users(:confirmed)
-    # The controller normalizes — Correios receives the digits-only form.
+    # The controller normalizes: Correios receives the digits-only form.
     stub_correios_cep("01310100", uf: "SP")
 
     get lookup_cep_account_addresses_path(cep: "01310-100")
@@ -215,7 +215,7 @@ class AccountAddressesFlowTest < ActionDispatch::IntegrationTest
   test "GET lookup_cep returns 422 when the param isn't 8 digits" do
     sign_in users(:confirmed)
     # 7 digits + hyphen makes it through the path constraint but the controller
-    # rejects it — guards against shape bugs in the JS or hand-crafted URLs.
+    # rejects it, guarding against shape bugs in the JS or hand-crafted URLs.
     get lookup_cep_account_addresses_path(cep: "12345-67")
     assert_response :unprocessable_entity
   end

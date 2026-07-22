@@ -16,7 +16,7 @@ module Cart
   # on regular lines and its `n` is dropped when blank.
   #
   # Reek's TooManyMethods threshold (15) is too tight for a service object that
-  # owns the full cart vocabulary — add/update/remove × hydrated reads × cookie
+  # owns the full cart vocabulary (add/update/remove × hydrated reads × cookie
   # serialization × hygiene. Splitting it across collaborators would add
   # indirection without resolving the actual god-class smell.
   # :reek:TooManyMethods

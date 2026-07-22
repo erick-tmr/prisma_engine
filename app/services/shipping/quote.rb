@@ -71,12 +71,12 @@ module Shipping
       preco["coProduto"] == requested_code && prazo["coProduto"] == requested_code
     end
 
-    # :reek:ControlParameter — the method exists exactly to branch on the key.
+    # :reek:ControlParameter (the method exists exactly to branch on the key)
     def ineligibility_reason(key)
       key == :mini_envios ? :too_heavy : :unavailable
     end
 
-    # :reek:ControlParameter — the method exists exactly to branch on the message.
+    # :reek:ControlParameter (the method exists exactly to branch on the message)
     def classify_error(tx_erro)
       tx_erro.match?(/CEP/i) ? :invalid_cep : :api_error
     end

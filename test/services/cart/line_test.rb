@@ -39,7 +39,7 @@ class Cart::LineTest < ActiveSupport::TestCase
     line = Cart::Line.new(
       id: "abc123",
       product: products(:yellow), # 22g base
-      quantity: 4, # quantity is irrelevant at the line level — that's Bag's job
+      quantity: 4, # quantity is irrelevant at the line level, that's Bag's job
       options: [
         product_options(:yellow_idioma_pt),  # 0g
         product_options(:yellow_caixa_com)   # +38g

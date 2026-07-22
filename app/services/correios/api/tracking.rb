@@ -8,7 +8,7 @@ module Correios
     #   GET {base}/srorastro/v1/objetos/{code}?resultado=T
     #   Authorization: Bearer <correios.api_token>
     #
-    # The token is supplied and rotated out of band — we don't run the autentica
+    # The token is supplied and rotated out of band, so we don't run the autentica
     # exchange. We hand events back oldest-first, sorted by their own timestamp
     # (dtHrCriado), so a stable `position` can index them and `.last` is the latest.
     class Tracking
@@ -26,8 +26,8 @@ module Correios
 
       # Normalized events, oldest-first by event time. The full raw evento stays under
       # :payload so nothing the API sends is lost. A 200 can also carry no events and
-      # just a `mensagem`: SRO-020 (not in Correios' base yet) is benign — we return []
-      # and keep polling; SRO-019 (invalid object) is permanent — we raise so the
+      # just a `mensagem`: SRO-020 (not in Correios' base yet) is benign, we return []
+      # and keep polling; SRO-019 (invalid object) is permanent, we raise so the
       # caller can stop and flag it.
       def fetch
         response = request

@@ -1,4 +1,4 @@
-// Backoffice dashboard — order history + client list, with a date-range picker,
+// Backoffice dashboard: order history + client list, with a date-range picker,
 // status multi-select, column sorting and a state-aware bulk action bar. Real
 // data is handed in through the [data-dashboard] JSON island the server renders
 // (app/views/admin/dashboard/index.html.erb); the rich filtering/sorting/bulk
@@ -269,7 +269,7 @@ export function ordersRowsHtml(rows, selected, statusLabels, orderBase) {
     const check = o.status === "merged"
       ? `<td class="checkcol"></td>`
       : `<td class="checkcol"><span class="rowcheck ${on ? "on" : ""}" data-check="${escapeHtml(o.n)}" role="checkbox" aria-checked="${on}" tabindex="0"></span></td>`;
-    const place = o.city ? `${escapeHtml(o.city)}/${escapeHtml(o.uf)}` : "—";
+    const place = o.city ? `${escapeHtml(o.city)}/${escapeHtml(o.uf)}` : "–";
     return `<tr data-order="${escapeHtml(o.n)}" class="${on ? "sel-row" : ""}">
       ${check}
       <td><a class="cell-mono cell-link" href="${escapeHtml(orderBase)}${encodeURIComponent(o.n)}">${escapeHtml(o.n)}</a></td>
@@ -290,7 +290,7 @@ export function ordersRowsHtml(rows, selected, statusLabels, orderBase) {
 export function clientsRowsHtml(rows, situationLabels) {
   return rows.map((c) => {
     const tag = SITUATION_TAGS[c.status];
-    const place = c.city ? `${escapeHtml(c.city)}<span class="cell-muted">/${escapeHtml(c.uf)}</span>` : "—";
+    const place = c.city ? `${escapeHtml(c.city)}<span class="cell-muted">/${escapeHtml(c.uf)}</span>` : "–";
     return `<tr data-client="${c.id}">
       <td>
         <div class="who">
@@ -299,7 +299,7 @@ export function clientsRowsHtml(rows, situationLabels) {
         </div>
       </td>
       <td class="cell-num">${escapeHtml(formatCpf(c.cpf))}</td>
-      <td>${escapeHtml(formatPhone(c.phone)) || "—"}</td>
+      <td>${escapeHtml(formatPhone(c.phone)) || "–"}</td>
       <td>${place}</td>
       <td class="cell-num">${fmtDate(c.since)}</td>
       <td class="num cell-num">${c.orders}</td>
@@ -668,7 +668,7 @@ export function initDashboard(root, data, today) {
   });
   statusPop.addEventListener("click", (e) => {
     // Keep clicks inside the popover from reaching the document outside-click
-    // handler — re-renders detach the target, which would otherwise read as
+    // handler, because re-renders detach the target, which would otherwise read as
     // an outside click and close the popover.
     e.stopPropagation();
     const opt = e.target.closest(".opt");
@@ -692,7 +692,7 @@ export function initDashboard(root, data, today) {
 
   dateTrigger.addEventListener("click", (e) => {
     // #date-clear lives inside the trigger but stops propagation, so it never
-    // reaches here — clicking the trigger body just toggles the picker.
+    // reaches here; clicking the trigger body just toggles the picker.
     e.stopPropagation();
     if (datePop.classList.contains("open")) { closePop(); return; }
     openDatePicker();
@@ -706,7 +706,7 @@ export function initDashboard(root, data, today) {
     renderOrders();
   });
   datePop.addEventListener("click", (e) => {
-    e.stopPropagation(); // see the status popover handler — re-renders detach the target
+    e.stopPropagation(); // see the status popover handler: re-renders detach the target
     const preset = e.target.closest(".dp-preset");
     if (preset) {
       dp.sel = applyPreset(preset.dataset.p, today); // always yields a `to`

@@ -34,7 +34,7 @@ module Payments
       items = order.order_items.map do |item|
         { description: item.name, quantity: item.quantity, price: item.unit_price_cents }
       end
-      items << { description: "Frete — #{shipment.service}", quantity: 1, price: shipment.shipping_cents }
+      items << { description: "Frete: #{shipment.service}", quantity: 1, price: shipment.shipping_cents }
       items
     end
 

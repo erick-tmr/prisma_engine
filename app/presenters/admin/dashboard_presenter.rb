@@ -1,14 +1,14 @@
 module Admin
   # Builds the backoffice dashboard's data island: the real Order / customer User
   # records the design renders, serialized as raw values (cents, ISO dates, digit
-  # strings) so the formatting lives in one tested place — the JS module. Domain
+  # strings) so the formatting lives in one tested place, the JS module. Domain
   # vocabulary (status labels, bulk-action labels, situação labels) is pulled from
   # the locale so pt-BR copy stays single-sourced; the widget chrome (month names,
   # presets, pluralization) stays with the JS that owns it.
   class DashboardPresenter
     # Manual bulk transitions exposed in the order list, mirroring Order::TRANSITIONS.
     # System/customer-triggered transitions (payment webhook, Correios tracking, a
-    # customer's refund request) are deliberately absent — see app/javascript/backoffice.
+    # customer's refund request) are deliberately absent: see app/javascript/backoffice.
     BULK_ACTION_IDS = %w[to_components issue_label flag_issue refund_done cancel].freeze
     SITUATIONS = %w[active pending locked].freeze
 

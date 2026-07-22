@@ -1,5 +1,5 @@
 /* ============================================================
-   Prisma Games — Backoffice · Order detail
+   Prisma Games · Backoffice · Order detail
    Extends backoffice-shell.css. Single-order view with the manual
    state transitions exposed as the operator's action buttons.
    ============================================================ */
@@ -144,7 +144,7 @@
 .od-track-body .time { font-size: 12.5px; color: var(--pg-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ════════════════════════════════════════════════════════════
-   Status card — the state-change control (mirrors Order::TRANSITIONS)
+   Status card: the state-change control (mirrors Order::TRANSITIONS)
    ════════════════════════════════════════════════════════════ */
 .status-card { background: #fff; border: 1px solid var(--pg-border); border-radius: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
 .status-card-top {

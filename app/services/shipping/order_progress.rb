@@ -7,7 +7,7 @@ module Shipping
   #
   # Idempotent and guard-driven: an order already at or past the target, or one
   # sitting off the shipping leg (cancelled, awaiting_refund, …), is left
-  # untouched — so no transition_to! ever hits its raise branch and the caller
+  # untouched, so no transition_to! ever hits its raise branch and the caller
   # needs no rescue.
   class OrderProgress
     LEG = %w[label_issued shipped delivered].freeze

@@ -15,7 +15,7 @@ module Correios
     class Prazo
       include Correios::Api::Client
 
-      # Same rule as Preco — only domain-validation rejections are "permanent".
+      # Same rule as Preco: only domain-validation rejections are "permanent".
       PERMANENT_REJECTIONS = [ 400, 422 ].freeze
 
       def self.fetch(cep_origem:, cep_destino:, service_codes:)

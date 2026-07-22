@@ -28,7 +28,7 @@ class AccountPasswordFlowTest < ActionDispatch::IntegrationTest
     }
     assert_redirected_to account_password_path
 
-    # Session retained — visiting a protected page does not redirect to sign-in.
+    # Session retained: visiting a protected page does not redirect to sign-in.
     get account_profile_path
     assert_response :success
 

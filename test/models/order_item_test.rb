@@ -35,7 +35,7 @@ class OrderItemTest < ActiveSupport::TestCase
     assert_not build_item(quantity: 0).valid?
   end
 
-  test "product is optional — the snapshot stands without a catalog link" do
+  test "product is optional: the snapshot stands without a catalog link" do
     assert build_item(product: nil).valid?
   end
 

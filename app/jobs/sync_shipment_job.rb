@@ -2,7 +2,7 @@ class SyncShipmentJob < ApplicationJob
   # Transient API/DB errors self-heal with growing backoff (~3s, 18s, 83s, 258s,
   # 627s). After the attempts are exhausted the job lands in
   # solid_queue_failed_executions and the next hourly run picks the shipment up
-  # again — nothing is lost.
+  # again, so nothing is lost.
   retry_on Correios::Api::TransientError,
            ActiveRecord::Deadlocked,
            ActiveRecord::LockWaitTimeout,

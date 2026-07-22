@@ -4,12 +4,12 @@ import { money, createCheckout } from "../../app/javascript/storefront/checkout.
 const DEFAULT_ADDR = {
   id: 1, default: true, selected: true, cep: "01310100", city: "São Paulo, SP",
   receiver: "Cliente", cpf: "529.982.247-25", street: "Av. Paulista, 1578",
-  line1: "Bela Vista", line2: "São Paulo — SP · CEP 01310-100"
+  line1: "Bela Vista", line2: "São Paulo · SP · CEP 01310-100"
 };
 const OTHER_ADDR = {
   id: 2, default: false, selected: false, cep: "37500100", city: "Itajubá, MG",
   receiver: "Maria", cpf: "390.533.447-05", street: "Rua das Acácias, 45",
-  line1: "Centro", line2: "Itajubá — MG · CEP 37500-100"
+  line1: "Centro", line2: "Itajubá · MG · CEP 37500-100"
 };
 
 const QUOTE = {
@@ -50,10 +50,10 @@ function agree() {
 const MERGE_HTML = `
     <section class="checkout__merge" data-merge data-quote-url="/checkout/consolidacao">
       <label><input type="checkbox" data-merge-check></label>
-      <span data-merge-savings-line hidden> Você economiza <strong data-merge-savings>—</strong> em frete.</span>
+      <span data-merge-savings-line hidden> Você economiza <strong data-merge-savings>–</strong> em frete.</span>
     </section>
     <div class="checkout__merge-summary" data-merge-summary hidden>
-      <strong data-merge-savings>—</strong>
+      <strong data-merge-savings>–</strong>
     </div>`;
 
 const MERGE_QUOTE = {

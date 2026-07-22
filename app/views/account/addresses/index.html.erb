@@ -38,7 +38,7 @@
               <%= address.neighborhood %>
             </div>
             <div class="address-card__line">
-              <%= address.city %> — <%= address.state %> · CEP <%= number_to_cep(address.zip) %>
+              <%= address.city %> · <%= address.state %> · CEP <%= number_to_cep(address.zip) %>
             </div>
             <div class="address-card__actions">
               <%= link_to edit_account_address_path(address), class: "button-ghost button-ghost--sm" do %>
