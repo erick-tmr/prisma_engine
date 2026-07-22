@@ -42,7 +42,7 @@ gem "kamal", "~> 2.12", require: false
 gem "image_processing", "~> 2.0"
 
 # S3-compatible client for the Cloudflare R2 Active Storage service [https://github.com/aws/aws-sdk-ruby]
-gem "aws-sdk-s3", "~> 1.227", require: false
+gem "aws-sdk-s3", "~> 1.228", require: false
 
 # HTTP client for the Correios tracking (rastro) API [https://github.com/lostisland/faraday]
 gem "faraday", "~> 2.14"
