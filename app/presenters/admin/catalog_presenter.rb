@@ -4,10 +4,6 @@ module Admin
       @products ||= Product.includes(:category, product_photos: { image_attachment: :blob }).order(:name)
     end
 
-    def count
-      products.size
-    end
-
     def categories
       Category.order(:name).pluck(:name, :slug)
     end

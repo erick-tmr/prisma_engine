@@ -7,8 +7,7 @@
 <div class="app-rainbow" aria-hidden="true"></div>
 
 <div class="app" data-dashboard="<%= @dashboard.to_json %>" data-order-base="/admin/pedidos/" data-bulk-url="<%= admin_bulk_transitions_path %>" data-print-url="<%= admin_print_labels_path %>">
-  <%= render "admin/sidebar", active: "orders",
-        counts: { "orders" => @dashboard.orders.size, "clients" => @dashboard.clients.size, "reports" => @dashboard.reports.size, "catalog" => @dashboard.catalog_count } %>
+  <%= render "admin/sidebar", active: "orders" %>
 
   <div class="main">
     <header class="topbar">
