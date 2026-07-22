@@ -119,9 +119,9 @@
 .od-meta-body { font-size: 13.5px; line-height: 1.6; color: #4b5563; }
 .od-meta-body .strong { font-weight: 600; color: var(--pg-ink); }
 .od-obs-text { white-space: pre-line; }
-.od-pay { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--pg-ink); }
+.od-pay { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--pg-ink); }
 .od-pay i { font-size: 16px; color: var(--pg-muted); }
-.od-pay-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; margin-top: 8px; }
+.od-pay-status { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; margin-top: 6px; }
 .od-pay-status.paid { color: #1f8a5b; }
 .od-pay-status.pending { color: #9a7400; }
 .od-pay-status i { font-size: 13px; }
