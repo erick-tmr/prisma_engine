@@ -18,14 +18,14 @@ module Production
       assert_equal %w[payment_confirmed awaiting_components production_issue], EligibleOrders::STATUSES
     end
 
-    test "returns only paid-to-produce orders that contain a game" do
-      eligible = make_order(status: "payment_confirmed")
+    test "returns every paid-to-produce order, whatever it carries" do
+      with_a_game = make_order(status: "payment_confirmed")
       accessories_only = make_order(status: "payment_confirmed", items: [ { product: products(:game_box) } ])
       wrong_status = make_order(status: "awaiting_payment")
 
       numbers = EligibleOrders.within.map(&:number)
-      assert_includes numbers, eligible.number
-      assert_not_includes numbers, accessories_only.number
+      assert_includes numbers, with_a_game.number
+      assert_includes numbers, accessories_only.number
       assert_not_includes numbers, wrong_status.number
       EligibleOrders.within.each { |order| assert_includes EligibleOrders::STATUSES, order.status }
     end

@@ -19,8 +19,7 @@ module Production
 
     def base
       Order.where(status: STATUSES)
-           .where(id: OrderItem.games.select(:order_id))
-           .includes(:user, order_items: { product: :category })
+           .includes(:user, :order_items)
            .order(created_at: :asc)
     end
 

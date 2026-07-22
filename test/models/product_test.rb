@@ -11,11 +11,6 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal "kirbys-dream-land-2", product.slug
   end
 
-  test "game? is true for a platform product and false for an accessory" do
-    assert products(:metroid).game?
-    assert_not products(:game_box).game?
-  end
-
   test "weight_grams is required and must be a positive integer" do
     product = Product.new(category: categories(:gb_color), name: "Test", price_cents: 18000)
     assert_not product.valid?

@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class AdminProductionReportTest < ApplicationSystemTestCase
   test "an operator sends a batch to production, prints it, and reprints it from history" do
-    order = orders(:confirmed_paid) # payment_confirmed, has a game item → eligible
+    order = orders(:confirmed_paid)
     login_as_user(users(:admin))
 
     visit admin_root_path

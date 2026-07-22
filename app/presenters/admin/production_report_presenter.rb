@@ -4,7 +4,7 @@ module Admin
     Item = Data.define(:quantity, :name, :variants, :requested_game, :request_notes)
 
     def self.for_batch(batch)
-      orders = batch.orders.includes(:user, order_items: { product: :category }).order(created_at: :asc)
+      orders = batch.orders.includes(:user, :order_items).order(created_at: :asc)
       new(orders: orders, from: batch.period_from, to: batch.period_to)
     end
 
@@ -49,7 +49,7 @@ module Admin
         customer: order.user.full_name,
         number: order.number,
         placed_on: I18n.l(order.placed_at.to_date),
-        items: order.order_items.select(&:game?).map { |item| build_item(item) },
+        items: order.order_items.sort_by(&:id).map { |item| build_item(item) },
         observation: order.observation
       )
     end
