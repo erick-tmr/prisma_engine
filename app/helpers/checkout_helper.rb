@@ -4,9 +4,10 @@ module CheckoutHelper
   end
 
   def merge_order_thumb(item)
-    return pedido_thumb if item.photo_path.blank?
+    image = item.image
+    return pedido_thumb if image.blank?
 
-    tag.span(storefront_image_tag(item.photo_path, resize: 80, alt: item.name), class: "checkout__merge-thumb")
+    tag.span(storefront_image_tag(image, resize: 80, alt: item.name), class: "checkout__merge-thumb")
   end
 
   def merge_order_meta(order)

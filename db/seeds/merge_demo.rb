@@ -35,7 +35,7 @@ orders = DEMO.each_with_index.map do |spec, index|
   order.update_columns(status: spec[:status], created_at: spec[:age].ago, updated_at: spec[:age].ago)
   order.order_items.first_or_create!(
     product_id: product.id, name: product.title, unit_price_cents: product.price_cents,
-    quantity: 1, photo_path: product.image
+    quantity: 1
   )
   attrs = { service: DEMO_SERVICE, shipping_cents: spec[:frete], weight_grams: DEMO_WEIGHT,
             height_cm: 4, width_cm: 16, length_cm: 24, **snapshot(address) }

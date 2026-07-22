@@ -1,4 +1,6 @@
 class OrderItem < ApplicationRecord
+  PHOTO_INCLUDES = { product: { product_photos: { image_attachment: :blob } } }.freeze
+
   belongs_to :order
   belongs_to :product, optional: true
 
@@ -13,7 +15,7 @@ class OrderItem < ApplicationRecord
   end
 
   def image
-    photo_path.presence || product&.image
+    product&.image
   end
 
   def custom_order?

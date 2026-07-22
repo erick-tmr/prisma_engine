@@ -10,7 +10,7 @@ class CheckoutHelperTest < ActionView::TestCase
   end
 
   test "merge_order_meta shows the item count and the product category" do
-    order = order_with(product: products(:yellow), photo_path: products(:yellow).image)
+    order = order_with(product: products(:yellow))
     assert_equal "1 item · #{products(:yellow).category_label}", merge_order_meta(order)
   end
 
@@ -24,8 +24,8 @@ class CheckoutHelperTest < ActionView::TestCase
     assert_equal "1 item", merge_order_meta(order)
   end
 
-  test "merge_order_thumb renders the product image when a photo is present" do
-    item = order_with(photo_path: products(:yellow).image).order_items.first
+  test "merge_order_thumb renders the product's current image" do
+    item = order_with(product: products(:yellow)).order_items.first
     html = merge_order_thumb(item)
     assert_includes html, "checkout__merge-thumb"
     assert_includes html, "<img"
@@ -39,7 +39,7 @@ class CheckoutHelperTest < ActionView::TestCase
   end
 
   test "merge_order_thumbs concatenates a thumb per item" do
-    order = order_with(photo_path: products(:yellow).image)
+    order = order_with(product: products(:yellow))
     order.order_items.create!(name: "Segundo", unit_price_cents: 100, quantity: 1)
     assert_equal 2, merge_order_thumbs(order).scan('class="checkout__merge-thumb').size
   end

@@ -14,7 +14,7 @@ class CheckoutController < ApplicationController
     chosen_id  = session.delete("checkout_address_id").to_i
     @selected_address = @addresses.find { |addr| addr.id == chosen_id } || @addresses.first
     @selected_shipping_service = session["checkout_shipping_service"]
-    @mergeable_orders = current_user.orders.mergeable.includes(:shipment, :order_items)
+    @mergeable_orders = current_user.orders.mergeable.includes(:shipment, order_items: OrderItem::PHOTO_INCLUDES)
   end
 
   def create
