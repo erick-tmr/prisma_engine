@@ -26,7 +26,8 @@ module Admin
     private
 
     def find_order
-      Order.includes(:user, :order_items, { status_changes: :actor }, { shipment: :tracking_events })
+      Order.includes(:user, { order_items: OrderItem::PHOTO_INCLUDES },
+                     { status_changes: :actor }, { shipment: :tracking_events })
            .find_by!(number: params[:number])
     end
 
