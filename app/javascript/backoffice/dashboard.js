@@ -1,21 +1,8 @@
-// Backoffice dashboard: order history + client list, with a date-range picker,
-// status multi-select, column sorting and a state-aware bulk action bar. Real
-// data is handed in through the [data-dashboard] JSON island the server renders
-// (app/views/admin/dashboard/index.html.erb); the rich filtering/sorting/bulk
-// UX runs entirely client-side. Bulk transitions POST the affected order numbers
-// to Admin::BulkTransitionsController and reconcile each row from the JSON
-// response. Shipped as a self-contained native ES
-// module via `javascript_include_tag "backoffice/dashboard", type: "module"`:
-// no importmap, no build step. The browser runs the guarded bootstrap at the
-// bottom; tests import the named functions and drive them against jsdom.
-
-// ── Constants ────────────────────────────────────────────────────────────────
 export const MONTHS_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 export const MONTHS_LONG = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 export const DOW = ["D", "S", "T", "Q", "Q", "S", "S"];
 export const AVATAR_TINTS = ["#e4322b", "#f0851f", "#caa106", "#2aa564", "#2f7fd1", "#6b4fb0", "#00938a", "#b80a41"];
 
-// Saturated dot colours for the status multi-select (the pill tints are lighter).
 export const STATUS_COLORS = {
   awaiting_payment: "#6b7280", payment_confirmed: "#00736c", awaiting_components: "#9a7400",
   in_production: "#2a5db0", production_issue: "#c0392b", label_issued: "#6b4fb0",
@@ -23,10 +10,6 @@ export const STATUS_COLORS = {
   delivery_issue: "#c2410c", cancelled: "#9aa0a8", merged: "#64748b"
 };
 
-// Manual bulk transitions only, mirroring Order::TRANSITIONS. System/customer
-// transitions (payment webhook, Correios tracking, a customer's refund request)
-// are intentionally absent. "Cancelar" only touches unpaid orders; a paid order
-// is closed by processing its refund ("Reembolso processado") once awaiting_refund.
 export const ACTIONS = [
   { id: "to_components", icon: "bi-box-seam", from: ["payment_confirmed"], to: "awaiting_components" },
   { id: "issue_label", icon: "bi-upc-scan", from: ["in_production"], to: "label_issued" },
@@ -52,7 +35,6 @@ export const PRESETS = [
   { id: "ytd", label: "Este ano" }
 ];
 
-// ── Formatting ───────────────────────────────────────────────────────────────
 export function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 }
@@ -109,13 +91,10 @@ export function plural(n, one, many) {
   return n === 1 ? one : many;
 }
 
-// Each sidebar tab has its own dedicated path; map the current path back to its
-// view so landing on (or navigating back to) a path opens the right tab.
 export function viewForPath(pathname, byPath) {
   return byPath.get(pathname) || "orders";
 }
 
-// ── Date math ────────────────────────────────────────────────────────────────
 export function sameDay(a, b) {
   return Boolean(a) && Boolean(b) &&
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -142,8 +121,6 @@ export function applyPreset(preset, today) {
   return { from: start, to: end };
 }
 
-// Cells for one month: leading blanks ({ blank: true }) then day cells with the
-// in-range / start / end / today flags the calendar paints.
 export function monthCells(monthDate, sel, today) {
   const y = monthDate.getFullYear();
   const m = monthDate.getMonth();
@@ -166,7 +143,6 @@ export function monthCells(monthDate, sel, today) {
   return cells;
 }
 
-// ── Orders: filter / sort / bulk ─────────────────────────────────────────────
 export function filterOrders(orders, state) {
   const query = state.oName.trim().toLowerCase();
   return orders.filter((o) => {
@@ -240,7 +216,6 @@ export function productionReportUrl(state, base) {
   return query ? `${base}?${query}` : base;
 }
 
-// ── Clients: filter / sort ───────────────────────────────────────────────────
 export function filterClients(clients, query) {
   const q = query.trim().toLowerCase();
   if (!q) return [...clients];
@@ -262,7 +237,6 @@ export function sortClients(rows, sort) {
   });
 }
 
-// ── Templates (pure HTML builders) ───────────────────────────────────────────
 export function ordersRowsHtml(rows, selected, statusLabels, orderBase) {
   return rows.map((o) => {
     const on = selected.has(o.n);
@@ -392,7 +366,6 @@ export function skippedLabelsMessage(count) {
   return `${count} ${plural(count, "etiqueta ignorada", "etiquetas ignoradas")} (sem etiqueta pronta).`;
 }
 
-// ── Orchestrator ─────────────────────────────────────────────────────────────
 export function initDashboard(root, data, today) {
   const { orders, clients, reports, statuses, statusLabels, actionLabels, situationLabels } = data;
   const toasts = document.getElementById("toasts");
@@ -434,7 +407,6 @@ export function initDashboard(root, data, today) {
   const anyDateLabel = $("#date-trigger .val").textContent;
   const statusAllLabel = $("#status-trigger .val").textContent;
 
-  // ── Popover machinery ──
   let openPopEl = null;
   let openTriggerEl = null;
   function openPop(trigger, pop) {
@@ -460,7 +432,6 @@ export function initDashboard(root, data, today) {
     openTriggerEl = null;
   }
 
-  // ── Orders rendering ──
   function updateSortArrows(table, sort) {
     table.querySelectorAll("thead th.sortable").forEach((th) => {
       const on = th.dataset.key === sort.key;
@@ -510,7 +481,6 @@ export function initDashboard(root, data, today) {
     reportsCount.textContent = `${reports.length} ${plural(reports.length, "relatório", "relatórios")}`;
   }
 
-  // ── Toasts ──
   function toast(kind, html) {
     const el = document.createElement("div");
     el.className = `toast ${kind === "warn" ? "toast-warn" : "toast-ok"}`;
@@ -522,7 +492,6 @@ export function initDashboard(root, data, today) {
     }, 3400);
   }
 
-  // ── Selection + bulk actions ──
   function toggleSel(n) {
     if (state.selected.has(n)) state.selected.delete(n); else state.selected.add(n);
     renderOrders();
@@ -572,7 +541,6 @@ export function initDashboard(root, data, today) {
     }
   }
 
-  // ── Filter triggers ──
   function syncStatusTrigger() {
     const n = state.statuses.size;
     const val = $("#status-trigger .val");
@@ -605,7 +573,6 @@ export function initDashboard(root, data, today) {
     }
   }
 
-  // ── Date picker ──
   function renderDatePop() {
     datePop.innerHTML = datePopHtml(dp.left, dp.sel, today, dp.preset);
   }
@@ -616,7 +583,6 @@ export function initDashboard(root, data, today) {
     renderDatePop();
   }
 
-  // ── View switching ──
   function switchView(view) {
     state.view = view;
     root.querySelectorAll(".sb-link[data-view]").forEach((l) => l.classList.toggle("active", l.dataset.view === view));
@@ -645,7 +611,6 @@ export function initDashboard(root, data, today) {
     if (tr) tr.animate([{ background: "#eef0f3" }, { background: "transparent" }], { duration: 380, easing: "ease-out" });
   }
 
-  // ── Wiring ──
   statusPop.innerHTML = statusOptionsHtml(statuses, statusLabels, state.statuses);
   syncStatusTrigger();
   syncDateTrigger();
@@ -667,9 +632,6 @@ export function initDashboard(root, data, today) {
     if (statusPop.classList.contains("open")) closePop(); else openPop(statusTrigger, statusPop);
   });
   statusPop.addEventListener("click", (e) => {
-    // Keep clicks inside the popover from reaching the document outside-click
-    // handler, because re-renders detach the target, which would otherwise read as
-    // an outside click and close the popover.
     e.stopPropagation();
     const opt = e.target.closest(".opt");
     if (opt) {
@@ -691,8 +653,6 @@ export function initDashboard(root, data, today) {
   });
 
   dateTrigger.addEventListener("click", (e) => {
-    // #date-clear lives inside the trigger but stops propagation, so it never
-    // reaches here; clicking the trigger body just toggles the picker.
     e.stopPropagation();
     if (datePop.classList.contains("open")) { closePop(); return; }
     openDatePicker();
@@ -706,10 +666,10 @@ export function initDashboard(root, data, today) {
     renderOrders();
   });
   datePop.addEventListener("click", (e) => {
-    e.stopPropagation(); // see the status popover handler: re-renders detach the target
+    e.stopPropagation();
     const preset = e.target.closest(".dp-preset");
     if (preset) {
-      dp.sel = applyPreset(preset.dataset.p, today); // always yields a `to`
+      dp.sel = applyPreset(preset.dataset.p, today);
       dp.preset = preset.dataset.p;
       dp.left = addMonths(startOfMonth(dp.sel.to), -1);
       renderDatePop();
@@ -780,8 +740,6 @@ export function initDashboard(root, data, today) {
   ordersBody.addEventListener("click", (e) => {
     const cb = e.target.closest("[data-check]");
     if (cb) { e.stopPropagation(); toggleSel(cb.dataset.check); return; }
-    // The whole row opens the order: forward the click to its detail link
-    // (the link still handles direct clicks and middle-click-to-new-tab).
     const link = e.target.closest("tr[data-order]")?.querySelector("a.cell-link");
     if (link && link !== e.target) link.click();
   });

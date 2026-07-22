@@ -45,11 +45,8 @@ function sampleData() {
   };
 }
 
-const TODAY = new Date(2026, 5, 15); // 15 Jun 2026
+const TODAY = new Date(2026, 5, 15);
 
-// ════════════════════════════════════════════════════════════════════════════
-//  Pure helpers
-// ════════════════════════════════════════════════════════════════════════════
 describe("formatting helpers", () => {
   it("escapeHtml neutralizes markup and handles nullish", () => {
     expect(escapeHtml(`<b>&"'`)).toBe("&lt;b&gt;&amp;&quot;&#39;");
@@ -137,7 +134,7 @@ describe("date math", () => {
   it("monthCells emits leading blanks, today, range edges and in-range flags", () => {
     const sel = { from: new Date(2026, 5, 10), to: new Date(2026, 5, 20) };
     const cells = monthCells(new Date(2026, 5, 1), sel, TODAY);
-    expect(cells[0]).toEqual({ blank: true }); // Jun 1 2026 is a Monday → 1 blank
+    expect(cells[0]).toEqual({ blank: true });
     const byDay = (d) => cells.find((c) => c.day === d);
     expect(byDay(15).today).toBe(true);
     expect(byDay(10).start).toBe(true);
@@ -287,7 +284,7 @@ describe("template builders", () => {
     expect(html).toContain("312.445.778-09");
     expect(html).toContain("(11) 98876-5521");
     expect(html).toContain("Bloqueado");
-    expect(html).toContain(">–<"); // Bruno: missing city and phone
+    expect(html).toContain(">–<");
   });
 
   it("bulkChipsHtml shows the empty message, chips and a danger chip", () => {
@@ -306,7 +303,7 @@ describe("template builders", () => {
     const html = reportsRowsHtml(reports);
     expect(html).toContain('<a class="cell-link" href="/admin/relatorio-producao/12">27/06/2026 14:17</a>');
     expect(html).toContain("8 pedidos");
-    expect(html).toContain("1 pedido</td>"); // singular for the 1-order batch
+    expect(html).toContain("1 pedido</td>");
     expect(html).toContain("Todos os períodos");
   });
 
@@ -322,9 +319,6 @@ describe("template builders", () => {
     const sel = { from: null, to: null };
     const left = calendarHtml(new Date(2026, 5, 1), "L", sel, TODAY);
     expect(left).toContain('data-nav="prev"');
-    // Each calendar must be wrapped in a .dp-cal column: the CSS lays
-    // .dp-cals > .dp-cal out side by side; without the wrapper the grids
-    // collapse and overflow the popover (a layout bug jsdom can't see).
     expect(left.startsWith('<div class="dp-cal">')).toBe(true);
     expect(left).toContain('<div class="dp-grid">');
     const right = calendarHtml(new Date(2026, 6, 1), "R", sel, TODAY);
@@ -358,9 +352,6 @@ describe("template builders", () => {
   });
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-//  initDashboard (jsdom)
-// ════════════════════════════════════════════════════════════════════════════
 function mountDashboard() {
   document.head.innerHTML = `<meta name="csrf-token" content="test-token">`;
   document.body.innerHTML = `
@@ -472,7 +463,7 @@ describe("initDashboard", () => {
     destroy();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
-    window.history.pushState({}, "", "/"); // reset the URL pushed by tab navigation
+    window.history.pushState({}, "", "/");
   });
 
   it("renders both tables, the default sort arrow and counts", () => {
@@ -497,7 +488,7 @@ describe("initDashboard", () => {
   });
 
   it("opens the tab matching the current dedicated path on load", () => {
-    destroy(); // tear down the beforeEach instance, then remount on a dedicated path
+    destroy();
     window.history.pushState({}, "", "/admin/relatorios");
     root = mountDashboard();
     destroy = initDashboard(root, sampleData(), TODAY);
@@ -516,14 +507,14 @@ describe("initDashboard", () => {
     click($('.sb-link[data-view="reports"]'));
     expect($('.view[data-view="reports"]').hidden).toBe(false);
 
-    window.history.pushState({}, "", "/admin/clientes"); // simulate a history entry
+    window.history.pushState({}, "", "/admin/clientes");
     window.dispatchEvent(new window.Event("popstate"));
     expect($('.view[data-view="clients"]').hidden).toBe(false);
   });
 
   it("opens a report by forwarding a row click to its reprint link", () => {
     const open = vi.spyOn(window.HTMLElement.prototype, "click").mockImplementation(() => {});
-    click($("#reports-body tr td:nth-child(2)")); // a non-link cell
+    click($("#reports-body tr td:nth-child(2)"));
     expect(open).toHaveBeenCalledTimes(1);
     open.mockRestore();
   });
@@ -543,7 +534,7 @@ describe("initDashboard", () => {
   });
 
   it("shows the empty state when no reports have been generated", () => {
-    destroy(); // tear down the beforeEach instance, then remount with no reports
+    destroy();
     root = mountDashboard();
     destroy = initDashboard(root, { ...sampleData(), reports: [] }, TODAY);
 
@@ -562,7 +553,7 @@ describe("initDashboard", () => {
 
     click($("#menu-toggle"));
     expect(root.querySelector(".sidebar").classList.contains("show")).toBe(true);
-    click($('.sb-link[data-view="orders"]')); // switchView clears the drawer
+    click($('.sb-link[data-view="orders"]'));
     expect(root.querySelector(".sidebar").classList.contains("show")).toBe(false);
   });
 
@@ -582,9 +573,9 @@ describe("initDashboard", () => {
     expect($("#status-pop").classList.contains("open")).toBe(true);
     expect($("#status-pop").querySelectorAll(".opt")).toHaveLength(10);
 
-    click($("#status-trigger")); // clicking the trigger again closes it
+    click($("#status-trigger"));
     expect($("#status-pop").classList.contains("open")).toBe(false);
-    click($("#status-trigger")); // reopen to continue
+    click($("#status-trigger"));
 
     click($('#status-pop .opt[data-st="in_production"]'));
     expect($("#status-trigger .val").textContent).toBe(STATUS_LABELS.in_production);
@@ -595,7 +586,7 @@ describe("initDashboard", () => {
     expect($("#status-trigger .pillnum").hidden).toBe(false);
     expect($("#status-trigger .pillnum").textContent).toBe("2");
 
-    click($('#status-pop .opt[data-st="in_production"]')); // toggle one back off
+    click($('#status-pop .opt[data-st="in_production"]'));
     expect($("#status-trigger .val").textContent).toBe(STATUS_LABELS.delivered);
 
     click($("#status-clear"));
@@ -609,36 +600,32 @@ describe("initDashboard", () => {
   it("drives the date picker: manual range, nav, preset, apply, clear", () => {
     click($("#date-trigger"));
     expect($("#date-pop").classList.contains("open")).toBe(true);
-    // Structural contract the dual-calendar CSS layout depends on.
     expect($("#date-pop").querySelectorAll(".dp-cals > .dp-cal")).toHaveLength(2);
     expect($("#date-pop").querySelectorAll(".dp-cal > .dp-grid")).toHaveLength(2);
 
-    // Build a manual range with `from` starting null, exercising each branch:
     const days = () => $("#date-pop").querySelectorAll(".dp-day[data-d]");
-    click(days()[15]); // !from → start
-    expect($("#date-pop").classList.contains("open")).toBe(true); // re-render must not close it
-    click(days()[20]); // later than from → end (else)
-    click(days()[10]); // from && to set → resets to a fresh start
-    click(days()[5]); // earlier than from → date < from (else if)
+    click(days()[15]);
+    expect($("#date-pop").classList.contains("open")).toBe(true);
+    click(days()[20]);
+    click(days()[10]);
+    click(days()[5]);
     expect($("#date-pop .dp-readout").textContent).not.toContain("Selecione");
 
-    // navigate both calendars
     click($('#date-pop .dp-nav[data-nav="prev"]'));
     click($('#date-pop .dp-nav[data-nav="next"]'));
-    expect($("#date-pop").classList.contains("open")).toBe(true); // nav must not close it
+    expect($("#date-pop").classList.contains("open")).toBe(true);
 
     click($('#date-pop .dp-preset[data-p="30"]'));
     expect($("#date-pop .dp-preset.on").dataset.p).toBe("30");
-    expect($("#date-pop").classList.contains("open")).toBe(true); // preset must not close it
+    expect($("#date-pop").classList.contains("open")).toBe(true);
     expect($("#date-pop .dp-readout").textContent).toContain("→");
 
     click($("#dp-apply"));
     expect($("#date-trigger .val").classList.contains("placeholder")).toBe(false);
     expect($("#date-clear").hidden).toBe(false);
-    // "Últimos 30 dias" → 17 May–15 Jun 2026 keeps several orders in range
     expect($("#orders-body").querySelectorAll("tr").length).toBeGreaterThan(0);
 
-    click($("#date-trigger")); // reopen
+    click($("#date-trigger"));
     click($("#dp-clear"));
     expect($("#date-pop .dp-readout").textContent).toContain("Selecione o período");
   });
@@ -649,40 +636,40 @@ describe("initDashboard", () => {
     click($("#dp-apply"));
     expect($("#date-clear").hidden).toBe(false);
 
-    click($("#date-trigger")); // open
-    click($("#date-trigger")); // same trigger → close
+    click($("#date-trigger"));
+    click($("#date-trigger"));
     expect($("#date-pop").classList.contains("open")).toBe(false);
 
-    click($("#date-clear")); // inline clear commits "any date"
+    click($("#date-clear"));
     expect($("#date-clear").hidden).toBe(true);
     expect($("#date-trigger .val").textContent).toBe("Qualquer data");
   });
 
   it("applies a single picked day as a one-day range", () => {
     click($("#date-trigger"));
-    click($("#date-pop").querySelectorAll(".dp-day[data-d]")[14]); // one day → from set, to null
+    click($("#date-pop").querySelectorAll(".dp-day[data-d]")[14]);
     click($("#dp-apply"));
     expect($("#date-clear").hidden).toBe(false);
-    expect($("#date-trigger .val").textContent).not.toContain("–"); // single day, no range dash
+    expect($("#date-trigger .val").textContent).not.toContain("–");
   });
 
   it("sorts orders and clients columns, toggling direction both ways", () => {
-    const dateTh = $('#orders-table th[data-key="date"]'); // default key, desc
-    click(dateTh); // same key: desc → asc
+    const dateTh = $('#orders-table th[data-key="date"]');
+    click(dateTh);
     expect(dateTh.querySelector(".sortarrow").textContent).toBe("▲");
-    click(dateTh); // same key: asc → desc
+    click(dateTh);
     expect(dateTh.querySelector(".sortarrow").textContent).toBe("▼");
-    click($('#orders-table th[data-key="client"]')); // new key → asc (client special-case)
-    click($('#orders-table th[data-key="total"]')); // new non-client key → desc
-    click($('#orders-table th[data-key="status"]')); // new key → desc
+    click($('#orders-table th[data-key="client"]'));
+    click($('#orders-table th[data-key="total"]'));
+    click($('#orders-table th[data-key="status"]'));
 
     click($('.sb-link[data-view="clients"]'));
-    const nameTh = $('#clients-table th[data-key="name"]'); // default key, asc
-    click(nameTh); // same key: asc → desc
+    const nameTh = $('#clients-table th[data-key="name"]');
+    click(nameTh);
     expect(nameTh.querySelector(".sortarrow").textContent).toBe("▼");
-    click(nameTh); // same key: desc → asc
+    click(nameTh);
     expect(nameTh.querySelector(".sortarrow").textContent).toBe("▲");
-    click($('#clients-table th[data-key="orders"]')); // new key → asc
+    click($('#clients-table th[data-key="orders"]'));
     expect($('#clients-table th[data-key="orders"]').querySelector(".sortarrow").textContent).toBe("▲");
   });
 
@@ -708,16 +695,16 @@ describe("initDashboard", () => {
   });
 
   it("selects rows and shows state-aware bulk chips, including the empty message", () => {
-    click($('[data-check="PG-202605300004"]')); // delivered → no manual action
+    click($('[data-check="PG-202605300004"]'));
     expect($("#bulkbar").hidden).toBe(false);
     expect($("#bulk-actions").textContent).toContain("Nenhuma ação");
     expect($("#o-checkall").classList.contains("ind")).toBe(true);
 
-    click($('[data-check="PG-202606130002"]')); // + payment_confirmed → to_components appears
+    click($('[data-check="PG-202606130002"]'));
     expect($("#bulk-actions").querySelector('[data-act="to_components"]')).not.toBeNull();
     expect($("#bulk-n").textContent).toBe("2");
 
-    click($('[data-check="PG-202606130002"]')); // click again → deselects that row
+    click($('[data-check="PG-202606130002"]'));
     expect($("#bulk-n").textContent).toBe("1");
   });
 
@@ -730,8 +717,8 @@ describe("initDashboard", () => {
       ],
       done: 1, queued: 0, skipped: 1
     })));
-    click($('[data-check="PG-202606130002"]')); // payment_confirmed → eligible
-    click($('[data-check="PG-202606110003"]')); // in_production → not eligible for to_components
+    click($('[data-check="PG-202606130002"]'));
+    click($('[data-check="PG-202606110003"]'));
     click($("#bulk-actions").querySelector('[data-act="to_components"]'));
 
     await vi.waitFor(() => expect($("#toasts").querySelector(".toast-ok")).not.toBeNull());
@@ -755,10 +742,10 @@ describe("initDashboard", () => {
       done: 1, queued: 0, skipped: 0
     })));
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-    click($('[data-check="PG-202606140001"]')); // awaiting_payment → cancel available
+    click($('[data-check="PG-202606140001"]'));
     click($("#bulk-actions").querySelector('[data-act="cancel"]'));
     expect(confirmSpy).toHaveBeenCalledOnce();
-    expect(fetch).not.toHaveBeenCalled(); // declined → no request
+    expect(fetch).not.toHaveBeenCalled();
 
     confirmSpy.mockReturnValue(true);
     click($("#bulk-actions").querySelector('[data-act="cancel"]'));
@@ -766,9 +753,9 @@ describe("initDashboard", () => {
   });
 
   it("shows the print chip only when a printable order is selected", () => {
-    click($('[data-check="PG-202606140001"]')); // awaiting_payment → not printable
+    click($('[data-check="PG-202606140001"]'));
     expect($("#bulk-print").hidden).toBe(true);
-    click($('[data-check="PG-202605300004"]')); // delivered → printable
+    click($('[data-check="PG-202605300004"]'));
     expect($("#bulk-print").hidden).toBe(false);
   });
 
@@ -776,7 +763,7 @@ describe("initDashboard", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(["%PDF"]), headers: { get: () => "2" } }));
     vi.stubGlobal("URL", { createObjectURL: () => "blob:sheet" });
     const openSpy = vi.spyOn(window, "open").mockImplementation(() => {});
-    click($('[data-check="PG-202605300004"]')); // delivered → printable
+    click($('[data-check="PG-202605300004"]'));
     click($("#bulk-print"));
     await vi.waitFor(() => expect(openSpy).toHaveBeenCalledWith("blob:sheet", "_blank"));
     expect(fetch.mock.calls[0][0]).toBe("/admin/etiquetas/impressao");
@@ -809,14 +796,14 @@ describe("initDashboard", () => {
 
   it("does not request a print sheet when nothing printable is selected", () => {
     vi.stubGlobal("fetch", vi.fn());
-    click($('[data-check="PG-202606140001"]')); // awaiting_payment → chip hidden
+    click($('[data-check="PG-202606140001"]'));
     click($("#bulk-print"));
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it("ignores clicks on the bulk bar background and clears the selection", () => {
     click($('[data-check="PG-202606140001"]'));
-    click($("#bulk-actions")); // not a chip → no-op
+    click($("#bulk-actions"));
     expect($("#bulkbar").hidden).toBe(false);
     click($("#bulk-clear"));
     expect($("#bulkbar").hidden).toBe(true);
@@ -866,11 +853,11 @@ describe("initDashboard", () => {
     click($("#status-trigger"));
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
     expect($("#status-pop").classList.contains("open")).toBe(false);
-    document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" })); // non-Escape → ignored
+    document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" }));
   });
 
   it("repositions an open popover on scroll and no-ops when none is open", () => {
-    window.dispatchEvent(new window.Event("scroll")); // no pop open: the guard is a no-op
+    window.dispatchEvent(new window.Event("scroll"));
     window.dispatchEvent(new window.Event("resize"));
 
     click($("#status-trigger"));
@@ -879,16 +866,15 @@ describe("initDashboard", () => {
 
     pop.style.top = "";
     window.dispatchEvent(new window.Event("scroll"));
-    expect(pop.style.top).not.toBe(""); // re-anchored to the trigger
+    expect(pop.style.top).not.toBe("");
   });
 
   it("rewrites the production report link with the active period on click", () => {
     const link = $("#gen-production");
-    // Cancelable so preventDefault actually suppresses jsdom's link navigation.
     const followLink = () => link.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
     link.addEventListener("click", (e) => e.preventDefault());
 
-    followLink(); // no period applied yet → base path
+    followLink();
     expect(link.getAttribute("href")).toBe("/admin/relatorio-producao");
 
     click($("#date-trigger"));
@@ -908,7 +894,7 @@ describe("initDashboard", () => {
       })));
       click($('[data-check="PG-202606130002"]'));
       click($("#bulk-actions").querySelector('[data-act="to_components"]'));
-      await vi.advanceTimersByTimeAsync(0); // flush the fetch/json microtasks
+      await vi.advanceTimersByTimeAsync(0);
       expect($("#toasts").querySelector(".toast")).not.toBeNull();
       await vi.advanceTimersByTimeAsync(3400);
       expect($("#toasts .toast").classList.contains("toast-leaving")).toBe(true);

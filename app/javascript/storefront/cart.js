@@ -1,13 +1,4 @@
-// Cart page behaviour, extracted from the inline view script so it can be unit
-// tested (see test/javascript/cart.test.js). Shipped as a self-contained native
-// ES module via `javascript_include_tag "storefront/cart", type: "module"`:
-// no importmap, no build step. The browser runs the guarded auto-init at the
-// bottom; tests import the named functions and drive them against a jsdom
-// fixture. Keep this in sync with app/views/cart/show.html.erb's data hooks.
-
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-// ── Pure helpers ───────────────────────────────────────────────────────────
 
 export function maskCep(value) {
   const digits = value.replace(/\D/g, "").slice(0, 8);
@@ -17,8 +8,6 @@ export function maskCep(value) {
 export function money(cents) {
   return BRL.format(cents / 100);
 }
-
-// ── Cart line interactions (variant pills + quantity stepper) ───────────────
 
 export function bindCartLines(scope) {
   scope.querySelectorAll("[data-cart-item]").forEach(function (item) {
@@ -65,11 +54,6 @@ export function bindCartLines(scope) {
   });
 }
 
-// ── CEP shipping calculator ─────────────────────────────────────────────────
-
-// Builds the live Correios frete calculator bound to a frete-card `root`
-// (which carries data-quote-url). The summary and "Finalizar compra" forms
-// live in sibling cards, so they're resolved from the owner document.
 export function createCartShipping(root) {
   const doc = root.ownerDocument;
   const cepInput = root.querySelector("[data-cep]");
@@ -141,9 +125,6 @@ export function createCartShipping(root) {
   }
 
   function renderQuote(data) {
-    // A successful quote clears any prior error (e.g. a retry after the
-    // Correios API was briefly unavailable); the input handler only clears it
-    // on keystroke, so re-calculating the same CEP wouldn't otherwise.
     clearCepError();
     destCity.textContent = data.destination.city + ", " + data.destination.state;
     destBox.classList.add("is-visible");
@@ -247,10 +228,6 @@ export function createCartShipping(root) {
     get shipping() { return shipping; }
   };
 }
-
-// ── Browser auto-init (inert under a test import: no [data-cart-shipping]) ───
-// Bootstrap glue, excluded from coverage (the exported functions above carry
-// the logic and are unit-tested directly).
 
 /* v8 ignore start */
 if (typeof document !== "undefined") {

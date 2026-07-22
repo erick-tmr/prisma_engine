@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bindAddressForm } from "../../app/javascript/storefront/address_form.js";
 
-// Mirrors app/views/account/addresses/_form.html.erb: the <form> carries
-// data-user-name / data-user-cpf / data-cep-lookup-url; the CEP field is
-// [data-mask-cep]; address fields are name="address[<field>]".
 function mountAddressForm({ zip = "", number = "" } = {}) {
   document.body.innerHTML = `
     <form data-user-name="João Silva" data-user-cpf="123.456.789-09"

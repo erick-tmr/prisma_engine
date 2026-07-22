@@ -1,5 +1,3 @@
-# Validates a Brazilian CPF (Cadastro de Pessoas Físicas) via the official
-# mod-11 algorithm. Stores nothing: the model normalizes the column elsewhere.
 class CpfValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     digits = value.to_s.gsub(/\D/, "")

@@ -1,24 +1,4 @@
 module Cart
-  # Cookie-backed shopping cart. The bag is a thin, frozen-time view over the
-  # raw items hash that lives in `cookies.signed[:cart]`. Lines are hydrated on
-  # demand against the live Product / ProductOption rows, so price changes and
-  # option renames propagate without rewriting the cookie.
-  #
-  # Cookie payload shape (versioned so we can evolve later without exploding
-  # everyone's existing cart):
-  #
-  #   { "v" => 1, "items" => [{ "id" => "<8 chars>", "p" => 42, "q" => 1, "o" => [3, 7],
-  #                             "r" => { "g" => "<game>", "n" => "<notes>" } }] }
-  #
-  # A line's `id` is a stable random token allocated at add-time; it survives
-  # option edits so the in-cart variant editor can swap `o` without losing the
-  # line. `r` is the optional made-to-order request (game + notes); it is absent
-  # on regular lines and its `n` is dropped when blank.
-  #
-  # Reek's TooManyMethods threshold (15) is too tight for a service object that
-  # owns the full cart vocabulary (add/update/remove × hydrated reads × cookie
-  # serialization × hygiene. Splitting it across collaborators would add
-  # indirection without resolving the actual god-class smell.
   # :reek:TooManyMethods
   class Bag
     VERSION = 1
@@ -106,9 +86,6 @@ module Cart
       self
     end
 
-    # Drops items whose product is missing/unpublished or whose option ids no
-    # longer belong to the product. Returns true when anything was removed so
-    # the caller can rewrite the cookie + flash a notice.
     def cleanup!
       return false if items.empty?
       kept_ids = lines.map(&:id)
@@ -132,11 +109,6 @@ module Cart
       HasMoney.format(subtotal_cents)
     end
 
-    # Total package weight for shipping quotes. The brindes contribution scales
-    # by line quantity per the spec: a customer buying 2× a GOTM game gets 2×
-    # that game's own brindes mass. Caller supplies each GOTM product's brindes
-    # weight keyed by product id, so the bag stays AR-free beyond what `lines`
-    # already loads.
     def total_weight_grams(gotm_brindes_weight_by_product_id:)
       lines.sum do |line|
         extra = gotm_brindes_weight_by_product_id.fetch(line.product.id, 0)

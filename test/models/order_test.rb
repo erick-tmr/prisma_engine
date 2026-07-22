@@ -177,7 +177,6 @@ class OrderTest < ActiveSupport::TestCase
     assert order.cancelled?
   end
 
-
   test "cancellable? while awaiting, confirmed or awaiting components, not once in production" do
     order = build_order
     order.save!

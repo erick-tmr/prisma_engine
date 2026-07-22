@@ -1,7 +1,3 @@
-# A single default address on the `locked` customer: exercises the dashboard
-# presenter's city/UF lookup (the address-present branch). Other customer
-# fixtures stay address-less on purpose: address_test.rb relies on
-# users(:confirmed) starting with no addresses.
 locked_home:
   user: locked
   receiver_name: "Cliente Bloqueado"

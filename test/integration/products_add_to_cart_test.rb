@@ -6,10 +6,9 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_select "[data-pdp-form]" do
-      assert_select ".variant-group", count: 2 # Idioma + Caixa
+      assert_select ".variant-group", count: 2
       assert_select "input[name='option_ids[]'][data-variant-group='Idioma']"
       assert_select "input[name='option_ids[]'][data-variant-group='Caixa']"
-      # First option per group is preselected
       assert_select ".variant-group", text: /Idioma/i do
         assert_select ".variant-pill.is-selected", text: /Português BR/
       end
@@ -81,12 +80,11 @@ class ProductsAddToCartTest < ActionDispatch::IntegrationTest
   end
 
   test "POST cart_items rejects foreign option_ids that do not belong to the product" do
-    foreign = product_options(:yellow_idioma_pt) # belongs to yellow, not metroid
+    foreign = product_options(:yellow_idioma_pt)
     post cart_items_path, params: {
       product_id: products(:metroid).id, quantity: 1, option_ids: [ foreign.id ]
     }
     assert_redirected_to product_path(products(:metroid))
-    # The foreign id should be filtered, so the metroid line has no options
     get cart_path
     assert_select ".cart-item", count: 1
   end

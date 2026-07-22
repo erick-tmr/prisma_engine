@@ -70,7 +70,6 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select ".gotm-slide__title", text: products(:yellow).name
     assert_select ".gotm-slide__title", text: products(:placeholder).name
     assert_select ".gotm-slide__blurb", count: 2
-    # Only yellow's slide has brindes (per-product kit); placeholder has none.
     assert_select ".gotm-brindes__thumbs .gotm-brinde", count: 2
   end
 
