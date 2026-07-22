@@ -37,8 +37,13 @@
 
       <% @order.order_items.each do |item| %>
         <div class="order-detail__item">
-          <div class="order-detail__item-thumb d-flex align-items-center justify-content-center">
-            <i class="bi bi-controller order-detail__item-icon"></i>
+          <% image = item.image %>
+          <div class="order-detail__item-thumb<%= " order-detail__item-thumb--empty" if image.blank? %>">
+            <% if image.present? %>
+              <%= storefront_image_tag image, resize: 160, alt: item.name, loading: "lazy" %>
+            <% else %>
+              <i class="bi <%= item.custom_order? ? "bi-card-checklist" : "bi-controller" %> order-detail__item-icon"></i>
+            <% end %>
           </div>
           <div class="order-detail__item-info">
             <span class="name"><%= item.name %></span>

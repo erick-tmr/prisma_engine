@@ -22,7 +22,8 @@ module Account
 
     def find_order
       current_user.orders
-                  .includes(:order_items, shipment: :tracking_events)
+                  .includes(order_items: { product: { product_photos: { image_attachment: :blob } } },
+                            shipment: :tracking_events)
                   .find_by!(number: params[:id])
     end
   end

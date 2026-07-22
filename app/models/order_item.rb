@@ -12,6 +12,10 @@ class OrderItem < ApplicationRecord
     unit_price_cents * quantity
   end
 
+  def image
+    photo_path.presence || product&.image
+  end
+
   def custom_order?
     requested_game.present?
   end
