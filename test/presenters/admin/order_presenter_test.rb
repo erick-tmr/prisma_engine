@@ -46,6 +46,17 @@ module Admin
                    order_in("in_production").status_description
     end
 
+    test "receiver_obs reads the shipment note, or nil without a note or shipment" do
+      presenter = order_in("payment_confirmed")
+      assert_nil presenter.receiver_obs
+
+      presenter.order.shipment.update!(receiver_obs: "Entregar na portaria")
+      assert_equal "Entregar na portaria", OrderPresenter.new(presenter.order.reload).receiver_obs
+
+      presenter.order.shipment.destroy!
+      assert_nil OrderPresenter.new(presenter.order.reload).receiver_obs
+    end
+
     test "a merged order renders its lifecycle and description without breaking" do
       presenter = order_in("merged")
       assert_equal "Consolidado", presenter.status_label
