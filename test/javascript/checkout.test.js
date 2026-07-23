@@ -72,6 +72,10 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = t
         <span data-sel-line1></span><span data-sel-line2></span><span data-sel-badge></span>
       </div>
       <button data-addr-change-btn type="button">Alterar</button>
+      <div class="checkout__addr-note" data-addr-note>
+        <textarea data-correios-obs maxlength="100"></textarea>
+        <span data-note-count></span>
+      </div>
       <div class="checkout__addr-list" data-addr-list>
         ${addresses.map(addrOpt).join("")}
         <button data-addr-add-btn type="button">Adicionar</button>
@@ -147,6 +151,25 @@ describe("renderQuote", () => {
     expect(opts.querySelector('[data-opt="pac"]')).not.toBeNull();
     expect(opts.querySelector('[data-opt-disabled="mini_envios"]')).not.toBeNull();
     expect(opts.innerHTML).toContain("Não disponível.");
+  });
+
+  it("renders each option with its mapped Correios icon", () => {
+    const co = mountCheckout();
+    co.renderQuote({
+      destination: { city: "São Paulo", state: "SP" },
+      services: [
+        { key: "sedex", label: "SEDEX", eligible: true, price_cents: 3840, business_days: 2 },
+        { key: "pac", label: "PAC", eligible: true, price_cents: 2500, business_days: 7 },
+        { key: "mini_envios", label: "Mini Envios", eligible: false, message: "Não disponível." },
+        { key: "drone", label: "Drone", eligible: true, price_cents: 9900, business_days: 1 }
+      ]
+    });
+    const html = document.querySelector('[data-opt="sedex"]').outerHTML;
+    expect(html).toContain("checkout__ship-ic");
+    expect(html).toContain("bi-lightning-charge-fill");
+    expect(document.querySelector('[data-opt="pac"]').outerHTML).toContain("bi-truck");
+    expect(document.querySelector('[data-opt-disabled="mini_envios"]').outerHTML).toContain("bi-envelope");
+    expect(document.querySelector('[data-opt="drone"]').outerHTML).toContain("bi-box-seam");
   });
 
   it("auto-selects the cart's preselected service when present", () => {
@@ -521,6 +544,27 @@ describe("observation", () => {
     expect(document.querySelector("[data-pay-error-msg]").textContent).toMatch(/Escreva uma observação/);
     expect(document.querySelector("[data-agree-modal]").classList.contains("is-open")).toBe(false);
     expect(openTab).not.toHaveBeenCalled();
+  });
+});
+
+describe("correios note", () => {
+  it("updates the counter as the note is typed", () => {
+    const co = mountCheckout();
+    co.bindEvents();
+    const input = document.querySelector("[data-correios-obs]");
+    input.value = "entregar na portaria";
+    input.dispatchEvent(new Event("input"));
+    expect(document.querySelector("[data-note-count]").textContent).toBe("20/100");
+    expect(document.querySelector("[data-addr-note]").classList.contains("is-invalid")).toBe(false);
+  });
+
+  it("flags the note as invalid once it passes the limit", () => {
+    const co = mountCheckout();
+    const input = document.querySelector("[data-correios-obs]");
+    input.value = "x".repeat(101);
+    co.refreshNote();
+    expect(document.querySelector("[data-note-count]").textContent).toBe("101/100");
+    expect(document.querySelector("[data-addr-note]").classList.contains("is-invalid")).toBe(true);
   });
 });
 

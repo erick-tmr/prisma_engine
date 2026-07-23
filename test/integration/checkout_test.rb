@@ -178,6 +178,16 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_equal "Deixar na portaria", Order.last.observation
   end
 
+  test "POST /checkout stores the Correios note on the shipment" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_links
+
+    post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac", receiver_obs: "Entregar na portaria" }
+    assert_equal "Entregar na portaria", Order.last.shipment.receiver_obs
+  end
+
   test "POST /checkout as JSON returns the payment + return URLs for the new-tab flow" do
     sign_in @user
     add_yellow_to_cart

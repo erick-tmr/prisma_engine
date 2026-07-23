@@ -1,5 +1,10 @@
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const INSTALLMENTS = 12;
+const SHIP_ICONS = { sedex: "bi-lightning-charge-fill", pac: "bi-truck", mini_envios: "bi-envelope" };
+
+function shipIcon(key) {
+  return '<span class="checkout__ship-ic"><i class="bi ' + (SHIP_ICONS[key] || "bi-box-seam") + '"></i></span>';
+}
 
 export function money(cents) {
   return BRL.format(cents / 100);
@@ -23,6 +28,9 @@ export function createCheckout(doc, openTab, navigate) {
   const obsNone = doc.querySelector("[data-obs-none]");
   const obsStep = doc.querySelector("#step-observation");
   const obsFlag = doc.querySelector("[data-obs-flag]");
+  const noteBox = doc.querySelector("[data-addr-note]");
+  const noteInput = doc.querySelector("[data-correios-obs]");
+  const noteCount = doc.querySelector("[data-note-count]");
   /* v8 ignore next */
   const subtotal = parseInt(doc.querySelector("[data-subtotal]")?.dataset.subtotalCents || "0", 10);
   const mergeCard = doc.querySelector("[data-merge]");
@@ -77,6 +85,7 @@ export function createCheckout(doc, openTab, navigate) {
         const fast = s.key === "sedex" ? '<span class="checkout__ship-tag">Mais rápido</span>' : "";
         return '<label class="checkout__ship-opt" data-ship-opt data-opt="' + s.key + '">'
           + '<span class="checkout__ship-radio"></span>'
+          + shipIcon(s.key)
           + '<span class="checkout__ship-info">'
           +   '<span class="checkout__ship-name">' + s.label + fast + "</span>"
           +   '<span class="checkout__ship-eta"><i class="bi bi-clock"></i> Entrega em ' + s.business_days + " dias úteis</span>"
@@ -86,6 +95,7 @@ export function createCheckout(doc, openTab, navigate) {
       }
       return '<div class="checkout__ship-opt is-disabled" data-ship-opt data-opt-disabled="' + s.key + '">'
         + '<span class="checkout__ship-radio"></span>'
+        + shipIcon(s.key)
         + '<span class="checkout__ship-info">'
         +   '<span class="checkout__ship-name">' + s.label + "</span>"
         +   '<span class="checkout__ship-eta">' + s.message + "</span>"
@@ -292,6 +302,13 @@ export function createCheckout(doc, openTab, navigate) {
     }
   }
 
+  function refreshNote() {
+    const len = noteInput.value.length;
+    const max = noteInput.maxLength;
+    noteCount.textContent = len + "/" + max;
+    noteBox.classList.toggle("is-invalid", len > max);
+  }
+
   function bindEvents() {
     const addrList = doc.querySelector("[data-addr-list]");
     const addrForm = doc.querySelector("[data-addr-form]");
@@ -314,6 +331,7 @@ export function createCheckout(doc, openTab, navigate) {
       if (obsNone.checked) obsInput.value = "";
       refreshObs();
     });
+    noteInput.addEventListener("input", refreshNote);
 
     checkoutForm.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -340,6 +358,7 @@ export function createCheckout(doc, openTab, navigate) {
   function init() {
     bindEvents();
     refreshObs();
+    refreshNote();
     if (mergeCheck) fetchMergeQuote();
     const selected = doc.querySelector("[data-addr-opt].is-selected") || doc.querySelector("[data-addr-opt]");
     if (selected) fetchQuote(selected.dataset.cep);
@@ -348,7 +367,7 @@ export function createCheckout(doc, openTab, navigate) {
 
   return {
     renderSummary, selectShip, renderQuote, showShipError, fetchQuote,
-    fillSelected, selectAddress, obsSatisfied, refreshObs,
+    fillSelected, selectAddress, obsSatisfied, refreshObs, refreshNote,
     validate, openAgreement, closeAgreement, beginPayment, bindEvents, init,
     applyMerge, clearMerge, failMerge, fetchMergeQuote, showMergeSavings,
     get shipping() { return shipping; },

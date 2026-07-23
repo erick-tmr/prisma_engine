@@ -54,6 +54,7 @@ module Checkout
       assert_equal "pac", shipment.service
       assert_equal "04534003", shipment.zip
       assert_equal "Dona Master", shipment.receiver_name
+      assert_nil shipment.receiver_obs
 
       plan = carrier.order_merge
       assert_equal master, plan.master_order
@@ -62,6 +63,16 @@ module Checkout
       assert_equal 2384, plan.combined_shipping_cents
       assert_equal 1200, plan.paid_fretes_cents
       assert plan.pending?
+    end
+
+    test "carries the Correios note onto the carrier shipment" do
+      add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
+      stub_preco_prazo
+
+      result = PlaceMergeOrder.call(user: @user, cart: cart, receiver_obs: "Entregar na portaria")
+
+      assert result.success?
+      assert_equal "Entregar na portaria", result.order.shipment.receiver_obs
     end
 
     test "fails on an empty cart" do

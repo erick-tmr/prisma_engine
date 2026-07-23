@@ -32,6 +32,12 @@ detectors:
     max_params: 7         # a cohesive value object / command legitimately takes a
                           # handful of keyword args (a hydrated cart line's fields);
                           # 8+ is where a parameter object is warranted.
+    exclude:
+      - Checkout::PlaceOrder#initialize  # command object: 6 cohesive keyword args (user,
+                          # cart, address_id, shipping_service, observation, receiver_obs),
+                          # all from one checkout submission. reek 6.5.0 caps keyword-arg
+                          # methods at 5 regardless of max_params, so this trips a false
+                          # positive; a parameter object would be premature for one command.
   TooManyConstants:
     exclude:
       - Admin::OrderPresenter   # a view-model: small display lookup tables (status flow,

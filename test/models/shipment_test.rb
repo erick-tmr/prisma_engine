@@ -24,6 +24,22 @@ class ShipmentTest < ActiveSupport::TestCase
     assert_not Shipment.new(order: orders(:awaiting), shipping_cents: -1).valid?
   end
 
+  test "rejects a receiver_obs longer than the limit" do
+    within = Shipment.new(order: orders(:awaiting), receiver_obs: "a" * Shipment::RECEIVER_OBS_LIMIT)
+    over = Shipment.new(order: orders(:awaiting), receiver_obs: "a" * (Shipment::RECEIVER_OBS_LIMIT + 1))
+
+    assert within.valid?
+    assert_not over.valid?
+  end
+
+  test "normalizes a blank receiver_obs to nil" do
+    shipment = Shipment.create!(order: orders(:awaiting), receiver_obs: "  entregar na portaria  ")
+    assert_equal "entregar na portaria", shipment.receiver_obs
+
+    shipment.update!(receiver_obs: "   ")
+    assert_nil shipment.receiver_obs
+  end
+
   test "address exposes the snapshot as a symbol-keyed hash" do
     assert_equal(
       {

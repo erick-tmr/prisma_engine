@@ -45,12 +45,15 @@ class CheckoutController < ApplicationController
 
   def place_order
     if merge_requested?
-      Checkout::PlaceMergeOrder.call(user: current_user, cart: current_cart, observation: params[:observation])
+      Checkout::PlaceMergeOrder.call(
+        user: current_user, cart: current_cart,
+        observation: params[:observation], receiver_obs: params[:receiver_obs]
+      )
     else
       Checkout::PlaceOrder.call(
         user: current_user, cart: current_cart,
         address_id: params[:address_id], shipping_service: params[:shipping_service],
-        observation: params[:observation]
+        observation: params[:observation], receiver_obs: params[:receiver_obs]
       )
     end
   end

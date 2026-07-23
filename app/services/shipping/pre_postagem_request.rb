@@ -20,6 +20,7 @@ module Shipping
         celular: digits[2..],
         email: user.email,
         cpfCnpj: shipment.receiver_cpf,
+        obs: shipment.receiver_obs,
         endereco: {
           cep: shipment.zip,
           logradouro: shipment.street,
@@ -29,7 +30,7 @@ module Shipping
           cidade: shipment.city,
           uf: shipment.state
         }.compact
-      }
+      }.compact
     end
 
     def self.items_for(order)
