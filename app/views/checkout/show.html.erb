@@ -162,7 +162,7 @@
             <div class="checkout__obs-field">
               <%= text_area_tag :observation, nil, form: "checkout-form", class: "checkout__obs-input",
                     maxlength: Order::OBSERVATION_LIMIT, data: { obs_input: true },
-                    placeholder: "Ex.: Entregar no período da tarde; deixar na portaria se eu não atender." %>
+                    placeholder: "Ex.: caixa da versão 2 japonesa; carcaça amarela com glitter tipo cristal." %>
               <span class="checkout__obs-count" data-obs-count>0/<%= Order::OBSERVATION_LIMIT %></span>
             </div>
             <label class="checkout__obs-none">
