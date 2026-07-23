@@ -6,14 +6,15 @@ module Checkout
       end
     end
 
-    def self.call(user:, cart:, observation: nil)
-      new(user: user, cart: cart, observation: observation).call
+    def self.call(user:, cart:, observation: nil, receiver_obs: nil)
+      new(user: user, cart: cart, observation: observation, receiver_obs: receiver_obs).call
     end
 
-    def initialize(user:, cart:, observation: nil)
-      @user        = user
-      @cart        = cart
-      @observation = observation
+    def initialize(user:, cart:, observation: nil, receiver_obs: nil)
+      @user         = user
+      @cart         = cart
+      @observation  = observation
+      @receiver_obs = receiver_obs
     end
 
     def call
@@ -28,7 +29,7 @@ module Checkout
 
     private
 
-    attr_reader :user, :cart, :observation
+    attr_reader :user, :cart, :observation, :receiver_obs
 
     def failure(error)
       Result.new(order: nil, error: error)
@@ -57,6 +58,7 @@ module Checkout
         height_cm:      Shipping::PACKAGE_DIMENSIONS[:altura_cm],
         width_cm:       Shipping::PACKAGE_DIMENSIONS[:largura_cm],
         length_cm:      Shipping::PACKAGE_DIMENSIONS[:comprimento_cm],
+        receiver_obs:   receiver_obs,
         **address_snapshot(quote.master.shipment)
       }
     end

@@ -73,6 +73,7 @@ bi-instagram
 bi-joystick
 bi-key
 bi-life-preserver
+bi-lightning-charge-fill
 bi-link-45deg
 bi-list
 bi-list-ol

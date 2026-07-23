@@ -35,6 +35,21 @@ module Shipping
       assert_not request.recipient[:endereco].key?(:complemento)
     end
 
+    test "omits obs when the shipment has no receiver note" do
+      request = Shipping::PrePostagemRequest.from_shipment(shipments(:awaiting))
+
+      assert_not request.recipient.key?(:obs)
+    end
+
+    test "maps the shipment receiver_obs to the recipient obs" do
+      shipment = shipments(:awaiting)
+      shipment.update!(receiver_obs: "Entregar na portaria")
+
+      request = Shipping::PrePostagemRequest.from_shipment(shipment)
+
+      assert_equal "Entregar na portaria", request.recipient[:obs]
+    end
+
     test "strips emoji and non-Latin-1 characters from the content declaration" do
       order = Order.create!(user: users(:confirmed), subtotal_cents: 50, total_cents: 50)
       order.order_items.create!(

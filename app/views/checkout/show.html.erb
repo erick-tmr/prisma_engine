@@ -38,6 +38,17 @@
               <button class="checkout__addr-change" data-addr-change-btn type="button"><i class="bi bi-pencil"></i> Alterar</button>
             </div>
 
+            <div class="checkout__addr-note" data-addr-note>
+              <%= label_tag :receiver_obs, class: "checkout__addr-note-label" do %>Observação para os Correios <span class="opt">· opcional</span><% end %>
+              <%= text_area_tag :receiver_obs, nil, form: "checkout-form", rows: 2,
+                    maxlength: Shipment::RECEIVER_OBS_LIMIT, data: { correios_obs: true },
+                    placeholder: "Ex.: entregar na portaria, apto nos fundos, ponto de referência…" %>
+              <div class="checkout__addr-note-foot">
+                <span class="checkout__addr-note-hint" data-note-hint><i class="bi bi-exclamation-circle-fill"></i> Máximo de <%= Shipment::RECEIVER_OBS_LIMIT %> caracteres.</span>
+                <span class="checkout__addr-note-count" data-note-count>0/<%= Shipment::RECEIVER_OBS_LIMIT %></span>
+              </div>
+            </div>
+
             <div class="checkout__addr-list<%= ' is-open' unless selected %>" data-addr-list>
               <% @addresses.each do |addr| %>
                 <label class="checkout__addr-opt<%= ' is-selected' if addr.id == selected&.id %>" data-addr-opt

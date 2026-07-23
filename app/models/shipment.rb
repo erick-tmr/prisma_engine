@@ -17,6 +17,8 @@ class Shipment < ApplicationRecord
 
   TERMINAL_PREPOST_STATUSES = [ 4, 5, 6 ].freeze
 
+  RECEIVER_OBS_LIMIT = 100
+
   belongs_to :order
 
   has_one :shipping_label, dependent: :destroy
@@ -29,6 +31,9 @@ class Shipment < ApplicationRecord
   validates :pre_post_id, uniqueness: true, allow_nil: true
   validates :service, inclusion: { in: Shipping::SERVICES.keys.map(&:to_s) }, allow_nil: true
   validates :shipping_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :receiver_obs, length: { maximum: RECEIVER_OBS_LIMIT }, allow_blank: true
+
+  normalizes :receiver_obs, with: ->(value) { value.strip.presence }
 
   scope :awaiting_tracking, -> {
     where.not(tracking_state: FINAL_TRACKING_STATES)

@@ -95,6 +95,13 @@ module Checkout
       assert_nil place(observation: "   ").order.observation
     end
 
+    test "stores the Correios note on the shipment" do
+      stub_preco_prazo(all_eligible: true)
+
+      shipment = place(receiver_obs: "Entregar na portaria").order.shipment
+      assert_equal "Entregar na portaria", shipment.receiver_obs
+    end
+
     test "fails when the cart is empty" do
       result = PlaceOrder.call(user: @user, cart: Cart::Bag.new, address_id: @address.id, shipping_service: "pac")
       assert_not result.success?
