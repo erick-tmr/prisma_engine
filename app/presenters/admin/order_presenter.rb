@@ -61,6 +61,10 @@ module Admin
       order.shipment.address
     end
 
+    def receiver_obs
+      order.shipment&.receiver_obs
+    end
+
     def payment
       if order.payment_status == :paid
         payment_badge("paid", "bi-check-circle-fill", I18n.t("admin.orders.detail.payment_confirmed"))

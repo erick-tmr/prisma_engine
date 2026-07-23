@@ -115,6 +115,12 @@
                   <div><%= address[:street] %>, <%= address[:number] %><% if address[:complement].present? %>, <%= address[:complement] %><% end %></div>
                   <div><%= address[:neighborhood] %></div>
                   <div><%= address[:city] %> · <%= address[:state] %> · CEP <%= number_to_cep(address[:zip]) %></div>
+                  <% if @presenter.receiver_obs.present? %>
+                    <div class="od-note">
+                      <i class="bi bi-chat-left-text"></i>
+                      <span><span class="od-note-label"><%= t("admin.orders.detail.correios_note") %></span><%= @presenter.receiver_obs %></span>
+                    </div>
+                  <% end %>
                 </div>
               </div>
               <% end %>

@@ -70,6 +70,17 @@ module Admin
       assert_select ".od-obs-text", text: /Cliente pediu embalagem extra/
     end
 
+    test "show renders the Correios delivery note inside the address block when present" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      order.shipment.update!(receiver_obs: "Entregar na portaria")
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select ".od-note .od-note-label", text: /Observação para os Correios/
+      assert_select ".od-note", text: /Entregar na portaria/
+    end
+
     test "show renders the made-to-order request panel per line with a blank-notes fallback" do
       sign_in users(:admin)
       order = orders(:confirmed_paid)

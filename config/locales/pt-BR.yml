@@ -560,6 +560,7 @@ pt-BR:
         shipping: "Frete (%{service})"
         total: "Total"
         address: "Endereço de entrega"
+        correios_note: "Observação para os Correios"
         payment: "Pagamento"
         payment_confirmed: "Pagamento confirmado"
         payment_pending: "Aguardando pagamento"
