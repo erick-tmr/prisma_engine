@@ -375,7 +375,7 @@ jobs:
           {
             echo "## Code smells: reek (changed files)"
             echo '```'
-            cat reek-report.txt 2>/dev/null || echo "(none)"
+            if [ -s reek-report.txt ]; then cat reek-report.txt; else echo "No code smells on changed files."; fi
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -560,7 +560,7 @@ jobs:
             echo '```'
             echo "### Code smells: reek (changed files)"
             echo '```'
-            cat artifacts/reek-report/reek-report.txt 2>/dev/null || echo "none"
+            if [ -s artifacts/reek-report/reek-report.txt ]; then cat artifacts/reek-report/reek-report.txt; else echo "No code smells on changed files."; fi
             echo '```'
             echo "### Semgrep (new findings)"
             echo '```'
