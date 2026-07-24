@@ -26,7 +26,7 @@ function sampleData() {
       { n: "PG-202606140001", clientName: "Ana Cardoso", city: "São Paulo", uf: "SP", date: "2026-06-14", status: "awaiting_payment", total: 48900, items: 2 },
       { n: "PG-202606130002", clientName: "Bruno Tanaka", city: "Campinas", uf: "SP", date: "2026-06-13", status: "payment_confirmed", total: 127400, items: 3 },
       { n: "PG-202606110003", clientName: "Carla Menezes", city: "Rio de Janeiro", uf: "RJ", date: "2026-06-11", status: "in_production", total: 32900, items: 1 },
-      { n: "PG-202605300004", clientName: "Diego Fontes", city: "Belo Horizonte", uf: "MG", date: "2026-05-30", status: "delivered", total: 73200, items: 2 },
+      { n: "PG-202605300004", clientName: "Diego Fontes", city: "Belo Horizonte", uf: "MG", date: "2026-05-30", status: "label_issued", total: 73200, items: 2 },
       { n: "PG-202604220005", clientName: "Eduarda Lima", city: "Curitiba", uf: "PR", date: "2026-04-22", status: "awaiting_refund", total: 47900, items: 1 }
     ],
     clients: [
@@ -159,7 +159,7 @@ describe("orders transforms", () => {
     expect(filterOrders(orders, { ...base, oName: "cardoso" }).map((o) => o.n)).toEqual(["PG-202606140001"]);
     expect(filterOrders(orders, { ...base, oName: "PG-202606130002" })).toHaveLength(1);
     expect(filterOrders(orders, { ...base, oName: "zzz" })).toHaveLength(0);
-    expect(filterOrders(orders, { ...base, statuses: new Set(["delivered"]) })).toHaveLength(1);
+    expect(filterOrders(orders, { ...base, statuses: new Set(["label_issued"]) })).toHaveLength(1);
     expect(filterOrders(orders, { ...base, from: new Date(2026, 5, 1) }).every((o) => o.date >= "2026-06-01")).toBe(true);
     expect(filterOrders(orders, { ...base, to: new Date(2026, 4, 1) }).map((o) => o.n)).toEqual(["PG-202604220005"]);
   });
