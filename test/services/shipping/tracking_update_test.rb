@@ -17,5 +17,44 @@ module Shipping
       mystery = result.find { |row| row[:code] == "ZZ" }
       assert_equal "Evento misterioso", mystery[:description]
     end
+
+    test "discards the label once the object is posted" do
+      shipment = shipments(:labeled)
+      assert shipment.shipping_label.present?
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, posted_event ])
+
+      assert_nil shipment.reload.shipping_label
+    end
+
+    test "posting without a label is a no-op" do
+      shipment = shipments(:awaiting)
+      assert_nil shipment.shipping_label
+
+      assert_nothing_raised { Shipping::TrackingUpdate.apply(shipment, [ posted_event ]) }
+      assert_nil shipment.reload.shipping_label
+    end
+
+    test "keeps the label while only the label-issued event is present" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event ])
+
+      assert shipment.reload.shipping_label.present?
+    end
+
+    private
+
+    def posted_event
+      event("PO", "01", "Objeto postado", Time.utc(2026, 5, 22, 14, 51, 2))
+    end
+
+    def label_event
+      event("FC", "82", "Etiqueta emitida", Time.utc(2026, 5, 22, 13, 11, 4))
+    end
+
+    def event(code, type, description, occurred_at)
+      { code: code, type: type, description: description, occurred_at: occurred_at, payload: {} }
+    end
   end
 end
