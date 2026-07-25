@@ -31,13 +31,14 @@ module Meta
           assert_equal true, payload["allow_upsert"]
           request = payload["requests"].first
           assert_equal "UPDATE", request["method"]
-          assert_equal "42", request["retailer_id"]
+          assert_nil request["retailer_id"]
+          assert_equal "42", request.dig("data", "id")
           assert_equal "Zelda", request.dig("data", "title")
           true
         end
       end
 
-      test "delete POSTs a DELETE request with no data" do
+      test "delete POSTs a DELETE request keyed by data id" do
         stub_request(:post, URL).to_return(status: 200, body: "{}", headers: { "Content-Type" => "application/json" })
 
         with_credentials { Meta::Api::Catalog.delete("42") }
@@ -45,8 +46,7 @@ module Meta
         assert_requested(:post, URL) do |req|
           request = JSON.parse(req.body)["requests"].first
           assert_equal "DELETE", request["method"]
-          assert_equal "42", request["retailer_id"]
-          assert_nil request["data"]
+          assert_equal "42", request.dig("data", "id")
           true
         end
       end

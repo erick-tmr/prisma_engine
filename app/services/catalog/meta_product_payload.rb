@@ -21,8 +21,7 @@ module Catalog
         availability: DEFAULTS[:availability],
         condition: DEFAULTS[:condition],
         brand: DEFAULTS[:brand],
-        price: product.price_cents,
-        currency: product.currency,
+        price: formatted_price,
         link: link,
         image_link: images.first,
         additional_image_link: images.drop(1).take(LIMITS[:additional_images]),
@@ -34,6 +33,10 @@ module Catalog
     private
 
     attr_reader :product
+
+    def formatted_price
+      format("%.2f %s", product.price_cents / 100.0, product.currency)
+    end
 
     def description
       spaced = product.description.to_s.gsub(BLOCK_BOUNDARY, " ")
