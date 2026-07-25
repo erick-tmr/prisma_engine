@@ -14,11 +14,17 @@ module Catalog
       product
     end
 
+    def with_meta_configured(&block)
+      Meta::Api.stub(:configured?, true, &block)
+    end
+
     test "pushes an upsert and stamps catalog_synced_at" do
       product = syncable_product
 
-      Meta::Api::Catalog.stub(:upsert, { "handles" => [] }) do
-        Catalog::ProductSync.call(product)
+      with_meta_configured do
+        Meta::Api::Catalog.stub(:upsert, { "handles" => [] }) do
+          Catalog::ProductSync.call(product)
+        end
       end
 
       assert_not_nil product.reload.catalog_synced_at
@@ -30,8 +36,10 @@ module Catalog
       product.update_columns(catalog_synced_at: Time.current, published: false)
       removed = nil
 
-      Meta::Api::Catalog.stub(:delete, ->(retailer_id) { removed = retailer_id }) do
-        Catalog::ProductSync.call(product)
+      with_meta_configured do
+        Meta::Api::Catalog.stub(:delete, ->(retailer_id) { removed = retailer_id }) do
+          Catalog::ProductSync.call(product)
+        end
       end
 
       assert_equal product.id.to_s, removed
@@ -42,7 +50,7 @@ module Catalog
       product = syncable_product
       product.update_columns(published: false)
 
-      Catalog::ProductSync.call(product)
+      with_meta_configured { Catalog::ProductSync.call(product) }
 
       assert_nil product.reload.catalog_synced_at
     end
@@ -50,8 +58,10 @@ module Catalog
     test "records a permanent error without raising" do
       product = syncable_product
 
-      Meta::Api::Catalog.stub(:upsert, ->(*) { raise Meta::Api::PermanentError, "invalid field" }) do
-        Catalog::ProductSync.call(product)
+      with_meta_configured do
+        Meta::Api::Catalog.stub(:upsert, ->(*) { raise Meta::Api::PermanentError, "invalid field" }) do
+          Catalog::ProductSync.call(product)
+        end
       end
 
       assert_equal "invalid field", product.reload.catalog_sync_error
@@ -62,10 +72,20 @@ module Catalog
       product = syncable_product
 
       assert_raises(Meta::Api::TransientError) do
-        Meta::Api::Catalog.stub(:upsert, ->(*) { raise Meta::Api::TransientError, "rate limited" }) do
-          Catalog::ProductSync.call(product)
+        with_meta_configured do
+          Meta::Api::Catalog.stub(:upsert, ->(*) { raise Meta::Api::TransientError, "rate limited" }) do
+            Catalog::ProductSync.call(product)
+          end
         end
       end
+    end
+
+    test "does nothing when Meta credentials are absent" do
+      product = syncable_product
+
+      Catalog::ProductSync.call(product)
+
+      assert_nil product.reload.catalog_synced_at
     end
   end
 end

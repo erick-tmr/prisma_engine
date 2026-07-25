@@ -9,6 +9,8 @@ module Catalog
     end
 
     def call
+      return unless Meta::Api.configured?
+
       if product.syncable_to_meta?
         push
       elsif product.catalog_synced_at?

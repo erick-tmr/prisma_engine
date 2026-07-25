@@ -11,6 +11,10 @@ module Meta
       Rails.application.credentials.dig(:meta, :catalog_id)
     end
 
+    def self.configured?
+      access_token.present? && catalog_id.present?
+    end
+
     Error = Class.new(StandardError)
     TransientError = Class.new(Error)
     PermanentError = Class.new(Error)
