@@ -406,21 +406,70 @@
 .order-detail__pay-status.is-paid { color: #1f8a5b; }
 .order-detail__pay-status.is-pending { color: #9a7400; }
 
-.order-detail__track-code {
+.order-detail__subcard-head--row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--pg-border);
 }
-.order-detail__track-code-label { font-size: 12.5px; color: var(--pg-muted); }
-.order-detail__track-code-value {
-  font-family: var(--pg-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 14px;
+
+.order-detail__track-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.order-detail__track-code-label {
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  color: var(--pg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.order-detail__track-code-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--pg-ink);
+  background: #f6f7f8;
+  border: 1px solid var(--pg-border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+.order-detail__track-code-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--pg-border);
+  background: #fff;
+  color: var(--pg-muted);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.order-detail__track-code-btn:hover {
+  color: var(--pg-ink);
+  border-color: #c2c7ce;
+  background: #f6f7f8;
+}
+.order-detail__track-code-btn.is-copied {
+  color: #1f8a5b;
+  border-color: #b7e0ca;
+  background: #e4f4ec;
+}
+
+@media (max-width: 620px) {
+  .order-detail__subcard-head--row { align-items: flex-start; }
+  .order-detail__track-code-label { display: none; }
 }
 
 .order-detail__track { padding: 6px 18px 14px; }
