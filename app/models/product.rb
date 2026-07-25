@@ -24,6 +24,10 @@ class Product < ApplicationRecord
   scope :featured, ->(limit = 8) {
     published.where.not("products.name LIKE ?", "- %").limit(limit)
   }
+  scope :meta_stale, -> {
+    where("catalog_synced_at IS NULL OR products.updated_at > catalog_synced_at")
+      .where("(published = TRUE AND price_cents > 0) OR catalog_synced_at IS NOT NULL")
+  }
 
   def price_formatted
     price_cents.to_i.zero? ? "Sob consulta" : HasMoney.format(price_cents)
@@ -35,6 +39,14 @@ class Product < ApplicationRecord
 
   def title
     name
+  end
+
+  def syncable_to_meta?
+    published? && price_cents.positive? && usable_public_image?
+  end
+
+  def usable_public_image?
+    product_photos.any? { |photo| photo.image.attached? }
   end
 
   def category_label

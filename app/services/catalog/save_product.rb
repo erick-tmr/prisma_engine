@@ -18,6 +18,7 @@ module Catalog
 
     def call
       ActiveRecord::Base.transaction { persist! }
+      ProductCatalogSyncJob.perform_later(product.id)
       Result.new(product: product, success: true)
     rescue ActiveRecord::RecordInvalid
       Result.new(product: product, success: false)
