@@ -73,6 +73,8 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Seu pedido foi entregue/, body)
     assert_match(/Cor da carcaça: cristal/, body)
     assert_match(/Rastreamento/, body)
+    assert_match(/Código de rastreamento/, body)
+    assert_match(/PG515656026BR/, body)
     assert_match(/Objeto entregue ao destinatário/, body)
     assert_match(%r{Postado em São Paulo / SP}, body)
     assert_match(/Agência dos Correios - CAMBUI - MG/, body)
@@ -81,6 +83,18 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Pago/, body)
     assert_match(/Pix/, body)
     assert_select ".order-detail__track-item.is-current .desc", text: /entregue ao destinatário/
+  end
+
+  test "show reveals the tracking code as soon as the label is emitted, before any events" do
+    shipments(:labeled).update!(tracking_code: "AD123456789BR")
+
+    sign_in users(:buyer)
+    get account_order_path(orders(:labeled))
+    assert_response :success
+    body = response.body
+    assert_match(/Código de rastreamento/, body)
+    assert_match(/AD123456789BR/, body)
+    assert_select ".order-detail__track-item", false
   end
 
   test "tracking times render in Brasília time, not UTC" do
@@ -98,6 +112,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     body = response.body
     assert_match(/Em produção/, body)
     assert_no_match(/Rastreamento/, body)
+    assert_no_match(/Código de rastreamento/, body)
     assert_no_match(/Cancelar pedido/, body)
     assert_match(/Cartão de crédito/, body)
   end

@@ -89,9 +89,17 @@
       </div>
     </div>
 
-    <% if @order.shipping_visible? %>
+    <% tracking_code = @order.shipment.tracking_code %>
+    <% if tracking_code.present? || @order.shipping_visible? %>
       <div class="order-detail__subcard order-detail__subcard--flush">
         <div class="order-detail__subcard-head"><i class="bi bi-truck"></i> <%= t("account.orders.show.tracking") %></div>
+        <% if tracking_code.present? %>
+          <div class="order-detail__track-code">
+            <span class="order-detail__track-code-label"><%= t("account.orders.show.tracking_code") %></span>
+            <span class="order-detail__track-code-value"><%= tracking_code %></span>
+          </div>
+        <% end %>
+        <% if @order.shipping_visible? %>
         <div class="order-detail__track">
           <% events = @order.tracking_events.sort_by(&:occurred_at).reverse %>
           <% events.each_with_index do |event, index| %>
@@ -112,6 +120,7 @@
             </div>
           <% end %>
         </div>
+        <% end %>
       </div>
     <% end %>
 
