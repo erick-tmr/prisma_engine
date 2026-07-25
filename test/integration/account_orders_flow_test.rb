@@ -75,6 +75,9 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Rastreamento/, body)
     assert_match(/Código de rastreamento/, body)
     assert_match(/PG515656026BR/, body)
+    assert_select "[data-tracking-copy]"
+    assert_select "a[href=?][target=?]", "https://rastreamento.correios.com.br/app/index.php", "_blank"
+    assert_select "script[src*='order_tracking']"
     assert_match(/Objeto entregue ao destinatário/, body)
     assert_match(%r{Postado em São Paulo / SP}, body)
     assert_match(/Agência dos Correios - CAMBUI - MG/, body)
@@ -94,6 +97,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     body = response.body
     assert_match(/Código de rastreamento/, body)
     assert_match(/AD123456789BR/, body)
+    assert_select "[data-tracking-copy]"
     assert_select ".order-detail__track-item", false
   end
 
@@ -113,6 +117,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Em produção/, body)
     assert_no_match(/Rastreamento/, body)
     assert_no_match(/Código de rastreamento/, body)
+    assert_select "[data-tracking-copy]", false
     assert_no_match(/Cancelar pedido/, body)
     assert_match(/Cartão de crédito/, body)
   end

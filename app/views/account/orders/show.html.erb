@@ -92,13 +92,24 @@
     <% tracking_code = @order.shipment.tracking_code %>
     <% if tracking_code.present? || @order.shipping_visible? %>
       <div class="order-detail__subcard order-detail__subcard--flush">
-        <div class="order-detail__subcard-head"><i class="bi bi-truck"></i> <%= t("account.orders.show.tracking") %></div>
-        <% if tracking_code.present? %>
-          <div class="order-detail__track-code">
-            <span class="order-detail__track-code-label"><%= t("account.orders.show.tracking_code") %></span>
-            <span class="order-detail__track-code-value"><%= tracking_code %></span>
-          </div>
-        <% end %>
+        <div class="order-detail__subcard-head order-detail__subcard-head--row">
+          <span><i class="bi bi-truck"></i> <%= t("account.orders.show.tracking") %></span>
+          <% if tracking_code.present? %>
+            <div class="order-detail__track-code" data-order-tracking>
+              <span class="order-detail__track-code-label"><%= t("account.orders.show.tracking_code") %></span>
+              <span class="order-detail__track-code-value" data-tracking-code><%= tracking_code %></span>
+              <button type="button" class="order-detail__track-code-btn" data-tracking-copy
+                      title="<%= t("account.orders.show.tracking_copy") %>" aria-label="<%= t("account.orders.show.tracking_copy") %>">
+                <i class="bi bi-clipboard"></i>
+              </button>
+              <a class="order-detail__track-code-btn" href="https://rastreamento.correios.com.br/app/index.php"
+                 target="_blank" rel="noopener"
+                 title="<%= t("account.orders.show.tracking_external") %>" aria-label="<%= t("account.orders.show.tracking_external") %>">
+                <i class="bi bi-box-arrow-up-right"></i>
+              </a>
+            </div>
+          <% end %>
+        </div>
         <% if @order.shipping_visible? %>
         <div class="order-detail__track">
           <% events = @order.tracking_events.sort_by(&:occurred_at).reverse %>
@@ -122,6 +133,12 @@
         </div>
         <% end %>
       </div>
+    <% end %>
+
+    <% if tracking_code.present? %>
+      <% content_for :scripts do %>
+        <%= javascript_include_tag "storefront/order_tracking", type: "module" %>
+      <% end %>
     <% end %>
 
     <% if @order.cancellable? %>
