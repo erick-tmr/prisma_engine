@@ -24,8 +24,8 @@ module Catalog
       assert_equal "in stock", payload[:availability]
       assert_equal "new", payload[:condition]
       assert_equal "Prisma Games", payload[:brand]
-      assert_equal 19_990, payload[:price]
-      assert_equal "BRL", payload[:currency]
+      assert_equal "199.90 BRL", payload[:price]
+      assert_not payload.key?(:currency)
       assert_equal false, payload[:identifier_exists]
       assert_equal "Toys & Games > Games", payload[:google_product_category]
       assert_match %r{//example\.com/produto/zelda\z}, payload[:link]

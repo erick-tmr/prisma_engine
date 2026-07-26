@@ -6,11 +6,11 @@ module Meta
       include Meta::Api::Client
 
       def self.upsert(retailer_id, data)
-        batch([ { method: "UPDATE", retailer_id: retailer_id, data: data } ])
+        batch([ { method: "UPDATE", data: data.merge(id: retailer_id) } ])
       end
 
       def self.delete(retailer_id)
-        batch([ { method: "DELETE", retailer_id: retailer_id } ])
+        batch([ { method: "DELETE", data: { id: retailer_id } } ])
       end
 
       def self.batch(requests)
