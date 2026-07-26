@@ -31,7 +31,7 @@ class CartQuotesTest < ActionDispatch::IntegrationTest
     assert body["services"].all? { |s| s["eligible"] }
     sedex = body["services"].first
     assert_equal 2284, sedex["price_cents"]
-    assert_equal "R$ 22.84", sedex["price_formatted"]
+    assert_equal "R$ 22,84", sedex["price_formatted"]
     assert_equal 2, sedex["business_days"]
   end
 

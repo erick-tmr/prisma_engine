@@ -41,7 +41,7 @@ class ProductTest < ActiveSupport::TestCase
   end
 
   test "price_formatted matches the legacy PORO output" do
-    assert_equal "R$ 180.00", products(:yellow).price_formatted
+    assert_equal "R$ 180,00", products(:yellow).price_formatted
     assert_equal "Sob consulta", products(:hidden).price_formatted
   end
 

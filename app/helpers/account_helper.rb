@@ -45,9 +45,7 @@ module AccountHelper
   end
 
   def format_brl(cents)
-    ActiveSupport::NumberHelper.number_to_currency(
-      cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".", format: "%u%n"
-    )
+    HasMoney.format(cents)
   end
 
   def order_payment_method_label(method)

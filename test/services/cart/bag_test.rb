@@ -234,7 +234,7 @@ class Cart::BagTest < ActiveSupport::TestCase
     bag.add(product: yellow, quantity: 2, option_ids: [ product_options(:yellow_caixa_com).id ])
     # 18000 base * 2 qty; options no longer move the price
     assert_equal 36_000, bag.subtotal_cents
-    assert_equal "R$ 360.00", bag.subtotal_formatted
+    assert_equal "R$ 360,00", bag.subtotal_formatted
   end
 
   test "to_cookie round-trips through from_cookie" do

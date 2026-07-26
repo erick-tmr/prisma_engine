@@ -2,7 +2,7 @@ require "test_helper"
 
 class HasMoneyTest < ActiveSupport::TestCase
   test "formats cents as pt-BR currency" do
-    assert_equal "R$ 190.00", HasMoney.format(19_000)
+    assert_equal "R$ 190,00", HasMoney.format(19_000)
   end
 
   test "parses pt-BR money strings into cents" do
