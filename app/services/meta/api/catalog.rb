@@ -5,14 +5,6 @@ module Meta
     class Catalog
       include Meta::Api::Client
 
-      def self.upsert(retailer_id, data)
-        batch([ { method: "UPDATE", data: data.merge(id: retailer_id) } ])
-      end
-
-      def self.delete(retailer_id)
-        batch([ { method: "DELETE", data: { id: retailer_id } } ])
-      end
-
       def self.batch(requests)
         new(requests).batch
       end

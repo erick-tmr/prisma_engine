@@ -8,7 +8,7 @@ class SyncStaleProductsJobTest < ActiveSupport::TestCase
     stale = products(:yellow)
     stale.update_columns(catalog_synced_at: 1.day.ago)
 
-    assert_enqueued_with(job: ProductCatalogSyncJob, args: [ stale.id ]) do
+    assert_enqueued_with(job: ProductCatalogBatchJob, args: [ [ stale.id ] ]) do
       SyncStaleProductsJob.perform_now
     end
   end
@@ -20,7 +20,7 @@ class SyncStaleProductsJobTest < ActiveSupport::TestCase
       price_cents: 0, published: false
     )
 
-    assert_no_enqueued_jobs only: ProductCatalogSyncJob do
+    assert_no_enqueued_jobs only: ProductCatalogBatchJob do
       SyncStaleProductsJob.perform_now
     end
   end
