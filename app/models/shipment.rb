@@ -19,6 +19,8 @@ class Shipment < ApplicationRecord
 
   RECEIVER_OBS_LIMIT = 100
 
+  TRACKING_URL = "https://rastreamento.correios.com.br/app/index.php".freeze
+
   belongs_to :order
 
   has_one :shipping_label, dependent: :destroy
@@ -47,6 +49,20 @@ class Shipment < ApplicationRecord
       street: street, number: number, complement: complement,
       neighborhood: neighborhood, city: city, state: state, zip: zip
     }
+  end
+
+  def service_label
+    Shipping.service_label(service)
+  end
+
+  def tracking_url
+    "#{TRACKING_URL}?objeto=#{tracking_code}"
+  end
+
+  def short_address
+    [ [ street, number ].compact_blank.join(", "), [ city, state ].compact_blank.join("/") ]
+      .compact_blank
+      .join(" · ")
   end
 
   def correios_status_name

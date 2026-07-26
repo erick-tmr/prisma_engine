@@ -43,6 +43,24 @@ module Shipping
       assert shipment.reload.shipping_label.present?
     end
 
+    test "stamps posted_at from the first movement and never moves it again" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, posted_event ])
+      assert_equal posted_event[:occurred_at], shipment.reload.posted_at
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, posted_event, delivered_event ])
+      assert_equal posted_event[:occurred_at], shipment.reload.posted_at
+    end
+
+    test "leaves posted_at empty while the object has not moved" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event ])
+
+      assert_nil shipment.reload.posted_at
+    end
+
     private
 
     def posted_event
@@ -51,6 +69,10 @@ module Shipping
 
     def label_event
       event("FC", "82", "Etiqueta emitida", Time.utc(2026, 5, 22, 13, 11, 4))
+    end
+
+    def delivered_event
+      event("BDE", "01", "Objeto entregue ao destinatário", Time.utc(2026, 5, 26, 11, 3, 0))
     end
 
     def event(code, type, description, occurred_at)

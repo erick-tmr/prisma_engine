@@ -11,6 +11,7 @@
       <%= t("order_mailer.payment_confirmed.intro") %>
     </td>
   </tr>
+  <%= render "shared/email_steps", current: 0 %>
   <%= render "summary" %>
   <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.payment_confirmed.cta") %>
 <% end %>

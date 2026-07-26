@@ -57,6 +57,7 @@ module Checkout
       shipment = order.shipment
       assert_equal 2_384, shipment.shipping_cents
       assert_equal "pac", shipment.service
+      assert_equal 7, shipment.delivery_business_days
       assert_equal Shipping::PackageWeight.call(populated_cart), shipment.weight_grams
       assert_equal "São Paulo", shipment.city
       assert_equal "01310100", shipment.zip

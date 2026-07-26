@@ -19,7 +19,6 @@ module Admin
 
     AUTO_NEXT_STATUSES = %w[label_issued shipped delivered cancelled].freeze
 
-    SERVICE_LABELS = { "pac" => "PAC", "sedex" => "SEDEX", "mini_envios" => "Mini Envios" }.freeze
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
     PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze
 
@@ -53,8 +52,7 @@ module Admin
     end
 
     def shipping_service_label
-      service = order.shipment.service.to_s
-      SERVICE_LABELS.fetch(service, service.upcase)
+      order.shipment.service_label
     end
 
     def address

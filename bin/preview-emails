@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Deliver one of every transactional email into the development letter_opener_web
+# inbox at http://localhost:3000/cartas, so the whole set can be reviewed side by
+# side after a copy or design change. Development only: the delivery method there
+# is :letter_opener_web, so nothing leaves the machine. Picks real records out of
+# the dev database (an order per lifecycle stage, the first confirmable user) and
+# fills in the gaps in memory, never saving.
+#
+# Empties the inbox first, so re-running always leaves exactly one of each rather
+# than stacking a fresh copy on top of the previous run.
+
+cd "$(dirname "$0")/.."
+
+exec bin/rails runner '
+  def order_for(status)
+    Order.joins(:shipment).where(status: status).last ||
+      Order.joins(:shipment).last.tap { |order| order.status = status }
+  end
+
+  def with_tracking(order)
+    shipment = order.shipment
+    shipment.tracking_code ||= "PG515656026BR"
+    shipment.delivery_business_days ||= 5
+    shipment.posted_at ||= 2.days.ago
+    order
+  end
+
+  LetterOpenerWeb::Letter.destroy_all
+
+  user = User.order(:id).first
+  token = "preview-token"
+
+  OrderMailer.payment_confirmed(order_for("payment_confirmed")).deliver_now
+  OrderMailer.label_issued(with_tracking(order_for("label_issued"))).deliver_now
+  OrderMailer.shipped(with_tracking(order_for("shipped"))).deliver_now
+  OrderMailer.delivered(with_tracking(order_for("delivered"))).deliver_now
+  OrderMailer.delivery_issue(with_tracking(order_for("delivery_issue"))).deliver_now
+
+  WelcomeMailer.account_created(user).deliver_now
+
+  Users::Mailer.confirmation_instructions(user, token).deliver_now
+  Users::Mailer.reset_password_instructions(user, token).deliver_now
+  Users::Mailer.unlock_instructions(user, token).deliver_now
+  Users::Mailer.password_change(user).deliver_now
+  user.unconfirmed_email = "novo-endereco@example.com"
+  Users::Mailer.email_changed(user).deliver_now
+
+  puts "11 e-mails entregues. Abra http://localhost:3000/cartas"
+'

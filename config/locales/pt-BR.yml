@@ -4,6 +4,7 @@ pt-BR:
       default: "%d/%m/%Y"
       long: "%d de %B de %Y"
       short: "%d/%m"
+      day_month: "%-d de %B"
     day_names: [domingo, segunda-feira, terça-feira, quarta-feira, quinta-feira, sexta-feira, sábado]
     abbr_day_names: [dom, seg, ter, qua, qui, sex, sáb]
     month_names: [~, janeiro, fevereiro, março, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro]
@@ -101,15 +102,44 @@ pt-BR:
     order_label: "Pedido Nº"
     subtotal: "Subtotal"
     shipping: "Frete"
+    shipping_with_service: "Frete · %{service}"
     total: "Total"
     tracking_code: "Código de rastreio: %{code}"
     tracking_code_label: "Código de rastreio:"
+    tracking_panel_heading: "Código de rastreio dos Correios"
+    track_link: "Rastrear nos Correios"
+    steps:
+      payment: "Pagamento"
+      label_issued: "Etiqueta emitida"
+      posted: "Postado"
+      delivered: "Entregue"
     payment_confirmed:
       subject: "Pagamento confirmado do pedido %{number}"
       badge_label: "Pagamento confirmado"
       heading: "Seu pedido acaba de decolar!"
       intro: "Recebemos o pagamento do seu pedido e já vamos preparar tudo com carinho. Nosso office-boy alado mais veloz já está de olho no seu pacote, avisaremos a cada etapa."
       cta: "Acompanhar pedido"
+    label_issued:
+      subject: "Etiqueta emitida para o pedido %{number}"
+      badge_label: "Etiqueta emitida"
+      heading: "Sua etiqueta está impressa. O dragão já se prepara."
+      intro: "Emitimos a etiqueta de postagem do seu pedido e ele entra na fila de despacho. Assim que deixarmos o pacote na agência dos Correios, avisamos você por e-mail."
+      tracking_hint: "Guarde o código abaixo: ele passa a mostrar movimentações depois da postagem."
+      tracking_note: "Ainda sem movimentação, o rastreio começa a atualizar quando os Correios receberem o pacote."
+      posting_note_html: 'Prazo estimado de postagem: <strong style="color:#1a1d21;">até 1 dia útil</strong>.'
+      posting_note: "Prazo estimado de postagem: até 1 dia útil."
+      cta: "Ver detalhes do pedido"
+    shipped:
+      subject: "Seu pedido %{number} foi postado nos Correios"
+      badge_label: "Postado"
+      heading: "Decolou! Seu pedido está com os Correios."
+      intro: "Acabamos de postar o seu pedido. A partir de agora o rastreio é atualizado pelos Correios a cada movimentação."
+      delivery_window_html: "Entrega estimada entre <strong>%{from}</strong> e <strong>%{to}</strong>, para <strong>%{address}</strong>."
+      delivery_window: "Entrega estimada entre %{from} e %{to}, para %{address}."
+      destination_html: "Enviamos para <strong>%{address}</strong>."
+      destination: "Enviamos para %{address}."
+      tracking_note: "Pode levar até 24h para a primeira atualização aparecer no site dos Correios."
+      cta: "Ver detalhes do pedido"
     delivered:
       subject: "Seu pedido %{number} foi entregue"
       badge_label: "Entregue"

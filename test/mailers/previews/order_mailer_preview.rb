@@ -3,6 +3,14 @@ class OrderMailerPreview < ActionMailer::Preview
     OrderMailer.payment_confirmed(Order.first)
   end
 
+  def label_issued
+    OrderMailer.label_issued(shipped_order)
+  end
+
+  def shipped
+    OrderMailer.shipped(shipped_order)
+  end
+
   def delivered
     OrderMailer.delivered(shipped_order)
   end

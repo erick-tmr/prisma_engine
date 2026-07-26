@@ -52,13 +52,14 @@ module Checkout
 
     def shipment_attributes(quote)
       {
-        service:        quote.service,
-        shipping_cents: quote.delta_cents,
-        weight_grams:   Shipping::PackageWeight.call(cart),
-        height_cm:      Shipping::PACKAGE_DIMENSIONS[:altura_cm],
-        width_cm:       Shipping::PACKAGE_DIMENSIONS[:largura_cm],
-        length_cm:      Shipping::PACKAGE_DIMENSIONS[:comprimento_cm],
-        receiver_obs:   receiver_obs,
+        service:                quote.service,
+        shipping_cents:         quote.delta_cents,
+        delivery_business_days: quote.business_days,
+        weight_grams:           Shipping::PackageWeight.call(cart),
+        height_cm:              Shipping::PACKAGE_DIMENSIONS[:altura_cm],
+        width_cm:               Shipping::PACKAGE_DIMENSIONS[:largura_cm],
+        length_cm:              Shipping::PACKAGE_DIMENSIONS[:comprimento_cm],
+        receiver_obs:           receiver_obs,
         **address_snapshot(quote.master.shipment)
       }
     end
