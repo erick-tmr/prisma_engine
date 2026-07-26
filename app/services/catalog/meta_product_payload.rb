@@ -26,6 +26,7 @@ module Catalog
         image_link: images.first,
         additional_image_link: images.drop(1).take(LIMITS[:additional_images]),
         google_product_category: google_category,
+        product_type: product.category.name.to_s,
         identifier_exists: false
       }
     end

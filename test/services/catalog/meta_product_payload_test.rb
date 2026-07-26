@@ -28,6 +28,7 @@ module Catalog
       assert_not payload.key?(:currency)
       assert_equal false, payload[:identifier_exists]
       assert_equal "Toys & Games > Games", payload[:google_product_category]
+      assert_equal "Game Boy Color", payload[:product_type]
       assert_match %r{//example\.com/produto/zelda\z}, payload[:link]
     end
 
