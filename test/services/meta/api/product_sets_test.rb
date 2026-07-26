@@ -43,7 +43,7 @@ module Meta
           params = Rack::Utils.parse_query(req.uri.query)
           assert_equal "Game Boy", params["name"]
           assert_equal({ "product_type" => { "eq" => "Game Boy Classic" } }, JSON.parse(params["filter"]))
-          assert_equal [ "shop-1" ], JSON.parse(params["publish_to_shops"])
+          assert_equal [ { "shop_id" => "shop-1" } ], JSON.parse(params["publish_to_shops"])
           assert_equal "Bearer test-token", req.headers["Authorization"]
           true
         end
@@ -66,6 +66,22 @@ module Meta
       test "raises PermanentError on a 4xx" do
         stub_request(:post, SETS_RE).to_return(status: 400, body: { "error" => { "code" => 100 } }.to_json)
         assert_raises(Meta::Api::PermanentError) do
+          with_credentials { Meta::Api::ProductSets.create(name: "x", filter: {}, shop_id: "s") }
+        end
+      end
+
+      test "raises PermanentError on a 4xx whose body is not JSON" do
+        stub_request(:post, SETS_RE).to_return(status: 400, body: "<html>bad</html>")
+        assert_raises(Meta::Api::PermanentError) do
+          with_credentials { Meta::Api::ProductSets.create(name: "x", filter: {}, shop_id: "s") }
+        end
+      end
+
+      test "raises EmptyProductSetError when Meta rejects an empty set" do
+        stub_request(:post, SETS_RE).to_return(
+          status: 400, body: { "error" => { "code" => 100, "error_subcode" => 1_798_130 } }.to_json
+        )
+        assert_raises(Meta::Api::EmptyProductSetError) do
           with_credentials { Meta::Api::ProductSets.create(name: "x", filter: {}, shop_id: "s") }
         end
       end

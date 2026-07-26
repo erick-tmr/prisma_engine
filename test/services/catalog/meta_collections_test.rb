@@ -32,6 +32,26 @@ module Catalog
       assert_equal "shop-1", game_boy_color[2]
     end
 
+    test "skips a collection Meta rejects as empty and keeps going" do
+      created = []
+      create = lambda do |name:, filter:, shop_id:|
+        raise Meta::Api::EmptyProductSetError, "empty" if name == "Pedidos de Jogos"
+
+        created << name
+      end
+
+      with_shops do
+        Meta::Api::ProductSets.stub(:list, -> { [] }) do
+          Meta::Api::ProductSets.stub(:create, create) do
+            Catalog::MetaCollections.call
+          end
+        end
+      end
+
+      assert_not_includes created, "Pedidos de Jogos"
+      assert_includes created, "Game Boy Color"
+    end
+
     test "updates an existing set by name instead of creating it" do
       updated = []
       created = []
