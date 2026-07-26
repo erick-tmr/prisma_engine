@@ -18,7 +18,7 @@ export const ACTIONS = [
   { id: "cancel", icon: "bi-x-circle", danger: true, from: ["awaiting_payment"], to: "cancelled" }
 ];
 
-export const PRINTABLE_LABEL_STATUSES = new Set(["label_issued", "shipped", "delivered", "delivery_issue"]);
+export const PRINTABLE_LABEL_STATUSES = new Set(["label_issued"]);
 
 export const SITUATION_TAGS = {
   active: { cls: "tag-active", icon: "bi-check-circle-fill" },

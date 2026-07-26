@@ -33,6 +33,7 @@ module Shipping
       ApplicationRecord.transaction do
         events.each_with_index { |event, position| record_event(event, position) }
         update_shipment
+        discard_label if posted?
       end
     end
 
@@ -91,6 +92,14 @@ module Shipping
 
     def moved?(event)
       signal(event) != :label_issued
+    end
+
+    def posted?
+      events.any? { |event| key(event) == ShipmentTrackingEvent::POSTED }
+    end
+
+    def discard_label
+      shipment.shipping_label&.destroy
     end
 
     def delivered_at

@@ -33,6 +33,7 @@ bi-chevron-down
 bi-chevron-left
 bi-chevron-right
 bi-chevron-up
+bi-clipboard
 bi-clipboard-check
 bi-clock
 bi-clock-history
