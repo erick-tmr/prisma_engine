@@ -10,7 +10,11 @@ module Catalog
       return unless Meta::Api.shops_configured?
 
       existing = Meta::Api::ProductSets.list.to_h { |set| [ set["name"], set["id"] ] }
-      specs.each { |name, filter| publish(name, filter, existing[name]) }
+      specs.each do |name, filter|
+        publish(name, filter, existing[name])
+      rescue Meta::Api::EmptyProductSetError
+        next
+      end
     end
 
     private

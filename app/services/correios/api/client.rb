@@ -5,12 +5,7 @@ module Correios
     module Client
       OPEN_TIMEOUT = 5
       READ_TIMEOUT = 15
-      LOG_PATH = Rails.root.join("log", "correios-poll.#{Rails.env}.log")
       REDACT_BEARER = [ /(Bearer )[^"\s]+/, '\1[REDACTED]' ].freeze
-
-      def self.request_logger
-        @request_logger ||= ActiveSupport::Logger.new(LOG_PATH)
-      end
 
       private
 
@@ -24,7 +19,7 @@ module Correios
       end
 
       def trace_requests(conn)
-        conn.response :logger, Correios::Api::Client.request_logger, { headers: true, bodies: true } do |logger|
+        conn.response :logger, Rails.logger, { headers: true, bodies: true, log_level: :info } do |logger|
           logger.filter(*REDACT_BEARER)
         end
       end

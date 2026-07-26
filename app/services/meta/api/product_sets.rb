@@ -5,6 +5,8 @@ module Meta
     class ProductSets
       include Meta::Api::Client
 
+      EMPTY_SET_SUBCODE = 1_798_130
+
       def self.list
         new.list
       end
@@ -26,7 +28,7 @@ module Meta
         response = request(:post, sets_path) do |req|
           req.params["name"] = name
           req.params["filter"] = filter.to_json
-          req.params["publish_to_shops"] = [ shop_id ].to_json
+          req.params["publish_to_shops"] = [ { shop_id: shop_id } ].to_json
         end
         parse(response.body)
       end
@@ -44,14 +46,27 @@ module Meta
 
       def request(verb, path)
         response = connection.public_send(verb, path) do |req|
-          req.headers["Accept"] = "application/json"
-          req.headers["Authorization"] = "Bearer #{Meta::Api.access_token}"
+          authorize(req)
           yield req
         end
+        raise Meta::Api::EmptyProductSetError, response.body if empty_product_set?(response)
         raise_for_status(response)
         response
       rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
         raise Meta::Api::TransientError, "meta product_sets request failed: #{error.message}"
+      end
+
+      def authorize(req)
+        req.headers["Accept"] = "application/json"
+        req.headers["Authorization"] = "Bearer #{Meta::Api.access_token}"
+      end
+
+      def empty_product_set?(response)
+        return false unless response.status == 400
+
+        JSON.parse(response.body.presence || "{}").dig("error", "error_subcode") == EMPTY_SET_SUBCODE
+      rescue JSON::ParserError
+        false
       end
 
       def parse(raw)

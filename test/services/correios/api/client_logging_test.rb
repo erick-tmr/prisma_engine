@@ -8,8 +8,8 @@ module Correios
 
       setup do
         @sink = StringIO.new
-        @prev_logger = Correios::Api::Client.instance_variable_get(:@request_logger)
-        Correios::Api::Client.instance_variable_set(:@request_logger, ActiveSupport::Logger.new(@sink))
+        @previous_logger = Rails.logger
+        Rails.logger = ActiveSupport::Logger.new(@sink)
 
         stub_request(:get, "#{BASE}/srorastro/v1/objetos/#{CODE}?resultado=T")
           .to_return(
@@ -20,10 +20,10 @@ module Correios
       end
 
       teardown do
-        Correios::Api::Client.instance_variable_set(:@request_logger, @prev_logger)
+        Rails.logger = @previous_logger
       end
 
-      test "traces the request line and the response status and body" do
+      test "traces the request line and the response status and body to the main log" do
         Correios::Api::Tracking.fetch(CODE)
 
         log = @sink.string

@@ -26,5 +26,6 @@ module Meta
     Error = Class.new(StandardError)
     TransientError = Class.new(Error)
     PermanentError = Class.new(Error)
+    EmptyProductSetError = Class.new(PermanentError)
   end
 end

@@ -5,13 +5,9 @@ module Meta
     module Client
       OPEN_TIMEOUT = 5
       READ_TIMEOUT = 15
-      LOG_PATH = Rails.root.join("log", "meta-catalog.#{Rails.env}.log")
       REDACT_BEARER = [ /(Bearer )[^"\s]+/, '\1[REDACTED]' ].freeze
+      REDACT_TOKEN = [ /(access_token=)[^"&\s]+/, '\1[REDACTED]' ].freeze
       TRANSIENT_ERROR_CODES = [ 1, 2, 4, 17, 32, 341, 613, 80_014 ].freeze
-
-      def self.request_logger
-        @request_logger ||= ActiveSupport::Logger.new(LOG_PATH)
-      end
 
       private
 
@@ -25,8 +21,9 @@ module Meta
       end
 
       def trace_requests(conn)
-        conn.response :logger, Meta::Api::Client.request_logger, { headers: true, bodies: true } do |logger|
+        conn.response :logger, Rails.logger, { headers: true, bodies: true, log_level: :info } do |logger|
           logger.filter(*REDACT_BEARER)
+          logger.filter(*REDACT_TOKEN)
         end
       end
 
