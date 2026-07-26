@@ -51,6 +51,24 @@ class ShipmentTest < ActiveSupport::TestCase
     )
   end
 
+  test "short_address condenses the snapshot to one line" do
+    assert_equal "Rua das Flores, 150 · São Paulo/SP", shipments(:awaiting).short_address
+    assert_equal "", Shipment.new.short_address
+  end
+
+  test "service_label spells the Correios product out" do
+    assert_equal "PAC", shipments(:awaiting).service_label
+    assert_equal "SEDEX", shipments(:shipped_order).service_label
+    assert_equal "", Shipment.new.service_label
+  end
+
+  test "tracking_url points the customer at the Correios lookup for this parcel" do
+    assert_equal(
+      "https://rastreamento.correios.com.br/app/index.php?objeto=PG515656026BR",
+      shipments(:delivered).tracking_url
+    )
+  end
+
   test "requires a unique tracking code" do
     Shipment.create!(tracking_code: "AA1", order: orders(:awaiting))
     dup = Shipment.new(tracking_code: "AA1", order: orders(:awaiting))

@@ -102,7 +102,7 @@
                       title="<%= t("account.orders.show.tracking_copy") %>" aria-label="<%= t("account.orders.show.tracking_copy") %>">
                 <i class="bi bi-clipboard"></i>
               </button>
-              <a class="order-detail__track-code-btn" href="https://rastreamento.correios.com.br/app/index.php"
+              <a class="order-detail__track-code-btn" href="<%= Shipment::TRACKING_URL %>"
                  target="_blank" rel="noopener"
                  title="<%= t("account.orders.show.tracking_external") %>" aria-label="<%= t("account.orders.show.tracking_external") %>">
                 <i class="bi bi-box-arrow-up-right"></i>

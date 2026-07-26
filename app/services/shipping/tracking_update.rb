@@ -67,8 +67,13 @@ module Shipping
       shipment.tracking_state = derive_state
       shipment.last_tracking_status = latest[:description] || latest[:code]
       shipment.last_tracked_at = latest[:occurred_at] || Time.current
+      shipment.posted_at ||= first_movement_at
       shipment.delivered_at = delivered_at if shipment.tracking_delivered?
       shipment.save!
+    end
+
+    def first_movement_at
+      events.find { |event| moved?(event) }&.dig(:occurred_at)
     end
 
     def derive_state

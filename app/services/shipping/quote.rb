@@ -1,11 +1,5 @@
 module Shipping
   class Quote
-    SERVICE_LABELS = {
-      sedex:       "SEDEX",
-      pac:         "PAC",
-      mini_envios: "Mini Envios"
-    }.freeze
-
     CACHE_TTL = 5.minutes
 
     def self.call(cep_destino:, weight_grams:)
@@ -49,7 +43,7 @@ module Shipping
     end
 
     def build_service(key, code, preco, prazo)
-      common = { key: key, label: SERVICE_LABELS.fetch(key) }
+      common = { key: key, label: Shipping.service_label(key) }
       tx_erro = preco && preco["txErro"]
       return common.merge(eligible: false, reason: classify_error(tx_erro)) if tx_erro
 

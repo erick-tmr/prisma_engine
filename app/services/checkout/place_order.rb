@@ -65,20 +65,21 @@ module Checkout
           observation:            observation,
           order_items_attributes: cart.lines.map { |line| Checkout::CartItems.attributes_for(line) }
         )
-        order.create_shipment!(shipment_attributes(address, shipping))
+        order.create_shipment!(shipment_attributes(address, service))
         order
       end
     end
 
-    def shipment_attributes(address, shipping)
+    def shipment_attributes(address, service)
       {
-        service:        shipping_service,
-        shipping_cents: shipping,
-        weight_grams:   package_weight,
-        height_cm:      Shipping::PACKAGE_DIMENSIONS[:altura_cm],
-        width_cm:       Shipping::PACKAGE_DIMENSIONS[:largura_cm],
-        length_cm:      Shipping::PACKAGE_DIMENSIONS[:comprimento_cm],
-        receiver_obs:   receiver_obs,
+        service:                shipping_service,
+        shipping_cents:         service[:price_cents],
+        delivery_business_days: service[:business_days],
+        weight_grams:           package_weight,
+        height_cm:              Shipping::PACKAGE_DIMENSIONS[:altura_cm],
+        width_cm:               Shipping::PACKAGE_DIMENSIONS[:largura_cm],
+        length_cm:              Shipping::PACKAGE_DIMENSIONS[:comprimento_cm],
+        receiver_obs:           receiver_obs,
         **address_snapshot(address)
       }
     end

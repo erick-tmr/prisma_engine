@@ -1,6 +1,8 @@
 class OrderStatusChange < ApplicationRecord
   NOTIFIED = {
     "payment_confirmed" => :payment_confirmed,
+    "label_issued"      => :label_issued,
+    "shipped"           => :shipped,
     "delivered"         => :delivered,
     "delivery_issue"    => :delivery_issue
   }.freeze
@@ -19,7 +21,7 @@ class OrderStatusChange < ApplicationRecord
   def deliver_order_email
     action = NOTIFIED[to_status]
     return unless action
-    return if order.reload.merged?
+    return unless order.reload.status == to_status
 
     OrderMailer.public_send(action, order).deliver_later
   end

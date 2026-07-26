@@ -52,6 +52,7 @@ module Checkout
       shipment = carrier.shipment
       assert_equal 1884, shipment.shipping_cents
       assert_equal "pac", shipment.service
+      assert_equal 7, shipment.delivery_business_days
       assert_equal "04534003", shipment.zip
       assert_equal "Dona Master", shipment.receiver_name
       assert_nil shipment.receiver_obs

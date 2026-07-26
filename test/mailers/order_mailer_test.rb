@@ -22,6 +22,72 @@ class OrderMailerTest < ActionMailer::TestCase
     html_body = email.html_part.body.to_s
     assert_includes html_body, "Pagamento confirmado"
     assert_includes html_body, "dragon-fly.png"
+    assert_includes html_body, "Etiqueta emitida"
+  end
+
+  test "label_issued shows the tracking code that is not moving yet" do
+    order = orders(:labeled)
+    order.shipment.update!(tracking_code: "PG515656027BR")
+    email = OrderMailer.label_issued(order)
+
+    assert_equal "Etiqueta emitida para o pedido #{order.number}", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, order.user.first_name
+      assert_includes body, "PG515656027BR"
+      assert_includes body, "Ainda sem movimentação"
+      assert_includes body, "Frete · PAC"
+      assert_includes body, "Ver detalhes do pedido"
+    end
+
+    html_body = email.html_part.body.to_s
+    assert_includes html_body, "dragon-letter-full.png"
+    assert_includes html_body, "Etiqueta emitida"
+    assert_not_includes html_body, "Rastrear nos Correios"
+  end
+
+  test "shipped carries the tracking link and the estimated delivery window" do
+    order = orders(:shipped_order)
+    order.shipment.update!(
+      tracking_code: "PG515656028BR",
+      delivery_business_days: 5,
+      posted_at: Time.zone.parse("2026-07-22 10:00:00")
+    )
+    email = OrderMailer.shipped(order)
+
+    assert_equal "Seu pedido #{order.number} foi postado nos Correios", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, "PG515656028BR"
+      assert_includes body, "Entrega estimada entre"
+      assert_includes body, "27 de julho"
+      assert_includes body, "29 de julho"
+      assert_includes body, "Rua XV de Novembro, 500 · Curitiba/PR"
+      assert_includes body, "Frete · SEDEX"
+      assert_includes body, "rastreamento.correios.com.br/app/index.php?objeto=PG515656028BR"
+    end
+
+    assert_includes email.text_part.body.to_s,
+                    "Entrega estimada entre 27 de julho e 29 de julho, para Rua XV de Novembro, 500 · Curitiba/PR."
+
+    html_body = email.html_part.body.to_s
+    assert_includes html_body, "dragon-fly.png"
+    assert_includes html_body, "Rastrear nos Correios"
+  end
+
+  test "shipped falls back to the destination alone when no delivery estimate was stored" do
+    order = orders(:shipped_order)
+    order.shipment.update!(tracking_code: "PG515656029BR", delivery_business_days: nil)
+    email = OrderMailer.shipped(order)
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, "Enviamos para"
+      assert_includes body, "Rua XV de Novembro, 500 · Curitiba/PR"
+      assert_not_includes body, "Entrega estimada"
+    end
   end
 
   test "delivered carries the tracking code" do
@@ -35,6 +101,7 @@ class OrderMailerTest < ActionMailer::TestCase
     html_body = email.html_part.body.to_s
     assert_includes html_body, "Ver meus pedidos"
     assert_includes html_body, "dragon-face.png"
+    assert_includes html_body, "Postado"
   end
 
   test "delivery_issue explains the problem and shows the tracking code" do

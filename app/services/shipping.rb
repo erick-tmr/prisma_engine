@@ -5,6 +5,16 @@ module Shipping
     mini_envios: "04227"
   }.freeze
 
+  SERVICE_LABELS = {
+    sedex:       "SEDEX",
+    pac:         "PAC",
+    mini_envios: "Mini Envios"
+  }.freeze
+
+  def self.service_label(service)
+    SERVICE_LABELS.fetch(service.to_s.to_sym, service.to_s.upcase)
+  end
+
   PACKAGE_DIMENSIONS = {
     altura_cm:      4,
     largura_cm:     16,

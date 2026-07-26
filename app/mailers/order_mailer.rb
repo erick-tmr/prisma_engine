@@ -5,6 +5,14 @@ class OrderMailer < ApplicationMailer
     deliver_for(order)
   end
 
+  def label_issued(order)
+    deliver_for(order)
+  end
+
+  def shipped(order)
+    deliver_for(order)
+  end
+
   def delivered(order)
     deliver_for(order)
   end
