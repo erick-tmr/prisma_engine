@@ -1,11 +1,5 @@
 module Catalog
   class MetaCollections
-    CATEGORY_COLLECTIONS = {
-      "Game Boy" => "Game Boy Classic",
-      "Game Boy Color" => "Game Boy Color",
-      "Pedidos de Jogos" => "Pedidos de Jogos",
-      "Extras & Acessórios" => "Extras & Acessórios"
-    }.freeze
     GAME_OF_THE_MONTH = "Jogos do Mês".freeze
 
     def self.call
@@ -26,7 +20,15 @@ module Catalog
     end
 
     def category_specs
-      CATEGORY_COLLECTIONS.transform_values { |category| { "product_type" => { "eq" => category } } }
+      sellable_category_names.index_with { |name| { "product_type" => { "eq" => name } } }
+    end
+
+    def sellable_category_names
+      Category.joins(:products)
+              .where(products: { published: true })
+              .where("products.price_cents > 0")
+              .distinct
+              .pluck(:name)
     end
 
     def game_of_the_month_filter

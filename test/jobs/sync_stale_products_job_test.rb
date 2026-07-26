@@ -24,4 +24,10 @@ class SyncStaleProductsJobTest < ActiveSupport::TestCase
       SyncStaleProductsJob.perform_now
     end
   end
+
+  test "schedules the collections sync after fanning out the catalog" do
+    assert_enqueued_with(job: SyncMetaCollectionsJob) do
+      SyncStaleProductsJob.perform_now
+    end
+  end
 end

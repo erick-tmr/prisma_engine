@@ -12,23 +12,24 @@ module Catalog
       assert_nothing_raised { Catalog::MetaCollections.call }
     end
 
-    test "creates a set for each collection when none exist yet" do
+    test "creates a set per non-empty category plus the highlight, skipping empty categories" do
       created = []
-      create_stub = ->(name:, filter:, shop_id:) { created << [ name, filter, shop_id ] }
 
       with_shops do
         Meta::Api::ProductSets.stub(:list, -> { [] }) do
-          Meta::Api::ProductSets.stub(:create, create_stub) do
+          Meta::Api::ProductSets.stub(:create, ->(name:, filter:, shop_id:) { created << [ name, filter, shop_id ] }) do
             Catalog::MetaCollections.call
           end
         end
       end
 
-      assert_equal 5, created.size
-      game_boy = created.find { |name, _filter, _shop| name == "Game Boy" }
-      assert_equal({ "product_type" => { "eq" => "Game Boy Classic" } }, game_boy[1])
-      assert_equal "shop-1", game_boy[2]
-      assert_includes created.map(&:first), "Jogos do Mês"
+      names = created.map(&:first)
+      assert_includes names, "Game Boy Color"
+      assert_includes names, "Jogos do Mês"
+      assert_not_includes names, "Game Boy Advance"
+      game_boy_color = created.find { |name, _filter, _shop| name == "Game Boy Color" }
+      assert_equal({ "product_type" => { "eq" => "Game Boy Color" } }, game_boy_color[1])
+      assert_equal "shop-1", game_boy_color[2]
     end
 
     test "updates an existing set by name instead of creating it" do
@@ -36,7 +37,7 @@ module Catalog
       created = []
 
       with_shops do
-        Meta::Api::ProductSets.stub(:list, -> { [ { "name" => "Game Boy", "id" => "existing-1" } ] }) do
+        Meta::Api::ProductSets.stub(:list, -> { [ { "name" => "Game Boy Color", "id" => "existing-1" } ] }) do
           Meta::Api::ProductSets.stub(:update, ->(id, filter:) { updated << id }) do
             Meta::Api::ProductSets.stub(:create, ->(name:, filter:, shop_id:) { created << name }) do
               Catalog::MetaCollections.call
@@ -45,8 +46,8 @@ module Catalog
         end
       end
 
-      assert_equal [ "existing-1" ], updated
-      assert_not_includes created, "Game Boy"
+      assert_includes updated, "existing-1"
+      assert_not_includes created, "Game Boy Color"
     end
 
     test "the Game of the Month set filters on the current edition product ids" do
