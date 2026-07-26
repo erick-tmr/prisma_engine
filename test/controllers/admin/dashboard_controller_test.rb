@@ -34,6 +34,26 @@ module Admin
       assert_includes response.body, orders(:awaiting).number
     end
 
+    test "every table gets a pagination mount and the importmap that resolves the pager" do
+      sign_in users(:admin)
+      get admin_root_path
+
+      assert_select "#orders-foot.tbl-foot"
+      assert_select "#clients-foot.tbl-foot"
+      assert_select "#reports-foot.tbl-foot"
+      assert_select "script[type=importmap]", count: 1
+      assert_match %r{"backoffice/pager":}, response.body
+    end
+
+    test "the orders panel shows the paid total over the whole table" do
+      sign_in users(:admin)
+      get admin_root_path
+
+      expected = Admin::DashboardController.helpers.format_brl(Order.paid.sum(:total_cents))
+      assert_select ".result-count--paid", text: "Total pago: #{expected}"
+      assert_not_equal Order.sum(:total_cents), Order.paid.sum(:total_cents)
+    end
+
     test "each sidebar tab has its own dedicated path that renders the dashboard" do
       sign_in users(:admin)
 

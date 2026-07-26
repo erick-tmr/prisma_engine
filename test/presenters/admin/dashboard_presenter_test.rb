@@ -98,5 +98,19 @@ module Admin
       assert_same @presenter.clients, @presenter.clients
       assert_same @presenter.reports, @presenter.reports
     end
+
+    test "paid_total_cents sums every order whose payment cleared" do
+      assert_equal Order.paid.sum(:total_cents), @presenter.paid_total_cents
+      assert_operator @presenter.paid_total_cents, :<, Order.sum(:total_cents),
+                      "the awaiting_payment fixture should be left out"
+    end
+
+    test "paid_total_cents ignores the dashboard filters and counts the whole table" do
+      user = orders(:awaiting).user
+      paid = user.orders.create!(subtotal_cents: 5_000, total_cents: 7_500)
+      paid.update_column(:status, "delivered")
+
+      assert_equal Order.paid.sum(:total_cents), DashboardPresenter.new.paid_total_cents
+    end
   end
 end

@@ -139,6 +139,8 @@
             <span><%= t("admin.catalog.empty.hint") %></span>
           </div>
         </div>
+
+        <div class="tbl-foot" id="catalog-foot" hidden></div>
       </div>
     </main>
   </div>
@@ -154,5 +156,5 @@
 </div>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "backoffice/catalog", type: "module" %>
+  <%= javascript_import_module_tag "backoffice/catalog" %>
 <% end %>

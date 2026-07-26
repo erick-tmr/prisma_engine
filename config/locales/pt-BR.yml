@@ -407,6 +407,7 @@ pt-BR:
       orders:
         heading: "Histórico de pedidos"
         sub: "Todos os pedidos da loja, de todos os clientes."
+        paid_total: "Total pago: %{amount}"
         export: "Exportar"
         production_report: "Gerar relatório de produção"
         filters:

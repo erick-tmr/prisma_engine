@@ -42,6 +42,8 @@ module Admin
       assert_match products(:yellow).name, response.body
       assert_select "[data-catalog]"
       assert_select "tr[data-row]"
+      assert_select "#catalog-foot.tbl-foot"
+      assert_match %r{"backoffice/pager":}, response.body
     end
 
     test "index renders every sidebar count, not just the catalog one" do

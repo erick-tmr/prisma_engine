@@ -35,6 +35,7 @@
             </div>
             <div class="panel-top-right">
               <span class="result-count" id="orders-count"></span>
+              <span class="result-count result-count--paid"><%= t("admin.dashboard.orders.paid_total", amount: format_brl(@dashboard.paid_total_cents)) %></span>
               <a class="btn-ghost" id="gen-production" href="<%= admin_production_report_path %>" data-base="<%= admin_production_report_path %>"><i class="bi bi-printer"></i> <%= t("admin.dashboard.orders.production_report") %></a>
               <button class="btn-ghost" type="button"><i class="bi bi-download"></i> <%= t("admin.dashboard.orders.export") %></button>
             </div>
@@ -109,6 +110,8 @@
               <span><%= t("admin.dashboard.orders.empty.hint") %></span>
             </div>
           </div>
+
+          <div class="tbl-foot" id="orders-foot" hidden></div>
         </div>
       </section>
 
@@ -150,6 +153,8 @@
               <span><%= t("admin.dashboard.clients.empty.hint") %></span>
             </div>
           </div>
+
+          <div class="tbl-foot" id="clients-foot" hidden></div>
         </div>
       </section>
 
@@ -184,6 +189,8 @@
               <span><%= t("admin.dashboard.reports.empty.hint") %></span>
             </div>
           </div>
+
+          <div class="tbl-foot" id="reports-foot" hidden></div>
         </div>
       </section>
     </main>
@@ -193,5 +200,5 @@
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "backoffice/dashboard", type: "module" %>
+  <%= javascript_import_module_tag "backoffice/dashboard" %>
 <% end %>

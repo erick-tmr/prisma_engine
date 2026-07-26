@@ -56,10 +56,12 @@ class Order < ApplicationRecord
 
   CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed awaiting_components].freeze
   MERGEABLE_STATUSES = Production::EligibleOrders::STATUSES
+  PAID_STATUSES = (STATUSES - %w[awaiting_payment cancelled merged]).freeze
 
   scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
   scope :recent_first, -> { order(created_at: :desc) }
   scope :mergeable, -> { where(status: MERGEABLE_STATUSES).order(created_at: :asc) }
+  scope :paid, -> { where(status: PAID_STATUSES) }
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :total_cents,

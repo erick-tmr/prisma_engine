@@ -260,3 +260,54 @@ table.tbl tbody tr.sel-row td.checkcol { box-shadow: inset 3px 0 0 var(--pg-ink)
 .empty p { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--pg-ink); }
 .empty span { font-size: 13px; }
 
+/* ── Table footer / pagination (30 rows per page) ─────────────── */
+.tbl-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 13px 22px;
+  border-top: 1px solid var(--pg-border);
+  background: #fcfcfd;
+  color: var(--pg-muted);
+  font-size: 12.5px;
+}
+.tbl-foot .foot-range { font-variant-numeric: tabular-nums; }
+.tbl-foot .foot-range b { color: var(--pg-ink); font-weight: 700; }
+.tbl-foot .foot-single { color: #9aa1a9; font-variant-numeric: tabular-nums; }
+.tbl-foot .pages { display: flex; align-items: center; gap: 4px; }
+.tbl-foot .pg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--pg-ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.tbl-foot .pg:hover { background: #eef0f3; }
+.tbl-foot .pg:focus-visible { outline: 2px solid #2f7fd1; outline-offset: 1px; }
+.tbl-foot .pg.on { background: var(--pg-ink); border-color: var(--pg-ink); color: #fff; }
+.tbl-foot .pg.on:hover { background: var(--pg-ink-2, #23272d); }
+.tbl-foot .pg-nav { border-color: var(--pg-border); background: #fff; color: #4b5158; }
+.tbl-foot .pg-nav i { font-size: 13px; }
+.tbl-foot .pg-nav:hover { background: #fff; border-color: #c9ced5; color: var(--pg-ink); }
+.tbl-foot .pg-nav:disabled { opacity: 0.42; cursor: default; background: #fff; border-color: var(--pg-border); color: #9aa1a9; }
+.tbl-foot .pg-gap { min-width: 20px; text-align: center; color: #b0b6bd; letter-spacing: 1px; user-select: none; }
+
+@media (max-width: 640px) {
+  .tbl-foot { flex-direction: column-reverse; align-items: stretch; gap: 10px; padding: 12px 16px; }
+  .tbl-foot .pages { justify-content: center; }
+  .tbl-foot .foot-range, .tbl-foot .foot-single { text-align: center; }
+}
+

@@ -14,6 +14,31 @@ class AdminCatalogTest < ApplicationSystemTestCase
     end
   end
 
+  test "an operator pages through a catalog larger than one page" do
+    40.times do |i|
+      Product.create!(category: categories(:gb_color), name: "Filler Game #{i}",
+                      price_cents: 1_000, weight_grams: 20, published: true)
+    end
+    total = Product.count
+
+    login_as_user(users(:admin))
+    visit admin_products_path
+
+    assert_selector "#catalog-count", text: "#{total} produtos"
+    assert_selector "#catalog-foot .foot-range", text: "Mostrando 1–30 de #{total} produtos"
+    assert_selector "tr[data-row]:not([hidden])", count: 30
+
+    find("#catalog-foot .pg:not(.pg-nav)[data-pg='2']").click
+    assert_selector "#catalog-foot .pg.on", text: "2"
+    assert_selector "tr[data-row]:not([hidden])", count: total - 30
+
+    # Narrowing the filter from page 2 must land the operator back on page 1.
+    fill_in "c-q", with: "Filler"
+    assert_selector "#catalog-foot .pg.on", text: "1"
+    assert_selector "#catalog-count", text: "40 produtos"
+    assert_selector "tr[data-row]:not([hidden])", count: 30
+  end
+
   test "an operator edits a product and saves it" do
     login_as_user(users(:admin))
     visit admin_products_path

@@ -372,6 +372,7 @@ function mountDashboard() {
         </header>
         <main>
           <section class="view" data-view="orders">
+            <div class="panel">
             <span class="result-count" id="orders-count"></span>
             <a id="gen-production" href="/admin/relatorio-producao" data-base="/admin/relatorio-producao">gerar</a>
             <div class="filters">
@@ -409,8 +410,11 @@ function mountDashboard() {
               <tbody id="orders-body"></tbody>
             </table>
             <div class="empty" id="orders-empty"></div>
+            <div class="tbl-foot" id="orders-foot" hidden></div>
+            </div>
           </section>
           <section class="view" data-view="clients" hidden>
+            <div class="panel">
             <span class="result-count" id="clients-count"></span>
             <input id="c-q" type="text">
             <table class="tbl" id="clients-table">
@@ -429,11 +433,16 @@ function mountDashboard() {
               <tbody id="clients-body"></tbody>
             </table>
             <div class="empty" id="clients-empty"></div>
+            <div class="tbl-foot" id="clients-foot" hidden></div>
+            </div>
           </section>
           <section class="view" data-view="reports" hidden>
+            <div class="panel">
             <span class="result-count" id="reports-count"></span>
             <table class="tbl" id="reports-table"><tbody id="reports-body"></tbody></table>
             <div class="empty" id="reports-empty"></div>
+            <div class="tbl-foot" id="reports-foot" hidden></div>
+            </div>
           </section>
         </main>
       </div>
@@ -903,5 +912,129 @@ describe("initDashboard", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+const isoFor = (offset) => {
+  const date = new Date(2026, 5, 1);
+  date.setDate(date.getDate() + offset);
+  return toISO(date);
+};
+
+function pagedData(orderCount, clientCount, reportCount) {
+  const data = sampleData();
+  data.orders = Array.from({ length: orderCount }, (_, i) => ({
+    n: `PG-${1000 + i}`, clientName: `Cliente ${String(i).padStart(3, "0")}`,
+    city: "Itajubá", uf: "MG", date: isoFor(i), status: "payment_confirmed", total: 1000, items: 1
+  }));
+  data.clients = Array.from({ length: clientCount }, (_, i) => ({
+    id: i + 1, name: `Cliente ${String(i).padStart(3, "0")}`, email: `c${i}@example.com`,
+    cpf: "31244577809", phone: "11988765521", city: "Itajubá", uf: "MG",
+    since: "2025-09-03", orders: 0, status: "active"
+  }));
+  data.reports = Array.from({ length: reportCount }, (_, i) => ({
+    id: i + 1, generatedAt: `0${(i % 9) + 1}/06/2026 10:00`, operator: "sistema",
+    orders: 1, period: "Todos os períodos", url: `/admin/relatorio-producao/${i + 1}`
+  }));
+  return data;
+}
+
+describe("initDashboard pagination", () => {
+  let destroy;
+
+  const currentPage = (foot) => $(`${foot} [aria-current="page"]`).textContent;
+  const goToPage = (foot, page) => click($(`${foot} [data-pg="${page}"]`));
+
+  beforeEach(() => {
+    destroy = initDashboard(mountDashboard(), pagedData(31, 31, 31), TODAY);
+  });
+
+  afterEach(() => {
+    destroy();
+    vi.restoreAllMocks();
+    window.history.pushState({}, "", "/");
+  });
+
+  it("renders only the first 30 orders while counting and summing them all", () => {
+    expect($("#orders-body").querySelectorAll("tr")).toHaveLength(30);
+    expect($("#orders-count").textContent).toBe("31 pedidos · R$ 310,00");
+    expect($("#orders-foot .foot-range").textContent).toBe("Mostrando 1–30 de 31 pedidos");
+  });
+
+  it("shows the remaining order on the second page", () => {
+    goToPage("#orders-foot", 2);
+    const rows = $("#orders-body").querySelectorAll("tr");
+    expect(rows).toHaveLength(1);
+    expect(rows[0].dataset.order).toBe("PG-1000");
+    expect($("#orders-count").textContent).toBe("31 pedidos · R$ 310,00");
+  });
+
+  it("returns to the first page when the order filters change", () => {
+    goToPage("#orders-foot", 2);
+    input($("#o-name"), "Cliente");
+    expect(currentPage("#orders-foot")).toBe("1");
+  });
+
+  it("returns to the first page when the topbar search changes", () => {
+    goToPage("#orders-foot", 2);
+    input($("#gsearch"), "Cliente");
+    expect(currentPage("#orders-foot")).toBe("1");
+  });
+
+  it("returns to the first page when the sort changes", () => {
+    goToPage("#orders-foot", 2);
+    click($('#orders-table th[data-key="client"]'));
+    expect(currentPage("#orders-foot")).toBe("1");
+  });
+
+  it("stays on the page when a row is selected", () => {
+    goToPage("#orders-foot", 2);
+    click($("#orders-body").querySelector("[data-check]"));
+    expect(currentPage("#orders-foot")).toBe("2");
+    expect($("#bulk-n").textContent).toBe("1");
+  });
+
+  it("selects only the current page when the header check-all is used", () => {
+    click($("#o-checkall"));
+    expect($("#bulk-n").textContent).toBe("30");
+    expect($("#o-checkall").classList.contains("on")).toBe(true);
+  });
+
+  it("keeps selections made on other pages while paging", () => {
+    click($("#o-checkall"));
+    goToPage("#orders-foot", 2);
+    expect($("#bulk-n").textContent).toBe("30");
+    expect($("#o-checkall").classList.contains("on")).toBe(false);
+    click($("#o-checkall"));
+    expect($("#bulk-n").textContent).toBe("31");
+  });
+
+  it("paginates the clients table and resets it on search", () => {
+    expect($("#clients-body").querySelectorAll("tr")).toHaveLength(30);
+    expect($("#clients-count").textContent).toBe("31 clientes");
+    goToPage("#clients-foot", 2);
+    expect($("#clients-body").querySelectorAll("tr")).toHaveLength(1);
+    input($("#c-q"), "Cliente");
+    expect(currentPage("#clients-foot")).toBe("1");
+  });
+
+  it("returns the clients table to the first page when its sort changes", () => {
+    goToPage("#clients-foot", 2);
+    click($('#clients-table th[data-key="name"]'));
+    expect(currentPage("#clients-foot")).toBe("1");
+  });
+
+  it("paginates the reports table", () => {
+    expect($("#reports-body").querySelectorAll("tr")).toHaveLength(30);
+    expect($("#reports-count").textContent).toBe("31 relatórios");
+    goToPage("#reports-foot", 2);
+    expect($("#reports-body").querySelectorAll("tr")).toHaveLength(1);
+  });
+
+  it("scrolls back to the top of the panel after a page change", () => {
+    const panel = $("#orders-foot").closest(".panel");
+    panel.scrollIntoView = vi.fn();
+    goToPage("#orders-foot", 2);
+    expect(panel.scrollIntoView).toHaveBeenCalledWith({ block: "start" });
   });
 });

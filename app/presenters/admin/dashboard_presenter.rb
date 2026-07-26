@@ -15,6 +15,10 @@ module Admin
       @reports ||= load_reports
     end
 
+    def paid_total_cents
+      Order.paid.sum(:total_cents)
+    end
+
     def to_h
       {
         "orders" => orders,

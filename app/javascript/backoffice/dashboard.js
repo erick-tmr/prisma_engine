@@ -1,3 +1,5 @@
+import { clampPage, pageSlice, renderPager, scrollPanelTop } from "backoffice/pager";
+
 export const MONTHS_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 export const MONTHS_LONG = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 export const DOW = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -375,7 +377,8 @@ export function initDashboard(root, data, today) {
     oName: "", statuses: new Set(), from: null, to: null,
     oSort: { key: "date", dir: "desc" },
     selected: new Set(),
-    cQ: "", cSort: { key: "name", dir: "asc" }
+    cQ: "", cSort: { key: "name", dir: "asc" },
+    oPage: 1, cPage: 1, rPage: 1
   };
   const dp = { left: startOfMonth(today), sel: { from: null, to: null }, preset: null };
 
@@ -387,14 +390,17 @@ export function initDashboard(root, data, today) {
   const ordersTable = $("#orders-table");
   const ordersEmpty = $("#orders-empty");
   const ordersCount = $("#orders-count");
+  const ordersFoot = $("#orders-foot");
   const clientsBody = $("#clients-body");
   const clientsTable = $("#clients-table");
   const clientsEmpty = $("#clients-empty");
   const clientsCount = $("#clients-count");
+  const clientsFoot = $("#clients-foot");
   const reportsBody = $("#reports-body");
   const reportsTable = $("#reports-table");
   const reportsEmpty = $("#reports-empty");
   const reportsCount = $("#reports-count");
+  const reportsFoot = $("#reports-foot");
   const statusPop = $("#status-pop");
   const statusTrigger = $("#status-trigger");
   const datePop = $("#date-pop");
@@ -457,28 +463,52 @@ export function initDashboard(root, data, today) {
   }
   function renderOrders() {
     const rows = sortOrders(filterOrders(orders, state), state.oSort, statuses);
-    ordersBody.innerHTML = ordersRowsHtml(rows, state.selected, statusLabels, orderBase);
+    state.oPage = clampPage(state.oPage, rows.length);
+    const pageRows = pageSlice(rows, state.oPage);
+    ordersBody.innerHTML = ordersRowsHtml(pageRows, state.selected, statusLabels, orderBase);
     ordersEmpty.classList.toggle("show", rows.length === 0);
     ordersTable.hidden = rows.length === 0;
     const total = rows.reduce((sum, o) => sum + o.total, 0);
     ordersCount.textContent = `${rows.length} ${plural(rows.length, "pedido", "pedidos")} · ${fmtBRL(total)}`;
+    renderPager(ordersFoot, {
+      page: state.oPage, total: rows.length, noun: ["pedido", "pedidos"],
+      onGo(page) { state.oPage = page; renderOrders(); scrollPanelTop(ordersFoot); }
+    });
     updateSortArrows(ordersTable, state.oSort);
-    syncCheckAll(rows);
+    syncCheckAll(pageRows);
     renderBulk();
   }
   function renderClients() {
     const rows = sortClients(filterClients(clients, state.cQ), state.cSort);
-    clientsBody.innerHTML = clientsRowsHtml(rows, situationLabels);
+    state.cPage = clampPage(state.cPage, rows.length);
+    clientsBody.innerHTML = clientsRowsHtml(pageSlice(rows, state.cPage), situationLabels);
     clientsEmpty.classList.toggle("show", rows.length === 0);
     clientsTable.hidden = rows.length === 0;
     clientsCount.textContent = `${rows.length} ${plural(rows.length, "cliente", "clientes")}`;
+    renderPager(clientsFoot, {
+      page: state.cPage, total: rows.length, noun: ["cliente", "clientes"],
+      onGo(page) { state.cPage = page; renderClients(); scrollPanelTop(clientsFoot); }
+    });
     updateSortArrows(clientsTable, state.cSort);
   }
   function renderReports() {
-    reportsBody.innerHTML = reportsRowsHtml(reports);
+    state.rPage = clampPage(state.rPage, reports.length);
+    reportsBody.innerHTML = reportsRowsHtml(pageSlice(reports, state.rPage));
     reportsEmpty.classList.toggle("show", reports.length === 0);
     reportsTable.hidden = reports.length === 0;
     reportsCount.textContent = `${reports.length} ${plural(reports.length, "relatório", "relatórios")}`;
+    renderPager(reportsFoot, {
+      page: state.rPage, total: reports.length, noun: ["relatório", "relatórios"],
+      onGo(page) { state.rPage = page; renderReports(); scrollPanelTop(reportsFoot); }
+    });
+  }
+  function resetOrders() {
+    state.oPage = 1;
+    renderOrders();
+  }
+  function resetClients() {
+    state.cPage = 1;
+    renderClients();
   }
 
   function toast(kind, html) {
@@ -497,7 +527,8 @@ export function initDashboard(root, data, today) {
     renderOrders();
   }
   function toggleAll() {
-    const rows = filterOrders(orders, state).filter((o) => o.status !== "merged");
+    const rows = pageSlice(sortOrders(filterOrders(orders, state), state.oSort, statuses), state.oPage)
+      .filter((o) => o.status !== "merged");
     const allSel = rows.length > 0 && rows.every((o) => state.selected.has(o.n));
     rows.forEach((o) => (allSel ? state.selected.delete(o.n) : state.selected.add(o.n)));
     renderOrders();
@@ -603,7 +634,7 @@ export function initDashboard(root, data, today) {
     state.from = null;
     state.to = null;
     syncDateTrigger();
-    renderOrders();
+    resetOrders();
   }
 
   function row(target) {
@@ -625,7 +656,7 @@ export function initDashboard(root, data, today) {
     }));
   $("#menu-toggle").addEventListener("click", () => sidebar.classList.toggle("show"));
 
-  $("#o-name").addEventListener("input", (e) => { state.oName = e.target.value; renderOrders(); });
+  $("#o-name").addEventListener("input", (e) => { state.oName = e.target.value; resetOrders(); });
 
   statusTrigger.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -639,14 +670,14 @@ export function initDashboard(root, data, today) {
       if (state.statuses.has(k)) state.statuses.delete(k); else state.statuses.add(k);
       opt.classList.toggle("sel", state.statuses.has(k));
       syncStatusTrigger();
-      renderOrders();
+      resetOrders();
       return;
     }
     if (e.target.closest("#status-clear")) {
       state.statuses.clear();
       statusPop.querySelectorAll(".opt").forEach((o) => o.classList.remove("sel"));
       syncStatusTrigger();
-      renderOrders();
+      resetOrders();
       return;
     }
     if (e.target.closest("#status-apply")) closePop();
@@ -663,7 +694,7 @@ export function initDashboard(root, data, today) {
     state.from = null;
     state.to = null;
     syncDateTrigger();
-    renderOrders();
+    resetOrders();
   });
   datePop.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -702,7 +733,7 @@ export function initDashboard(root, data, today) {
       state.from = dp.sel.from;
       state.to = dp.sel.to;
       syncDateTrigger();
-      renderOrders();
+      resetOrders();
       closePop();
     }
   });
@@ -719,22 +750,22 @@ export function initDashboard(root, data, today) {
       const k = th.dataset.key;
       if (state.oSort.key === k) state.oSort.dir = state.oSort.dir === "asc" ? "desc" : "asc";
       else state.oSort = { key: k, dir: k === "client" ? "asc" : "desc" };
-      renderOrders();
+      resetOrders();
     }));
   clientsTable.querySelectorAll("thead th.sortable").forEach((th) =>
     th.addEventListener("click", () => {
       const k = th.dataset.key;
       if (state.cSort.key === k) state.cSort.dir = state.cSort.dir === "asc" ? "desc" : "asc";
       else state.cSort = { key: k, dir: "asc" };
-      renderClients();
+      resetClients();
     }));
 
-  $("#c-q").addEventListener("input", (e) => { state.cQ = e.target.value; renderClients(); });
+  $("#c-q").addEventListener("input", (e) => { state.cQ = e.target.value; resetClients(); });
 
   $("#gsearch").addEventListener("input", (e) => {
     const v = e.target.value;
-    if (state.view === "orders") { state.oName = v; $("#o-name").value = v; renderOrders(); }
-    else { state.cQ = v; $("#c-q").value = v; renderClients(); }
+    if (state.view === "orders") { state.oName = v; $("#o-name").value = v; resetOrders(); }
+    else { state.cQ = v; $("#c-q").value = v; resetClients(); }
   });
 
   ordersBody.addEventListener("click", (e) => {
