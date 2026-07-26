@@ -224,14 +224,14 @@ module Catalog
 
     test "enqueues a catalog sync job after a successful save" do
       result = nil
-      assert_enqueued_with(job: ProductCatalogSyncJob) do
+      assert_enqueued_with(job: ProductCatalogBatchJob) do
         result = save(Product.new(name: "Sincroniza"), graph)
       end
-      assert_equal [ result.product.id ], enqueued_jobs.last[:args]
+      assert_equal [ [ result.product.id ] ], enqueued_jobs.last[:args]
     end
 
     test "does not enqueue a catalog sync when the save fails" do
-      assert_no_enqueued_jobs only: ProductCatalogSyncJob do
+      assert_no_enqueued_jobs only: ProductCatalogBatchJob do
         save(Product.new(name: ""), graph, name: "")
       end
     end

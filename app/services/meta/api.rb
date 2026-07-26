@@ -11,8 +11,16 @@ module Meta
       Rails.application.credentials.dig(:meta, :catalog_id)
     end
 
+    def self.shop_id
+      Rails.application.credentials.dig(:meta, :shop_id)
+    end
+
     def self.configured?
       access_token.present? && catalog_id.present?
+    end
+
+    def self.shops_configured?
+      configured? && shop_id.present?
     end
 
     Error = Class.new(StandardError)
