@@ -64,13 +64,14 @@ volumes:
   - "prisma_engine_logs:/rails/log"
 
 # Docker json-file rotation for the app container's STDOUT: a bounded live-tail
-# buffer for `kamal app logs` (~150 MB, 3 x 50 MB). The durable copy is the named
-# volume above; this is short-term only. Applies on the next deploy.
+# buffer for `kamal app logs` (~250 MB, 5 x 50 MB), matching the log/production.log
+# rotation. The durable copy is the named volume above; this is short-term only.
+# Applies on the next deploy.
 logging:
   driver: json-file
   options:
     max-size: 50m
-    max-file: 3
+    max-file: 5
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
