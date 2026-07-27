@@ -14,7 +14,7 @@
           <%= sort_header(@base_params, key: "status", label: t("admin.dashboard.orders.columns.status"),
                           sort: @search.sort, dir: @search.direction) %>
           <%= sort_header(@base_params, key: "total", label: t("admin.dashboard.orders.columns.total"),
-                          sort: @search.sort, dir: @search.direction, numeric: true) %>
+                          sort: @search.sort, dir: @search.direction, extra_class: "num") %>
           <th class="num"></th>
         </tr>
       </thead>

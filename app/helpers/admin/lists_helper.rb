@@ -47,31 +47,15 @@ module Admin
       safe_join([ tag.b("#{page.from}–#{page.to}"), " de ", tag.b(page.total), " #{noun}" ])
     end
 
-    def sort_header(base_params, key:, label:, sort:, dir:, default_dir: "desc", numeric: false)
-      active = sort == key
-      classes = [ "sortable" ]
-      classes << "sorted" if active
-      classes << "num" if numeric
+    def sort_header(base_params, key:, label:, sort:, dir:, default_dir: "desc", extra_class: nil)
+      column = Admin::ColumnSort.new(key: key, sort: sort, direction: dir, default_direction: default_dir)
+      classes = [ "sortable", ("sorted" if column.active?), extra_class ].compact
 
       tag.th(class: classes.join(" ")) do
-        link_to list_path(base_params, sort: key, dir: next_dir(active, dir, default_dir), page: nil) do
-          safe_join([ label, tag.span(arrow_for(active, dir), class: "sortarrow") ], " ")
+        link_to list_path(base_params, sort: key, dir: column.next_direction, page: nil) do
+          safe_join([ label, tag.span(column.arrow, class: "sortarrow") ], " ")
         end
       end
-    end
-
-    private
-
-    def next_dir(active, dir, default_dir)
-      return default_dir unless active
-
-      dir == "asc" ? "desc" : "asc"
-    end
-
-    def arrow_for(active, dir)
-      return "" unless active
-
-      dir == "asc" ? "▲" : "▼"
     end
   end
 end

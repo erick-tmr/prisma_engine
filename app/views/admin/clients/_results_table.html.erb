@@ -13,7 +13,7 @@
           <%= sort_header(@base_params, key: "since", label: t("admin.dashboard.clients.columns.since"),
                           sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
           <%= sort_header(@base_params, key: "orders", label: t("admin.dashboard.clients.columns.orders"),
-                          sort: @search.sort, dir: @search.direction, default_dir: "asc", numeric: true) %>
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc", extra_class: "num") %>
           <%= sort_header(@base_params, key: "status", label: t("admin.dashboard.clients.columns.situation"),
                           sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
           <th class="num"></th>

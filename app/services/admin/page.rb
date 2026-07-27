@@ -51,17 +51,17 @@ module Admin
       wanted = [ 1, last, current, current - 1, current + 1 ]
       wanted += [ 2, 3, 4 ] if current <= 3
       wanted += [ last - 3, last - 2, last - 1 ] if current >= last - 2
-      wanted.uniq.select { |n| n >= 1 && n <= last }.sort
+      wanted.uniq.select { |page| page >= 1 && page <= last }.sort
     end
     private_class_method :numbers_around
 
+    # A gap is only ever pushed just before a number, so the tail is always the
+    # previous page number.
     def self.with_gaps(pages)
-      out = []
-      pages.each_with_index do |n, i|
-        out << :gap if i.positive? && n - pages[i - 1] > 1
-        out << n
+      pages.each_with_object([]) do |page, out|
+        out << :gap if out.any? && page - out.last > 1
+        out << page
       end
-      out
     end
     private_class_method :with_gaps
 

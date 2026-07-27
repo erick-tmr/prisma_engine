@@ -51,7 +51,7 @@ module Admin
 
     test "sort_header honours a column's own default direction and numeric alignment" do
       assert_includes sort_header({}, key: "client", label: "Cliente", sort: "date", dir: "desc", default_dir: "asc"), "dir=asc"
-      assert_includes sort_header({}, key: "total", label: "Total", sort: "date", dir: "desc", numeric: true), "num"
+      assert_includes sort_header({}, key: "total", label: "Total", sort: "date", dir: "desc", extra_class: "num"), "num"
     end
 
     test "sort_header drops the page, so a re-sort starts at the top" do
