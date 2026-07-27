@@ -71,5 +71,5 @@
 </div>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "backoffice/production_report", type: "module" %>
+  <%= javascript_import_module_tag "backoffice/production_report" %>
 <% end %>

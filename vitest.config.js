@@ -1,6 +1,15 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // Mirrors `pin_all_from "app/javascript/backoffice", under: "backoffice"` in
+  // config/importmap.rb, so the specifier the browser resolves is the one the
+  // tests resolve.
+  resolve: {
+    alias: [
+      { find: "backoffice", replacement: fileURLToPath(new URL("./app/javascript/backoffice", import.meta.url)) }
+    ]
+  },
   test: {
     environment: "jsdom",
     include: ["test/javascript/**/*.test.js"],

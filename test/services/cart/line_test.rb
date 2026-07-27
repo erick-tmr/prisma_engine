@@ -9,7 +9,7 @@ class Cart::LineTest < ActiveSupport::TestCase
       options: [ product_options(:yellow_caixa_com) ]
     )
     assert_equal 18_000, line.unit_price_cents
-    assert_equal "R$ 180.00", line.unit_price_formatted
+    assert_equal "R$ 180,00", line.unit_price_formatted
   end
 
   test "line_total_cents multiplies unit_price by quantity" do
@@ -20,7 +20,7 @@ class Cart::LineTest < ActiveSupport::TestCase
       options: []
     )
     assert_equal 54_000, line.line_total_cents
-    assert_equal "R$ 540.00", line.line_total_formatted
+    assert_equal "R$ 540,00", line.line_total_formatted
   end
 
   test "selected_for returns the option in the requested group" do

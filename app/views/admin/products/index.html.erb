@@ -6,7 +6,7 @@
 
 <div class="app-rainbow" aria-hidden="true"></div>
 
-<div class="app" data-catalog>
+<div class="app" data-list="catalog">
   <%= render "admin/sidebar", active: "catalog" %>
 
   <div class="main">
@@ -19,7 +19,7 @@
       <div class="topbar-right">
         <div class="gsearch">
           <i class="bi bi-search"></i>
-          <input id="gsearch" type="text" placeholder="<%= t("admin.dashboard.search_placeholder") %>" aria-label="<%= t("admin.dashboard.search_aria") %>">
+          <input id="gsearch" type="text" value="<%= @search.query %>" placeholder="<%= t("admin.dashboard.search_placeholder") %>" aria-label="<%= t("admin.dashboard.search_aria") %>">
         </div>
         <button class="icon-btn" type="button" aria-label="<%= t("admin.dashboard.notifications") %>"><i class="bi bi-bell"></i><span class="dot"></span></button>
       </div>
@@ -33,112 +33,43 @@
             <div class="sub"><%= t("admin.catalog.sub") %></div>
           </div>
           <div class="panel-top-right">
-            <span class="result-count" id="catalog-count"></span>
+            <%= render "results_count" %>
             <%= link_to new_admin_product_path, class: "btn-dark" do %>
               <i class="bi bi-plus-lg"></i> <%= t("admin.catalog.new_product") %>
             <% end %>
           </div>
         </div>
 
-        <div class="filters">
+        <div class="filters" data-filters>
           <div class="fgroup fgrow">
             <label for="c-q"><%= t("admin.catalog.filters.query") %></label>
             <div class="f-input">
               <i class="bi bi-search"></i>
-              <input id="c-q" type="text" placeholder="<%= t("admin.catalog.filters.query_placeholder") %>">
+              <input id="c-q" type="text" name="q" data-filter="q" value="<%= @search.query %>"
+                     placeholder="<%= t("admin.catalog.filters.query_placeholder") %>">
             </div>
           </div>
           <div class="fgroup">
             <label for="c-cat"><%= t("admin.catalog.filters.category") %></label>
-            <select class="inp f-cat" id="c-cat">
+            <select class="inp f-cat" id="c-cat" name="cat" data-filter="cat">
               <option value=""><%= t("admin.catalog.filters.category_all") %></option>
               <% @presenter.categories.each do |name, slug| %>
-                <option value="<%= slug %>"><%= name %></option>
+                <option value="<%= slug %>" <%= "selected" if @search.category == slug %>><%= name %></option>
               <% end %>
             </select>
           </div>
           <div class="fgroup">
             <label for="c-status"><%= t("admin.catalog.filters.status") %></label>
-            <select class="inp f-status" id="c-status">
+            <select class="inp f-status" id="c-status" name="status" data-filter="status">
               <option value=""><%= t("admin.catalog.filters.status_all") %></option>
-              <option value="published"><%= t("admin.catalog.filters.status_published") %></option>
-              <option value="draft"><%= t("admin.catalog.filters.status_draft") %></option>
-              <option value="gotm"><%= t("admin.catalog.filters.status_gotm") %></option>
+              <% %w[published draft gotm].each do |value| %>
+                <option value="<%= value %>" <%= "selected" if @search.status == value %>><%= t("admin.catalog.filters.status_#{value}") %></option>
+              <% end %>
             </select>
           </div>
         </div>
 
-        <div class="tbl-wrap">
-          <table class="tbl" id="catalog-table">
-            <thead>
-              <tr>
-                <th><%= t("admin.catalog.columns.product") %></th>
-                <th><%= t("admin.catalog.columns.category") %></th>
-                <th><%= t("admin.catalog.columns.options") %></th>
-                <th class="num"><%= t("admin.catalog.columns.weight") %></th>
-                <th class="num"><%= t("admin.catalog.columns.price") %></th>
-                <th><%= t("admin.catalog.columns.status") %></th>
-                <th class="num"></th>
-              </tr>
-            </thead>
-            <tbody id="catalog-body">
-              <% @presenter.products.each do |product| %>
-                <% status = @presenter.status(product) %>
-                <tr data-row data-href="<%= edit_admin_product_path(product) %>"
-                    data-name="<%= product.name.downcase %>" data-slug="<%= product.slug %>"
-                    data-cat="<%= product.category.slug %>" data-status="<%= status %>">
-                  <td>
-                    <div class="prod-cell">
-                      <span class="thumb">
-                        <% if product.image.present? %>
-                          <img src="<%= product.image %>" alt="" loading="lazy">
-                        <% else %>
-                          <i class="bi bi-image"></i>
-                        <% end %>
-                      </span>
-                      <div class="prod-cell-text">
-                        <div class="nm"><%= product.name %></div>
-                        <div class="sl"><%= product.slug %></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td><span class="badge-cat"><%= product.category.name %></span></td>
-                  <td>
-                    <% group_count = @presenter.option_group_count(product) %>
-                    <% if group_count.positive? %>
-                      <span class="chip-count"><i class="bi bi-list-ul"></i> <%= t("admin.catalog.groups", count: group_count) %></span>
-                    <% else %>
-                      <span class="chip-empty">–</span>
-                    <% end %>
-                  </td>
-                  <td class="num cell-num"><%= product.weight_grams %> g</td>
-                  <td class="num">
-                    <% if product.price_cents.zero? %>
-                      <span class="price-muted"><%= t("admin.catalog.on_request") %></span>
-                    <% else %>
-                      <span class="amount"><%= product.price_formatted %></span>
-                    <% end %>
-                  </td>
-                  <td>
-                    <% if status == :gotm %>
-                      <span class="gotm-flag"><i class="bi bi-star-fill"></i> <%= t("admin.catalog.status.gotm") %></span>
-                    <% elsif status == :published %>
-                      <span class="pub-dot on"><%= t("admin.catalog.status.published") %></span>
-                    <% else %>
-                      <span class="pub-dot off"><%= t("admin.catalog.status.draft") %></span>
-                    <% end %>
-                  </td>
-                  <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-          <div class="empty" id="catalog-empty">
-            <i class="bi bi-controller"></i>
-            <p><%= t("admin.catalog.empty.title") %></p>
-            <span><%= t("admin.catalog.empty.hint") %></span>
-          </div>
-        </div>
+        <%= render "results_table" %>
       </div>
     </main>
   </div>
@@ -154,5 +85,5 @@
 </div>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "backoffice/catalog", type: "module" %>
+  <%= javascript_import_module_tag "backoffice/catalog" %>
 <% end %>

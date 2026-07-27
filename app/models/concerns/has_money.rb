@@ -1,6 +1,8 @@
 module HasMoney
   def self.format(cents)
-    "R$ %0.2f" % (cents.to_i / 100.0)
+    ActiveSupport::NumberHelper.number_to_currency(
+      cents.to_i / 100.0, unit: "R$ ", separator: ",", delimiter: ".", format: "%u%n"
+    )
   end
 
   def self.parse(value)

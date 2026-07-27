@@ -22,7 +22,7 @@ class AdminProductionReportTest < ApplicationSystemTestCase
 
     # The batch is archived: it shows in the Relatórios tab and reprints.
     visit admin_root_path
-    find('.sb-link[data-view="reports"]').click
+    find(".sb-link", text: "Relatórios").click
     within "#reports-body" do
       assert_selector "tr", count: 1
       find("a.cell-link").click

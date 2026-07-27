@@ -20,7 +20,7 @@ function fire(el, type) {
 function mountPdp() {
   document.body.innerHTML = `
     <div class="buy">
-      <span data-price>R$ 180.00</span>
+      <span data-price>R$ 180,00</span>
       <form data-pdp-form data-base-cents="18000">
         <input type="hidden" data-variant-group="Idioma" value="1">
         <input type="hidden" data-variant-group="Caixa" value="10">
@@ -50,11 +50,11 @@ function mountPdp() {
 const $ = (sel) => document.querySelector(sel);
 
 describe("formatPriceCents", () => {
-  it("renders cents the way HasMoney does (R$ 0.00, no thousands separator)", () => {
-    expect(formatPriceCents(18000)).toBe("R$ 180.00");
-    expect(formatPriceCents(0)).toBe("R$ 0.00");
-    expect(formatPriceCents(1234)).toBe("R$ 12.34");
-    expect(formatPriceCents(180000)).toBe("R$ 1800.00");
+  it("renders cents the way HasMoney does (comma decimals, grouped thousands)", () => {
+    expect(formatPriceCents(18000)).toBe("R$ 180,00");
+    expect(formatPriceCents(0)).toBe("R$ 0,00");
+    expect(formatPriceCents(1234)).toBe("R$ 12,34");
+    expect(formatPriceCents(180000)).toBe("R$ 1.800,00");
   });
 });
 
@@ -96,10 +96,10 @@ describe("updatePrice", () => {
   it("writes base × quantity into [data-price]", () => {
     const form = $("[data-pdp-form]");
     updatePrice(form);
-    expect($("[data-price]").textContent).toBe("R$ 180.00");
+    expect($("[data-price]").textContent).toBe("R$ 180,00");
     $("[data-qty]").value = "2";
     updatePrice(form);
-    expect($("[data-price]").textContent).toBe("R$ 360.00");
+    expect($("[data-price]").textContent).toBe("R$ 360,00");
   });
 
   it("defaults quantity to 1 when there is no qty input", () => {
@@ -107,7 +107,7 @@ describe("updatePrice", () => {
       <span data-price></span>
       <form data-pdp-form data-base-cents="5000"></form>`;
     updatePrice($("[data-pdp-form]"));
-    expect($("[data-price]").textContent).toBe("R$ 50.00");
+    expect($("[data-price]").textContent).toBe("R$ 50,00");
   });
 
   it("does nothing (no throw) when there is no price element", () => {
@@ -155,7 +155,7 @@ describe("bindStepper", () => {
     fire($("[data-inc]"), "click");
     expect($("[data-qty]").value).toBe("2");
     expect($("[data-dec]").disabled).toBe(false);
-    expect($("[data-price]").textContent).toBe("R$ 360.00");
+    expect($("[data-price]").textContent).toBe("R$ 360,00");
   });
 
   it("holds at the floor of 1 and keeps the − button disabled", () => {
@@ -339,9 +339,9 @@ describe("initPdp", () => {
       </div>
       <div data-gotm-countdown data-gotm-year="2026" data-gotm-month="6"><b data-countdown-text></b></div>`;
     initPdp(document, new Date(2026, 5, 28, 23, 59, 59));
-    expect($("[data-price]").textContent).toBe("R$ 180.00");
+    expect($("[data-price]").textContent).toBe("R$ 180,00");
     expect($("[data-countdown-text]").textContent).toBe("termina em 2 dias e 0h");
     fire($('[data-vpill][data-vopt="2"]'), "click");
-    expect($("[data-price]").textContent).toBe("R$ 180.00");
+    expect($("[data-price]").textContent).toBe("R$ 180,00");
   });
 });

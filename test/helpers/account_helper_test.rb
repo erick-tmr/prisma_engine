@@ -11,9 +11,10 @@ class AccountHelperTest < ActionView::TestCase
     assert_equal "", number_to_cep(nil)
   end
 
-  test "format_brl converts cents to a R$ string with comma decimals" do
+  test "format_brl converts cents to a R$ string with comma decimals and grouped thousands" do
     assert_equal "R$ 12,34", format_brl(1_234)
-    assert_equal "R$ 1000,00", format_brl(100_000)
+    assert_equal "R$ 1.000,00", format_brl(100_000)
+    assert_equal "R$ 50.478,44", format_brl(5_047_844)
     assert_equal "R$ 0,00", format_brl(0)
   end
 

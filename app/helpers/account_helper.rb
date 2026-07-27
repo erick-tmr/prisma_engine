@@ -45,7 +45,7 @@ module AccountHelper
   end
 
   def format_brl(cents)
-    "R$ #{format('%.2f', cents.to_i / 100.0).tr('.', ',')}"
+    HasMoney.format(cents)
   end
 
   def order_payment_method_label(method)

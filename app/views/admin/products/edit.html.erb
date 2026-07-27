@@ -7,6 +7,6 @@
 <%= render "form" %>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "backoffice/catalog-rte", type: "module" %>
-  <%= javascript_include_tag "backoffice/catalog-editor", type: "module" %>
+  <%= javascript_import_module_tag "backoffice/catalog-rte" %>
+  <%= javascript_import_module_tag "backoffice/catalog-editor" %>
 <% end %>

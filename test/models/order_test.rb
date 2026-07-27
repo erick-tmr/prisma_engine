@@ -375,6 +375,34 @@ class OrderTest < ActiveSupport::TestCase
     assert_not order.cancellable?
   end
 
+  test "paid scopes to every state the money has cleared" do
+    assert_equal Order::STATUSES - %w[awaiting_payment cancelled merged], Order::PAID_STATUSES
+
+    paid = build_order
+    paid.save!
+    paid.update_column(:status, "payment_confirmed")
+    assert_includes Order.paid, paid
+  end
+
+  test "paid excludes unpaid and cancelled orders" do
+    %w[awaiting_payment cancelled].each do |status|
+      order = build_order
+      order.save!
+      order.update_column(:status, status)
+      assert_not_includes Order.paid, order, "#{status} should not count as paid"
+    end
+  end
+
+  test "paid excludes merged orders, whose value already sits in their master" do
+    order = build_order
+    order.save!
+    order.update_column(:status, "merged")
+
+    assert_not_includes Order.paid, order
+    assert_equal :paid, order.payment_status,
+                 "the customer did pay; only the revenue sum skips it, to avoid double counting"
+  end
+
   test "mergeable scopes to the three eligible states, oldest first" do
     user = User.create!(
       email: "merge-scope@example.com", password: "password123",

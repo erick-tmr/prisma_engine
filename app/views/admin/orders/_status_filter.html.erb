@@ -1,0 +1,21 @@
+<div data-part="status">
+  <div class="f-trigger f-trigger--status" id="status-trigger" data-pop>
+    <i class="bi bi-funnel"></i>
+    <span class="val <%= "placeholder" if @search.statuses.empty? %>"><%= status_trigger_label(@search.statuses) %></span>
+    <span class="pillnum" <%= "hidden" if @search.statuses.size < 2 %>><%= @search.statuses.size %></span>
+    <i class="bi bi-chevron-down chev"></i>
+  </div>
+  <div class="pop pop--status" id="status-pop">
+    <% Order::STATUSES.each do |status| %>
+      <div class="opt<%= " sel" if @search.statuses.include?(status) %>" data-st="<%= status %>">
+        <span class="cbox"></span>
+        <span class="dotc dotc-<%= status %>"></span>
+        <span class="lbl"><%= t("account.orders.states.#{status}.label") %></span>
+      </div>
+    <% end %>
+    <div class="pop-foot">
+      <button class="pf-clear" id="status-clear" type="button"><%= t("admin.dashboard.orders.filters.status_clear") %></button>
+      <button class="pf-apply" id="status-apply" type="button"><%= t("admin.dashboard.orders.filters.status_apply") %></button>
+    </div>
+  </div>
+</div>

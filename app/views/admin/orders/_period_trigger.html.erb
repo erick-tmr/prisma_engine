@@ -1,0 +1,12 @@
+<div class="f-trigger" id="date-trigger" data-part="period" data-pop
+     data-de="<%= @search.from&.iso8601 %>" data-ate="<%= @search.to&.iso8601 %>">
+  <i class="bi bi-calendar3"></i>
+  <span class="val <%= "placeholder" unless @search.from %>">
+    <%= @search.from ? period_label(@search.from, @search.to) : t("admin.dashboard.orders.filters.period_any") %>
+  </span>
+  <button id="date-clear" class="icon-clear" type="button"
+          aria-label="<%= t("admin.dashboard.orders.filters.period_clear") %>" <%= "hidden" unless @search.from %>>
+    <i class="bi bi-x-circle-fill"></i>
+  </button>
+  <i class="bi bi-chevron-down chev"></i>
+</div>

@@ -25,7 +25,7 @@ module Shipping
       sedex = services.first
       assert_equal "SEDEX", sedex[:label]
       assert_equal 2284,    sedex[:price_cents]
-      assert_equal "R$ 22.84", sedex[:price_formatted]
+      assert_equal "R$ 22,84", sedex[:price_formatted]
       assert_equal 2,       sedex[:business_days]
     end
 
@@ -38,7 +38,7 @@ module Shipping
 
       sedex = services.first
       assert_equal 2484, sedex[:price_cents]
-      assert_equal "R$ 24.84", sedex[:price_formatted]
+      assert_equal "R$ 24,84", sedex[:price_formatted]
     end
 
     test "Mini Envios coming back with a swapped coProduto is reported as ineligible with too_heavy" do

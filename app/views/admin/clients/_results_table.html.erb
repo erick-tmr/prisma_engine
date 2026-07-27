@@ -1,0 +1,36 @@
+<div data-part="table">
+  <div class="tbl-wrap">
+    <table class="tbl" id="clients-table"<%= " hidden".html_safe if @page.empty? %>>
+      <thead>
+        <tr>
+          <%= sort_header(@base_params, key: "name", label: t("admin.dashboard.clients.columns.client"),
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
+          <%= sort_header(@base_params, key: "cpf", label: t("admin.dashboard.clients.columns.cpf"),
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
+          <th><%= t("admin.dashboard.clients.columns.phone") %></th>
+          <%= sort_header(@base_params, key: "city", label: t("admin.dashboard.clients.columns.city"),
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
+          <%= sort_header(@base_params, key: "since", label: t("admin.dashboard.clients.columns.since"),
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
+          <%= sort_header(@base_params, key: "orders", label: t("admin.dashboard.clients.columns.orders"),
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc", extra_class: "num") %>
+          <%= sort_header(@base_params, key: "status", label: t("admin.dashboard.clients.columns.situation"),
+                          sort: @search.sort, dir: @search.direction, default_dir: "asc") %>
+          <th class="num"></th>
+        </tr>
+      </thead>
+      <tbody id="clients-body">
+        <%= render partial: "row", collection: @clients, as: :client %>
+      </tbody>
+    </table>
+
+    <div class="empty<%= " show" if @page.empty? %>" id="clients-empty">
+      <i class="bi bi-person-x"></i>
+      <p><%= t("admin.dashboard.clients.empty.title") %></p>
+      <span><%= t("admin.dashboard.clients.empty.hint") %></span>
+    </div>
+  </div>
+
+  <%= render "admin/shared/pager", page: @page, base_params: @base_params,
+             one: t("admin.lists.client"), many: t("admin.lists.clients") %>
+</div>

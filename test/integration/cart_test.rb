@@ -24,7 +24,7 @@ class CartTest < ActionDispatch::IntegrationTest
     }
     get "/carrinho"
     # 18000 unit * 2 = 36000; options no longer move the price
-    assert_select "[data-mobile-bar] [data-mb-total]", text: /R\$ 360\.00/
+    assert_select "[data-mobile-bar] [data-mb-total]", text: /R\$ 360,00/
   end
 
   test "adding a product writes a signed cart cookie and bumps the header counter" do
@@ -183,8 +183,8 @@ class CartTest < ActionDispatch::IntegrationTest
     }
     get "/carrinho"
     # 18000 unit * 2 = 36000; options no longer move the price
-    assert_select "[data-subtotal]", text: /R\$ 360\.00/
-    assert_select "[data-total]",    text: /R\$ 360\.00/
+    assert_select "[data-subtotal]", text: /R\$ 360,00/
+    assert_select "[data-total]",    text: /R\$ 360,00/
   end
 
   test "lines whose product was deleted are silently dropped from the cookie" do

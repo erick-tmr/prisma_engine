@@ -2,10 +2,16 @@ require "test_helper"
 
 module Admin
   class CatalogPresenterTest < ActiveSupport::TestCase
-    setup { @presenter = Admin::CatalogPresenter.new }
+    setup { @presenter = Admin::CatalogPresenter.new(Product.order(:name)) }
 
-    test "lists every product ordered by name" do
+    test "presents the page of products it was handed" do
       assert_equal Product.order(:name).pluck(:name), @presenter.products.map(&:name)
+    end
+
+    test "derives its lookups from that page alone, not the whole table" do
+      page = Admin::CatalogPresenter.new(Product.where(id: products(:metroid).id))
+      assert_equal 0, page.option_group_count(products(:yellow)),
+                   "a product outside the page has no counted groups"
     end
 
     test "exposes categories for the filter as [name, slug] pairs" do

@@ -1,0 +1,93 @@
+<% content_for :title, t("admin.dashboard.title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-dashboard" %>
+<% end %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app" data-list="orders" data-bulk-url="<%= admin_bulk_transitions_path %>" data-print-url="<%= admin_print_labels_path %>">
+  <%= render "admin/sidebar", active: "orders" %>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menu-toggle" type="button" aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.dashboard.views.orders.title") %></h1>
+        <span class="crumb"><%= t("admin.dashboard.views.orders.crumb") %></span>
+      </div>
+      <div class="topbar-right">
+        <div class="gsearch">
+          <i class="bi bi-search"></i>
+          <input id="gsearch" type="text" value="<%= @search.query %>" placeholder="<%= t("admin.dashboard.search_placeholder") %>" aria-label="<%= t("admin.dashboard.search_aria") %>">
+        </div>
+        <button class="icon-btn" type="button" aria-label="<%= t("admin.dashboard.notifications") %>"><i class="bi bi-bell"></i><span class="dot"></span></button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="panel">
+        <div class="panel-top">
+          <div class="panel-top-main">
+            <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.dashboard.orders.heading") %></h2>
+            <div class="sub"><%= t("admin.dashboard.orders.sub") %></div>
+          </div>
+          <div class="panel-top-right">
+            <%= render "results_count" %>
+            <span class="result-count result-count--paid"><%= t("admin.dashboard.orders.paid_total", amount: format_brl(Order.paid.sum(:total_cents))) %></span>
+            <a class="btn-ghost" id="gen-production" href="<%= admin_production_report_path(@search.period_params) %>">
+              <i class="bi bi-printer"></i> <%= t("admin.dashboard.orders.production_report") %>
+            </a>
+            <button class="btn-ghost" type="button"><i class="bi bi-download"></i> <%= t("admin.dashboard.orders.export") %></button>
+          </div>
+        </div>
+
+        <div class="filters" data-filters>
+          <div class="fgroup fgrow">
+            <label for="o-name"><%= t("admin.dashboard.orders.filters.query") %></label>
+            <div class="f-input">
+              <i class="bi bi-search"></i>
+              <input id="o-name" name="q" type="text" value="<%= @search.query %>" data-filter="q"
+                     placeholder="<%= t("admin.dashboard.orders.filters.query_placeholder") %>">
+            </div>
+          </div>
+
+          <div class="fgroup fgroup--pop">
+            <label><%= t("admin.dashboard.orders.filters.period") %></label>
+            <%= render "period_trigger" %>
+            <div class="pop dp" id="date-pop"></div>
+          </div>
+
+          <div class="fgroup fgroup--pop">
+            <label><%= t("admin.dashboard.orders.filters.status") %></label>
+            <%= render "status_filter" %>
+          </div>
+
+          <div class="fgroup">
+            <label>&nbsp;</label>
+            <a class="btn-clear" id="o-clear" href="<%= admin_root_path %>"><i class="bi bi-arrow-counterclockwise"></i> <%= t("admin.dashboard.orders.filters.clear") %></a>
+          </div>
+        </div>
+
+        <div class="bulkbar" id="bulkbar" hidden>
+          <div class="bulk-left">
+            <span class="bulk-count"><b id="bulk-n">0</b> <%= t("admin.dashboard.bulk.selected") %></span>
+            <button class="bulk-clear" id="bulk-clear" type="button"><i class="bi bi-x-lg"></i> <%= t("admin.dashboard.bulk.clear") %></button>
+          </div>
+          <div class="bulk-actions" id="bulk-actions"></div>
+          <button class="bulk-chip bulk-print" id="bulk-print" type="button" hidden>
+            <i class="bi bi-printer"></i> <%= t("admin.dashboard.bulk.print_labels") %>
+          </button>
+        </div>
+
+        <%= render "results_table" %>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<% content_for :scripts do %>
+  <%= javascript_import_module_tag "backoffice/orders" %>
+<% end %>

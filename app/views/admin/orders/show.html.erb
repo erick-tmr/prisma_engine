@@ -270,5 +270,5 @@
 </div>
 
 <% content_for :scripts do %>
-  <%= javascript_include_tag "backoffice/order", type: "module" %>
+  <%= javascript_import_module_tag "backoffice/order" %>
 <% end %>

@@ -2,7 +2,7 @@
 #
 # Pre-push gate: mirrors the CI gates locally so nothing red lands on
 # origin/main. Runs rubocop, brakeman, bundler-audit, importmap audit, reek
-# (advisory), gitleaks (when installed), semgrep diff-mode (when semgrep or
+# (changed files), gitleaks (when installed), semgrep diff-mode (when semgrep or
 # docker is available), the test suite, then undercover changed-line coverage.
 # Run this manually before `git push`.
 #
@@ -11,7 +11,10 @@
 #               also skips undercover, which needs the coverage the suite produces)
 # Bail fast:    set -e exits on the first failure; output identifies which step.
 #
+# pipefail so a gate piped into anything still fails the run on the gate's own
+# exit status, not the last command in the pipe.
 set -e
+set -o pipefail
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -35,10 +38,15 @@ step "importmap audit"
 bin/importmap audit
 ok "importmap audit"
 
-step "reek (changed files, advisory)"
+# Advisory in CI (it only annotates the ci-quality comment), but a gate here:
+# the contract is zero warnings on the files a branch touches.
+step "reek (changed files)"
 CHANGED_RB="$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'app/**/*.rb' 'lib/**/*.rb' | tr '\n' ' ')"
 if [ -n "$CHANGED_RB" ]; then
-  bundle exec reek --force-exclusion $CHANGED_RB || true
+  if ! bundle exec reek --force-exclusion $CHANGED_RB; then
+    printf '\n\033[1;31m✗ reek: fix the smell, or silence the detector in .reek.yml with a comment saying why\033[0m\n'
+    exit 1
+  fi
 else
   printf '  (no changed Ruby files vs origin/main)\n'
 fi
