@@ -226,8 +226,17 @@ and migrates all four databases.
 Routine deploys after that:
 
 ```bash
-bin/kamal deploy
+bin/prisma deploy
 ```
+
+It fetches, moves to `main`, hard-resets onto `origin/main` and then runs `kamal deploy`,
+so production always gets exactly what is on the remote rather than whatever the
+workstation happened to be sitting on. Because that reset is destructive it stops, and
+shows what it found, when the working tree is dirty or when local `main` holds commits
+`origin/main` does not. `bin/prisma deploy --yes` skips the confirmation for cron, and `bin/prisma help`
+lists every action the CLI grows.
+
+`bin/kamal deploy` still works if you want to ship the current checkout deliberately.
 
 Useful aliases (defined in `config/deploy.yml`): `bin/kamal console`,
 `bin/kamal dbconsole`, `bin/kamal logs`.
