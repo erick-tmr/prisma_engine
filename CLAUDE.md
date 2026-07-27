@@ -10,6 +10,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - `bin/pre-push-check`: local CI gauntlet; must pass before push. `SKIP_TESTS=1` for docs-only pushes.
 - `npm run test:js`: Vitest+jsdom unit tests for storefront ES modules (`test/javascript/*.test.js`). Node pinned in `.node-version`; `npm install` first. `pre-push-check` runs it too.
 - `SKIP_COVERAGE_FLOOR=1 bin/rails test:system`: Capybara + Cuprite (headless Chrome) E2E tests; needs Postgres up. `HEADLESS=0` shows the browser, `DENY_EXTERNAL=0` lifts the no-network fence. Not in `pre-push-check` (CI's `system-test` job runs it). See **System tests (E2E)**.
+- `bin/prisma <action>`: project CLI. `bin/prisma deploy` is the routine production deploy: fetches, moves to `main`, hard-resets onto `origin/main` and runs `kamal deploy`, so what ships is exactly the remote. Refuses on a dirty tree or when `main` holds commits `origin/main` does not; `--yes` skips the confirmation. `bin/prisma help` lists the actions. Runbook: `docs/deployment.md`.
 - `deploy/fetch-production-logs.sh`: download production logs over SSH, then query them in the local Loki + Grafana stack under `deploy/log-analysis/`. Production logs are structured JSON (lograge). Runbook: `docs/log-analysis.md`.
 - `deploy/seed-prod-catalog.sh`: one-off upload of the initial catalog + hero banner images to the prod R2 bucket via an SSH tunnel to the prod DB. Runbook: `docs/seeding-images.md`. Catalog images are gitignored, not committed.
 
