@@ -18,8 +18,6 @@ module Admin
       active? ? ARROWS.fetch(@direction) : ""
     end
 
-    # Clicking the column already in play flips it; any other column opens on
-    # the direction that reads best for its own data.
     def next_direction
       active? ? FLIPPED.fetch(@direction) : @default_direction
     end

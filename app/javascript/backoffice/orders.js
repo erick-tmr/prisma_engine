@@ -83,16 +83,12 @@ export function initOrders(root, today = new Date()) {
   bindFilters(root, table);
   bindGlobalSearch(root, $("#o-name"));
 
-  // Selection outlives paging, so it remembers each order's status: the row it
-  // came from may no longer be in the DOM when the bulk bar is rebuilt.
   const selected = new Map();
   const bulkbar = $("#bulkbar");
   const bulkPrint = $("#bulk-print");
   const datePop = $("#date-pop");
   const toasts = document.getElementById("toasts");
 
-  // The status and period controls are server-rendered parts, so they are
-  // replaced on every fetch: look them up on use rather than caching a node.
   const statusPop = () => $("#status-pop");
   const statusTrigger = () => $("#status-trigger");
   const dateTrigger = () => $("#date-trigger");
@@ -241,8 +237,6 @@ export function initOrders(root, today = new Date()) {
     return { from: de ? parseISO(de) : null, to: ate ? parseISO(ate) : null };
   }
 
-  // #o-checkall and the row checkboxes live inside the swapped region, so they
-  // are reached by delegation rather than bound directly.
   root.addEventListener("click", (event) => {
     if (event.target.closest("#o-checkall")) {
       toggleAll();

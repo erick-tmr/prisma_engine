@@ -59,8 +59,6 @@ module Admin
       scope.where("users.full_name ILIKE :term OR orders.number ILIKE :term", term: term)
     end
 
-    # With nothing ticked the list hides consolidated orders; ticking `merged`
-    # explicitly is the only way to surface them.
     def by_status(scope)
       return scope.where.not(status: "merged") if statuses.empty?
 

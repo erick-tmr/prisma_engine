@@ -77,7 +77,6 @@ export function createTable(root, { path, onRender, onRestore } = {}) {
     return load(next, options);
   }
 
-  // Page and sort links are real hrefs, so they keep working without JS.
   root.addEventListener("click", (event) => {
     const link = event.target.closest("[data-part] a[href]");
     if (!link || link.dataset.noIntercept !== undefined) return;

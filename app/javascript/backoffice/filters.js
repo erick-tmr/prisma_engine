@@ -1,7 +1,5 @@
 import { debounce } from "backoffice/table";
 
-// Back and forward change the params without redrawing the filter bar, so the
-// controls are rewound from the url rather than left showing the old query.
 export function syncFilters(root, params) {
   root.querySelectorAll("[data-filter]").forEach((el) => {
     const value = params[el.dataset.filter] ?? "";
@@ -9,7 +7,6 @@ export function syncFilters(root, params) {
   });
 }
 
-// Text inputs filter as you type; selects apply immediately.
 export function bindFilters(root, table) {
   const inputs = Array.from(root.querySelectorAll("[data-filter]"));
 

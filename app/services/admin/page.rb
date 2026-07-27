@@ -40,7 +40,6 @@ module Admin
       self.class.window(number, last)
     end
 
-    # first, last and current ±1; :gap marks each elision
     def self.window(current, last)
       return (1..last).to_a if last <= WINDOW_LIMIT
 
@@ -55,8 +54,6 @@ module Admin
     end
     private_class_method :numbers_around
 
-    # A gap is only ever pushed just before a number, so the tail is always the
-    # previous page number.
     def self.with_gaps(pages)
       pages.each_with_object([]) do |page, out|
         out << :gap if out.any? && page - out.last > 1

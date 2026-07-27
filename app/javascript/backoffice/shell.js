@@ -13,7 +13,6 @@ export function initShell(root, doc = document) {
   dismissToasts(doc);
 }
 
-// Mirrors the topbar search into the page's own filter input.
 export function bindGlobalSearch(root, input) {
   const gsearch = root.querySelector("#gsearch");
   if (!gsearch || !input) return;

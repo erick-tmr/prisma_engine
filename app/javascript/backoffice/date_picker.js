@@ -40,7 +40,6 @@ export function addMonths(d, n) {
   return new Date(d.getFullYear(), d.getMonth() + n, 1);
 }
 
-// Bounds are whole days: the server widens them to 00:00:00 and 23:59:59.
 export function applyPreset(preset, today) {
   const midnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const end = new Date(midnight);
