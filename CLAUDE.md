@@ -31,7 +31,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - Pin every new gem with a pessimistic version constraint (`gem "foo", "~> 1.2"`). Floor at the installed minor.
 - New env vars: document in `.env.example` (committed), set the value in `.env` (gitignored).
 - `bundler-audit` + `brakeman` block on findings. Fix the cause; don't add ignores without flagging it in the PR.
-- Keep **reek at zero warnings on changed files** (advisory, treated as a gate). Either fix the smell or silence the detector in `.reek.yml` with a comment justifying why.
+- Keep **reek at zero warnings on changed files**: advisory in CI (it only annotates the sticky `ci-quality` comment), but blocking in `bin/pre-push-check`. Either fix the smell or silence the detector in `.reek.yml` with a comment justifying why.
 - Customer-facing strings are **pt-BR**. Brand names follow official source: `Pix` (capital P only, Banco Central style), `InfinitePay` (one word). Never `PIX`, `Mercado Pago`, or `Pagar.me`; InfinitePay is the locked-in PSP. **No boleto**: InfinitePay doesn't issue one.
 - **No em-dashes (`—`) anywhere in the repo**: storefront strings, backoffice copy, code comments, docs, commit messages, PR descriptions. They read as AI-generated. Use commas, periods, parentheses, colons or a rewrite instead. Page titles use a pipe (`<Page> | Prisma Games`); an interpunct (`·`) separates values in a line (`Itajubá · MG · CEP ...`) and an en-dash (`–`) marks an empty table cell. The only surviving em-dashes are in vendored assets, which are never edited.
 
