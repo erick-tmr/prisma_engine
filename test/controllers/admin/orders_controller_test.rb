@@ -27,13 +27,13 @@ module Admin
       assert_select ".act-btn.primary"
     end
 
-    test "show renders the sidebar counts the dashboard already shows" do
+    test "show renders every sidebar count" do
       sign_in users(:admin)
       get admin_order_path(orders(:confirmed_paid))
 
-      assert_select ".sb-link[data-view=orders] .count", text: Order.count.to_s
-      assert_select ".sb-link[data-view=clients] .count", text: User.where(admin: false).count.to_s
-      assert_select ".sb-link[data-view=reports] .count", text: ProductionBatch.count.to_s
+      assert_select ".sb-nav a[href=?] .count", admin_root_path, text: Order.count.to_s
+      assert_select ".sb-nav a[href=?] .count", admin_clients_path, text: User.where(admin: false).count.to_s
+      assert_select ".sb-nav a[href=?] .count", admin_reports_path, text: ProductionBatch.count.to_s
       assert_select ".sb-nav a[href=?] .count", admin_products_path, text: Product.count.to_s
     end
 
@@ -256,7 +256,6 @@ module Admin
       get admin_order_path(orders(:producing))
 
       assert_response :success
-      assert_select "aside.sidebar a.sb-link[data-view=?]", "reports"
       assert_select "aside.sidebar a.sb-link[href=?]", admin_reports_path
     end
   end

@@ -1,8 +1,10 @@
 module Admin
   class CatalogPresenter
-    def products
-      @products ||= Product.includes(:category, product_photos: { image_attachment: :blob }).order(:name)
+    def initialize(products)
+      @products = products
     end
+
+    attr_reader :products
 
     def categories
       Category.order(:name).pluck(:name, :slug)

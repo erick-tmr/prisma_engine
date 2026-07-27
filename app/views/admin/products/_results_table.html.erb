@@ -1,0 +1,75 @@
+<div data-part="table">
+  <div class="tbl-wrap">
+    <table class="tbl" id="catalog-table"<%= " hidden".html_safe if @page.empty? %>>
+      <thead>
+        <tr>
+          <th><%= t("admin.catalog.columns.product") %></th>
+          <th><%= t("admin.catalog.columns.category") %></th>
+          <th><%= t("admin.catalog.columns.options") %></th>
+          <th class="num"><%= t("admin.catalog.columns.weight") %></th>
+          <th class="num"><%= t("admin.catalog.columns.price") %></th>
+          <th><%= t("admin.catalog.columns.status") %></th>
+          <th class="num"></th>
+        </tr>
+      </thead>
+      <tbody id="catalog-body">
+        <% @presenter.products.each do |product| %>
+          <% status = @presenter.status(product) %>
+          <tr data-row data-href="<%= edit_admin_product_path(product) %>">
+            <td>
+              <div class="prod-cell">
+                <span class="thumb">
+                  <% if product.image.present? %>
+                    <img src="<%= product.image %>" alt="" loading="lazy">
+                  <% else %>
+                    <i class="bi bi-image"></i>
+                  <% end %>
+                </span>
+                <div class="prod-cell-text">
+                  <div class="nm"><%= product.name %></div>
+                  <div class="sl"><%= product.slug %></div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge-cat"><%= product.category.name %></span></td>
+            <td>
+              <% group_count = @presenter.option_group_count(product) %>
+              <% if group_count.positive? %>
+                <span class="chip-count"><i class="bi bi-list-ul"></i> <%= t("admin.catalog.groups", count: group_count) %></span>
+              <% else %>
+                <span class="chip-empty">–</span>
+              <% end %>
+            </td>
+            <td class="num cell-num"><%= product.weight_grams %> g</td>
+            <td class="num">
+              <% if product.price_cents.zero? %>
+                <span class="price-muted"><%= t("admin.catalog.on_request") %></span>
+              <% else %>
+                <span class="amount"><%= product.price_formatted %></span>
+              <% end %>
+            </td>
+            <td>
+              <% if status == :gotm %>
+                <span class="gotm-flag"><i class="bi bi-star-fill"></i> <%= t("admin.catalog.status.gotm") %></span>
+              <% elsif status == :published %>
+                <span class="pub-dot on"><%= t("admin.catalog.status.published") %></span>
+              <% else %>
+                <span class="pub-dot off"><%= t("admin.catalog.status.draft") %></span>
+              <% end %>
+            </td>
+            <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="empty<%= " show" if @page.empty? %>" id="catalog-empty">
+      <i class="bi bi-controller"></i>
+      <p><%= t("admin.catalog.empty.title") %></p>
+      <span><%= t("admin.catalog.empty.hint") %></span>
+    </div>
+  </div>
+
+  <%= render "admin/shared/pager", page: @page, base_params: @base_params,
+             one: t("admin.lists.product"), many: t("admin.lists.products") %>
+</div>

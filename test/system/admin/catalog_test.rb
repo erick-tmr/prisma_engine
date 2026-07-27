@@ -25,18 +25,20 @@ class AdminCatalogTest < ApplicationSystemTestCase
     visit admin_products_path
 
     assert_selector "#catalog-count", text: "#{total} produtos"
-    assert_selector "#catalog-foot .foot-range", text: "Mostrando 1–30 de #{total} produtos"
-    assert_selector "tr[data-row]:not([hidden])", count: 30
+    assert_selector ".tbl-foot .foot-range", text: "Mostrando 1–30 de #{total} produtos"
+    assert_selector "tr[data-row]", count: 30
 
-    find("#catalog-foot .pg:not(.pg-nav)[data-pg='2']").click
-    assert_selector "#catalog-foot .pg.on", text: "2"
-    assert_selector "tr[data-row]:not([hidden])", count: total - 30
+    find(".tbl-foot a.pg", text: "2", exact_text: true).click
+    assert_selector ".tbl-foot a.pg.on", text: "2"
+    assert_current_path(/page=2/)
+    assert_selector "tr[data-row]", count: total - 30
 
     # Narrowing the filter from page 2 must land the operator back on page 1.
     fill_in "c-q", with: "Filler"
-    assert_selector "#catalog-foot .pg.on", text: "1"
     assert_selector "#catalog-count", text: "40 produtos"
-    assert_selector "tr[data-row]:not([hidden])", count: 30
+    assert_selector "tr[data-row]", count: 30
+    assert_current_path(/q=Filler/)
+    assert_no_current_path(/page=2/)
   end
 
   test "an operator edits a product and saves it" do

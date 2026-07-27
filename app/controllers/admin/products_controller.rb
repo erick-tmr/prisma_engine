@@ -3,7 +3,11 @@ module Admin
     before_action :set_product, only: %i[edit update]
 
     def index
-      @presenter = Admin::CatalogPresenter.new
+      @search = Admin::CatalogSearch.new(params)
+      @base_params = @search.to_params
+      @page = Admin::Page.new(@search.relation, page_param)
+      @presenter = Admin::CatalogPresenter.new(@page.rows)
+      render_list "results"
     end
 
     def new

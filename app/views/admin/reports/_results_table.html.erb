@@ -1,0 +1,37 @@
+<div data-part="table">
+  <div class="tbl-wrap">
+    <table class="tbl" id="reports-table"<%= " hidden".html_safe if @page.empty? %>>
+      <thead>
+        <tr>
+          <th><%= t("admin.dashboard.reports.columns.generated") %></th>
+          <th><%= t("admin.dashboard.reports.columns.operator") %></th>
+          <th><%= t("admin.dashboard.reports.columns.period") %></th>
+          <th class="num"><%= t("admin.dashboard.reports.columns.orders") %></th>
+          <th class="num"></th>
+        </tr>
+      </thead>
+      <tbody id="reports-body">
+        <% @batches.each do |batch| %>
+          <tr data-report="<%= batch.id %>">
+            <td class="cell-num">
+              <a class="cell-link" href="<%= admin_production_report_batch_path(batch) %>"><%= l(batch.created_at) %></a>
+            </td>
+            <td><%= batch.operator&.full_name || t("admin.production_report.report.system") %></td>
+            <td><%= batch_period(batch) %></td>
+            <td class="num cell-num"><%= t("admin.lists.orders_count", count: batch.orders_count) %></td>
+            <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="empty<%= " show" if @page.empty? %>" id="reports-empty">
+      <i class="bi bi-printer"></i>
+      <p><%= t("admin.dashboard.reports.empty.title") %></p>
+      <span><%= t("admin.dashboard.reports.empty.hint") %></span>
+    </div>
+  </div>
+
+  <%= render "admin/shared/pager", page: @page, base_params: {},
+             one: t("admin.lists.report"), many: t("admin.lists.reports") %>
+</div>

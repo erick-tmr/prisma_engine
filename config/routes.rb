@@ -36,9 +36,9 @@ Rails.application.routes.draw do
   end
 
   scope path: "admin", module: "admin", as: :admin do
-    root to: "dashboard#index"
-    get    "clientes",   to: "dashboard#index", as: :clients
-    get    "relatorios", to: "dashboard#index", as: :reports
+    root to: "orders#index"
+    get    "clientes",   to: "clients#index", as: :clients
+    get    "relatorios", to: "reports#index", as: :reports
     resources :produtos, controller: "products", as: :products,
               only: %i[index new create edit update],
               path_names: { new: "novo", edit: "editar" }

@@ -1,5 +1,14 @@
 module Admin
   class OrdersController < BaseController
+    def index
+      @search = Admin::OrderSearch.new(params)
+      @base_params = @search.to_params
+      @page = Admin::Page.new(@search.relation, page_param)
+      @orders = @page.rows
+      @total_cents = @search.total_cents
+      render_list "results"
+    end
+
     def show
       @order = find_order
       @presenter = OrderPresenter.new(@order)

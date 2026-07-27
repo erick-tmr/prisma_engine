@@ -4,6 +4,7 @@ pt-BR:
       default: "%d/%m/%Y"
       long: "%d de %B de %Y"
       short: "%d/%m"
+      list: "%d %b %Y"
       day_month: "%-d de %B"
     day_names: [domingo, segunda-feira, terça-feira, quarta-feira, quinta-feira, sexta-feira, sábado]
     abbr_day_names: [dom, seg, ter, qua, qui, sex, sáb]
@@ -370,6 +371,36 @@ pt-BR:
       secure_note: "Sessões monitoradas · uso interno Prisma Games"
       failure: "E-mail ou senha inválidos, ou conta sem acesso ao backoffice."
       logout: "Sair"
+    lists:
+      showing: "Mostrando"
+      statuses_selected: "status selecionados"
+      single_page: "Página 1 de 1"
+      pagination: "Paginação"
+      previous: "Página anterior"
+      next: "Próxima página"
+      orders_count:
+        one: "%{count} pedido"
+        other: "%{count} pedidos"
+      clients_count:
+        one: "%{count} cliente"
+        other: "%{count} clientes"
+      reports_count:
+        one: "%{count} relatório"
+        other: "%{count} relatórios"
+      products_count:
+        one: "%{count} produto"
+        other: "%{count} produtos"
+      items:
+        one: "%{count} item"
+        other: "%{count} itens"
+      order: "pedido"
+      orders: "pedidos"
+      client: "cliente"
+      clients: "clientes"
+      report: "relatório"
+      reports: "relatórios"
+      product: "produto"
+      products: "produtos"
     dashboard:
       title: "Backoffice | Prisma Games"
       heading: "Backoffice"
@@ -418,6 +449,8 @@ pt-BR:
           period_clear: "Limpar período"
           status: "Status"
           status_all: "Todos os status"
+          status_clear: "Limpar"
+          status_apply: "Aplicar"
           clear: "Limpar filtros"
         select_all: "Selecionar todos"
         columns:

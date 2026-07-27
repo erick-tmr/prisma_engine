@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_26_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_26_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -193,10 +193,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_26_120000) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.string "webhook_token"
+    t.index ["created_at"], name: "index_orders_on_created_at"
     t.index ["external_id"], name: "index_orders_on_external_id", unique: true
     t.index ["merged_into_id"], name: "index_orders_on_merged_into_id"
     t.index ["number"], name: "index_orders_on_number", unique: true
     t.index ["production_batch_id"], name: "index_orders_on_production_batch_id"
+    t.index ["status"], name: "index_orders_on_status"
     t.index ["user_id", "created_at"], name: "index_orders_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_orders_on_user_id"
     t.index ["webhook_token"], name: "index_orders_on_webhook_token", unique: true
@@ -270,6 +272,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_26_120000) do
     t.integer "weight_grams", null: false
     t.index ["catalog_synced_at"], name: "index_products_on_catalog_synced_at"
     t.index ["category_id"], name: "index_products_on_category_id"
+    t.index ["name"], name: "index_products_on_name"
     t.index ["published"], name: "index_products_on_published"
     t.index ["slug"], name: "index_products_on_slug", unique: true
   end
@@ -413,6 +416,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_26_120000) do
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["cpf"], name: "index_users_on_cpf", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["full_name"], name: "index_users_on_full_name"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end

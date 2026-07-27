@@ -1,0 +1,55 @@
+<% content_for :title, t("admin.dashboard.title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-dashboard" %>
+<% end %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app" data-list="clients">
+  <%= render "admin/sidebar", active: "clients" %>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menu-toggle" type="button" aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.dashboard.views.clients.title") %></h1>
+        <span class="crumb"><%= t("admin.dashboard.views.clients.crumb") %></span>
+      </div>
+      <div class="topbar-right">
+        <div class="gsearch">
+          <i class="bi bi-search"></i>
+          <input id="gsearch" type="text" value="<%= @search.query %>" placeholder="<%= t("admin.dashboard.search_placeholder") %>" aria-label="<%= t("admin.dashboard.search_aria") %>">
+        </div>
+        <button class="icon-btn" type="button" aria-label="<%= t("admin.dashboard.notifications") %>"><i class="bi bi-bell"></i><span class="dot"></span></button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="panel">
+        <div class="panel-top">
+          <div class="panel-top-main">
+            <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.dashboard.clients.heading") %></h2>
+            <div class="sub"><%= t("admin.dashboard.clients.sub") %></div>
+          </div>
+          <div class="panel-top-right" data-filters>
+            <%= render "results_count" %>
+            <div class="gsearch">
+              <i class="bi bi-search"></i>
+              <input id="c-q" type="text" class="gsearch__input--wide" name="q" data-filter="q"
+                     value="<%= @search.query %>" placeholder="<%= t("admin.dashboard.clients.search_placeholder") %>">
+            </div>
+          </div>
+        </div>
+
+        <%= render "results_table" %>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<% content_for :scripts do %>
+  <%= javascript_import_module_tag "backoffice/clients" %>
+<% end %>

@@ -1,0 +1,34 @@
+<%# locals: (page:, base_params:, one:, many:) %>
+<div class="tbl-foot"<%= " hidden".html_safe if page.empty? %>>
+  <div class="foot-range"><%= t("admin.lists.showing") %> <%= page_range(page, one, many) %></div>
+
+  <% if page.single? %>
+    <div class="foot-single"><%= t("admin.lists.single_page") %></div>
+  <% else %>
+    <nav class="pages" aria-label="<%= t("admin.lists.pagination") %>">
+      <% if page.number == 1 %>
+        <span class="pg pg-nav is-disabled" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+      <% else %>
+        <a class="pg pg-nav" href="<%= page_path(base_params, page.number - 1) %>" rel="prev"
+           aria-label="<%= t("admin.lists.previous") %>"><i class="bi bi-chevron-left"></i></a>
+      <% end %>
+
+      <% page.window.each do |entry| %>
+        <% if entry == :gap %>
+          <span class="pg-gap" aria-hidden="true">…</span>
+        <% elsif entry == page.number %>
+          <a class="pg on" href="<%= page_path(base_params, entry) %>" aria-current="page"><%= entry %></a>
+        <% else %>
+          <a class="pg" href="<%= page_path(base_params, entry) %>"><%= entry %></a>
+        <% end %>
+      <% end %>
+
+      <% if page.number == page.last %>
+        <span class="pg pg-nav is-disabled" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+      <% else %>
+        <a class="pg pg-nav" href="<%= page_path(base_params, page.number + 1) %>" rel="next"
+           aria-label="<%= t("admin.lists.next") %>"><i class="bi bi-chevron-right"></i></a>
+      <% end %>
+    </nav>
+  <% end %>
+</div>

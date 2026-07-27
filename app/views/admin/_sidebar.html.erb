@@ -11,10 +11,7 @@
     <% [ { view: "orders", icon: "bi-receipt", href: admin_root_path },
          { view: "clients", icon: "bi-people", href: admin_clients_path },
          { view: "reports", icon: "bi-printer", href: admin_reports_path } ].each do |item| %>
-      <a class="sb-link<%= " active" if item[:view] == active %>" href="<%= item[:href] %>"
-         data-view="<%= item[:view] %>"
-         data-title="<%= t("admin.dashboard.views.#{item[:view]}.title") %>"
-         data-crumb="<%= t("admin.dashboard.views.#{item[:view]}.crumb") %>">
+      <a class="sb-link<%= " active" if item[:view] == active %>" href="<%= item[:href] %>">
         <i class="bi <%= item[:icon] %>"></i> <%= t("admin.dashboard.nav.#{item[:view]}") %>
         <span class="count"><%= counts[item[:view]] %></span>
       </a>

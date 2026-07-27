@@ -126,15 +126,11 @@ module Admin
     end
 
     def customer_phone
-      customer.phone.to_s
-              .gsub(/\A(\d{2})(\d{5})(\d{4})\z/, '(\1) \2-\3')
-              .gsub(/\A(\d{2})(\d{4})(\d{4})\z/, '(\1) \2-\3')
+      PhoneFormat.call(customer.phone)
     end
 
     def avatar_tint_index
-      hash = 0
-      customer.full_name.to_s.each_char { |char| hash = (hash * 31 + char.ord) & 0xffffffff }
-      hash % 8
+      AvatarTint.index_for(customer.full_name)
     end
 
     private
