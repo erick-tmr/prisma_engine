@@ -39,7 +39,6 @@ module Admin
       list_path(base_params, page: (number if number > 1))
     end
 
-    # "1–30 de 348 pedidos", or a bare count while everything fits on one page.
     def page_range(page, one, many)
       noun = page.total == 1 ? one : many
       return safe_join([ tag.b(page.total), " #{noun}" ]) if page.total <= Admin::Page::PER

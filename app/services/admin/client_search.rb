@@ -9,8 +9,6 @@ module Admin
            ELSE 'active' END
     SQL
 
-    # One row per user even if the "single default address" rule ever drifts,
-    # which no database constraint enforces today.
     DEFAULT_ADDRESS = <<~SQL.squish.freeze
       LEFT JOIN LATERAL (
         SELECT addresses.city, addresses.state
@@ -61,8 +59,6 @@ module Admin
           )
     end
 
-    # Matches the columns the operator can see, except phone, which the list
-    # renders but has never searched. City and UF match as "city/uf".
     def by_query(scope)
       return scope if query.blank?
 

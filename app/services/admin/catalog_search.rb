@@ -26,8 +26,6 @@ module Admin
       Product.includes(:category, product_photos: { image_attachment: :blob })
     end
 
-    # The slug is accent-stripped by friendly_id, so "pokemon" reaches
-    # "Pokémon Crystal" through it even though the name never matches.
     def by_query(scope)
       return scope if query.blank?
 
@@ -41,8 +39,6 @@ module Admin
       scope.for_category(category)
     end
 
-    # Game of the Month shadows published/draft: a featured product is only
-    # reachable through the `gotm` filter.
     def by_status(scope)
       case status
       when "gotm"      then scope.where(GOTM)

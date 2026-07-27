@@ -10,8 +10,6 @@ module Admin
       redirect_to admin_login_path unless current_user&.admin?
     end
 
-    # The table JS refetches only the results region; the same action serves the
-    # whole page on a normal navigation.
     def fragment_request?
       request.headers["X-Requested-With"] == "fetch"
     end
