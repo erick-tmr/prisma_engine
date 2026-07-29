@@ -7,6 +7,7 @@ module Admin
     DEFAULT_LANGUAGES = [ "Português BR", "Inglês", "Japonês" ].freeze
     DEFAULT_WEIGHT = 60
     CURRENCIES = [ [ "BRL · Real (R$)", "BRL" ], [ "USD · Dólar (US$)", "USD" ], [ "EUR · Euro (€)", "EUR" ] ].freeze
+    PUBLISH_AT_FORMAT = "%Y-%m-%dT%H:%M".freeze
 
     def self.build_new
       Product.new(
@@ -72,6 +73,10 @@ module Admin
       [ year - 1, year, year + 1 ]
     end
 
+    def current_edition
+      format("%04d-%02d", Time.current.year, Time.current.month)
+    end
+
     private
 
     def build_graph
@@ -113,6 +118,8 @@ module Admin
       edition = join.game_of_the_month
       {
         "enabled" => true, "year" => edition.year, "month" => edition.month,
+        "publish_at" => edition.publish_at.strftime(PUBLISH_AT_FORMAT),
+        "live" => edition.published_at.present?,
         "position" => join.position, "blurb" => join.blurb.to_s, "brindes" => brindes(join)
       }
     end
@@ -120,8 +127,13 @@ module Admin
     def blank_gotm
       {
         "enabled" => false, "year" => Time.current.year, "month" => Time.current.month,
+        "publish_at" => default_publish_at, "live" => false,
         "position" => 0, "blurb" => "", "brindes" => []
       }
+    end
+
+    def default_publish_at
+      Time.zone.local(Time.current.year, Time.current.month, 1).strftime(PUBLISH_AT_FORMAT)
     end
 
     def brindes(join)

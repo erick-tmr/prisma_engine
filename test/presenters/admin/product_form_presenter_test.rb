@@ -30,6 +30,9 @@ module Admin
       assert_empty graph["tags"]
       assert_empty graph["photos"]
       assert_equal false, graph["gotm"]["enabled"]
+      assert_equal Time.zone.local(Time.current.year, Time.current.month, 1).strftime("%Y-%m-%dT%H:%M"),
+                   graph["gotm"]["publish_at"]
+      assert_equal false, graph["gotm"]["live"]
     end
 
     test "an existing product serializes its options, tags and gotm module" do
@@ -40,6 +43,9 @@ module Admin
       assert_includes graph["tags"], "pokemon"
       assert graph["gotm"]["enabled"]
       assert_equal 2, graph["gotm"]["brindes"].size
+      assert_equal game_of_the_months(:current_month).publish_at.strftime("%Y-%m-%dT%H:%M"),
+                   graph["gotm"]["publish_at"]
+      assert_equal true, graph["gotm"]["live"]
       assert_not presenter.description_default?
       assert_equal "180,00", presenter.price_input
     end
@@ -70,6 +76,7 @@ module Admin
       assert_equal "BRL", presenter.currencies.first.last
       assert_equal 12, presenter.months.size
       assert_equal [ Time.current.year - 1, Time.current.year, Time.current.year + 1 ], presenter.years
+      assert_equal Time.current.strftime("%Y-%m"), presenter.current_edition
     end
   end
 end

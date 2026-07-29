@@ -4,6 +4,14 @@ class UnpublishEndedGameOfTheMonthJob < ApplicationJob
     ended = GameOfTheMonth.for_month(previous_month.year, previous_month.month).first
     return if ended.nil?
 
-    ended.products.update_all(published: false)
+    ended.products
+         .where.not(id: carried_over_product_ids)
+         .update_all(published: false, updated_at: Time.current)
+  end
+
+  private
+
+  def carried_over_product_ids
+    GameOfTheMonth.current.first&.product_ids || []
   end
 end

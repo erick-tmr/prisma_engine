@@ -74,7 +74,8 @@ export function serialize(state, gotm) {
     tags: state.tags.slice(),
     photos: state.photos.filter(hasImage).map((photo) => photoRef(photo)),
     gotm: {
-      enabled: gotm.enabled, year: gotm.year, month: gotm.month, position: gotm.position, blurb: gotm.blurb,
+      enabled: gotm.enabled, year: gotm.year, month: gotm.month, publish_at: gotm.publish_at,
+      position: gotm.position, blurb: gotm.blurb,
       brindes: state.brindes.filter(hasImage).map((brinde) => brindeRef(brinde))
     }
   };
@@ -98,12 +99,27 @@ export function validate(state, fields) {
   return null;
 }
 
+export function editionKey(year, month) {
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
+export function defaultPublishAt(year, month) {
+  return `${editionKey(year, month)}-01T00:00`;
+}
+
+export function isFutureEdition(year, month, currentEdition) {
+  return editionKey(year, month) > currentEdition;
+}
+
 export function initEditor(root) {
   const form = root.querySelector("[data-catalog-editor]");
   if (!form) return null;
 
   const els = collectElements(root);
   const graph = JSON.parse(form.dataset.graph || "{}");
+  const currentEdition = form.dataset.currentEdition;
+  const loadedGotm = graph.gotm || {};
+  const liveEdition = loadedGotm.live ? editionKey(loadedGotm.year, loadedGotm.month) : null;
   const state = hydrate(graph);
   let seq = 0;
   const nextKey = (prefix) => `${prefix}-${seq++}`;
@@ -261,16 +277,30 @@ export function initEditor(root) {
     enabled: els.gotmToggle.checked,
     year: parseInt(els.gotmYear.value, 10),
     month: parseInt(els.gotmMonth.value, 10),
+    publish_at: els.gotmPublishAt.value,
     position: parseInt(els.gotmPos.value || "0", 10),
     blurb: els.gotmBlurb.value
   });
 
+  const futureEdition = () => isFutureEdition(els.gotmYear.value, els.gotmMonth.value, currentEdition);
+  const editionIsLive = () => liveEdition !== null && editionKey(els.gotmYear.value, els.gotmMonth.value) === liveEdition;
+
   const syncGotm = () => {
     const on = els.gotmToggle.checked;
+    const live = editionIsLive();
     els.gotmPanel.hidden = !on;
     els.gotmCard.classList.toggle("on", on);
     els.gotmBadge.innerHTML = `<i class="bi bi-calendar-event"></i> ${MONTHS[els.gotmMonth.value - 1]} · ${els.gotmYear.value}`;
+    els.gotmPublishField.hidden = live;
+    els.gotmLiveNote.hidden = !live;
+    els.gotmPublishHint.hidden = live || !futureEdition();
     updateBrindeWeight();
+  };
+
+  const changeEdition = () => {
+    if (!els.publishAtTouched) els.gotmPublishAt.value = defaultPublishAt(els.gotmYear.value, els.gotmMonth.value);
+    syncGotm();
+    if (futureEdition()) els.published.checked = false;
   };
 
   const syncCustomOrder = () => {
@@ -390,8 +420,9 @@ export function initEditor(root) {
       toast("ok", MSG.gotmOn);
     }
   });
-  els.gotmMonth.addEventListener("change", syncGotm);
-  els.gotmYear.addEventListener("change", syncGotm);
+  els.gotmMonth.addEventListener("change", changeEdition);
+  els.gotmYear.addEventListener("change", changeEdition);
+  els.gotmPublishAt.addEventListener("input", () => (els.publishAtTouched = true));
 
   els.customOrder.addEventListener("change", () => {
     syncCustomOrder();
@@ -416,7 +447,7 @@ export function initEditor(root) {
 
   els.menuToggle?.addEventListener("click", () => els.sidebar?.classList.toggle("show"));
 
-  applyGotmState(els, graph.gotm || {});
+  applyGotmState(els, loadedGotm);
   els.price.value = formatPrice(els.price.value);
   updateSlugEcho();
   renderPhotos();
@@ -439,6 +470,8 @@ function collectElements(root) {
     brindeList: pick("brinde-list"), brindeFiles: pick("brinde-files"), brindeWeight: pick("brinde-weight"), addBrinde: pick("add-brinde"),
     gotmToggle: pick("f-gotm"), gotmPanel: pick("gotm-panel"), gotmCard: pick("gotm-card"),
     gotmMonth: pick("f-gotm-month"), gotmYear: pick("f-gotm-year"), gotmPos: pick("f-gotm-pos"), gotmBlurb: pick("f-blurb"), gotmBadge: pick("gotm-edition-badge"),
+    gotmPublishAt: pick("f-gotm-publish-at"), gotmPublishHint: pick("gotm-publish-hint"),
+    gotmPublishField: pick("gotm-publish-field"), gotmLiveNote: pick("gotm-live-note"), publishAtTouched: false,
     name: pick("f-name"), slug: pick("f-slug"), slugEcho: pick("slug-echo"),
     price: pick("f-price"), weight: pick("f-weight"), weightRestore: pick("weight-restore"),
     published: pick("f-published"), pubTitle: pick("pub-title"),
@@ -456,6 +489,7 @@ function applyGotmState(els, gotm) {
   if (gotm.year) els.gotmYear.value = gotm.year;
   els.gotmPos.value = gotm.position || 0;
   els.gotmBlurb.value = gotm.blurb || "";
+  els.gotmPublishAt.value = gotm.publish_at || "";
 }
 
 export function formatPrice(value) {

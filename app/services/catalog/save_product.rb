@@ -127,10 +127,17 @@ module Catalog
       return product.game_of_the_month_products.destroy_all unless boolean(gotm["enabled"])
 
       edition = GameOfTheMonth.find_or_create_by!(year: gotm["year"], month: gotm["month"])
+      reschedule(edition, gotm["publish_at"])
       product.game_of_the_month_products.where.not(game_of_the_month_id: edition.id).destroy_all
       join = product.game_of_the_month_products.find_or_initialize_by(game_of_the_month: edition)
       join.update!(blurb: gotm["blurb"].to_s, position: gotm["position"].to_i)
       sync_brindes(join, gotm["brindes"])
+    end
+
+    def reschedule(edition, publish_at)
+      return if publish_at.blank? || edition.published_at.present?
+
+      edition.update!(publish_at: publish_at)
     end
 
     def sync_brindes(join, brindes)

@@ -35,7 +35,7 @@ class CartController < ApplicationController
 
   def current_gotm_product_ids
     gotm = GameOfTheMonth.current.first
-    gotm ? gotm.products.pluck(:id).to_set : Set.new
+    gotm ? gotm.published_products.ids.to_set : Set.new
   end
 
   def build_quote

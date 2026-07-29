@@ -1,6 +1,12 @@
 require "test_helper"
 
 class ProductShowTest < ActionDispatch::IntegrationTest
+  test "a product that is still a draft is not reachable" do
+    get product_path(slug: products(:staged).slug)
+
+    assert_response :not_found
+  end
+
   test "the current Jogo do Mês product shows the treatment and its brindes" do
     get product_path(slug: products(:yellow).slug)
 

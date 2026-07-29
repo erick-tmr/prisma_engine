@@ -36,7 +36,7 @@
 
       <%= form_with url: form_url, method: form_method, scope: :product,
             html: { class: "ed-grid", id: "ed-form", autocomplete: "off", novalidate: true },
-            data: { catalog_editor: true, graph: @presenter.graph_json },
+            data: { catalog_editor: true, graph: @presenter.graph_json, current_edition: @presenter.current_edition },
             multipart: true do |form| %>
         <%= form.hidden_field :graph, id: "f-graph", value: @presenter.graph_json %>
         <%= form.hidden_field :description, id: "f-desc-field", value: @product.description %>
@@ -289,6 +289,15 @@
                   </div>
                 </div>
               </div>
+
+              <div class="field gap-top" id="gotm-publish-field">
+                <label for="f-gotm-publish-at"><%= t("admin.catalog.form.gotm_publish_at") %>
+                  <span class="lbl-note"><%= t("admin.catalog.form.gotm_publish_at_note") %></span>
+                </label>
+                <input class="inp" id="f-gotm-publish-at" type="datetime-local">
+                <p class="hint" id="gotm-publish-hint" hidden><%= t("admin.catalog.form.gotm_auto_publish_hint") %></p>
+              </div>
+              <p class="hint gap-top" id="gotm-live-note" hidden><%= t("admin.catalog.form.gotm_live_note") %></p>
 
               <div class="field gap-top">
                 <label for="f-blurb"><%= t("admin.catalog.form.blurb") %>

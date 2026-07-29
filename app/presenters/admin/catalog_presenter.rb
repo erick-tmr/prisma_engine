@@ -15,9 +15,10 @@ module Admin
     end
 
     def status(product)
+      return :draft unless product.published?
       return :gotm if gotm_product_ids.include?(product.id)
 
-      product.published? ? :published : :draft
+      :published
     end
 
     private

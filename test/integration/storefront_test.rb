@@ -73,6 +73,23 @@ class StorefrontTest < ActionDispatch::IntegrationTest
     assert_select ".gotm-brindes__thumbs .gotm-brinde", count: 2
   end
 
+  test "home page leaves a still-draft pick out of the Jogo do Mês band" do
+    get root_path
+
+    assert_response :success
+    assert_select ".gotm-slide__title", text: products(:staged).name, count: 0
+    assert_select "a[href=?]", product_path(slug: products(:staged).slug), count: 0
+  end
+
+  test "home page hides the Jogo do Mês band when every pick is still a draft" do
+    game_of_the_months(:current_month).products.update_all(published: false)
+
+    get root_path
+
+    assert_response :success
+    assert_select ".gotm-band", false
+  end
+
   test "catalog index lists products and filters by term" do
     get products_path
     assert_response :success

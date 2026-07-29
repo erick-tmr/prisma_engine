@@ -30,7 +30,7 @@
   </section>
 <% end %>
 
-<% if @current_gotm && @current_gotm.game_of_the_month_products.any? %>
+<% if @current_gotm && @current_gotm.published_picks.any? %>
   <% cache gotm_band_cache_key(@current_gotm) do %>
     <%= render "game_of_month", gotm: @current_gotm %>
   <% end %>

@@ -9,7 +9,7 @@ module GameOfTheMonthHelper
   end
 
   def gotm_band_cache_key(gotm)
-    parts = gotm.game_of_the_month_products.map do |pick|
+    parts = gotm.published_picks.map do |pick|
       [ pick, pick.product, pick.product.image, pick.brindes.to_a ]
     end
     [ "gotm-band", gotm, parts ]
