@@ -28,6 +28,9 @@ production:
   unpublish_ended_game_of_the_month:
     class: UnpublishEndedGameOfTheMonthJob
     schedule: "0 0 1 * *"
+  publish_scheduled_game_of_the_month:
+    class: PublishScheduledGameOfTheMonthJob
+    schedule: "*/5 * * * *"
   refresh_recommendations:
     class: RefreshRecommendationsJob
     schedule: every day at 4am
@@ -42,6 +45,9 @@ development:
   recover_stuck_label_requests:
     class: Shipping::RecoverStuckLabelRequestsJob
     schedule: every hour at minute 30
+  publish_scheduled_game_of_the_month:
+    class: PublishScheduledGameOfTheMonthJob
+    schedule: "*/5 * * * *"
   refresh_recommendations:
     class: RefreshRecommendationsJob
     schedule: every day at 4am

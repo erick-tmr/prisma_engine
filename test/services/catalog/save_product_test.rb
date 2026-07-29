@@ -151,6 +151,35 @@ module Catalog
       assert_equal 7, join.brindes.first.weight_grams
     end
 
+    test "an edition created without a publish_at falls back to midnight on the first" do
+      product = products(:metroid)
+
+      save(product, graph(gotm: { enabled: true, year: 2031, month: 8, brindes: [] }))
+
+      edition = product.reload.game_of_the_month_products.first.game_of_the_month
+      assert_equal Time.zone.local(2031, 8, 1), edition.publish_at
+    end
+
+    test "the submitted publish_at is stored on the edition" do
+      product = products(:metroid)
+
+      save(product, graph(gotm: {
+        enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T10:30", brindes: []
+      }))
+
+      edition = product.reload.game_of_the_month_products.first.game_of_the_month
+      assert_equal Time.zone.local(2031, 8, 1, 10, 30), edition.publish_at
+    end
+
+    test "saving a second product moves the whole edition to the new publish_at" do
+      save(products(:metroid), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T10:30", brindes: [] }))
+      save(products(:yellow), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T18:00", brindes: [] }))
+
+      edition = GameOfTheMonth.for_month(2031, 8).first
+      assert_equal Time.zone.local(2031, 8, 1, 18, 0), edition.publish_at
+      assert_equal 2, edition.products.count
+    end
+
     test "moving the edition month reattaches the product and keeps a single join" do
       product = products(:metroid)
       save(product, graph(gotm: { enabled: true, year: 2031, month: 8, brindes: [ { key: "b", caption: "x" } ] }), brinde_files: { "b" => upload })

@@ -30,6 +30,6 @@ class GameOfTheMonthProductTest < ActiveSupport::TestCase
 
   test "in_display_order sorts by position ascending" do
     ordered = game_of_the_months(:current_month).game_of_the_month_products.in_display_order
-    assert_equal [ 0, 1 ], ordered.pluck(:position)
+    assert_equal [ 0, 1, 2 ], ordered.pluck(:position)
   end
 end

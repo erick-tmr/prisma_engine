@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_26_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -122,6 +122,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_26_180000) do
     t.datetime "created_at", null: false
     t.integer "month", null: false
     t.text "note"
+    t.datetime "publish_at", null: false
+    t.datetime "published_at"
     t.datetime "updated_at", null: false
     t.integer "year", null: false
     t.index ["year", "month"], name: "index_game_of_the_months_on_year_and_month", unique: true

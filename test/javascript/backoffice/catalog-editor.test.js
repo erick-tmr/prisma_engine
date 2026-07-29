@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  applyPickedFile, brindeWeight, CO_FIELDS, formatPrice, hasImage, hydrate,
-  initEditor, moveItem, plural, serialize, slugify, validate
+  applyPickedFile, brindeWeight, CO_FIELDS, defaultPublishAt, editionKey, formatPrice, hasImage, hydrate,
+  initEditor, isFutureEdition, moveItem, plural, serialize, slugify, validate
 } from "../../../app/javascript/backoffice/catalog-editor.js";
 
 const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
@@ -13,12 +13,12 @@ function defaultGraph(overrides = {}) {
     options: [ { group_name: "Idioma", values: [ { name: "Português BR", weight: 0 } ] } ],
     tags: [ "pokemon" ],
     photos: [ { id: 7, url: "/cover.jpg", alt: "capa" } ],
-    gotm: { enabled: false, year: 2026, month: 7, position: 0, blurb: "", brindes: [] },
+    gotm: { enabled: false, year: 2026, month: 7, publish_at: "2026-07-01T00:00", position: 0, blurb: "", brindes: [] },
     ...overrides
   };
 }
 
-function mount(graph = defaultGraph()) {
+function mount(graph = defaultGraph(), currentEdition = "2026-07") {
   const months = Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
   const withGraph = graph !== null;
   document.body.innerHTML = `
@@ -39,6 +39,7 @@ function mount(graph = defaultGraph()) {
           <select id="f-gotm-month">${months}</select>
           <select id="f-gotm-year"><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select>
           <input id="f-gotm-pos" type="number" value="0"><textarea id="f-blurb"></textarea><span id="gotm-edition-badge"></span>
+          <input id="f-gotm-publish-at" type="datetime-local"><p id="gotm-publish-hint" hidden></p>
           <div id="brinde-list"></div><div id="brinde-files"></div><b id="brinde-weight"></b><button id="add-brinde"></button>
           <input id="f-custom-order" type="checkbox"><div id="co-body" hidden></div><button id="co-restore"></button>
           ${CO_FIELDS.map(({ input, echo }) =>
@@ -47,7 +48,9 @@ function mount(graph = defaultGraph()) {
       </div>
     </div>
     <div class="toasts" id="toasts"></div>`;
-  if (withGraph) document.getElementById("ed-form").dataset.graph = JSON.stringify(graph);
+  const form = document.getElementById("ed-form");
+  form.dataset.currentEdition = currentEdition;
+  if (withGraph) form.dataset.graph = JSON.stringify(graph);
   return initEditor(document);
 }
 
@@ -384,9 +387,63 @@ describe("initEditor", () => {
     expect(document.querySelector(".brinde-empty")).not.toBeNull();
   });
 
-  it("applies a bare gotm block without month, year, position or blurb", () => {
+  it("applies a bare gotm block without month, year, position, blurb or publish_at", () => {
     mount(defaultGraph({ gotm: { enabled: false } }));
     expect(document.querySelector("#f-gotm-pos").value).toBe("0");
     expect(document.querySelector("#f-blurb").value).toBe("");
+    expect(document.querySelector("#f-gotm-publish-at").value).toBe("");
+  });
+
+  it("builds a zero-padded edition key and its midnight default", () => {
+    expect(editionKey(2026, 8)).toBe("2026-08");
+    expect(defaultPublishAt(2026, 8)).toBe("2026-08-01T00:00");
+    expect(isFutureEdition(2026, 8, "2026-07")).toBe(true);
+    expect(isFutureEdition(2026, 7, "2026-07")).toBe(false);
+    expect(isFutureEdition(2026, 6, "2026-07")).toBe(false);
+  });
+
+  it("keeps the stored publish_at on load and round-trips it through the graph", () => {
+    mount(defaultGraph({ gotm: { enabled: true, year: 2026, month: 7, publish_at: "2026-07-01T10:30", brindes: [] } }));
+
+    expect(document.querySelector("#f-gotm-publish-at").value).toBe("2026-07-01T10:30");
+
+    setInput(document.querySelector("#f-name"), "Jogo");
+    fire(document.querySelector("#ed-form"), "submit");
+    expect(JSON.parse(document.querySelector("#f-graph").value).gotm.publish_at).toBe("2026-07-01T10:30");
+  });
+
+  it("moving to a later edition drafts the product and defaults its go-live time", () => {
+    mount();
+    const month = document.querySelector("#f-gotm-month");
+
+    month.value = "9";
+    fire(month, "change");
+
+    expect(document.querySelector("#f-gotm-publish-at").value).toBe("2026-09-01T00:00");
+    expect(document.querySelector("#f-published").checked).toBe(false);
+    expect(document.querySelector("#gotm-publish-hint").hidden).toBe(false);
+  });
+
+  it("moving to the running edition leaves the publish state alone", () => {
+    mount();
+    const month = document.querySelector("#f-gotm-month");
+
+    month.value = "6";
+    fire(month, "change");
+
+    expect(document.querySelector("#f-published").checked).toBe(true);
+    expect(document.querySelector("#gotm-publish-hint").hidden).toBe(true);
+  });
+
+  it("a hand-picked go-live time survives an edition change", () => {
+    mount();
+    setInput(document.querySelector("#f-gotm-publish-at"), "2026-08-15T18:00");
+
+    const year = document.querySelector("#f-gotm-year");
+    year.value = "2027";
+    fire(year, "change");
+
+    expect(document.querySelector("#f-gotm-publish-at").value).toBe("2026-08-15T18:00");
+    expect(document.querySelector("#f-published").checked).toBe(false);
   });
 });

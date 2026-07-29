@@ -1,5 +1,5 @@
 <%# locals: (gotm:) %>
-<% gotm_products = gotm.game_of_the_month_products.sort_by { |gp| [ gp.position, gp.id ] } %>
+<% gotm_products = gotm.published_picks %>
 
 <section class="gotm-band" data-gotm>
   <div class="gotm">

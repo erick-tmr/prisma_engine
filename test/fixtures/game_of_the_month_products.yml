@@ -10,6 +10,12 @@ current_placeholder:
   position: 1
   blurb: Um clássico escondido, perfeito para quem já zerou os grandes nomes.
 
+current_staged:
+  game_of_the_month: current_month
+  product: staged
+  position: 2
+  blurb: Ainda em rascunho, agendado para ir ao ar sozinho.
+
 past_metroid:
   game_of_the_month: past_month
   product: metroid

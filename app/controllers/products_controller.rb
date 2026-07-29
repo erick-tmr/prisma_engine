@@ -7,10 +7,11 @@ class ProductsController < ApplicationController
   end
 
   def show
-    # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find
+    # nosemgrep: ruby.rails.security.brakeman.check-unscoped-find.check-unscoped-find -- products are public catalog entries, there is no per-user scope to narrow the find against, so the IDOR heuristic does not apply
     @product = Product.friendly
                       .includes(:category, :product_options, product_photos: { image_attachment: :blob })
                       .find(params[:slug])
+    raise ActiveRecord::RecordNotFound unless @product.published?
 
     @gotm_product = GameOfTheMonthProduct
                       .joins(:game_of_the_month)

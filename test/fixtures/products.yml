@@ -38,6 +38,16 @@ hidden:
   published: false
   weight_grams: 22
 
+staged:
+  category: gb_color
+  name: Staged Game Of The Month Pick
+  slug: staged-game-of-the-month-pick
+  price_cents: 20000
+  currency: BRL
+  published: false
+  weight_grams: 22
+  legacy_image_path: /images/test-cartridge.png
+
 plastic_shell:
   category: miscelanea
   name: Carcaca de plastico

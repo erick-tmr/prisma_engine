@@ -1,12 +1,17 @@
 # `current_month` uses today's calendar year/month so GameOfTheMonth.current always
 # resolves to it under fixture load. `past_month` is fixed historical data exercising
-# the for_month archive lookup.
+# the for_month archive lookup. Both carry `published_at` so the scheduled-publish job
+# treats them as already launched and leaves them alone in unrelated tests.
 current_month:
   year:  <%= Date.current.year %>
   month: <%= Date.current.month %>
   note: Especial Pokémon
+  publish_at:   <%= Time.zone.local(Date.current.year, Date.current.month, 1).utc.to_fs(:db) %>
+  published_at: <%= Time.zone.local(Date.current.year, Date.current.month, 1).utc.to_fs(:db) %>
 
 past_month:
   year: 2025
   month: 3
   note: Especial Metroid
+  publish_at:   2025-03-01 03:00:00
+  published_at: 2025-03-01 03:00:00

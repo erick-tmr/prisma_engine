@@ -3,13 +3,13 @@ class PagesController < ApplicationController
     @banners = HeroBanner.active.in_display_order.with_attached_image
     @current_gotm = GameOfTheMonth.current
                                   .includes(
-                                    game_of_the_month_products: {
+                                    published_picks: {
                                       product: [ :category, { product_photos: { image_attachment: :blob } } ],
                                       brindes: { image_attachment: :blob }
                                     }
                                   )
                                   .first
-    featured_ids = @current_gotm&.game_of_the_month_products&.map(&:product_id) || []
+    featured_ids = @current_gotm&.published_picks&.map(&:product_id) || []
 
     @pedidos = GameOfTheMonth.feature_first(published_cards_for("pedidos-de-jogos"), featured_ids).first(8)
     @extras  = GameOfTheMonth.feature_first(published_cards_for("miscelanea"), featured_ids).first(8)
