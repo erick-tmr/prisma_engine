@@ -2,6 +2,7 @@ class AddPublishSchedulingToGameOfTheMonths < ActiveRecord::Migration[8.1]
   def change
     add_column :game_of_the_months, :publish_at, :datetime
     add_column :game_of_the_months, :published_at, :datetime
+    add_column :game_of_the_months, :publish_job_id, :string
 
     up_only do
       execute <<~SQL.squish

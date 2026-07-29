@@ -171,6 +171,16 @@ module Catalog
       assert_equal Time.zone.local(2031, 8, 1, 10, 30), edition.publish_at
     end
 
+    test "the go-live time of an edition that is already on air cannot be moved" do
+      chosen = Time.zone.local(2031, 8, 1, 10, 0)
+      edition = GameOfTheMonth.create!(year: 2031, month: 8, publish_at: chosen)
+      edition.update!(published_at: Time.current)
+
+      save(products(:metroid), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T23:00", brindes: [] }))
+
+      assert_equal chosen, edition.reload.publish_at
+    end
+
     test "saving a second product moves the whole edition to the new publish_at" do
       save(products(:metroid), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T10:30", brindes: [] }))
       save(products(:yellow), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T18:00", brindes: [] }))

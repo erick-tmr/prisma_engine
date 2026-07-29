@@ -123,6 +123,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
     t.integer "month", null: false
     t.text "note"
     t.datetime "publish_at", null: false
+    t.string "publish_job_id"
     t.datetime "published_at"
     t.datetime "updated_at", null: false
     t.integer "year", null: false

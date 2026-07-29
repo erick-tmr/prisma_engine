@@ -13,7 +13,7 @@ function defaultGraph(overrides = {}) {
     options: [ { group_name: "Idioma", values: [ { name: "Português BR", weight: 0 } ] } ],
     tags: [ "pokemon" ],
     photos: [ { id: 7, url: "/cover.jpg", alt: "capa" } ],
-    gotm: { enabled: false, year: 2026, month: 7, publish_at: "2026-07-01T00:00", position: 0, blurb: "", brindes: [] },
+    gotm: { enabled: false, year: 2026, month: 7, publish_at: "2026-07-01T00:00", live: false, position: 0, blurb: "", brindes: [] },
     ...overrides
   };
 }
@@ -39,7 +39,8 @@ function mount(graph = defaultGraph(), currentEdition = "2026-07") {
           <select id="f-gotm-month">${months}</select>
           <select id="f-gotm-year"><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select>
           <input id="f-gotm-pos" type="number" value="0"><textarea id="f-blurb"></textarea><span id="gotm-edition-badge"></span>
-          <input id="f-gotm-publish-at" type="datetime-local"><p id="gotm-publish-hint" hidden></p>
+          <div id="gotm-publish-field"><input id="f-gotm-publish-at" type="datetime-local"><p id="gotm-publish-hint" hidden></p></div>
+          <p id="gotm-live-note" hidden></p>
           <div id="brinde-list"></div><div id="brinde-files"></div><b id="brinde-weight"></b><button id="add-brinde"></button>
           <input id="f-custom-order" type="checkbox"><div id="co-body" hidden></div><button id="co-restore"></button>
           ${CO_FIELDS.map(({ input, echo }) =>
@@ -433,6 +434,25 @@ describe("initEditor", () => {
 
     expect(document.querySelector("#f-published").checked).toBe(true);
     expect(document.querySelector("#gotm-publish-hint").hidden).toBe(true);
+  });
+
+  it("hides the go-live field once the edition is on air", () => {
+    mount(defaultGraph({ gotm: { enabled: true, year: 2026, month: 7, publish_at: "2026-07-01T00:00", live: true, brindes: [] } }));
+
+    expect(document.querySelector("#gotm-publish-field").hidden).toBe(true);
+    expect(document.querySelector("#gotm-live-note").hidden).toBe(false);
+    expect(document.querySelector("#gotm-publish-hint").hidden).toBe(true);
+  });
+
+  it("brings the go-live field back when a live edition is moved to another month", () => {
+    mount(defaultGraph({ gotm: { enabled: true, year: 2026, month: 7, publish_at: "2026-07-01T00:00", live: true, brindes: [] } }));
+    const month = document.querySelector("#f-gotm-month");
+
+    month.value = "9";
+    fire(month, "change");
+
+    expect(document.querySelector("#gotm-publish-field").hidden).toBe(false);
+    expect(document.querySelector("#gotm-live-note").hidden).toBe(true);
   });
 
   it("a hand-picked go-live time survives an edition change", () => {

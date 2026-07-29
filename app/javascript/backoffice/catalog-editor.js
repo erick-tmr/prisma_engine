@@ -118,6 +118,8 @@ export function initEditor(root) {
   const els = collectElements(root);
   const graph = JSON.parse(form.dataset.graph || "{}");
   const currentEdition = form.dataset.currentEdition;
+  const loadedGotm = graph.gotm || {};
+  const liveEdition = loadedGotm.live ? editionKey(loadedGotm.year, loadedGotm.month) : null;
   const state = hydrate(graph);
   let seq = 0;
   const nextKey = (prefix) => `${prefix}-${seq++}`;
@@ -281,13 +283,17 @@ export function initEditor(root) {
   });
 
   const futureEdition = () => isFutureEdition(els.gotmYear.value, els.gotmMonth.value, currentEdition);
+  const editionIsLive = () => liveEdition !== null && editionKey(els.gotmYear.value, els.gotmMonth.value) === liveEdition;
 
   const syncGotm = () => {
     const on = els.gotmToggle.checked;
+    const live = editionIsLive();
     els.gotmPanel.hidden = !on;
     els.gotmCard.classList.toggle("on", on);
     els.gotmBadge.innerHTML = `<i class="bi bi-calendar-event"></i> ${MONTHS[els.gotmMonth.value - 1]} · ${els.gotmYear.value}`;
-    els.gotmPublishHint.hidden = !futureEdition();
+    els.gotmPublishField.hidden = live;
+    els.gotmLiveNote.hidden = !live;
+    els.gotmPublishHint.hidden = live || !futureEdition();
     updateBrindeWeight();
   };
 
@@ -441,7 +447,7 @@ export function initEditor(root) {
 
   els.menuToggle?.addEventListener("click", () => els.sidebar?.classList.toggle("show"));
 
-  applyGotmState(els, graph.gotm || {});
+  applyGotmState(els, loadedGotm);
   els.price.value = formatPrice(els.price.value);
   updateSlugEcho();
   renderPhotos();
@@ -464,7 +470,8 @@ function collectElements(root) {
     brindeList: pick("brinde-list"), brindeFiles: pick("brinde-files"), brindeWeight: pick("brinde-weight"), addBrinde: pick("add-brinde"),
     gotmToggle: pick("f-gotm"), gotmPanel: pick("gotm-panel"), gotmCard: pick("gotm-card"),
     gotmMonth: pick("f-gotm-month"), gotmYear: pick("f-gotm-year"), gotmPos: pick("f-gotm-pos"), gotmBlurb: pick("f-blurb"), gotmBadge: pick("gotm-edition-badge"),
-    gotmPublishAt: pick("f-gotm-publish-at"), gotmPublishHint: pick("gotm-publish-hint"), publishAtTouched: false,
+    gotmPublishAt: pick("f-gotm-publish-at"), gotmPublishHint: pick("gotm-publish-hint"),
+    gotmPublishField: pick("gotm-publish-field"), gotmLiveNote: pick("gotm-live-note"), publishAtTouched: false,
     name: pick("f-name"), slug: pick("f-slug"), slugEcho: pick("slug-echo"),
     price: pick("f-price"), weight: pick("f-weight"), weightRestore: pick("weight-restore"),
     published: pick("f-published"), pubTitle: pick("pub-title"),

@@ -1,6 +1,8 @@
 require "test_helper"
 
 class GameOfTheMonthTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   test "requires year and month" do
     gotm = GameOfTheMonth.new
     assert_not gotm.valid?
@@ -121,22 +123,57 @@ class GameOfTheMonthTest < ActiveSupport::TestCase
     assert_nil edition.publish_at
   end
 
-  test "due_for_publishing takes an edition whose publish_at has passed" do
-    edition = GameOfTheMonth.create!(year: 2031, month: 8, publish_at: 1.minute.ago)
+  test "creating an edition books its publish job for the chosen time" do
+    chosen = Time.zone.local(2031, 8, 1, 10, 30)
 
-    assert_includes GameOfTheMonth.due_for_publishing, edition
+    edition = GameOfTheMonth.create!(year: 2031, month: 8, publish_at: chosen)
+
+    assert_enqueued_with job: PublishGameOfTheMonthJob, args: [ edition.id ], at: chosen
   end
 
-  test "due_for_publishing skips an edition scheduled for later" do
-    edition = GameOfTheMonth.create!(year: 2031, month: 8, publish_at: 1.minute.from_now)
+  test "moving the publish_at books a fresh job for the new time" do
+    edition = GameOfTheMonth.create!(year: 2031, month: 8)
+    moved = Time.zone.local(2031, 8, 1, 18, 0)
 
-    assert_not_includes GameOfTheMonth.due_for_publishing, edition
+    assert_enqueued_with job: PublishGameOfTheMonthJob, args: [ edition.id ], at: moved do
+      edition.update!(publish_at: moved)
+    end
   end
 
-  test "due_for_publishing skips an edition that already went live" do
-    edition = GameOfTheMonth.create!(year: 2031, month: 8, publish_at: 1.minute.ago, published_at: Time.current)
+  test "the booking id is recorded and replaced when the time moves" do
+    edition = GameOfTheMonth.create!(year: 2031, month: 8)
+    first = edition.reload.publish_job_id
+    assert first.present?
 
-    assert_not_includes GameOfTheMonth.due_for_publishing, edition
+    edition.update!(publish_at: Time.zone.local(2031, 8, 1, 18, 0))
+
+    assert_not_equal first, edition.reload.publish_job_id
+  end
+
+  test "destroying an edition drops its booking from the queue" do
+    edition = GameOfTheMonth.create!(year: 2031, month: 8)
+    booked = edition.publish_job_id
+    cancelled = nil
+
+    ScheduledJobs.stub(:cancel, ->(id) { cancelled = id }) { edition.destroy! }
+
+    assert_equal booked, cancelled
+  end
+
+  test "editing anything else does not book another job" do
+    edition = GameOfTheMonth.create!(year: 2031, month: 8)
+
+    assert_no_enqueued_jobs only: PublishGameOfTheMonthJob do
+      edition.update!(note: "Especial Zelda")
+    end
+  end
+
+  test "an edition that already went live is never rebooked" do
+    edition = GameOfTheMonth.create!(year: 2031, month: 8)
+
+    assert_no_enqueued_jobs only: PublishGameOfTheMonthJob do
+      edition.update!(published_at: Time.current, publish_at: 1.hour.from_now)
+    end
   end
 
   test "published_picks and published_products leave out the drafts" do

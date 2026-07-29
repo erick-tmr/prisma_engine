@@ -119,6 +119,7 @@ module Admin
       {
         "enabled" => true, "year" => edition.year, "month" => edition.month,
         "publish_at" => edition.publish_at.strftime(PUBLISH_AT_FORMAT),
+        "live" => edition.published_at.present?,
         "position" => join.position, "blurb" => join.blurb.to_s, "brindes" => brindes(join)
       }
     end
@@ -126,7 +127,7 @@ module Admin
     def blank_gotm
       {
         "enabled" => false, "year" => Time.current.year, "month" => Time.current.month,
-        "publish_at" => default_publish_at,
+        "publish_at" => default_publish_at, "live" => false,
         "position" => 0, "blurb" => "", "brindes" => []
       }
     end
