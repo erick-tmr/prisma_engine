@@ -29,6 +29,8 @@ module PrismaEngine
     # loads via its own `require` off $LOAD_PATH, so keep Zeitwerk out of it.
     config.autoload_lib(ignore: %w[assets tasks active_storage])
 
+    config.active_storage.variant_processor = :disabled
+
     config.i18n.default_locale = :"pt-BR"
     config.i18n.available_locales = [ :"pt-BR", :en ]
 
