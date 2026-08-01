@@ -1,0 +1,11 @@
+<div class="product-questions__gate" data-question-gate>
+  <span class="product-questions__gate-icon"><i class="bi bi-person-badge"></i></span>
+  <div class="product-questions__gate-text">
+    <b class="product-questions__gate-title"><%= t("products.questions.gate_title") %></b>
+    <p class="product-questions__gate-lede"><%= t("products.questions.gate_text") %></p>
+  </div>
+  <div class="product-questions__gate-actions">
+    <%= link_to t("products.questions.gate_sign_in"), new_user_session_path, class: "product-questions__submit" %>
+    <%= link_to t("products.questions.gate_sign_up"), new_user_registration_path, class: "product-questions__ghost" %>
+  </div>
+</div>

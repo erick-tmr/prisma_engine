@@ -25,6 +25,7 @@ bi-cart-plus
 bi-cash-coin
 bi-chat-dots
 bi-chat-left-text
+bi-chat-square-dots
 bi-check-circle-fill
 bi-check-lg
 bi-check2
@@ -86,6 +87,7 @@ bi-patch-check-fill
 bi-pencil
 bi-people
 bi-person
+bi-person-badge
 bi-person-vcard
 bi-person-x
 bi-piggy-bank
@@ -98,6 +100,7 @@ bi-question-circle
 bi-receipt
 bi-receipt-cutoff
 bi-search
+bi-send
 bi-shield-check
 bi-shield-lock
 bi-shield-lock-fill

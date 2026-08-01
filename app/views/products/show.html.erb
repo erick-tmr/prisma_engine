@@ -1,6 +1,7 @@
 <% content_for :title, "#{@product.title} | Prisma Games" %>
 <% content_for :head do %>
-  <%= stylesheet_link_tag "components/variant", "components/mes-pill", "pages/product" %>
+  <%= stylesheet_link_tag "components/variant", "components/mes-pill",
+        "components/product-questions", "pages/product" %>
 <% end %>
 
 <% photos = @product.product_photos.in_display_order.select { |p| p.image.attached? } %>
@@ -157,8 +158,11 @@
   <% if @gotm_product %>
     <%= render "products/gotm_freebies", gotm_product: @gotm_product %>
   <% end %>
+
+  <%= render "products/questions", product: @product, questions: @questions %>
 </div>
 
 <% content_for :scripts do %>
   <%= javascript_include_tag "storefront/pdp", type: "module" %>
+  <%= javascript_include_tag "storefront/product_questions", type: "module" %>
 <% end %>

@@ -1,0 +1,27 @@
+<%= form_with url: product_questions_path(product), method: :post, local: true,
+      class: "product-questions__composer", data: { question_form: true } do %>
+  <div class="product-questions__who">
+    <span class="product-questions__avatar" aria-hidden="true"><%= account_avatar_initials(current_user.full_name) %></span>
+    <div class="product-questions__who-text">
+      <b class="product-questions__who-name"><%= current_user.full_name %></b>
+      <span class="product-questions__who-note"><%= t("products.questions.composer_note") %></span>
+    </div>
+  </div>
+
+  <%= text_area_tag "question[body]", nil,
+        id: "pergunta-body", class: "product-questions__input", rows: 3,
+        maxlength: Question::BODY_LENGTH.max,
+        placeholder: t("products.questions.composer_placeholder"),
+        aria: { label: t("products.questions.heading") },
+        data: { question_body: true, min_length: Question::BODY_LENGTH.min } %>
+
+  <div class="product-questions__composer-foot">
+    <span class="product-questions__notice">
+      <i class="bi bi-envelope"></i> <%= t("products.questions.composer_email_notice") %>
+    </span>
+    <span class="product-questions__counter" data-question-counter>0/<%= Question::BODY_LENGTH.max %></span>
+    <button type="submit" class="product-questions__submit" data-question-submit>
+      <i class="bi bi-send"></i> <%= t("products.questions.composer_submit") %>
+    </button>
+  </div>
+<% end %>

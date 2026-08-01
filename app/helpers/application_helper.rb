@@ -12,4 +12,8 @@ module ApplicationHelper
   def pg_alert_meta(key)
     PG_ALERT_VARIANTS.fetch(key.to_s, PG_ALERT_FALLBACK)
   end
+
+  def relative_time_ago(time)
+    t("products.questions.time_ago", time: time_ago_in_words(time))
+  end
 end

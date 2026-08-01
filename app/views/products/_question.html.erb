@@ -1,0 +1,36 @@
+<li class="product-questions__item" data-question-item>
+  <div class="product-questions__row">
+    <span class="product-questions__avatar" aria-hidden="true"><%= account_avatar_initials(question.user.full_name) %></span>
+    <div class="product-questions__body">
+      <p class="product-questions__meta">
+        <b class="product-questions__author"><%= question.user.full_name %></b>
+        <span class="product-questions__dot" aria-hidden="true"></span>
+        <time class="product-questions__time" datetime="<%= question.created_at.iso8601 %>"
+              title="<%= l(question.created_at, format: :long) %>"><%= relative_time_ago(question.created_at) %></time>
+      </p>
+      <p class="product-questions__text"><%= question.body %></p>
+    </div>
+  </div>
+
+  <% if question.answered? %>
+    <div class="product-questions__answer" data-question-answer>
+      <div class="product-questions__row">
+        <span class="product-questions__avatar product-questions__avatar--store" aria-hidden="true">P</span>
+        <div class="product-questions__body">
+          <p class="product-questions__meta">
+            <b class="product-questions__author"><%= t("products.questions.store_name") %></b>
+            <span class="product-questions__team"><%= t("products.questions.team_badge") %></span>
+            <span class="product-questions__dot" aria-hidden="true"></span>
+            <time class="product-questions__time" datetime="<%= question.answered_at.iso8601 %>"
+                  title="<%= l(question.answered_at, format: :long) %>"><%= relative_time_ago(question.answered_at) %></time>
+          </p>
+          <p class="product-questions__text"><%= question.answer_body %></p>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <span class="product-questions__waiting" data-question-waiting>
+      <i class="bi bi-hourglass-split"></i> <%= t("products.questions.waiting") %>
+    </span>
+  <% end %>
+</li>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -282,17 +282,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
 
   create_table "questions", force: :cascade do |t|
     t.text "answer_body"
-    t.boolean "answered", default: false, null: false
     t.datetime "answered_at"
-    t.string "asker_email", null: false
-    t.string "asker_name", null: false
     t.text "body", null: false
     t.datetime "created_at", null: false
     t.bigint "product_id", null: false
-    t.boolean "published", default: false, null: false
+    t.string "status", default: "awaiting_answer", null: false
     t.datetime "updated_at", null: false
-    t.index ["product_id", "published"], name: "index_questions_on_product_id_and_published"
+    t.bigint "user_id", null: false
+    t.index ["product_id", "status", "created_at"], name: "index_questions_on_product_id_and_status_and_created_at"
     t.index ["product_id"], name: "index_questions_on_product_id"
+    t.index ["status", "created_at"], name: "index_questions_on_status_and_created_at"
+    t.index ["user_id"], name: "index_questions_on_user_id"
+    t.check_constraint "char_length(body) <= 500", name: "questions_body_length"
   end
 
   create_table "recommendations", force: :cascade do |t|
@@ -448,6 +449,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_29_120000) do
   add_foreign_key "production_batches", "users", column: "operator_id"
   add_foreign_key "products", "categories"
   add_foreign_key "questions", "products"
+  add_foreign_key "questions", "users"
   add_foreign_key "shipment_tracking_events", "shipments"
   add_foreign_key "shipments", "orders"
   add_foreign_key "shipping_labels", "shipments"

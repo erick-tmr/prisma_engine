@@ -19,5 +19,6 @@ class ProductsController < ApplicationController
                       .includes(:game_of_the_month, brindes: { image_attachment: :blob })
                       .find_by(product_id: @product.id)
     @gotm = @gotm_product&.game_of_the_month
+    @questions = @product.questions.visible.includes(:user).newest_first.to_a
   end
 end
