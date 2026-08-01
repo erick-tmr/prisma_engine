@@ -64,13 +64,13 @@ export function initRte(root) {
     sync();
   }
 
-  function handleCommand(cmd) {
+  function handleCommand(cmd, value) {
     area.focus();
     if (cmd === "createLink") {
       const url = window.prompt("Endereço do link (URL):", "https://");
       if (url) exec("createLink", url);
     } else {
-      exec(cmd, null);
+      exec(cmd, value ? `<${value}>` : null);
     }
     sync();
   }
@@ -86,7 +86,7 @@ export function initRte(root) {
       return;
     }
     if (state.sourceMode) return;
-    handleCommand(button.dataset.cmd);
+    handleCommand(button.dataset.cmd, button.dataset.value);
   });
   [area, source].forEach((el) => {
     el.addEventListener("focus", () => wrap.classList.add("focus"));
