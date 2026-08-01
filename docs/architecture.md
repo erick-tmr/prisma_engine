@@ -164,7 +164,6 @@ Already in `Gemfile` (installed, in use):
 
 ```ruby
 gem 'friendly_id'         # product slugs (history-enabled)
-gem 'image_processing'    # WebP/AVIF variants via Active Storage
 gem 'faraday'             # HTTP client used by the Correios API layer
 # Rails 8 defaults wired up: solid_queue, solid_cache, solid_cable, propshaft,
 # importmap-rails, turbo-rails, stimulus-rails (turbo/stimulus dormant on the
