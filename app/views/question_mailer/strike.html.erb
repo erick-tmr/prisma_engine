@@ -1,0 +1,33 @@
+<%= render layout: "shared/email_card", locals: {
+      badge_label: t("question_mailer.strike.badge_label"),
+      badge_color: "#c0392b",
+      hero_image: "dragon-face.png",
+      hero_height: 180,
+      heading: t("question_mailer.strike.heading"),
+      first_name: @strike.user.first_name
+    } do %>
+  <tr>
+    <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("question_mailer.strike.intro", product: @question.product.name) %>
+    </td>
+  </tr>
+  <tr>
+    <td class="px" style="padding:20px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #f2d4d1;background:#fdf3f2;border-radius:12px;">
+        <tr>
+          <td style="padding:16px 18px;font-size:15px;line-height:1.6;color:#7a3b34;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
+            <strong style="display:block;color:#c0392b;margin-bottom:4px;"><%= t("question_mailer.strike.#{@ban.penalty}.title") %></strong>
+            <%= t("question_mailer.strike.#{@ban.penalty}.text", date: @blocked_until) %>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="px" style="padding:20px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("question_mailer.strike.outro") %>
+    </td>
+  </tr>
+  <%= render "shared/email_cta", url: "mailto:#{t('mailer.support_email')}",
+             label: t("question_mailer.strike.cta") %>
+<% end %>

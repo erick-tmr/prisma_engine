@@ -1,0 +1,5 @@
+spam_yellow_buyer:
+  user: buyer
+  question: spam_yellow
+  issued_by: admin
+  created_at: <%= 3.days.ago.to_fs(:db) %>

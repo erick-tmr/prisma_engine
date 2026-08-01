@@ -15,6 +15,12 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     post product_questions_path(slug: product.slug), params: { question: { body: body } }
   end
 
+  def strike_customer(user, index: 0)
+    question = user.questions.create!(product: products(:yellow), status: "spam",
+                                      body: "Pergunta removida número #{index} da loja.")
+    QuestionStrike.create!(user: user, question: question, issued_by: users(:admin))
+  end
+
   test "the section renders the heading, the lede and both stat pills" do
     get yellow_path
 
@@ -23,7 +29,7 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     assert_select ".product-questions__title", text: "Perguntas e respostas"
     assert_match(/quem responde é a equipe que monta os cartuchos/, response.body)
     assert_select ".product-questions__stat--answered b", text: "1"
-    assert_select ".product-questions__stat--awaiting b", text: "1"
+    assert_select ".product-questions__stat--awaiting b", text: "2"
   end
 
   test "the awaiting pill is left out when every question has an answer" do
@@ -40,7 +46,15 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_no_match(/ganhe dinheiro rápido/, response.body)
     assert_no_match(/já não faz sentido no catálogo atual/, response.body)
-    assert_select "[data-question-item]", count: 2
+    assert_select "[data-question-item]", count: 3
+  end
+
+  test "a question whose answer is still a draft shows the question but never the draft" do
+    get yellow_path
+
+    assert_response :success
+    assert_match(/Dá para escolher a cor da carcaça/, response.body)
+    assert_no_match(/é só combinar as duas opções/, response.body)
   end
 
   test "an answered question renders the Prisma answer under it" do
@@ -57,7 +71,7 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     get yellow_path
 
     assert_response :success
-    assert_select "[data-question-waiting]", count: 1
+    assert_select "[data-question-waiting]", count: 2
     assert_select "[data-question-waiting]", text: /Aguardando resposta da Prisma/
   end
 
@@ -105,8 +119,8 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     get yellow_path
 
     assert_response :success
-    assert_select "[data-question-count][data-template=?]", "Mostrando {n} de 2 perguntas"
-    assert_select ".product-questions__count", text: "Mostrando 2 de 2 perguntas"
+    assert_select "[data-question-count][data-template=?]", "Mostrando {n} de 3 perguntas"
+    assert_select ".product-questions__count", text: "Mostrando 3 de 3 perguntas"
     assert_select "[data-question-more][hidden]"
   end
 
@@ -179,6 +193,40 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     post product_questions_path(slug: "nao-existe"), params: { question: { body: "Tem esse jogo?" } }
 
     assert_response :not_found
+  end
+
+  test "a customer serving a spam suspension cannot ask again until it lifts" do
+    strike_customer(users(:confirmed))
+    sign_in users(:confirmed)
+
+    assert_no_difference "Question.count" do
+      ask "Esse cartucho funciona no Game Boy Advance SP?"
+    end
+
+    assert_redirected_to "#{yellow_path}#perguntas"
+    assert_equal "Uma pergunta sua foi marcada como spam, então sua conta só volta a perguntar em " \
+                 "#{I18n.l(1.week.from_now.to_date)}.", flash[:alert]
+  end
+
+  test "a customer struck three times is done asking for good" do
+    3.times { |index| strike_customer(users(:confirmed), index: index) }
+    sign_in users(:confirmed)
+
+    assert_no_difference "Question.count" do
+      ask "Esse cartucho funciona no Game Boy Advance SP?"
+    end
+
+    assert_equal "Sua conta não pode mais enviar perguntas. Se acha que houve engano, fale com o suporte.",
+                 flash[:alert]
+  end
+
+  test "a customer whose suspension has expired can ask again" do
+    strike_customer(users(:confirmed)).update!(created_at: 8.days.ago)
+    sign_in users(:confirmed)
+
+    assert_difference "Question.count", 1 do
+      ask "Esse cartucho funciona no Game Boy Advance SP?"
+    end
   end
 
   test "a customer firing off questions is throttled" do

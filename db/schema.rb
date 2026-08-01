@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_01_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_01_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_120000) do
     t.datetime "updated_at", null: false
     t.integer "weight_grams", default: 0, null: false
     t.index ["game_of_the_month_product_id"], name: "index_brindes_on_game_of_the_month_product_id"
+  end
+
+  create_table "canned_answers", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.string "label", null: false
+    t.datetime "updated_at", null: false
+    t.index ["label"], name: "index_canned_answers_on_label", unique: true
   end
 
   create_table "categories", force: :cascade do |t|
@@ -280,6 +288,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_120000) do
     t.index ["slug"], name: "index_products_on_slug", unique: true
   end
 
+  create_table "question_strikes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "issued_by_id", null: false
+    t.bigint "question_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["issued_by_id"], name: "index_question_strikes_on_issued_by_id"
+    t.index ["question_id"], name: "index_question_strikes_on_question_id", unique: true
+    t.index ["user_id", "created_at"], name: "index_question_strikes_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_question_strikes_on_user_id"
+  end
+
   create_table "questions", force: :cascade do |t|
     t.text "answer_body"
     t.datetime "answered_at"
@@ -448,6 +468,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_01_120000) do
   add_foreign_key "product_tags", "tags"
   add_foreign_key "production_batches", "users", column: "operator_id"
   add_foreign_key "products", "categories"
+  add_foreign_key "question_strikes", "questions"
+  add_foreign_key "question_strikes", "users"
+  add_foreign_key "question_strikes", "users", column: "issued_by_id"
   add_foreign_key "questions", "products"
   add_foreign_key "questions", "users"
   add_foreign_key "shipment_tracking_events", "shipments"

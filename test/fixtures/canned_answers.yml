@@ -1,0 +1,9 @@
+compatibility:
+  label: Compatibilidade GBA
+  body: Funciona normalmente no Game Boy Advance e no GBA SP, o cartucho é exclusivo de Game Boy Color.
+  created_at: <%= 3.days.ago.to_fs(:db) %>
+
+production_time:
+  label: Prazo de produção
+  body: Cada cartucho é montado e testado sob demanda, a produção leva de 3 a 5 dias úteis.
+  created_at: <%= 1.day.ago.to_fs(:db) %>

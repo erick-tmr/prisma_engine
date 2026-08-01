@@ -1,0 +1,105 @@
+<div data-part="drawer" class="dw-part">
+  <% if @question %>
+    <% ban = Questions::Ban.new(@question.user) %>
+    <% return_params = @base_params.merge(page: (@page.number if @page.number > 1)).compact %>
+
+    <div class="dw-head">
+      <div>
+        <h2><%= @question.answered? ? t("admin.questions.drawer.title_answered", id: @question.id) : t("admin.questions.drawer.title") %></h2>
+        <div class="sub">
+          <%= t("admin.questions.drawer.received", time: relative_time_ago(@question.created_at)) %>
+          <span class="pill pill--inline st-<%= @question.status %>"><%= t("admin.questions.statuses.#{@question.status}") %></span>
+        </div>
+      </div>
+      <a class="dw-close" href="<%= list_path(return_params) %>" aria-label="<%= t("admin.questions.drawer.close") %>"><i class="bi bi-x-lg"></i></a>
+    </div>
+
+    <%= form_with url: admin_question_path(@question), method: :patch, class: "dw-form", id: "dw-form" do %>
+      <% return_params.each do |key, value| %>
+        <%= hidden_field_tag key, value, id: nil %>
+      <% end %>
+
+      <div class="dw-body">
+        <a class="dw-prod" href="<%= edit_admin_product_path(@question.product) %>">
+          <span class="th">
+            <% if @question.product.image.present? %>
+              <img src="<%= @question.product.image %>" alt="" loading="lazy">
+            <% else %>
+              <i class="bi bi-controller"></i>
+            <% end %>
+          </span>
+          <div class="pm">
+            <div class="nm"><%= @question.product.name %></div>
+            <div class="ct"><%= @question.product.category_label %></div>
+          </div>
+          <i class="bi bi-box-arrow-up-right go" aria-hidden="true"></i>
+        </a>
+
+        <div class="dw-q">
+          <div class="who">
+            <div class="who-av who-av--<%= avatar_tint(@question.user.full_name) %>"><%= account_avatar_initials(@question.user.full_name) %></div>
+            <div class="who-meta">
+              <div class="nm"><%= @question.user.full_name %></div>
+              <div class="em"><%= @question.user.email %></div>
+            </div>
+          </div>
+          <p><%= @question.body %></p>
+          <div class="qmeta">
+            <span><i class="bi bi-clock"></i> <%= l(@question.created_at, format: :long) %></span>
+            <% if ban.strikes.positive? %>
+              <span class="strikes"><%= t("admin.questions.drawer.strikes", count: ban.strikes) %></span>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <div class="dw-label">
+            <i class="bi bi-lightning-charge"></i> <%= t("admin.questions.canned.label") %>
+            <button type="button" class="lk" data-canned-open><i class="bi bi-gear"></i> <%= t("admin.questions.canned.manage") %></button>
+          </div>
+          <div class="canned">
+            <% if @canned.any? %>
+              <% @canned.each do |canned| %>
+                <button type="button" data-canned-body="<%= canned.body %>"><i class="bi bi-plus-lg"></i> <%= canned.label %></button>
+              <% end %>
+            <% else %>
+              <span class="canned-empty"><%= t("admin.questions.canned.none") %></span>
+            <% end %>
+          </div>
+
+          <div class="dw-label">
+            <span><%= t("admin.questions.drawer.answer_label") %></span>
+            <button type="button" class="lk" data-canned-save><i class="bi bi-bookmark-plus"></i> <%= t("admin.questions.canned.save_as") %></button>
+            <span class="lc" data-answer-counter><%= t("admin.questions.drawer.characters", count: @question.answer_body.to_s.length) %></span>
+          </div>
+          <%= text_area_tag :answer_body, @question.answer_body, id: "dw-answer",
+                            placeholder: t("admin.questions.drawer.answer_placeholder"),
+                            data: { answer_body: true, counter_template: t("admin.questions.drawer.characters", count: "{n}") } %>
+
+          <div class="dw-hint"><i class="bi bi-send"></i> <%= t("admin.questions.drawer.send_hint", name: @question.user.first_name) %></div>
+          <% if @question.visible? %>
+            <div class="dw-hint"><i class="bi bi-eye"></i> <%= t("admin.questions.drawer.live_hint") %></div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="dw-foot">
+        <% if @question.spam? || @question.archived? %>
+          <button class="btn-ghost" type="submit" name="event" value="release">
+            <i class="bi <%= @question.spam? ? "bi-hand-thumbs-up" : "bi-arrow-counterclockwise" %>"></i>
+            <%= t("admin.questions.drawer.release_#{@question.status}") %>
+          </button>
+        <% else %>
+          <button class="btn-danger" type="button" data-spam-open><i class="bi bi-shield-exclamation"></i> <%= t("admin.questions.drawer.spam") %></button>
+          <button class="btn-ghost" type="submit" name="event" value="archive"><i class="bi bi-archive"></i> <%= t("admin.questions.drawer.archive") %></button>
+        <% end %>
+        <span class="grow"></span>
+        <button class="btn-ghost" type="submit" name="event" value="draft"><%= t("admin.questions.drawer.save_draft") %></button>
+        <button class="btn-dark" type="submit" name="event" value="answer">
+          <i class="bi bi-send"></i>
+          <%= @question.answered? ? t("admin.questions.drawer.update_answer") : t("admin.questions.drawer.send_answer") %>
+        </button>
+      </div>
+    <% end %>
+  <% end %>
+</div>

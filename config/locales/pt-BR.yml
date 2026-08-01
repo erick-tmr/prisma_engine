@@ -188,6 +188,31 @@ pt-BR:
     heading: "Sua senha foi alterada com sucesso."
     intro: "Este é um aviso de que a senha da sua conta Prisma Games acabou de ser modificada. Se foi você, não precisa fazer mais nada."
     disclaimer: "Se você não reconhece essa alteração, redefina sua senha e fale com o suporte o quanto antes."
+  question_mailer:
+    answered:
+      subject: "Respondemos sua pergunta sobre %{product}"
+      badge_label: "Pergunta respondida"
+      heading: "A resposta que você esperava chegou."
+      intro: "A equipe que monta os cartuchos respondeu sua pergunta sobre %{product}. A resposta também já está pública na página do produto, para ajudar quem vier depois."
+      your_question: "Sua pergunta"
+      our_answer: "Resposta da Prisma"
+      cta: "Ver na página do produto"
+    strike:
+      subject: "Sua pergunta foi removida da loja"
+      badge_label: "Pergunta removida"
+      heading: "Precisamos tirar sua pergunta do ar."
+      intro: "A pergunta que você enviou em %{product} foi classificada como spam pela nossa equipe e não aparece mais na loja."
+      first:
+        title: "Você ficou 1 semana sem poder perguntar"
+        text: "Até %{date} sua conta não envia novas perguntas. Comprar continua liberado normalmente."
+      second:
+        title: "Você ficou 1 mês sem poder perguntar"
+        text: "Esta é a segunda ocorrência, então até %{date} sua conta não envia novas perguntas. Comprar continua liberado normalmente."
+      permanent:
+        title: "Sua conta não envia mais perguntas"
+        text: "Esta é a terceira ocorrência, então o bloqueio para perguntas passa a ser definitivo. Comprar continua liberado normalmente."
+      outro: "Se você acha que houve engano, responda este e-mail ou fale com a gente pelo endereço abaixo. A gente revisa caso a caso."
+      cta: "Falar com o suporte"
   checkout:
     merge:
       lead_html:
@@ -228,6 +253,10 @@ pt-BR:
       created: "Pergunta enviada. Avisamos por e-mail assim que a Prisma responder."
       throttled: "Você já enviou várias perguntas agora há pouco. Tente de novo mais tarde."
       sign_in_required: "Entre na sua conta para perguntar sobre este produto."
+      blocked:
+        first: "Uma pergunta sua foi marcada como spam, então sua conta só volta a perguntar em %{date}."
+        second: "Perguntas suas já foram marcadas como spam duas vezes, então sua conta só volta a perguntar em %{date}."
+        permanent: "Sua conta não pode mais enviar perguntas. Se acha que houve engano, fale com o suporte."
   account:
     greeting_html: "Olá, %{name}"
     short_label: "Minha conta"
@@ -430,6 +459,11 @@ pt-BR:
       reports: "relatórios"
       product: "produto"
       products: "produtos"
+      question: "pergunta"
+      questions: "perguntas"
+      questions_count:
+        one: "%{count} pergunta"
+        other: "%{count} perguntas"
     dashboard:
       title: "Backoffice | Prisma Games"
       heading: "Backoffice"
@@ -447,6 +481,7 @@ pt-BR:
         clients: "Clientes"
         reports: "Relatórios"
         catalog: "Catálogo"
+        questions: "Perguntas"
       bulk:
         selected: "selecionados"
         clear: "Limpar seleção"
@@ -770,6 +805,138 @@ pt-BR:
         observation: "Observação"
         requested_game: "Jogo solicitado"
         request_notes: "Obs."
+    questions:
+      title: "Perguntas | Backoffice"
+      topbar_title: "Perguntas"
+      crumb: "Dúvidas que clientes enviaram nas páginas de produto"
+      heading: "Caixa de perguntas"
+      sub: "A pergunta já nasce visível na loja, responder publica a resposta e avisa o cliente por e-mail."
+      select_all: "Selecionar todas as perguntas"
+      select_one: "Selecionar pergunta"
+      statuses:
+        awaiting_answer: "Aberta"
+        draft: "Rascunho"
+        answered: "Respondida"
+        archived: "Arquivada"
+        spam: "Spam"
+      chips:
+        aria: "Situação"
+        open: "Abertas"
+        draft: "Rascunhos"
+        answered: "Respondidas"
+        archived: "Arquivadas"
+        spam: "Spam"
+        all: "Todas"
+      columns:
+        question: "Pergunta"
+        product: "Produto"
+        sent: "Enviada"
+        status: "Situação"
+      filters:
+        query: "Buscar na pergunta"
+        query_placeholder: "Texto, cliente ou e-mail…"
+        product: "Produto"
+        product_all: "Todos os produtos"
+        sort: "Ordenar"
+        sort_oldest: "Mais antigas primeiro"
+        sort_newest: "Mais recentes primeiro"
+        clear: "Limpar"
+      empty:
+        title: "Nenhuma pergunta por aqui"
+        hint: "Ajuste a situação, o produto ou a busca."
+      bulk:
+        selected: "selecionadas"
+        clear: "Limpar seleção"
+        release: "Liberar (não é spam)"
+        archive: "Arquivar"
+        spam: "Marcar como spam"
+        confirm_one: "Marcar esta pergunta como spam? A conta que enviou recebe uma advertência."
+        confirm_other: "Marcar {n} perguntas como spam? As contas que enviaram recebem uma advertência."
+        failed: "Não foi possível aplicar a ação. Tente novamente."
+        done:
+          archive:
+            one: "%{count} pergunta arquivada e fora da loja."
+            other: "%{count} perguntas arquivadas e fora da loja."
+          spam:
+            one: "%{count} pergunta marcada como spam."
+            other: "%{count} perguntas marcadas como spam."
+          release:
+            one: "%{count} pergunta liberada, já aparece na página do produto."
+            other: "%{count} perguntas liberadas, já aparecem nas páginas de produto."
+          unknown: "Nenhuma pergunta foi alterada."
+      drawer:
+        aria: "Responder pergunta"
+        title: "Responder pergunta"
+        title_answered: "Pergunta #%{id}"
+        close: "Fechar"
+        received: "Recebida %{time}"
+        strikes:
+          one: "%{count} marcação de spam no histórico"
+          other: "%{count} marcações de spam no histórico"
+        answer_label: "Resposta da Prisma"
+        answer_placeholder: "Escreva como você falaria com o cliente no WhatsApp, direto e sem juridiquês."
+        characters: "%{count} caracteres"
+        send_hint: "Enviar publica a resposta na página do produto e manda um e-mail para %{name} com o link."
+        live_hint: "Esta pergunta já está visível na página do produto. Sua resposta entra logo abaixo dela."
+        spam: "Spam"
+        archive: "Arquivar"
+        release_spam: "Não é spam"
+        release_archived: "Restaurar"
+        save_draft: "Salvar rascunho"
+        send_answer: "Enviar resposta"
+        update_answer: "Atualizar resposta"
+      spam:
+        title: "Marcar como spam?"
+        sub: "Isso vale contra a conta de quem enviou, não só contra esta pergunta."
+        repeat:
+          one: "%{count}ª ocorrência"
+          other: "%{count}ª ocorrência"
+        penalty:
+          first:
+            title: "Primeira advertência · 1 semana sem perguntar"
+            text: "%{name} fica 1 semana sem poder enviar perguntas. Comprar continua liberado."
+          second:
+            title: "Segunda advertência · 1 mês sem perguntar"
+            text: "%{name} já teve uma pergunta marcada como spam, então o bloqueio sobe para 1 mês. Comprar continua liberado."
+          permanent:
+            title: "Terceira advertência · bloqueio definitivo"
+            text: "%{name} não envia mais perguntas, em definitivo. Comprar continua liberado."
+        note: "O cliente recebe um e-mail explicando a remoção e o prazo. Arquivar é o caminho quando a pergunta é legítima mas não precisa de resposta pública."
+        cancel: "Cancelar"
+        confirm: "Marcar como spam"
+      canned:
+        title: "Respostas prontas"
+        sub: "Atalhos que aparecem acima do campo de resposta. Valem para toda a equipe."
+        label: "Respostas prontas"
+        manage: "Gerenciar"
+        save_as: "Salvar como resposta pronta"
+        none: "Nenhum atalho cadastrado ainda."
+        empty: "Nenhuma resposta pronta cadastrada. Crie a primeira abaixo."
+        new_title: "Nova resposta pronta"
+        edit_title: "Editando “%{label}”"
+        label_placeholder: "Apelido do atalho, ex.: Prazo de produção"
+        body_placeholder: "Texto que entra na resposta. Escreva completo, com pontuação, ele pode ser usado sozinho."
+        cancel_edit: "Cancelar edição"
+        add: "Adicionar"
+        save: "Salvar alterações"
+        edit: "Editar"
+        destroy: "Excluir"
+        close: "Fechar"
+        flash:
+          created: "Atalho %{label} criado, já aparece para toda a equipe."
+          updated: "Atalho %{label} atualizado."
+          destroyed: "Atalho %{label} excluído."
+      flash:
+        answer: "Resposta publicada e enviada para o cliente."
+        draft: "Rascunho salvo. O cliente ainda não recebeu nada."
+        archive: "Pergunta arquivada e removida da loja."
+        spam: "Pergunta marcada como spam e o cliente foi avisado."
+        release: "Pergunta liberada, já aparece na página do produto."
+      errors:
+        blank_answer: "Escreva a resposta antes de enviar."
+        already_spam: "Esta pergunta já está marcada como spam."
+        not_moderated: "Só perguntas em spam ou arquivadas podem ser liberadas."
+        unknown_event: "Ação desconhecida."
   activerecord:
     attributes:
       user:
@@ -794,6 +961,9 @@ pt-BR:
         body: "Pergunta"
         answer_body: "Resposta"
         status: "Situação"
+      canned_answer:
+        label: "Apelido do atalho"
+        body: "Texto da resposta"
       game_of_the_month:
         publish_at: "Data de publicação do Jogo do Mês"
     errors:

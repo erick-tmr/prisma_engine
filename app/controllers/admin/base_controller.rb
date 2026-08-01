@@ -29,7 +29,8 @@ module Admin
         "orders" => Order.count,
         "clients" => User.where(admin: false).count,
         "reports" => ProductionBatch.count,
-        "catalog" => Product.count
+        "catalog" => Product.count,
+        "questions" => Question.awaiting_answer.count
       }
     end
   end

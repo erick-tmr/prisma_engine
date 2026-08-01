@@ -26,6 +26,9 @@ threads = [
     "A caixa rígida vem com capa impressa em papel couché e o berço interno em plástico. Encarte de manual é vendido à parte, na seção de acessórios." ],
   [ zelda, "Isabela Cunha", 15, nil,
     "Tem previsão de sair a versão em português desse Oracle of Ages?", nil ],
+  [ zelda, "Diego Fontes", 5, nil,
+    "Aceita cartão parcelado? E tem desconto se eu levar os dois Oracle juntos?",
+    "Parcelamos em até 4x sem juros no cartão e no Pix sai com 5% de desconto. Levando os dois Oracle no mesmo pedido o frete fica por nossa conta." ],
   [ kirby, "João Pedro Nunes", 3, 2,
     "Esse é o Dream Land 2 mesmo, com os amigos animais?",
     "É o Dream Land 2 sim, com Rick, Coo e Kine. Roda em Game Boy, Game Boy Color e Game Boy Advance." ],
@@ -58,10 +61,15 @@ def seed_question(slug, name, days_ago, body, attributes)
   1
 end
 
+def thread_status(answer, answered_days)
+  return "awaiting_answer" unless answer
+  answered_days ? "answered" : "draft"
+end
+
 created = threads.sum do |slug, name, asked_days, answered_days, body, answer|
   seed_question(slug, name, asked_days, body,
                 answer_body: answer,
-                status: answer ? "answered" : "awaiting_answer",
+                status: thread_status(answer, answered_days),
                 answered_at: answered_days&.days&.ago)
 end
 
@@ -70,5 +78,5 @@ created += moderated.sum do |slug, name, days_ago, status, body|
 end
 
 puts "Perguntas: #{created} nova(s), #{Question.answered.count} respondida(s), " \
-     "#{Question.awaiting_answer.count} aguardando, " \
+     "#{Question.awaiting_answer.count} aguardando, #{Question.draft.count} em rascunho, " \
      "#{Question.where(status: %w[spam archived]).count} moderada(s)."

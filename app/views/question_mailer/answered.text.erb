@@ -1,0 +1,15 @@
+<%= t("mailer.greeting", name: @question.user.first_name) %>
+
+<%= t("question_mailer.answered.heading") %>
+
+<%= t("question_mailer.answered.intro", product: @product.name) %>
+
+<%= t("question_mailer.answered.your_question") %>
+<%= @question.body %>
+
+<%= t("question_mailer.answered.our_answer") %>
+<%= @question.answer_body %>
+
+<%= t("question_mailer.answered.cta") %>: <%= product_url(@product, anchor: "perguntas") %>
+
+<%= t("mailer.signature") %>

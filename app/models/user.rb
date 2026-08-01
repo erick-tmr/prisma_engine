@@ -5,6 +5,7 @@ class User < ApplicationRecord
   has_many :addresses, dependent: :destroy
   has_many :orders, dependent: :restrict_with_error
   has_many :questions, dependent: :destroy
+  has_many :question_strikes, dependent: :destroy
 
   before_validation :normalize_cpf
 

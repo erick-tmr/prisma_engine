@@ -1,6 +1,8 @@
 require "test_helper"
 
 class QuestionTest < ActiveSupport::TestCase
+  include ActionMailer::TestHelper
+
   def build_question(overrides = {})
     Question.new({
       product: products(:yellow),
@@ -66,13 +68,66 @@ class QuestionTest < ActiveSupport::TestCase
     assert_predicate build_question(status: "awaiting_answer"), :valid?
   end
 
-  test "visible questions leave out the moderated ones" do
+  test "a draft without answer text is rejected" do
+    question = build_question(status: "draft")
+
+    assert_not question.valid?
+    assert_includes question.errors.attribute_names, :answer_body
+  end
+
+  test "a draft carries an answer the customer cannot see yet" do
+    question = questions(:draft_yellow)
+
+    assert_predicate question, :written?
+    assert_not_predicate question, :answered?
+    assert_nil question.answered_at
+  end
+
+  test "visible questions leave out the moderated ones but keep drafts" do
     visible = Question.visible
 
     assert_includes visible, questions(:answered_yellow)
     assert_includes visible, questions(:awaiting_yellow)
+    assert_includes visible, questions(:draft_yellow)
     assert_not_includes visible, questions(:spam_yellow)
     assert_not_includes visible, questions(:archived_yellow)
+  end
+
+  test "pending questions are the ones still owed an answer" do
+    pending = Question.pending
+
+    assert_includes pending, questions(:awaiting_yellow)
+    assert_includes pending, questions(:draft_yellow)
+    assert_not_includes pending, questions(:answered_yellow)
+  end
+
+  test "oldest first drains the queue from the top" do
+    ordered = Question.where(product: products(:yellow)).oldest_first
+
+    assert_equal questions(:archived_yellow), ordered.first
+    assert_equal questions(:awaiting_yellow), ordered.last
+  end
+
+  test "publishing an answer emails the customer" do
+    question = questions(:awaiting_yellow)
+
+    assert_enqueued_email_with QuestionMailer, :answered, args: [ question ] do
+      question.update!(status: "answered", answer_body: "Vem com caixa, sem manual.")
+    end
+  end
+
+  test "saving a draft does not email the customer" do
+    question = questions(:awaiting_yellow)
+
+    assert_no_enqueued_emails do
+      question.update!(status: "draft", answer_body: "Vem com caixa, sem manual.")
+    end
+  end
+
+  test "editing an already answered question does not email the customer again" do
+    assert_no_enqueued_emails do
+      questions(:answered_yellow).update!(answer_body: "Salva sim, o save é em FRAM.")
+    end
   end
 
   test "newest first puts the most recent question on top" do

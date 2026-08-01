@@ -42,6 +42,11 @@ Rails.application.routes.draw do
     resources :produtos, controller: "products", as: :products,
               only: %i[index new create edit update],
               path_names: { new: "novo", edit: "editar" }
+    get    "perguntas",      to: "questions#index", as: :questions
+    post   "perguntas/lote", to: "question_bulk_actions#create", as: :question_bulk_actions
+    patch  "perguntas/:id",  to: "questions#update", as: :question, constraints: { id: /\d+/ }
+    resources :respostas_prontas, controller: "canned_answers", as: :canned_answers,
+              only: %i[create update destroy]
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout

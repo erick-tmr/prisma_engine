@@ -1,0 +1,10 @@
+<div class="chips" data-part="chips" role="group" aria-label="<%= t("admin.questions.chips.aria") %>">
+  <% Admin::QuestionSearch::CHIPS.each do |chip| %>
+    <% current = @search.chip == chip %>
+    <a class="chip<%= " on" if current %>" data-chip="<%= chip %>"
+       <%= "aria-current=true".html_safe if current %>
+       href="<%= list_path(@base_params, status: (chip unless chip == Admin::QuestionSearch::DEFAULT_CHIP), page: nil) %>">
+      <%= t("admin.questions.chips.#{chip}") %> <span class="n"><%= @search.chip_counts[chip] %></span>
+    </a>
+  <% end %>
+</div>

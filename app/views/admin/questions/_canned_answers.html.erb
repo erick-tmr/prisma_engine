@@ -1,0 +1,62 @@
+<% manager_open = params[:respostas].present? %>
+<div class="scrim<%= " open" if manager_open %>" id="cscrim" data-canned-close></div>
+<div class="modal modal--canned<%= " open" if manager_open %>" id="canned-modal" role="dialog" aria-modal="true"
+     aria-labelledby="canned-modal-title" aria-hidden="<%= manager_open ? "false" : "true" %>">
+  <div class="mdl-head">
+    <span class="mdl-ic mdl-ic--neutral"><i class="bi bi-lightning-charge"></i></span>
+    <div>
+      <h2 id="canned-modal-title"><%= t("admin.questions.canned.title") %></h2>
+      <div class="sub"><%= t("admin.questions.canned.sub") %></div>
+    </div>
+    <button class="dw-close" type="button" data-canned-close aria-label="<%= t("admin.questions.canned.close") %>"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="mdl-body">
+    <div class="cn-list">
+      <% if @canned.any? %>
+        <% @canned.each do |canned| %>
+          <div class="cn-row">
+            <div class="cn-tx">
+              <b><%= canned.label %></b>
+              <p><%= canned.body %></p>
+            </div>
+            <div class="cn-acts">
+              <button type="button" data-canned-edit="<%= admin_canned_answer_path(canned) %>"
+                      data-label="<%= canned.label %>" data-body="<%= canned.body %>"
+                      aria-label="<%= t("admin.questions.canned.edit") %>"><i class="bi bi-pencil"></i></button>
+              <%= button_to admin_canned_answer_path(canned), method: :delete, class: "del",
+                            form: { data: { turbo: false } },
+                            aria: { label: t("admin.questions.canned.destroy") } do %>
+                <i class="bi bi-trash3"></i>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="cn-empty"><%= t("admin.questions.canned.empty") %></div>
+      <% end %>
+    </div>
+
+    <%= form_with url: admin_canned_answers_path, method: :post, class: "cn-form", id: "canned-form",
+                  data: { create_url: admin_canned_answers_path } do %>
+      <%= hidden_field_tag :_method, "post", id: "canned-method" %>
+      <div class="dw-label">
+        <span data-canned-form-title data-title-new="<%= t("admin.questions.canned.new_title") %>"
+              data-title-edit="<%= t("admin.questions.canned.edit_title", label: "{label}") %>"><%= t("admin.questions.canned.new_title") %></span>
+      </div>
+      <%= text_field_tag "canned_answer[label]", nil, class: "inp", id: "canned-label",
+                         maxlength: CannedAnswer::LABEL_LENGTH, placeholder: t("admin.questions.canned.label_placeholder") %>
+      <%= text_area_tag "canned_answer[body]", nil, id: "canned-body",
+                        placeholder: t("admin.questions.canned.body_placeholder") %>
+      <div class="cn-form-foot">
+        <button class="btn-ghost" type="button" data-canned-reset hidden><%= t("admin.questions.canned.cancel_edit") %></button>
+        <span class="grow"></span>
+        <button class="btn-dark" type="submit">
+          <i class="bi bi-plus-lg"></i>
+          <span data-canned-submit data-label-add="<%= t("admin.questions.canned.add") %>"
+                data-label-edit="<%= t("admin.questions.canned.save") %>"><%= t("admin.questions.canned.add") %></span>
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>
