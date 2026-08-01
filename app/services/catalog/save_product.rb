@@ -136,8 +136,10 @@ module Catalog
 
     def reschedule(edition, publish_at)
       return if publish_at.blank? || edition.published_at.present?
+      return if edition.update(publish_at: publish_at)
 
-      edition.update!(publish_at: publish_at)
+      edition.errors.full_messages.each { |message| product.errors.add(:base, message) }
+      raise ActiveRecord::RecordInvalid, edition
     end
 
     def sync_brindes(join, brindes)

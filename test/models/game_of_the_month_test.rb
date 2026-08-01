@@ -48,6 +48,34 @@ class GameOfTheMonthTest < ActiveSupport::TestCase
     assert_nil GameOfTheMonth.current.first
   end
 
+  test "current ignores an edition of this month that has not gone live yet" do
+    game_of_the_months(:current_month).update_columns(published_at: nil)
+
+    assert_nil GameOfTheMonth.current.first
+    assert_equal game_of_the_months(:current_month), GameOfTheMonth.for_current_month.first
+  end
+
+  test "publish_at cannot fall outside the month of the edition it belongs to" do
+    edition = GameOfTheMonth.new(year: 2031, month: 9, publish_at: Time.zone.local(2031, 8, 25, 10, 0))
+
+    assert_not edition.valid?
+    assert_includes edition.errors[:publish_at], "precisa cair dentro do mês da edição escolhida"
+  end
+
+  test "publish_at may sit anywhere inside the month of its own edition" do
+    [ Time.zone.local(2031, 9, 1), Time.zone.local(2031, 9, 30, 23, 59, 59) ].each do |chosen|
+      edition = GameOfTheMonth.new(year: 2031, month: 9, publish_at: chosen)
+
+      assert edition.valid?, "expected #{chosen} to be accepted"
+    end
+  end
+
+  test "publish_at cannot spill into the month after the edition" do
+    edition = GameOfTheMonth.new(year: 2031, month: 9, publish_at: Time.zone.local(2031, 10, 1))
+
+    assert_not edition.valid?
+  end
+
   test "destroying a month cascades to picks and brindes" do
     gotm = game_of_the_months(:current_month)
     pick_ids   = gotm.game_of_the_month_product_ids
@@ -172,7 +200,7 @@ class GameOfTheMonthTest < ActiveSupport::TestCase
     edition = GameOfTheMonth.create!(year: 2031, month: 8)
 
     assert_no_enqueued_jobs only: PublishGameOfTheMonthJob do
-      edition.update!(published_at: Time.current, publish_at: 1.hour.from_now)
+      edition.update!(published_at: Time.current, publish_at: Time.zone.local(2031, 8, 20, 9, 0))
     end
   end
 

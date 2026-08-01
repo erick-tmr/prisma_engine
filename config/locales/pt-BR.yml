@@ -794,6 +794,8 @@ pt-BR:
         body: "Pergunta"
         answer_body: "Resposta"
         status: "Situação"
+      game_of_the_month:
+        publish_at: "Data de publicação do Jogo do Mês"
     errors:
       models:
         user:
@@ -813,3 +815,7 @@ pt-BR:
               not_in_list: "não é uma UF válida"
             receiver_cpf:
               invalid: "não é válido"
+        game_of_the_month:
+          attributes:
+            publish_at:
+              outside_edition_month: "precisa cair dentro do mês da edição escolhida"

@@ -72,8 +72,10 @@ module Catalog
 
     test "the Game of the Month set filters on the current edition product ids" do
       product = products(:yellow)
-      GameOfTheMonth.current.destroy_all
-      edition = GameOfTheMonth.create!(year: Time.current.year, month: Time.current.month)
+      GameOfTheMonth.for_current_month.destroy_all
+      edition = GameOfTheMonth.create!(
+        year: Time.current.year, month: Time.current.month, published_at: Time.current
+      )
       edition.game_of_the_month_products.create!(product: product, position: 0)
       captured = {}
 
@@ -86,6 +88,21 @@ module Catalog
       end
 
       assert_equal({ "retailer_id" => { "is_any" => [ product.id.to_s ] } }, captured["Jogos do Mês"])
+    end
+
+    test "the Game of the Month set stays empty while this month's edition is still staged" do
+      game_of_the_months(:current_month).update_columns(published_at: nil)
+      captured = {}
+
+      with_shops do
+        Meta::Api::ProductSets.stub(:list, -> { [] }) do
+          Meta::Api::ProductSets.stub(:create, ->(name:, filter:, shop_id:) { captured[name] = filter }) do
+            Catalog::MetaCollections.call
+          end
+        end
+      end
+
+      assert_equal({ "retailer_id" => { "is_any" => [] } }, captured["Jogos do Mês"])
     end
   end
 end
