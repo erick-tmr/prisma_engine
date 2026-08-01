@@ -10,14 +10,15 @@ function mount({ field = true, extras = true } = {}) {
       ${field ? `<input type="hidden" id="f-desc-field" value="<p>seed</p>">` : ""}
       <div class="rte" id="rte" ${extras ? `data-default="<p>padrão</p>"` : ""}>
         <div class="rte-toolbar" id="rte-toolbar">
-          <button class="rte-btn" data-cmd="bold"><i></i></button>
-          <button class="rte-btn" data-cmd="createLink"><i></i></button>
-          <button class="rte-btn rte-code" id="rte-source"><i></i>HTML</button>
+          <button type="button" class="rte-btn" data-cmd="bold"><i></i></button>
+          <button type="button" class="rte-btn" data-cmd="formatBlock" data-value="h2"><i></i></button>
+          <button type="button" class="rte-btn" data-cmd="createLink"><i></i></button>
+          <button type="button" class="rte-btn rte-code" id="rte-source"><i></i>HTML</button>
         </div>
         <div class="rte-area" id="f-desc" contenteditable="true"></div>
         <textarea class="rte-html" id="f-desc-html" hidden></textarea>
       </div>
-      ${extras ? `<span class="default-tag" id="desc-default-tag"></span><button id="desc-restore"></button>` : ""}
+      ${extras ? `<span class="default-tag" id="desc-default-tag"></span><button type="button" id="desc-restore"></button>` : ""}
     </form>`;
   return initRte(document);
 }
@@ -77,6 +78,20 @@ describe("initRte", () => {
     area.innerHTML = "<p>edited</p>";
     click(document.querySelector('[data-cmd="bold"]'));
     expect(document.querySelector("#f-desc-field").value).toBe("<p>edited</p>");
+  });
+
+  it("wraps a heading button's data-value into a formatBlock tag", () => {
+    mount();
+    const exec = vi.fn();
+    document.execCommand = exec;
+
+    click(document.querySelector('[data-value="h2"]'));
+    expect(exec).toHaveBeenCalledWith("formatBlock", false, "<h2>");
+
+    click(document.querySelector('[data-cmd="bold"]'));
+    expect(exec).toHaveBeenCalledWith("bold", false, null);
+
+    delete document.execCommand;
   });
 
   it("prompts for a URL on createLink and ignores a cancel", () => {

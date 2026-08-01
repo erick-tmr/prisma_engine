@@ -125,6 +125,12 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .rte-area:empty::before { content: attr(data-placeholder); color: #a2a9b2; }
 .rte-area p { margin: 0 0 0.7em; }
 .rte-area p:last-child { margin-bottom: 0; }
+.rte-area h2, .rte-area h3, .rte-area h4 { margin: 1.2em 0 0.5em; font-weight: 700; line-height: 1.35; }
+.rte-area > :first-child { margin-top: 0; }
+.rte-area h2 { font-size: 17px; }
+.rte-area h3 { font-size: 15.5px; }
+.rte-area h4 { font-size: 14.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--pg-muted); }
+.rte-area h2 strong, .rte-area h3 strong, .rte-area h4 strong { font-weight: inherit; }
 .rte-area ul, .rte-area ol { margin: 0.5em 0 0.7em; padding-left: 1.4em; }
 .rte-area li { margin: 0.2em 0; }
 .rte-area a { color: #2a5db0; text-decoration: underline; }

@@ -107,11 +107,14 @@ bi-star-fill
 bi-stars
 bi-tag
 bi-telephone
+bi-text-paragraph
 bi-translate
 bi-trash
 bi-trash3
 bi-truck
 bi-type-bold
+bi-type-h2
+bi-type-h3
 bi-type-italic
 bi-type-underline
 bi-upc-scan

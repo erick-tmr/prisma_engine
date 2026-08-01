@@ -1,8 +1,14 @@
 module Admin
   class ProductFormPresenter
     DEFAULT_DESCRIPTION = <<~HTML.strip
-      <p>Cartucho reproduzido pela Prisma Games, no Brasil, com placa própria (Prisma v0.6) testada uma a uma. O save fica gravado em memória FRAM, que não precisa de bateria, e seu progresso dura por anos, sem risco de perder os arquivos.</p>
-      <p>Já vem completo, com estojo rígido e etiqueta em padrão US, compatível com a linha Game Boy. Você escolhe o idioma da ROM nas opções acima, e cada unidade é testada individualmente antes do envio.</p>
+      <h2>🎮 <strong>Reprodução do cartucho de Game Boy – Prisma Games</strong> 🎮</h2>
+      <p>🇧🇷 <strong>Hardware produzido e desenvolvido por quem entende do assunto, com foco em qualidade, confiabilidade e durabilidade.</strong></p>
+      <h2>⭐ <strong>A Qualidade Prisma Games</strong></h2>
+      <p>💾 <strong>Save em memória FRAM</strong> <em>(dispensa o uso de bateria)</em><br>Seus saves permanecem seguros por muitos anos, sem o risco de perda causado por bateria descarregada.</p>
+      <p>🛠️ <strong>Hardware próprio</strong><br>Projeto exclusivo da Prisma Games, desenvolvido para oferecer máxima compatibilidade e confiabilidade.</p>
+      <p>🌎 <strong>Escolha o idioma da ROM</strong><br>Selecione a versão desejada diretamente nas opções do anúncio.</p>
+      <p>📦 <strong>Acabamento Premium</strong><br>Berço e caixa produzidos em papel mais espesso que o original, oferecendo maior resistência e durabilidade.</p>
+      <p>✅ <strong>Pronto para jogar, colecionar e preservar seus clássicos.</strong></p>
     HTML
     DEFAULT_LANGUAGES = [ "Português BR", "Inglês", "Japonês" ].freeze
     DEFAULT_WEIGHT = 60
