@@ -237,7 +237,6 @@ GEM
       thor
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
-    image_processing (2.0.2)
     imagen (0.2.0)
       parser (>= 2.5, != 2.5.1.1)
     importmap-rails (2.2.3)
@@ -558,7 +557,6 @@ DEPENDENCIES
   dotenv (~> 3.1)
   faraday (~> 2.14)
   friendly_id (~> 5.5)
-  image_processing (~> 2.0)
   importmap-rails
   kamal (~> 2.12)
   letter_opener_web (~> 3.0)
