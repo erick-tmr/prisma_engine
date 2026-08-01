@@ -15,6 +15,7 @@ module Admin
     def update
       result = Questions::Moderate.call(question: find_question, event: params[:event],
                                         actor: current_user, answer_body: params[:answer_body])
+      # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect -- internal path helper; params become query values on a fixed route, never the target
       redirect_to question_list_path(pergunta: nil), **flash_for(result)
     end
 
