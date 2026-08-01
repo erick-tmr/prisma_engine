@@ -1,17 +1,38 @@
-answered_published:
+answered_yellow:
   product: yellow
-  body: Esse cartucho salva o jogo?
-  asker_name: João
-  asker_email: joao@example.com
-  answer_body: Sim, bateria nova inclusa.
-  answered: true
-  published: true
+  user: buyer
+  body: Esse cartucho salva o progresso sem precisar trocar bateria?
+  answer_body: Salva sim, o save é em FRAM e não depende de bateria.
+  status: answered
   answered_at: <%= 2.days.ago.to_fs(:db) %>
+  created_at: <%= 5.days.ago.to_fs(:db) %>
 
-unanswered:
+awaiting_yellow:
   product: yellow
-  body: Tem nota fiscal?
-  asker_name: Maria
-  asker_email: maria@example.com
-  answered: false
-  published: false
+  user: confirmed
+  body: Vem com caixa e manual em português?
+  status: awaiting_answer
+  created_at: <%= 1.day.ago.to_fs(:db) %>
+
+spam_yellow:
+  product: yellow
+  user: buyer
+  body: Acesse meu site de promoções e ganhe dinheiro rápido hoje mesmo.
+  status: spam
+  created_at: <%= 3.days.ago.to_fs(:db) %>
+
+archived_yellow:
+  product: yellow
+  user: confirmed
+  body: Pergunta antiga que já não faz sentido no catálogo atual.
+  status: archived
+  created_at: <%= 30.days.ago.to_fs(:db) %>
+
+answered_shell:
+  product: plastic_shell
+  user: buyer
+  body: A carcaça serve no Game Boy Pocket também?
+  answer_body: Não, essa carcaça é só para o DMG original.
+  status: answered
+  answered_at: <%= 1.day.ago.to_fs(:db) %>
+  created_at: <%= 4.days.ago.to_fs(:db) %>

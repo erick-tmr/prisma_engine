@@ -65,6 +65,7 @@ Rails.application.routes.draw do
   post "/produtos",          to: "products#index"
   get  "/produtos/:slug",    to: "categories#show", as: :category
   get  "/produto/:slug",     to: "products#show", as: :product
+  post "/produto/:slug/perguntas", to: "products/questions#create", as: :product_questions
 
   get    "/carrinho",            to: "cart#show",          as: :cart
   post   "/carrinho/items",      to: "cart_items#create",  as: :cart_items

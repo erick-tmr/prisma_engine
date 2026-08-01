@@ -2,6 +2,7 @@ module ProductsHelper
   DESCRIPTION_TAGS = %w[p br ul ol li strong em b i a h3 h4 h5].freeze
   DESCRIPTION_ATTRIBUTES = %w[href target rel].freeze
   HEADING_DEMOTIONS = { "h4" => "h5", "h3" => "h4", "h2" => "h3" }.freeze
+  QUESTIONS_PAGE_SIZE = 4
 
   def product_description(html)
     with_targets = demote_headings(html.to_s).gsub(/<a\b/i, '<a target="_blank" rel="noopener noreferrer"')

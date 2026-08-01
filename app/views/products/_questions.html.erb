@@ -1,0 +1,54 @@
+<% answered_count = questions.count(&:answered?) %>
+<% awaiting_count = questions.size - answered_count %>
+<% showing_key = questions.size == 1 ? "showing_one" : "showing_other" %>
+
+<section class="product-questions<%= " is-empty" if questions.empty? %>" id="perguntas"
+         data-product-questions aria-labelledby="perguntas-titulo">
+  <div class="product-questions__head">
+    <div class="product-questions__intro">
+      <h2 class="product-questions__title" id="perguntas-titulo"><%= t("products.questions.heading") %></h2>
+      <p class="product-questions__lede"><%= t("products.questions.lede") %></p>
+    </div>
+    <div class="product-questions__stats">
+      <span class="product-questions__stat product-questions__stat--answered">
+        <i class="bi bi-check-circle-fill"></i>
+        <b><%= answered_count %></b> <%= t("products.questions.stat_answered", count: answered_count) %>
+      </span>
+      <% if awaiting_count.positive? %>
+        <span class="product-questions__stat product-questions__stat--awaiting">
+          <i class="bi bi-hourglass-split"></i>
+          <b><%= awaiting_count %></b> <%= t("products.questions.stat_awaiting") %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <% if user_signed_in? %>
+    <%= render "products/question_composer", product: product %>
+  <% else %>
+    <%= render "products/question_gate" %>
+  <% end %>
+
+  <% if questions.any? %>
+    <ol class="product-questions__list" data-question-list
+        data-page-size="<%= ProductsHelper::QUESTIONS_PAGE_SIZE %>">
+      <%= render partial: "products/question", collection: questions, as: :question %>
+    </ol>
+
+    <div class="product-questions__foot">
+      <p class="product-questions__count" data-question-count
+         data-template="<%= t("products.questions.#{showing_key}", shown: "{n}", total: questions.size) %>">
+        <%= t("products.questions.#{showing_key}", shown: questions.size, total: questions.size) %>
+      </p>
+      <button type="button" class="product-questions__more" hidden data-question-more
+              data-template-one="<%= t("products.questions.more_one", count: "{n}") %>"
+              data-template-other="<%= t("products.questions.more_other", count: "{n}") %>"></button>
+    </div>
+  <% else %>
+    <div class="product-questions__empty">
+      <span class="product-questions__empty-icon"><i class="bi bi-chat-square-dots"></i></span>
+      <h3 class="product-questions__empty-title"><%= t("products.questions.empty_title") %></h3>
+      <p class="product-questions__empty-text"><%= t("products.questions.empty_text") %></p>
+    </div>
+  <% end %>
+</section>

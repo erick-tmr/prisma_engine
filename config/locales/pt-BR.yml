@@ -199,6 +199,35 @@ pt-BR:
       orders_paid:
         one: "%{count} pedido · já pago"
         other: "%{count} pedidos · já pagos"
+  products:
+    questions:
+      heading: "Perguntas e respostas"
+      lede: "Dúvida sobre compatibilidade, save, caixa ou prazo? Pergunte aqui, quem responde é a equipe que monta os cartuchos."
+      stat_answered:
+        one: "respondida"
+        other: "respondidas"
+      stat_awaiting: "aguardando"
+      composer_note: "Sua pergunta aparece publicamente com seu nome"
+      composer_placeholder: "Ex.: esse cartucho salva o progresso sem precisar trocar bateria depois?"
+      composer_email_notice: "Avisamos por e-mail assim que a Prisma responder."
+      composer_submit: "Enviar pergunta"
+      gate_title: "Entre na sua conta para perguntar"
+      gate_text: "Só clientes cadastrados fazem perguntas, assim a gente consegue avisar você por e-mail quando a resposta sair."
+      gate_sign_in: "Entrar"
+      gate_sign_up: "Criar conta"
+      store_name: "Prisma Games"
+      team_badge: "Equipe"
+      waiting: "Aguardando resposta da Prisma"
+      time_ago: "há %{time}"
+      showing_one: "Mostrando %{shown} de %{total} pergunta"
+      showing_other: "Mostrando %{shown} de %{total} perguntas"
+      more_one: "Ver mais %{count} pergunta"
+      more_other: "Ver mais %{count} perguntas"
+      empty_title: "Seja o primeiro a perguntar"
+      empty_text: "Ninguém perguntou nada sobre este cartucho ainda. Mande sua dúvida, a gente responde e a resposta fica aqui para os próximos."
+      created: "Pergunta enviada. Avisamos por e-mail assim que a Prisma responder."
+      throttled: "Você já enviou várias perguntas agora há pouco. Tente de novo mais tarde."
+      sign_in_required: "Entre na sua conta para perguntar sobre este produto."
   account:
     greeting_html: "Olá, %{name}"
     short_label: "Minha conta"
@@ -761,12 +790,21 @@ pt-BR:
         state: "UF"
         receiver_name: "Nome do destinatário"
         receiver_cpf: "CPF do destinatário"
+      question:
+        body: "Pergunta"
+        answer_body: "Resposta"
+        status: "Situação"
     errors:
       models:
         user:
           attributes:
             cpf:
               invalid: "não é válido"
+        question:
+          attributes:
+            body:
+              too_short: "precisa ter pelo menos %{count} caracteres"
+              too_long: "pode ter no máximo %{count} caracteres"
         address:
           attributes:
             zip:
