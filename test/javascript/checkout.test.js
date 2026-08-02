@@ -103,7 +103,6 @@ function mountCheckout({ preselected = "", addresses = [DEFAULT_ADDR], popup = t
     <span data-ship-method></span>
     <span data-total></span>
     <span data-mb-total></span>
-    <span data-installment></span>
     <div data-redirect></div>
     <div class="checkout__agree" data-agree-modal aria-hidden="true">
       <div class="checkout__agree-card"><button data-agree-confirm>Ir para o pagamento</button></div>
@@ -137,7 +136,6 @@ describe("renderSummary", () => {
     expect(document.querySelector("[data-ship-method]").textContent).toBe("· SEDEX");
     expect(document.querySelector("[data-total]").textContent).toMatch(/523,40/);
     expect(document.querySelector("[data-mb-total]").textContent).toMatch(/523,40/);
-    expect(document.querySelector("[data-installment]").textContent).toMatch(/43,62/);
   });
 });
 
