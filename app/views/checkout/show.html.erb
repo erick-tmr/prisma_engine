@@ -248,7 +248,6 @@
               <span class="lbl">Total</span>
               <span class="amt tnum" data-total><%= HasMoney.format(@cart.subtotal_cents) %></span>
             </div>
-            <p class="checkout__sum-installment">em até <b>12x</b> de <b class="tnum" data-installment></b> sem juros</p>
           </div>
 
           <%= form_with url: checkout_create_path, method: :post, id: "checkout-form",
@@ -267,6 +266,7 @@
             <div class="checkout__trust">
               <div><i class="bi bi-shield-check"></i> Ambiente criptografado · seus dados protegidos</div>
               <div><i class="bi bi-box-seam"></i> Enviado com rastreio pelos Correios</div>
+              <div><i class="bi bi-credit-card"></i> Parcelamento com juros, calculado pela InfinitePay</div>
             </div>
           <% end %>
         </section>

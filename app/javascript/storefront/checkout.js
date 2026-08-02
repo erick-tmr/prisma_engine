@@ -1,5 +1,4 @@
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const INSTALLMENTS = 12;
 const SHIP_ICONS = { sedex: "bi-lightning-charge-fill", pac: "bi-truck", mini_envios: "bi-envelope" };
 
 function shipIcon(key) {
@@ -63,7 +62,6 @@ export function createCheckout(doc, openTab, navigate) {
     }
     doc.querySelector("[data-total]").textContent = money(total);
     doc.querySelector("[data-mb-total]").textContent = money(total);
-    doc.querySelector("[data-installment]").textContent = money(Math.round(total / INSTALLMENTS));
   }
 
   function selectShip(el, services) {
