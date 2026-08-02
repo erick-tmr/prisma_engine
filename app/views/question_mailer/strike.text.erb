@@ -1,0 +1,14 @@
+<%= t("mailer.greeting", name: @strike.user.first_name) %>
+
+<%= t("question_mailer.strike.heading") %>
+
+<%= t("question_mailer.strike.intro", product: @question.product.name) %>
+
+<%= t("question_mailer.strike.#{@ban.penalty}.title") %>
+<%= t("question_mailer.strike.#{@ban.penalty}.text", date: @blocked_until) %>
+
+<%= t("question_mailer.strike.outro") %>
+
+<%= t("question_mailer.strike.cta") %>: mailto:<%= t("mailer.support_email") %>
+
+<%= t("mailer.signature") %>

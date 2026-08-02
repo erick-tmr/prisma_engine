@@ -1,0 +1,30 @@
+<div data-part="table">
+  <div class="tbl-wrap">
+    <table class="tbl" id="questions-table"<%= " hidden".html_safe if @page.empty? %>>
+      <thead>
+        <tr>
+          <th class="checkcol">
+            <span class="rowcheck" id="q-checkall" role="checkbox" aria-label="<%= t("admin.questions.select_all") %>" tabindex="0"></span>
+          </th>
+          <th><%= t("admin.questions.columns.question") %></th>
+          <th><%= t("admin.questions.columns.product") %></th>
+          <th><%= t("admin.questions.columns.sent") %></th>
+          <th><%= t("admin.questions.columns.status") %></th>
+          <th class="num"></th>
+        </tr>
+      </thead>
+      <tbody id="questions-body">
+        <%= render partial: "row", collection: @questions, as: :question %>
+      </tbody>
+    </table>
+
+    <div class="empty<%= " show" if @page.empty? %>" id="questions-empty">
+      <i class="bi bi-chat-square-dots"></i>
+      <p><%= t("admin.questions.empty.title") %></p>
+      <span><%= t("admin.questions.empty.hint") %></span>
+    </div>
+  </div>
+
+  <%= render "admin/shared/pager", page: @page, base_params: @base_params,
+             one: t("admin.lists.question"), many: t("admin.lists.questions") %>
+</div>

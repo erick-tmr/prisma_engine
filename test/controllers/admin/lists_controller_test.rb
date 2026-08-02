@@ -4,7 +4,8 @@ module Admin
   class ListsControllerTest < ActionDispatch::IntegrationTest
     include Devise::Test::IntegrationHelpers
 
-    LISTS = { orders: "/admin", clients: "/admin/clientes", reports: "/admin/relatorios" }.freeze
+    LISTS = { orders: "/admin", clients: "/admin/clientes", reports: "/admin/relatorios",
+              questions: "/admin/perguntas" }.freeze
 
     test "signed-out visitors are sent to the backoffice login" do
       LISTS.each_value do |path|
@@ -39,6 +40,7 @@ module Admin
 
       assert_select ".sb-link .count", text: Order.count.to_s
       assert_select ".sb-link .count", text: User.where(admin: false).count.to_s
+      assert_select ".sb-link[href=?] .count", admin_questions_path, text: Question.awaiting_answer.count.to_s
       assert_select ".sb-user .nm", text: users(:admin).full_name
     end
 

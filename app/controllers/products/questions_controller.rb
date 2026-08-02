@@ -2,6 +2,7 @@ module Products
   class QuestionsController < ApplicationController
     before_action :load_product
     before_action :require_signed_in_customer
+    before_action :require_asking_privileges
 
     rate_limit to: 5, within: 1.hour, by: -> { current_user.id },
                with: :too_many_questions, only: :create
@@ -35,6 +36,15 @@ module Products
 
       session["user_return_to"] = product_questions_anchor
       redirect_to new_user_session_path, notice: t("products.questions.sign_in_required")
+    end
+
+    def require_asking_privileges
+      ban = Questions::Ban.new(current_user)
+      return unless ban.active?
+
+      flash[:alert] = t("products.questions.blocked.#{ban.penalty}",
+                        date: ban.expires_at && l(ban.expires_at.to_date))
+      redirect_to_questions
     end
 
     def too_many_questions

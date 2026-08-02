@@ -20,6 +20,10 @@
       <i class="bi bi-controller"></i> <%= t("admin.dashboard.nav.catalog") %>
       <span class="count"><%= counts["catalog"] %></span>
     </a>
+    <a class="sb-link<%= " active" if active == "questions" %>" href="<%= admin_questions_path %>">
+      <i class="bi bi-chat-square-dots"></i> <%= t("admin.dashboard.nav.questions") %>
+      <span class="count"><%= counts["questions"] %></span>
+    </a>
   </nav>
 
   <div class="sb-foot">

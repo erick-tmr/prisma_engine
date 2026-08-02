@@ -1,3 +1,4 @@
+bi-archive
 bi-arrow-clockwise
 bi-arrow-counterclockwise
 bi-arrow-down-circle
@@ -10,6 +11,7 @@ bi-arrows-move
 bi-bag
 bi-bag-check
 bi-bell
+bi-bookmark-plus
 bi-bookmark-star
 bi-box-arrow-left
 bi-box-arrow-right
@@ -58,12 +60,14 @@ bi-eye
 bi-eye-slash
 bi-floppy
 bi-funnel
+bi-gear
 bi-geo
 bi-geo-alt
 bi-geo-alt-fill
 bi-gift
 bi-grid
 bi-grip-vertical
+bi-hand-thumbs-up
 bi-handbag
 bi-heart
 bi-hourglass-split
@@ -75,6 +79,7 @@ bi-instagram
 bi-joystick
 bi-key
 bi-life-preserver
+bi-lightning-charge
 bi-lightning-charge-fill
 bi-link-45deg
 bi-list
@@ -102,6 +107,7 @@ bi-receipt-cutoff
 bi-search
 bi-send
 bi-shield-check
+bi-shield-exclamation
 bi-shield-lock
 bi-shield-lock-fill
 bi-sliders2

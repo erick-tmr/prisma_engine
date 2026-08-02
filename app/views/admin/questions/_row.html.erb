@@ -1,0 +1,38 @@
+<%# locals: (question:) %>
+<tr data-question="<%= question.id %>" data-status="<%= question.status %>">
+  <td class="checkcol">
+    <span class="rowcheck" data-check="<%= question.id %>" role="checkbox" aria-checked="false" tabindex="0"
+          aria-label="<%= t("admin.questions.select_one") %>"></span>
+  </td>
+  <td class="q-cell">
+    <div class="q-text"><%= question.body %></div>
+    <div class="q-from">
+      <span class="nm"><%= question.user.full_name %></span>
+      <span class="sep" aria-hidden="true"></span>
+      <span><%= question.user.email %></span>
+    </div>
+  </td>
+  <td>
+    <div class="q-prod">
+      <span class="q-prod-th">
+        <% if question.product.image.present? %>
+          <img src="<%= question.product.image %>" alt="" loading="lazy">
+        <% else %>
+          <i class="bi bi-controller"></i>
+        <% end %>
+      </span>
+      <div class="q-prod-meta">
+        <div class="nm"><%= question.product.name %></div>
+        <div class="ct"><%= question.product.category_label %></div>
+      </div>
+    </div>
+  </td>
+  <td>
+    <div class="q-when">
+      <%= relative_time_ago(question.created_at) %>
+      <span class="sub"><%= l(question.created_at.to_date, format: :list) %></span>
+    </div>
+  </td>
+  <td><span class="pill st-<%= question.status %>"><%= t("admin.questions.statuses.#{question.status}") %></span></td>
+  <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
+</tr>

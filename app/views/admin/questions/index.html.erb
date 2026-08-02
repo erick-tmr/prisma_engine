@@ -1,0 +1,120 @@
+<% content_for :title, t("admin.questions.title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-dashboard", "pages/backoffice-questions" %>
+<% end %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app" data-list="questions" data-bulk-url="<%= admin_question_bulk_actions_path %>"
+     data-bulk-error="<%= t("admin.questions.bulk.failed") %>">
+  <%= render "admin/sidebar", active: "questions" %>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menu-toggle" type="button" aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.questions.topbar_title") %></h1>
+        <span class="crumb"><%= t("admin.questions.crumb") %></span>
+      </div>
+      <div class="topbar-right">
+        <div class="gsearch">
+          <i class="bi bi-search"></i>
+          <input id="gsearch" type="text" value="<%= @search.query %>" placeholder="<%= t("admin.dashboard.search_placeholder") %>" aria-label="<%= t("admin.dashboard.search_aria") %>">
+        </div>
+        <button class="icon-btn" type="button" aria-label="<%= t("admin.dashboard.notifications") %>"><i class="bi bi-bell"></i><span class="dot"></span></button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="panel">
+        <div class="panel-top">
+          <div class="panel-top-main">
+            <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.questions.heading") %></h2>
+            <div class="sub"><%= t("admin.questions.sub") %></div>
+          </div>
+          <div class="panel-top-right">
+            <%= render "results_count" %>
+            <button class="btn-dark" type="button" data-canned-open>
+              <i class="bi bi-lightning-charge"></i> <%= t("admin.questions.canned.manage") %>
+            </button>
+          </div>
+        </div>
+
+        <%= render "chips" %>
+
+        <div class="filters" data-filters>
+          <div class="fgroup fgrow">
+            <label for="q-q"><%= t("admin.questions.filters.query") %></label>
+            <div class="f-input">
+              <i class="bi bi-search"></i>
+              <input id="q-q" type="text" name="q" data-filter="q" value="<%= @search.query %>"
+                     placeholder="<%= t("admin.questions.filters.query_placeholder") %>">
+            </div>
+          </div>
+          <div class="fgroup">
+            <label for="q-produto"><%= t("admin.questions.filters.product") %></label>
+            <select class="inp" id="q-produto" name="produto" data-filter="produto">
+              <option value=""><%= t("admin.questions.filters.product_all") %></option>
+              <% @search.products.each do |product| %>
+                <option value="<%= product.id %>" <%= "selected" if @search.product == product.id.to_s %>><%= product.name %></option>
+              <% end %>
+            </select>
+          </div>
+          <div class="fgroup">
+            <label for="q-sort"><%= t("admin.questions.filters.sort") %></label>
+            <select class="inp" id="q-sort" name="sort" data-filter="sort">
+              <% Admin::QuestionSearch::SORTS.each do |value| %>
+                <option value="<%= value %>" <%= "selected" if @search.sort == value %>><%= t("admin.questions.filters.sort_#{value}") %></option>
+              <% end %>
+            </select>
+          </div>
+          <div class="fgroup">
+            <label>&nbsp;</label>
+            <a class="btn-clear" id="q-clear" href="<%= admin_questions_path %>"><i class="bi bi-arrow-counterclockwise"></i> <%= t("admin.questions.filters.clear") %></a>
+          </div>
+        </div>
+
+        <div class="bulkbar" id="bulkbar" hidden>
+          <div class="bulk-left">
+            <span class="bulk-count"><b id="bulk-n">0</b> <%= t("admin.questions.bulk.selected") %></span>
+            <button class="bulk-clear" id="bulk-clear" type="button"><i class="bi bi-x-lg"></i> <%= t("admin.questions.bulk.clear") %></button>
+          </div>
+          <div class="bulk-actions">
+            <button class="bulk-chip ok" data-bulk="release" type="button" <%= "hidden" unless @search.chip == "spam" %>>
+              <i class="bi bi-hand-thumbs-up"></i> <%= t("admin.questions.bulk.release") %>
+            </button>
+            <button class="bulk-chip" data-bulk="archive" type="button"><i class="bi bi-archive"></i> <%= t("admin.questions.bulk.archive") %></button>
+            <button class="bulk-chip danger" data-bulk="spam" type="button"
+                    data-confirm-one="<%= t("admin.questions.bulk.confirm_one") %>"
+                    data-confirm-other="<%= t("admin.questions.bulk.confirm_other", count: "{n}") %>">
+              <i class="bi bi-shield-exclamation"></i> <%= t("admin.questions.bulk.spam") %>
+            </button>
+          </div>
+        </div>
+
+        <%= render "results_table" %>
+      </div>
+    </main>
+  </div>
+
+  <div class="scrim" id="scrim" data-drawer-close></div>
+  <aside class="drawer" id="drawer" aria-hidden="true" aria-label="<%= t("admin.questions.drawer.aria") %>">
+    <%= render "drawer" %>
+  </aside>
+  <%= render "spam_confirm" %>
+  <%= render "canned_answers" %>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite">
+  <% flash.each do |type, message| %>
+    <div class="toast toast-<%= type == "alert" ? "warn" : "ok" %>" data-toast>
+      <i class="bi <%= type == "alert" ? "bi-exclamation-circle-fill" : "bi-check-circle-fill" %>"></i>
+      <div class="tx"><%= message %></div>
+    </div>
+  <% end %>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_import_module_tag "backoffice/questions" %>
+<% end %>

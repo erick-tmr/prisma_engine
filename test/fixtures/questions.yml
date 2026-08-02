@@ -28,6 +28,14 @@ archived_yellow:
   status: archived
   created_at: <%= 30.days.ago.to_fs(:db) %>
 
+draft_yellow:
+  product: yellow
+  user: orderless
+  body: Dá para escolher a cor da carcaça junto com a etiqueta japonesa?
+  answer_body: Dá sim, é só combinar as duas opções na página do produto.
+  status: draft
+  created_at: <%= 2.days.ago.to_fs(:db) %>
+
 answered_shell:
   product: plastic_shell
   user: buyer

@@ -1,0 +1,41 @@
+<div data-part="spam">
+  <% if @question && !@question.spam? %>
+    <% ban = Questions::Ban.new(@question.user) %>
+    <div class="scrim" id="mscrim" data-spam-close></div>
+    <div class="modal" id="spam-modal" role="dialog" aria-modal="true" aria-labelledby="spam-modal-title" aria-hidden="true">
+      <div class="mdl-head">
+        <span class="mdl-ic"><i class="bi bi-shield-exclamation"></i></span>
+        <div>
+          <h2 id="spam-modal-title"><%= t("admin.questions.spam.title") %></h2>
+          <div class="sub"><%= t("admin.questions.spam.sub") %></div>
+        </div>
+      </div>
+      <div class="mdl-body">
+        <div class="mdl-who">
+          <div class="mdl-who-row">
+            <div class="who-av who-av--<%= avatar_tint(@question.user.full_name) %>"><%= account_avatar_initials(@question.user.full_name) %></div>
+            <div class="mm">
+              <div class="nm"><%= @question.user.full_name %></div>
+              <div class="em"><%= @question.user.email %></div>
+            </div>
+            <% if ban.strikes.positive? %>
+              <span class="rep"><%= t("admin.questions.spam.repeat", count: ban.strikes) %></span>
+            <% end %>
+          </div>
+        </div>
+        <div class="mdl-penalty">
+          <b><%= t("admin.questions.spam.penalty.#{ban.next_penalty}.title") %></b>
+          <span><%= t("admin.questions.spam.penalty.#{ban.next_penalty}.text", name: @question.user.first_name) %></span>
+        </div>
+        <div class="mdl-note"><i class="bi bi-envelope"></i> <%= t("admin.questions.spam.note") %></div>
+      </div>
+      <div class="mdl-foot">
+        <button class="btn-ghost" type="button" data-spam-close><%= t("admin.questions.spam.cancel") %></button>
+        <span class="grow"></span>
+        <button class="btn-danger-solid" type="submit" form="dw-form" name="event" value="spam">
+          <i class="bi bi-shield-exclamation"></i> <%= t("admin.questions.spam.confirm") %>
+        </button>
+      </div>
+    </div>
+  <% end %>
+</div>
