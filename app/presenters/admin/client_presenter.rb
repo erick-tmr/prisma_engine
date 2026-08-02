@@ -30,7 +30,7 @@ module Admin
     end
 
     def addresses
-      @addresses ||= client.addresses.default_first
+      @addresses ||= client.addresses.default_first.to_a
     end
 
     def ban
@@ -38,7 +38,8 @@ module Admin
     end
 
     def strikes
-      @strikes ||= client.question_strikes.chronological.includes(:issued_by, question: :product).to_a
+      @strikes ||= client.question_strikes.chronological
+                         .includes(:issued_by, question: { product: :category }).to_a
     end
 
     def ban_state
@@ -50,10 +51,10 @@ module Admin
     end
 
     def rung_state(rung)
-      return rung[:ordinal] == ban.strikes ? "spent current" : "spent" if rung[:reached_at]
-      return "next" if rung[:ordinal] == ban.strikes + 1
+      return "next" if rung[:reached_at].nil? && rung[:ordinal] == ban.strikes + 1
+      return "upcoming" if rung[:reached_at].nil?
 
-      "upcoming"
+      rung[:ordinal] == [ ban.strikes, Questions::Ban::PERMANENT_AFTER ].min ? "spent current" : "spent"
     end
 
     private

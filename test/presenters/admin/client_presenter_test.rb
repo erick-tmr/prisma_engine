@@ -69,12 +69,30 @@ module Admin
       assert_equal [ "spent", "spent", "spent current" ], states
     end
 
-    test "strikes come back oldest first, with the question and product loaded" do
+    test "the last rung stays current past the permanent threshold" do
+      presenter = ClientPresenter.new(client_with_strikes(5, name: "Excesso", cpf: SPARE_CPFS[0]))
+      states = presenter.ban.ladder.map { |rung| presenter.rung_state(rung) }
+
+      assert_equal [ "spent", "spent", "spent current" ], states
+    end
+
+    test "strikes come back oldest first" do
       presenter = ClientPresenter.new(client_with_strikes(3, name: "Banido", cpf: SPARE_CPFS[0]))
       issued = presenter.strikes.map(&:created_at)
 
       assert_equal issued.sort, issued
       assert_equal 3, presenter.strikes.size
+    end
+
+    test "the strike list preloads everything the ledger renders" do
+      presenter = ClientPresenter.new(client_with_strikes(3, name: "Banido", cpf: SPARE_CPFS[0]))
+      strikes = presenter.strikes
+
+      queries = count_queries do
+        strikes.each { |strike| [ strike.issued_by.full_name, strike.question.product.category_label ] }
+      end
+
+      assert_equal 0, queries, "the ledger rows must not query per strike"
     end
 
     test "addresses put the default one first" do

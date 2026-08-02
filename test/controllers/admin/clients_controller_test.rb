@@ -171,6 +171,7 @@ module Admin
       assert_response :success
       assert_select ".sk-panel.sk-panel-perma"
       assert_select ".sk-rung", count: 3
+      assert_select ".sk-rung.spent.current", count: 1
       assert_select ".sk-item", count: 5
       assert_select ".sk-item:last-child .pen", text: /3ª ocorrência/
     end

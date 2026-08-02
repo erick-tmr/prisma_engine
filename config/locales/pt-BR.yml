@@ -809,6 +809,7 @@ pt-BR:
           remove: "Remover strike"
           remove_confirm: "Remover o strike e devolver a pergunta para a caixa como aberta?"
           removed: "Strike removido. A pergunta voltou para a caixa como aberta."
+          remove_failed: "Não foi possível remover o strike: a pergunta já saiu do spam. Marque a pergunta como spam de novo para poder liberá-la."
           clock:
             days: "d"
             hours: "h"
