@@ -31,7 +31,7 @@ module Shipping
       return if events.empty?
 
       ApplicationRecord.transaction do
-        events.each_with_index { |event, position| record_event(event, position) }
+        record_events
         update_shipment
         discard_label if posted?
       end
@@ -41,18 +41,40 @@ module Shipping
 
     attr_reader :shipment, :events
 
-    def record_event(event, position)
-      row = shipment.tracking_events.find_or_initialize_by(position: position)
-      log_unmapped(event) if row.new_record? && !EVENT_SIGNALS.key?(key(event))
-      row.assign_attributes(
-        tracking_code: shipment.tracking_code,
-        event_code: event[:code],
-        event_type: event[:type],
-        description: event[:description],
-        occurred_at: event[:occurred_at],
-        payload: event[:payload]
+    def record_events
+      log_unmapped_events
+      ShipmentTrackingEvent.upsert_all(
+        event_rows,
+        unique_by: %i[shipment_id position],
+        update_only: %i[tracking_code event_code event_type description occurred_at payload]
       )
-      row.save!
+    end
+
+    def event_rows
+      stamped_at = Time.current
+      events.each_with_index.map do |event, position|
+        {
+          shipment_id: shipment.id,
+          position: position,
+          tracking_code: shipment.tracking_code,
+          event_code: event[:code],
+          event_type: event[:type],
+          description: event[:description],
+          occurred_at: event[:occurred_at],
+          payload: event[:payload] || {},
+          created_at: stamped_at,
+          updated_at: stamped_at
+        }
+      end
+    end
+
+    def log_unmapped_events
+      known = shipment.tracking_events.where(position: 0...events.size).pluck(:position).to_set
+      events.each_with_index do |event, position|
+        next if known.include?(position) || EVENT_SIGNALS.key?(key(event))
+
+        log_unmapped(event)
+      end
     end
 
     def log_unmapped(event)
