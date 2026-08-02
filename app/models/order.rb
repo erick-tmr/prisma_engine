@@ -101,12 +101,12 @@ class Order < ApplicationRecord
   # :reek:BooleanParameter
   def transition_to!(next_status, actor: nil, automatic: false)
     target = next_status.to_s
-    raise InvalidTransition, "#{status} → #{target}" unless TRANSITIONS.fetch(status).include?(target)
-
     previous = status
+    raise InvalidTransition, "#{previous} → #{target}" unless TRANSITIONS.fetch(previous).include?(target)
+
     transaction do
-      update!(status: target)
-      status_changes.create!(from_status: previous, to_status: target, actor: actor, automatic: automatic)
+      claim_status(previous, target) &&
+        status_changes.create!(from_status: previous, to_status: target, actor: actor, automatic: automatic).present?
     end
   end
 
@@ -139,6 +139,12 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def claim_status(previous, target)
+    claimed = self.class.where(id: id, status: previous).update_all(status: target, updated_at: Time.current)
+    reload
+    claimed == 1
+  end
 
   def record_initial_status
     status_changes.create!(from_status: nil, to_status: status, automatic: true)
