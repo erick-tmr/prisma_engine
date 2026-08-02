@@ -36,6 +36,20 @@ module Questions
       penalty_for(strikes + 1)
     end
 
+    def final_warning?
+      strikes == PENALTIES.size
+    end
+
+    def ladder
+      @ladder ||= begin
+        reached = @user.question_strikes.chronological.pluck(:created_at)
+
+        (1..PERMANENT_AFTER).map do |ordinal|
+          { ordinal: ordinal, penalty: penalty_for(ordinal), reached_at: reached[ordinal - 1] }
+        end
+      end
+    end
+
     private
 
     def penalty_for(count)
