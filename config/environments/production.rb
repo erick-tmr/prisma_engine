@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/logging/tagged_broadcast_logger"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -41,7 +42,7 @@ Rails.application.configure do
   # Log to STDOUT (captured by Docker for `kamal app logs`) and to a rotating
   # file on a persistent named volume (see config/deploy.yml), so the history
   # survives container replacement on deploy. Runbook: docs/log-analysis.md.
-  config.logger = ActiveSupport::BroadcastLogger.new(
+  config.logger = Logging::TaggedBroadcastLogger.new(
     ActiveSupport::TaggedLogging.logger(STDOUT),
     ActiveSupport::TaggedLogging.logger(Rails.root.join("log/#{Rails.env}.log"), 5, 50.megabytes)
   )
@@ -75,7 +76,9 @@ Rails.application.configure do
   end
 
   ActiveSupport.on_load(:active_job) do
-    StructuredLogging::ActiveJobLogSubscriber.install
+    StructuredLogging::ActiveJobLogSubscriber.install(
+      log_path: Rails.root.join("log/#{Rails.env}.jobs.log")
+    )
   end
 
   # Don't log any deprecations.

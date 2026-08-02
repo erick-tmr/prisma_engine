@@ -44,6 +44,12 @@ bin/log-analysis down        # stop the stack, keep ingested data
 - Solid Queue's own supervisor/worker lifecycle lines, boot lines, and other
   `Rails.logger` output stay plain text. They are still queryable in Loki as raw
   lines, just without parsed fields.
+- Active Job lines go to their own durable file, `log/production.jobs.log`
+  (`500m` x `5`), on the same named volume. Background work produces far more
+  lines than requests do, so it gets 10x the rotation budget and its own file
+  rather than competing with request logs for the same window of history.
+  `deploy/fetch-production-logs.sh` copies every `*.log*` on the volume, so it
+  comes down with the rest.
 - Each line in `log/production.log` is a single raw JSON object (the lograge
   request line or the job line), or a plain-text Rails line for boot / SolidQueue
   lifecycle output. There is no Docker json-file envelope to unwrap: Rails writes

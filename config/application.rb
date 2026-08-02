@@ -27,7 +27,7 @@ module PrismaEngine
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     # active_storage/ holds the custom R2 adapter, which Active Storage's configurator
     # loads via its own `require` off $LOAD_PATH, so keep Zeitwerk out of it.
-    config.autoload_lib(ignore: %w[assets tasks active_storage])
+    config.autoload_lib(ignore: %w[assets tasks active_storage logging])
 
     config.active_storage.variant_processor = :disabled
 

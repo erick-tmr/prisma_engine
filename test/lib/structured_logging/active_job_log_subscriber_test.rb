@@ -131,6 +131,29 @@ module StructuredLogging
       job
     end
 
+    test "logs only to stdout when no durable path is configured" do
+      ActiveJobLogSubscriber.log_path = nil
+
+      assert_instance_of ActiveSupport::Logger, ActiveJobLogSubscriber.new.logger
+    end
+
+    test "also writes to a durable file when a path is configured" do
+      path = Rails.root.join("tmp/jobs-log-#{Process.pid}.log")
+      ActiveJobLogSubscriber.log_path = path
+
+      subscriber = nil
+      capture_io do
+        subscriber = ActiveJobLogSubscriber.new
+        subscriber.logger.info("durable line")
+      end
+
+      assert_instance_of Logging::TaggedBroadcastLogger, subscriber.logger
+      assert_includes File.read(path), "durable line"
+    ensure
+      ActiveJobLogSubscriber.log_path = nil
+      File.delete(path) if path && File.exist?(path)
+    end
+
     def log_line(method_name, payload)
       event = FakeEvent.new("#{method_name}.active_job", payload, 12.34)
       @subscriber.public_send(method_name, event)
