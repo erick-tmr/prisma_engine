@@ -10,6 +10,9 @@ module Shipping
       %w[BDE 20] => :in_transit
     }.freeze
 
+    UNIQUE_BY = %i[shipment_id position].freeze
+    UPDATE_ONLY = %i[tracking_code event_code event_type description occurred_at payload].freeze
+
     def self.apply(shipment, events)
       new(shipment, events).apply
     end
@@ -43,29 +46,16 @@ module Shipping
 
     def record_events
       log_unmapped_events
-      ShipmentTrackingEvent.upsert_all(
-        event_rows,
-        unique_by: %i[shipment_id position],
-        update_only: %i[tracking_code event_code event_type description occurred_at payload]
-      )
-    end
-
-    def event_rows
       stamped_at = Time.current
-      events.each_with_index.map do |event, position|
+      rows = events.each_with_index.map do |event, position|
         {
-          shipment_id: shipment.id,
-          position: position,
-          tracking_code: shipment.tracking_code,
-          event_code: event[:code],
-          event_type: event[:type],
-          description: event[:description],
-          occurred_at: event[:occurred_at],
-          payload: event[:payload] || {},
-          created_at: stamped_at,
-          updated_at: stamped_at
+          shipment_id: shipment.id, position: position, tracking_code: shipment.tracking_code,
+          event_code: event[:code], event_type: event[:type], description: event[:description],
+          occurred_at: event[:occurred_at], payload: event[:payload] || {},
+          created_at: stamped_at, updated_at: stamped_at
         }
       end
+      ShipmentTrackingEvent.upsert_all(rows, unique_by: UNIQUE_BY, update_only: UPDATE_ONLY)
     end
 
     def log_unmapped_events
@@ -73,15 +63,11 @@ module Shipping
       events.each_with_index do |event, position|
         next if known.include?(position) || EVENT_SIGNALS.key?(key(event))
 
-        log_unmapped(event)
+        Rails.logger.warn(
+          "[correios-rastro] unmapped event code=#{event[:code]} type=#{event[:type]} " \
+          "desc=#{event[:description].inspect} tracking_code=#{shipment.tracking_code}"
+        )
       end
-    end
-
-    def log_unmapped(event)
-      Rails.logger.warn(
-        "[correios-rastro] unmapped event code=#{event[:code]} type=#{event[:type]} " \
-        "desc=#{event[:description].inspect} tracking_code=#{shipment.tracking_code}"
-      )
     end
 
     def update_shipment
