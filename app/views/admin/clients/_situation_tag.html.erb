@@ -1,0 +1,5 @@
+<%# locals: (situation:) %>
+<% style = { "active" => [ "tag-active", "bi-check-circle-fill" ],
+             "pending" => [ "tag-pending", "bi-hourglass-split" ],
+             "locked" => [ "tag-locked", "bi-lock-fill" ] }.fetch(situation) %>
+<span class="tag <%= style.first %>"><i class="bi <%= style.last %>"></i> <%= t("admin.dashboard.situations.#{situation}") %></span>

@@ -1,12 +1,18 @@
 import { createTable } from "backoffice/table";
 import { bindFilters, syncFilters } from "backoffice/filters";
-import { bindGlobalSearch, initShell } from "backoffice/shell";
+import { initShell } from "backoffice/shell";
 
 export function initClients(root) {
   const table = createTable(root, { onRestore: (params) => syncFilters(root, params) });
   initShell(root);
   bindFilters(root, table);
-  bindGlobalSearch(root, root.querySelector("#c-q"));
+
+  root.addEventListener("click", (event) => {
+    const row = event.target.closest("tr[data-client]");
+    const link = row?.querySelector("a.cell-link");
+    if (link && link !== event.target) link.click();
+  });
+
   return table;
 }
 

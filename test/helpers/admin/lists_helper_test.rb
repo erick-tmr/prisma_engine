@@ -32,6 +32,11 @@ module Admin
                    page_range(page_for(31), "produto", "produtos")
     end
 
+    test "page_range follows the list's own page size, not the default one" do
+      assert_equal "<b>1–8</b> de <b>20</b> pedidos",
+                   page_range(page_for(20, per: 8), "pedido", "pedidos")
+    end
+
     test "sort_header links to the other direction and marks the active column" do
       inactive = sort_header({}, key: "total", label: "Total", sort: "date", dir: "desc")
       assert_includes inactive, "sortable"
@@ -88,8 +93,8 @@ module Admin
 
     private
 
-    def page_for(total)
-      Admin::Page.new(Product.limit(0), 1).tap do |page|
+    def page_for(total, per: Admin::Page::PER)
+      Admin::Page.new(Product.limit(0), 1, per: per).tap do |page|
         page.instance_variable_set(:@total, total)
       end
     end

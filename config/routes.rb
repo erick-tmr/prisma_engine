@@ -37,7 +37,10 @@ Rails.application.routes.draw do
 
   scope path: "admin", module: "admin", as: :admin do
     root to: "orders#index"
-    get    "clientes",   to: "clients#index", as: :clients
+    get    "clientes",     to: "clients#index", as: :clients
+    get    "clientes/:id", to: "clients#show",  as: :client, constraints: { id: /\d+/ }
+    delete "clientes/:client_id/strikes/:id", to: "client_strikes#destroy", as: :client_strike,
+           constraints: { client_id: /\d+/, id: /\d+/ }
     get    "relatorios", to: "reports#index", as: :reports
     resources :produtos, controller: "products", as: :products,
               only: %i[index new create edit update],

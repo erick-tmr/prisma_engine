@@ -1,6 +1,6 @@
 import { createTable } from "backoffice/table";
 import { bindFilters, syncFilters } from "backoffice/filters";
-import { bindGlobalSearch, initShell } from "backoffice/shell";
+import { initShell } from "backoffice/shell";
 import { addMonths, applyPreset, datePopHtml, nextSelection, parseISO, startOfMonth, toISO } from "backoffice/date_picker";
 
 export const ACTIONS = [
@@ -81,7 +81,6 @@ export function initOrders(root, today = new Date()) {
   });
   initShell(root);
   bindFilters(root, table);
-  bindGlobalSearch(root, $("#o-name"));
 
   const selected = new Map();
   const bulkbar = $("#bulkbar");

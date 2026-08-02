@@ -1,0 +1,89 @@
+<%# locals: (presenter:, client:) %>
+<% ban = presenter.ban %>
+<section class="panel sk-panel sk-panel-<%= presenter.ban_state %>">
+  <div class="panel-top">
+    <div class="panel-top-main">
+      <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.clients.detail.strikes.heading") %></h2>
+      <div class="sub"><%= t("admin.clients.detail.strikes.sub") %></div>
+    </div>
+    <div class="panel-top-right">
+      <span class="result-count"><%= t("admin.clients.detail.strikes.of_total", count: ban.strikes) %></span>
+    </div>
+  </div>
+
+  <div class="sk-hero">
+    <div class="sk-count">
+      <b><%= ban.strikes %></b>
+      <span><%= t("admin.clients.detail.strikes.unit", count: ban.strikes) %></span>
+      <span class="of"><%= t("admin.clients.detail.strikes.out_of") %></span>
+    </div>
+    <div class="sk-state">
+      <% case presenter.ban_state %>
+      <% when "perma" %>
+        <div class="sk-state-top"><i class="bi bi-slash-circle"></i> <%= t("admin.clients.detail.strikes.perma.title") %></div>
+        <p class="sk-note"><%= t("admin.clients.detail.strikes.perma.note_html", at: tag.b(l(ban.last_strike.created_at, format: :long))) %></p>
+      <% when "banned" %>
+        <div class="sk-state-top"><i class="bi bi-lock-fill"></i> <%= t("admin.clients.detail.strikes.banned.title") %></div>
+        <div class="sk-clock" data-strike-clock
+             data-started-at="<%= ban.last_strike.created_at.iso8601 %>"
+             data-expires-at="<%= ban.expires_at.iso8601 %>">
+          <% %w[days hours minutes seconds].each_with_index do |unit, index| %>
+            <% if index.positive? %><span class="sep"></span><% end %>
+            <span class="u"><b data-clock-value="<%= unit %>">00</b><span class="l"><%= t("admin.clients.detail.strikes.clock.#{unit}") %></span></span>
+          <% end %>
+        </div>
+        <div class="sk-bar"><i data-strike-bar></i></div>
+        <div class="sk-until">
+          <%= t("admin.clients.detail.strikes.banned.until_html",
+                at: tag.b(l(ban.expires_at, format: :long)),
+                penalty: t("admin.clients.detail.strikes.penalty.#{ban.penalty}.duration"),
+                since: l(ban.last_strike.created_at, format: :long)) %>
+        </div>
+      <% when "served" %>
+        <div class="sk-state-top"><i class="bi bi-check-circle"></i> <%= t("admin.clients.detail.strikes.served.title") %></div>
+        <div class="sk-until">
+          <%= t("admin.clients.detail.strikes.served.ended_html",
+                penalty: t("admin.clients.detail.strikes.penalty.#{ban.penalty}.duration"),
+                at: tag.b(l(ban.expires_at, format: :long))) %>
+        </div>
+        <p class="sk-note">
+          <%= t("admin.clients.detail.strikes.served.note_html",
+                next: tag.b(t("admin.clients.detail.strikes.penalty.#{ban.next_penalty}.duration"))) %>
+        </p>
+      <% else %>
+        <div class="sk-state-top"><i class="bi bi-check-circle-fill"></i> <%= t("admin.clients.detail.strikes.clear.title") %></div>
+        <p class="sk-note">
+          <%= t("admin.clients.detail.strikes.clear.note_html",
+                penalty: tag.b(t("admin.clients.detail.strikes.penalty.first.duration"))) %>
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="sk-ladder">
+    <% ban.ladder.each do |rung| %>
+      <div class="sk-rung <%= presenter.rung_state(rung) %>">
+        <span class="n"><%= rung[:ordinal] %></span>
+        <div>
+          <div class="t"><%= t("admin.clients.detail.strikes.penalty.#{rung[:penalty]}.occurrence") %></div>
+          <div class="d"><%= t("admin.clients.detail.strikes.penalty.#{rung[:penalty]}.duration") %></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if presenter.strikes.any? %>
+    <div class="sk-listhead"><%= t("admin.clients.detail.strikes.list_heading") %></div>
+    <div class="sk-list">
+      <% presenter.strikes.each_with_index do |strike, index| %>
+        <%= render "strike", strike: strike, ordinal: index + 1,
+                   penalty: ban.penalty_for(index + 1), client: client %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="sk-empty">
+      <i class="bi bi-shield-check"></i>
+      <div><%= t("admin.clients.detail.strikes.empty") %></div>
+    </div>
+  <% end %>
+</section>

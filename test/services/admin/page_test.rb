@@ -10,6 +10,11 @@ module Admin
       assert_equal Product.order(:id).first(2).map(&:id), page.rows.map(&:id)
     end
 
+    test "it reports the page size it was built with" do
+      assert_equal 8, Page.new(Product.order(:id), 1, per: 8).per
+      assert_equal Page::PER, Page.new(Product.order(:id), 1).per
+    end
+
     test "it offsets by page" do
       page = Page.new(Product.order(:id), 2, per: 2)
       assert_equal Product.order(:id).offset(2).first(2).map(&:id), page.rows.map(&:id)

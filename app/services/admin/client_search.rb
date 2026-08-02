@@ -48,7 +48,7 @@ module Admin
     end
 
     def base
-      User.where(admin: false)
+      User.clients
           .joins(DEFAULT_ADDRESS)
           .select(
             "users.*",

@@ -1,0 +1,12 @@
+<%# locals: (presenter:) %>
+<% ban = presenter.ban %>
+<% case presenter.ban_state %>
+<% when "perma" %>
+  <span class="qb qb-perma"><i class="bi bi-slash-circle"></i> <%= t("admin.clients.detail.badge.perma") %></span>
+<% when "banned" %>
+  <span class="qb qb-banned"><i class="bi bi-lock-fill"></i> <%= t("admin.clients.detail.badge.banned", date: l(ban.expires_at.to_date, format: :list)) %></span>
+<% when "served" %>
+  <span class="qb qb-served"><i class="bi bi-clock-history"></i> <%= t("admin.clients.detail.badge.served", count: ban.strikes) %></span>
+<% else %>
+  <span class="qb qb-clear"><i class="bi bi-check-circle-fill"></i> <%= t("admin.clients.detail.badge.clear") %></span>
+<% end %>

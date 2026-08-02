@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { bindGlobalSearch, dismissToasts, initShell } from "../../../app/javascript/backoffice/shell.js";
+import { dismissToasts, initShell } from "../../../app/javascript/backoffice/shell.js";
 import { initClients } from "../../../app/javascript/backoffice/clients.js";
 import { initReports } from "../../../app/javascript/backoffice/reports.js";
 import { initCatalog, navigate } from "../../../app/javascript/backoffice/catalog.js";
@@ -18,7 +18,6 @@ const shell = (list, inner) => `
   <div class="app" data-list="${list}">
     <aside data-sidebar></aside>
     <button id="menu-toggle" type="button"></button>
-    <input id="gsearch" type="text">
     ${inner}
     <span data-part="count">0</span>
     <div data-part="table">${inner.includes("data-part") ? "" : ""}</div>
@@ -73,17 +72,6 @@ describe("dismissToasts", () => {
   });
 });
 
-describe("bindGlobalSearch", () => {
-  it("does nothing when either end is missing", () => {
-    document.body.innerHTML = `<div class="app"><input id="gsearch"></div>`;
-    const root = document.querySelector(".app");
-    expect(() => bindGlobalSearch(root, null)).not.toThrow();
-
-    document.body.innerHTML = `<div class="app"><input id="c-q"></div>`;
-    expect(() => bindGlobalSearch(document.querySelector(".app"), document.querySelector("#c-q"))).not.toThrow();
-  });
-});
-
 describe("initClients", () => {
   const markup = `<input id="c-q" name="q" data-filter="q" type="text">`;
 
@@ -115,16 +103,24 @@ describe("initClients", () => {
     await vi.waitFor(() => expect(input.value).toBe(""));
   });
 
-  it("mirrors the topbar search into the list filter", async () => {
-    vi.useFakeTimers();
+  it("opens a client by forwarding the row click to its link", () => {
+    document.body.innerHTML = shell("clients", markup);
+    document.querySelector("[data-part=table]").innerHTML =
+      `<table><tbody><tr data-client="9"><td><a class="cell-link" href="/admin/clientes/9">Ana</a></td><td class="other">SP</td></tr></tbody></table>`;
+    started.push(initClients(document.querySelector(".app")));
+
+    const link = document.querySelector("a.cell-link");
+    const spy = vi.spyOn(link, "click");
+    click(document.querySelector("td.other"));
+
+    expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it("ignores clicks outside a client row", () => {
     document.body.innerHTML = shell("clients", markup);
     started.push(initClients(document.querySelector(".app")));
 
-    type(document.querySelector("#gsearch"), "bruno");
-    expect(document.querySelector("#c-q").value).toBe("bruno");
-
-    await vi.advanceTimersByTimeAsync(300);
-    expect(window.fetch).toHaveBeenCalledWith("/admin?q=bruno", expect.anything());
+    expect(() => click(document.querySelector("[data-part=count]"))).not.toThrow();
   });
 });
 

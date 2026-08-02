@@ -1,0 +1,28 @@
+<div data-part="table">
+  <div class="tbl-wrap">
+    <table class="tbl" id="client-orders-table"<%= " hidden".html_safe if @page.empty? %>>
+      <thead>
+        <tr>
+          <th><%= t("admin.clients.detail.orders.columns.order") %></th>
+          <th><%= t("admin.clients.detail.orders.columns.date") %></th>
+          <th><%= t("admin.clients.detail.orders.columns.items") %></th>
+          <th class="num"><%= t("admin.clients.detail.orders.columns.total") %></th>
+          <th><%= t("admin.clients.detail.orders.columns.status") %></th>
+          <th class="num"></th>
+        </tr>
+      </thead>
+      <tbody id="client-orders-body">
+        <%= render partial: "order_row", collection: @orders, as: :order %>
+      </tbody>
+    </table>
+
+    <div class="empty<%= " show" if @page.empty? %>" id="client-orders-empty">
+      <i class="bi bi-receipt"></i>
+      <p><%= t("admin.clients.detail.orders.empty.title") %></p>
+      <span><%= t("admin.clients.detail.orders.empty.hint") %></span>
+    </div>
+  </div>
+
+  <%= render "admin/shared/pager", page: @page, base_params: {},
+             one: t("admin.lists.order"), many: t("admin.lists.orders") %>
+</div>

@@ -27,7 +27,7 @@ module Admin
     def sidebar_counts
       @sidebar_counts ||= {
         "orders" => Order.count,
-        "clients" => User.where(admin: false).count,
+        "clients" => User.clients.count,
         "reports" => ProductionBatch.count,
         "catalog" => Product.count,
         "questions" => Question.awaiting_answer.count

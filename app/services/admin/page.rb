@@ -3,7 +3,7 @@ module Admin
     PER = 30
     WINDOW_LIMIT = 7
 
-    attr_reader :total, :number
+    attr_reader :total, :number, :per
 
     def initialize(relation, page_param, per: PER)
       @relation = relation

@@ -41,7 +41,7 @@ module Admin
 
     def page_range(page, one, many)
       noun = page.total == 1 ? one : many
-      return safe_join([ tag.b(page.total), " #{noun}" ]) if page.total <= Admin::Page::PER
+      return safe_join([ tag.b(page.total), " #{noun}" ]) if page.total <= page.per
 
       safe_join([ tag.b("#{page.from}–#{page.to}"), " de ", tag.b(page.total), " #{noun}" ])
     end

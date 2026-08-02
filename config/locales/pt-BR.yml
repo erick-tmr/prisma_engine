@@ -537,10 +537,7 @@ pt-BR:
       tag: "Backoffice"
       section: "Gestão"
       role: "Administrador"
-      search_placeholder: "Buscar…"
-      search_aria: "Buscar"
       menu: "Menu"
-      notifications: "Notificações"
       signout: "Sair"
       nav:
         orders: "Pedidos"
@@ -746,6 +743,100 @@ pt-BR:
       created: "“%{name}” criado com sucesso."
       updated: "“%{name}” atualizado com sucesso."
       invalid: "Corrija os campos destacados e salve novamente."
+    clients:
+      detail:
+        page_title: "%{name} · Backoffice | Prisma Games"
+        topbar_title: "Detalhe do cliente"
+        crumb: "Clientes · %{name}"
+        back: "Voltar para clientes"
+        dismiss: "Fechar"
+        reference: "Cliente #%{number}"
+        cpf: "CPF %{value}"
+        since: "Cliente desde %{date}"
+        account_created: "Conta criada em %{date}"
+        badge:
+          clear: "Perguntas liberadas"
+          served:
+            one: "%{count} strike · penalidade cumprida"
+            other: "%{count} strikes · penalidade cumprida"
+          banned: "Sem perguntar até %{date}"
+          perma: "Perguntas bloqueadas para sempre"
+        stats:
+          orders: "Pedidos"
+          cancelled:
+            one: "%{count} cancelado"
+            other: "%{count} cancelados"
+          spent: "Total gasto"
+          spent_hint: "somente pedidos pagos"
+          ticket: "Ticket médio"
+          ticket_hint:
+            one: "em %{count} pedido pago"
+            other: "em %{count} pedidos pagos"
+          last_order: "Último pedido"
+          no_orders: "sem pedidos"
+        orders:
+          heading: "Pedidos do cliente"
+          sub: "Histórico completo, do mais recente para o mais antigo."
+          columns:
+            order: "Pedido"
+            date: "Data"
+            items: "Itens"
+            total: "Total"
+            status: "Status"
+          empty:
+            title: "Nenhum pedido"
+            hint: "Este cliente ainda não fechou nenhum pedido."
+        addresses:
+          heading: "Endereços"
+          default: "Entrega padrão"
+          other: "Endereço"
+          zip: "CEP %{value}"
+          empty: "Este cliente ainda não cadastrou um endereço."
+          note: "O endereço de entrega é escolhido pelo cliente no checkout e copiado para o pedido, então mudar aqui não altera pedidos já fechados."
+        strikes:
+          heading: "Strikes de perguntas"
+          sub: "Cada pergunta marcada como spam vira um strike. Liberar a pergunta devolve o strike."
+          of_total: "%{count} de 3"
+          out_of: "de 3"
+          unit:
+            one: "strike"
+            other: "strikes"
+          list_heading: "Perguntas que geraram os strikes"
+          empty: "Nenhuma pergunta deste cliente foi marcada como spam. Se isso acontecer, o strike e a penalidade aparecem aqui automaticamente."
+          marked_at: "Marcada como spam em %{at} por %{by}"
+          asked_at: "Pergunta #%{id} · enviada em %{at}"
+          open_inbox: "Ver na caixa de perguntas"
+          remove: "Remover strike"
+          remove_confirm: "Remover o strike e devolver a pergunta para a caixa como aberta?"
+          removed: "Strike removido. A pergunta voltou para a caixa como aberta."
+          clock:
+            days: "d"
+            hours: "h"
+            minutes: "min"
+            seconds: "s"
+          penalty:
+            first:
+              occurrence: "1ª ocorrência"
+              duration: "7 dias sem perguntar"
+            second:
+              occurrence: "2ª ocorrência"
+              duration: "1 mês sem perguntar"
+            permanent:
+              occurrence: "3ª ocorrência"
+              duration: "bloqueio permanente"
+          clear:
+            title: "Nenhum strike"
+            note_html: "Este cliente nunca teve pergunta marcada como spam. O primeiro strike custaria %{penalty}."
+          served:
+            title: "Pode perguntar de novo"
+            ended_html: "A penalidade de %{penalty} terminou em %{at}."
+            note_html: "Os strikes não expiram: o histórico continua contando. O próximo vale %{next}."
+          banned:
+            title: "Bloqueado para perguntas"
+            until_html: "Volta a poder perguntar em %{at} · penalidade de %{penalty} contada a partir de %{since}"
+          perma:
+            title: "Bloqueio permanente"
+            note_html: "Na terceira ocorrência o bloqueio não tem prazo: a conta não volta a publicar perguntas. O terceiro strike foi aplicado em %{at}. Compras e pedidos seguem liberados."
     orders:
       detail:
         page_title: "Pedido %{number} · Backoffice | Prisma Games"

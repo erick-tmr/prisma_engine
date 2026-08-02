@@ -1,6 +1,6 @@
 import { createTable } from "backoffice/table";
 import { bindFilters, syncFilters } from "backoffice/filters";
-import { bindGlobalSearch, initShell } from "backoffice/shell";
+import { initShell } from "backoffice/shell";
 
 export function navigate(href) {
   window.location.assign(href);
@@ -10,7 +10,6 @@ export function initCatalog(root) {
   const table = createTable(root, { onRestore: (params) => syncFilters(root, params) });
   initShell(root);
   bindFilters(root, table);
-  bindGlobalSearch(root, root.querySelector("#c-q"));
 
   root.addEventListener("click", (event) => {
     if (event.target.closest("a")) return;
