@@ -13,6 +13,11 @@ module ApplicationHelper
     PG_ALERT_VARIANTS.fetch(key.to_s, PG_ALERT_FALLBACK)
   end
 
+  def canonical_url
+    host = Rails.application.config.x.canonical_host.presence || request.host
+    "#{request.scheme}://#{host}#{request.path}"
+  end
+
   def relative_time_ago(time)
     t("products.questions.time_ago", time: time_ago_in_words(time))
   end

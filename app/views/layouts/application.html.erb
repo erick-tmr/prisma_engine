@@ -9,6 +9,8 @@
     <title><%= content_for(:title).presence || "Prisma Games" %></title>
     <meta name="description" content="<%= content_for(:description).presence || "Prisma Games, especializada em desenvolvimento e produção de hardware para o Game Boy, da Nintendo." %>">
 
+    <link rel="canonical" href="<%= canonical_url %>">
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 

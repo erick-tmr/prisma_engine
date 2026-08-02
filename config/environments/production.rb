@@ -1,5 +1,6 @@
 require "active_support/core_ext/integer/time"
 require_relative "../../lib/logging/tagged_broadcast_logger"
+require_relative "../../lib/middleware/canonical_host"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -102,7 +103,11 @@ Rails.application.configure do
     authentication:       :plain,
     enable_starttls_auto: true
   }
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "prismagames.com.br"), protocol: "https" }
+  config.x.canonical_host = ENV.fetch("APP_HOST", "prismagames.com.br")
+  config.action_mailer.default_url_options = { host: config.x.canonical_host, protocol: "https" }
+
+  config.middleware.insert_before 0, Middleware::CanonicalHost,
+    from: "www.#{config.x.canonical_host}", to: config.x.canonical_host
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
