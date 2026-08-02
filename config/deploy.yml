@@ -20,7 +20,6 @@ proxy:
   hosts:
     - prismagames.com.br
     - www.prismagames.com.br
-    - beta.prismagames.com.br
   app_port: 80
   healthcheck:
     path: /up

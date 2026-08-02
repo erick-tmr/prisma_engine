@@ -22,12 +22,7 @@ module PrismaEngine
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
 
-    # Please, add to the `ignore` list any other `lib` subdirectories that do
-    # not contain `.rb` files, or that should not be reloaded or eager loaded.
-    # Common ones are `templates`, `generators`, or `middleware`, for example.
-    # active_storage/ holds the custom R2 adapter, which Active Storage's configurator
-    # loads via its own `require` off $LOAD_PATH, so keep Zeitwerk out of it.
-    config.autoload_lib(ignore: %w[assets tasks active_storage logging])
+    config.autoload_lib(ignore: %w[assets tasks active_storage logging middleware])
 
     config.active_storage.variant_processor = :disabled
 
