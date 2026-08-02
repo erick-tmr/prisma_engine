@@ -1,0 +1,22 @@
+<tr>
+  <td class="px" style="padding:20px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;border-radius:12px;">
+      <tr>
+        <td style="padding:14px 18px;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:13px;line-height:1.7;color:#6b7280;">
+          <strong style="color:#1a1d21;"><%= t("question_mailer.strike.ladder.heading") %></strong><br>
+          <% rungs.each do |rung| %>
+            <% line = t("question_mailer.strike.ladder.line",
+                        ordinal: rung[:ordinal],
+                        date: email_date(rung[:reached_at]),
+                        penalty: t("question_mailer.strike.ladder.penalty.#{rung[:penalty]}")) %>
+            <% if rung[:penalty] == highlight %>
+              <span style="color:<%= accent %>;font-weight:700;"><%= line %></span><br>
+            <% else %>
+              <%= line %><br>
+            <% end %>
+          <% end %>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>

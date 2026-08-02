@@ -6,10 +6,14 @@
 
 <%= t("question_mailer.answered.your_question") %>
 <%= @question.body %>
+<%= t("question_mailer.sent_meta", sent_at: email_datetime(@question.created_at), protocol: @question.id) %>
 
-<%= t("question_mailer.answered.our_answer") %>
+<%= t("question_mailer.answered.our_answer", store: t("products.questions.store_name")) %>
 <%= @question.answer_body %>
+<%= t("question_mailer.answered.answer_meta", store: t("products.questions.store_name"), date: email_date(@question.answered_at)) %>
 
 <%= t("question_mailer.answered.cta") %>: <%= product_url(@product, anchor: "perguntas") %>
+
+<%= t("question_mailer.answered.closing_note") %>
 
 <%= t("mailer.signature") %>

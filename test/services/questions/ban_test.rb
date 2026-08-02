@@ -61,6 +61,54 @@ module Questions
       assert_nil ban.expires_at
     end
 
+    test "the last strike is the most recent one, whatever order they were issued in" do
+      question_strikes(:spam_yellow_buyer).update!(created_at: 2.years.ago)
+      newest = strike(users(:buyer), questions(:answered_yellow), at: 1.day.ago)
+
+      assert_equal newest, Ban.new(users(:buyer)).last_strike
+    end
+
+    test "an account that never spammed has no last strike" do
+      assert_nil Ban.new(users(:orderless)).last_strike
+    end
+
+    test "the ladder lists every rung and dates only the ones already reached" do
+      ban = Ban.new(users(:buyer))
+
+      assert_equal [ 1, 2, 3 ], ban.ladder.pluck(:ordinal)
+      assert_equal %w[first second permanent], ban.ladder.pluck(:penalty)
+      assert_in_delta question_strikes(:spam_yellow_buyer).created_at, ban.ladder.first[:reached_at], 1.minute
+      assert_nil ban.ladder.second[:reached_at]
+      assert_nil ban.ladder.third[:reached_at]
+    end
+
+    test "the ladder dates each rung in the order the strikes were issued" do
+      question_strikes(:spam_yellow_buyer).update!(created_at: 2.years.ago)
+      strike(users(:buyer), questions(:answered_yellow), at: 1.year.ago)
+      strike(users(:buyer), questions(:awaiting_yellow), at: 1.day.ago)
+
+      dates = Ban.new(users(:buyer)).ladder.pluck(:reached_at)
+
+      assert_equal dates.compact.sort, dates
+      assert_in_delta 1.day.ago, dates.last, 1.minute
+    end
+
+    test "the ladder of an account that never spammed carries no dates" do
+      assert_equal [ nil, nil, nil ], Ban.new(users(:orderless)).ladder.pluck(:reached_at)
+    end
+
+    test "the second strike is the last warning before the block turns permanent" do
+      assert_not_predicate Ban.new(users(:buyer)), :final_warning?
+
+      strike(users(:buyer), questions(:answered_yellow), at: 1.day.ago)
+
+      assert_predicate Ban.new(users(:buyer)), :final_warning?
+
+      strike(users(:buyer), questions(:awaiting_yellow), at: 1.hour.ago)
+
+      assert_not_predicate Ban.new(users(:buyer)), :final_warning?
+    end
+
     test "the next penalty escalates from what the account already carries" do
       assert_equal "first", Ban.new(users(:orderless)).next_penalty
       assert_equal "second", Ban.new(users(:buyer)).next_penalty

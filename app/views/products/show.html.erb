@@ -170,7 +170,7 @@
     <%= render "products/gotm_freebies", gotm_product: @gotm_product %>
   <% end %>
 
-  <%= render "products/questions", product: @product, questions: @questions %>
+  <%= render "products/questions", product: @product, questions: @questions, ban: @ban %>
 </div>
 
 <% content_for :scripts do %>

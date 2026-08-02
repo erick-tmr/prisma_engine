@@ -1,14 +1,32 @@
 <%= t("mailer.greeting", name: @strike.user.first_name) %>
 
-<%= t("question_mailer.strike.heading") %>
+<%= t("question_mailer.strike.#{@ban.penalty}.heading") %>
 
-<%= t("question_mailer.strike.intro", product: @question.product.name) %>
+<%= t("question_mailer.strike.#{@ban.penalty}.intro") %>
+
+<%= t("question_mailer.strike.removed_question") %>
+<%= @question.body %>
+<%= t("question_mailer.strike.removed_product", product: @question.product.name) %>
+<%= t("question_mailer.sent_meta", sent_at: email_datetime(@question.created_at), protocol: @question.id) %>
 
 <%= t("question_mailer.strike.#{@ban.penalty}.title") %>
-<%= t("question_mailer.strike.#{@ban.penalty}.text", date: @blocked_until) %>
+<%= t("question_mailer.strike.#{@ban.penalty}.text", date: @blocked_until, first_date: email_date(@ban.ladder.first[:reached_at])) %>
 
-<%= t("question_mailer.strike.outro") %>
+<%= t("question_mailer.strike.#{@ban.penalty}.progress") %>
+<% if @ban.final_warning? -%>
+
+<%= t("question_mailer.strike.second.next_title") %>
+<%= t("question_mailer.strike.second.next_text") %>
+<% end -%>
+<% if @ban.permanent? -%>
+
+<%= render "strike_ladder", rungs: @ban.ladder %>
+<% end -%>
+
+<%= t("question_mailer.strike.rules") %>
 
 <%= t("question_mailer.strike.cta") %>: mailto:<%= t("mailer.support_email") %>
+
+<%= t("question_mailer.strike.#{@ban.penalty}.outro") %>
 
 <%= t("mailer.signature") %>

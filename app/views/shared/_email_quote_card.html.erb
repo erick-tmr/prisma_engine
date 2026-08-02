@@ -1,0 +1,17 @@
+<tr>
+  <td class="px" style="padding:<%= local_assigns.fetch(:top, 20) %>px 40px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:<%= local_assigns.fetch(:background, "#f8f9fb") %>;border:1px solid <%= local_assigns.fetch(:border, "#e5e7eb") %>;border-radius:12px;">
+      <tr>
+        <td style="padding:16px 18px;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:<%= eyebrow_color %>;"><%= eyebrow %></div>
+          <div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>
+          <div style="font-size:15px;line-height:1.6;color:#1a1d21;<% if local_assigns[:accent] %>border-left:3px solid <%= local_assigns[:accent] %>;padding-left:14px;<% end %>"><%= quote %></div>
+          <% if local_assigns[:meta_lines] %>
+            <div style="height:12px;line-height:12px;font-size:0;">&nbsp;</div>
+            <div style="font-size:12px;line-height:1.6;color:#6b7280;"><%= safe_join(local_assigns[:meta_lines], tag.br) %></div>
+          <% end %>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>

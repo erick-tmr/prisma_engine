@@ -134,6 +134,110 @@ class ProductQuestionsTest < ActionDispatch::IntegrationTest
     assert_select "[data-question-more]", false
   end
 
+  test "a customer in good standing never gets the blocked modal" do
+    sign_in users(:confirmed)
+
+    get yellow_path
+
+    assert_response :success
+    assert_select "[data-question-blocked]", false
+  end
+
+  test "a visitor never gets the blocked modal" do
+    get yellow_path
+
+    assert_response :success
+    assert_select "[data-question-blocked]", false
+  end
+
+  test "a customer whose suspension has lifted no longer gets the blocked modal" do
+    strike_customer(users(:confirmed)).update!(created_at: 8.days.ago)
+    sign_in users(:confirmed)
+
+    get yellow_path
+
+    assert_response :success
+    assert_select "[data-question-blocked]", false
+  end
+
+  test "the blocked modal quotes the removed question and offers the support handoff" do
+    strike_customer(users(:confirmed))
+    sign_in users(:confirmed)
+
+    get yellow_path
+
+    assert_response :success
+    assert_select "[data-question-blocked] .question-blocked__quote-meta b", text: "Pokemon Yellow Version"
+    assert_select "[data-question-blocked] .question-blocked__quote-text",
+                  text: "Pergunta removida número 0 da loja."
+    assert_select "[data-question-blocked] .question-blocked__removed", text: /Removida/
+    assert_select "[data-question-blocked] a.question-blocked__support[href=?]", "https://wa.me/5535920001100"
+    assert_select "[data-question-blocked] .question-blocked__fine",
+                  text: /continua salva no campo/
+  end
+
+  test "a first strike blocks with the seven day copy and the date questions reopen" do
+    travel_to Time.zone.local(2026, 8, 2, 14, 30) do
+      strike_customer(users(:confirmed))
+      sign_in users(:confirmed)
+
+      get yellow_path
+
+      assert_response :success
+      assert_select ".question-blocked.question-blocked--permanent", false
+      assert_select ".question-blocked__bubble", text: /Pare aí mesmo\./
+      assert_select ".question-blocked__title", text: "Sua pergunta não foi enviada"
+      assert_select ".question-blocked__lead", text: /pausadas por 7 dias/
+      assert_select ".question-blocked__rule-label", text: "Volta a perguntar em"
+      assert_select ".question-blocked__rule-value", text: /9 de agosto, 14h30/
+      assert_select ".question-blocked__rule-value i.bi-clock-history"
+    end
+  end
+
+  test "a second strike blocks for a month and warns the next one is permanent" do
+    travel_to Time.zone.local(2026, 8, 2, 14, 30) do
+      2.times { |index| strike_customer(users(:confirmed), index: index) }
+      sign_in users(:confirmed)
+
+      get yellow_path
+
+      assert_response :success
+      assert_select ".question-blocked.question-blocked--permanent", false
+      assert_select ".question-blocked__title", text: "Sua pergunta não foi enviada"
+      assert_select ".question-blocked__lead", text: /a pausa agora é de 1 mês/
+      assert_select ".question-blocked__lead", text: /o bloqueio passa a ser permanente/
+      assert_select ".question-blocked__rule-value", text: /2 de setembro, 14h30/
+    end
+  end
+
+  test "a third strike blocks for good and drops the countdown" do
+    3.times { |index| strike_customer(users(:confirmed), index: index) }
+    sign_in users(:confirmed)
+
+    get yellow_path
+
+    assert_response :success
+    assert_select ".question-blocked.question-blocked--permanent"
+    assert_select ".question-blocked__bubble", text: /Acesso negado\./
+    assert_select ".question-blocked__title", text: "Perguntas bloqueadas nesta conta"
+    assert_select ".question-blocked__lead", text: /o bloqueio de perguntas agora é permanente/
+    assert_select ".question-blocked__rule-label", text: "Duração do bloqueio"
+    assert_select ".question-blocked__rule-value", text: /Permanente/
+    assert_select ".question-blocked__rule-value i.bi-slash-circle"
+    assert_select ".question-blocked__rule-value i.bi-clock-history", false
+  end
+
+  test "the blocked modal ships the stylesheet and the script that opens it" do
+    strike_customer(users(:confirmed))
+    sign_in users(:confirmed)
+
+    get yellow_path
+
+    assert_response :success
+    assert_select "link[rel=stylesheet][href*=?]", "components/question-blocked"
+    assert_select "script[type=module][src*=?]", "storefront/question_blocked"
+  end
+
   test "a signed-in customer can ask a question" do
     sign_in users(:confirmed)
 

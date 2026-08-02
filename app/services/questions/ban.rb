@@ -16,10 +16,14 @@ module Questions
       strikes >= PERMANENT_AFTER
     end
 
+    def last_strike
+      @last_strike ||= @user.question_strikes.chronological.includes(question: :product).last
+    end
+
     def expires_at
       return if permanent? || strikes.zero?
 
-      @user.question_strikes.chronological.last.created_at + DURATIONS[strikes - 1]
+      last_strike.created_at + DURATIONS[strikes - 1]
     end
 
     def active?
@@ -34,6 +38,20 @@ module Questions
 
     def next_penalty
       penalty_for(strikes + 1)
+    end
+
+    def final_warning?
+      strikes == PENALTIES.size
+    end
+
+    def ladder
+      @ladder ||= begin
+        reached = @user.question_strikes.chronological.pluck(:created_at)
+
+        (1..PERMANENT_AFTER).map do |ordinal|
+          { ordinal: ordinal, penalty: penalty_for(ordinal), reached_at: reached[ordinal - 1] }
+        end
+      end
     end
 
     private
