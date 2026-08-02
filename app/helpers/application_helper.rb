@@ -13,9 +13,17 @@ module ApplicationHelper
     PG_ALERT_VARIANTS.fetch(key.to_s, PG_ALERT_FALLBACK)
   end
 
-  def canonical_url
+  def canonical_origin
     host = Rails.application.config.x.canonical_host.presence || request.host
-    "#{request.scheme}://#{host}#{request.path}"
+    "#{request.scheme}://#{host}"
+  end
+
+  def canonical_url
+    "#{canonical_origin}#{request.path}"
+  end
+
+  def absolute_url(source)
+    source.to_s.start_with?("http") ? source : "#{canonical_origin}#{source}"
   end
 
   def relative_time_ago(time)

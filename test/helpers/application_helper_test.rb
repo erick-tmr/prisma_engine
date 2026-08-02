@@ -37,14 +37,4 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "há menos de um minuto", relative_time_ago(10.seconds.ago)
     assert_equal "há 3 meses", relative_time_ago(92.days.ago)
   end
-
-  private
-
-  def with_canonical_host(host)
-    previous = Rails.application.config.x.canonical_host
-    Rails.application.config.x.canonical_host = host
-    yield
-  ensure
-    Rails.application.config.x.canonical_host = previous
-  end
 end

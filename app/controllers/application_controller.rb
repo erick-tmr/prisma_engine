@@ -4,9 +4,11 @@
 # the controller statically and does not inspect framework config.
 # nosemgrep: ruby.lang.security.missing-csrf-protection.missing-csrf-protection
 class ApplicationController < ActionController::Base
+  CRAWLER_USER_AGENT = /bot|crawler|spider|facebookexternalhit/i
+
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 
-  allow_browser versions: { safari: 14, chrome: 86, firefox: 78, ie: false }
+  allow_browser versions: { safari: 14, chrome: 86, firefox: 78, ie: false }, unless: :crawler?
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
@@ -14,6 +16,10 @@ class ApplicationController < ActionController::Base
   helper_method :current_cart, :current_cart_count
 
   private
+
+  def crawler?
+    CRAWLER_USER_AGENT.match?(request.user_agent.to_s)
+  end
 
   def current_cart
     @current_cart ||= Cart::Bag.from_cookie(cookies.signed[:cart])

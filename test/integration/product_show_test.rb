@@ -7,6 +7,35 @@ class ProductShowTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "a product page advertises itself to link crawlers as a product" do
+    product = products(:yellow)
+
+    get product_path(slug: product.slug)
+
+    assert_response :success
+    assert_select "meta[property='og:type'][content='product']"
+    assert_select "meta[property='og:title'][content=?]", product.title
+    assert_select "meta[property='og:url'][content$=?]", product_path(slug: product.slug)
+    assert_select "meta[property='product:price:currency'][content=?]", product.currency
+    assert_select "meta[property='product:price:amount'][content=?]",
+                  format("%.2f", product.price_cents / 100.0)
+    assert_select "meta[name='twitter:card'][content='summary_large_image']"
+
+    image = css_select("meta[property='og:image']").first["content"]
+    assert image.start_with?("http"), "og:image must be absolute, got #{image.inspect}"
+  end
+
+  test "a product with no price omits the price tags rather than advertising zero" do
+    product = products(:staged)
+    product.update!(published: true, price_cents: 0)
+
+    get product_path(slug: product.slug)
+
+    assert_response :success
+    assert_select "meta[property='og:type'][content='product']"
+    assert_select "meta[property='product:price:amount']", count: 0
+  end
+
   test "the current Jogo do Mês product shows the treatment and its brindes" do
     get product_path(slug: products(:yellow).slug)
 
