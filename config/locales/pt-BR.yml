@@ -191,14 +191,19 @@ pt-BR:
     intro: "Este é um aviso de que a senha da sua conta Prisma Games acabou de ser modificada. Se foi você, não precisa fazer mais nada."
     disclaimer: "Se você não reconhece essa alteração, redefina sua senha e fale com o suporte o quanto antes."
   question_mailer:
+    sent_meta_html: 'Enviada em %{sent_at} · Protocolo <span style="font-family:ui-monospace,Menlo,monospace;color:#1a1d21;">#%{protocol}</span>'
+    sent_meta: "Enviada em %{sent_at} · Protocolo #%{protocol}"
     answered:
       subject: "Respondemos sua pergunta sobre %{product}"
       badge_label: "Pergunta respondida"
-      heading: "A resposta que você esperava chegou."
-      intro: "A equipe que monta os cartuchos respondeu sua pergunta sobre %{product}. A resposta também já está pública na página do produto, para ajudar quem vier depois."
+      heading: "Respondemos sua pergunta."
+      intro_html: "Você perguntou sobre <strong>%{product}</strong> e a resposta já está publicada na página do produto, para você e para quem tiver a mesma dúvida."
+      intro: "Você perguntou sobre %{product} e a resposta já está publicada na página do produto, para você e para quem tiver a mesma dúvida."
       your_question: "Sua pergunta"
-      our_answer: "Resposta da Prisma"
-      cta: "Ver na página do produto"
+      our_answer: "Resposta da %{store}"
+      answer_meta: "Respondido pela equipe %{store} · %{date}"
+      cta: "Ver a resposta na loja"
+      closing_note: "Ficou faltando alguma coisa? É só enviar outra pergunta na página do produto, este endereço não recebe respostas."
     strike:
       subject: "Sua pergunta foi removida da loja"
       badge_label: "Pergunta removida"

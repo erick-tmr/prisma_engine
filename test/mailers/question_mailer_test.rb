@@ -10,7 +10,7 @@ class QuestionMailerTest < ActionMailer::TestCase
     QuestionStrike.create!(user: user, question: question, issued_by: users(:admin))
   end
 
-  test "answered carries the question, the reply and a link back to the product" do
+  test "answered quotes the question, the published reply and the protocol stamp" do
     question = questions(:answered_yellow)
     email = QuestionMailer.answered(question)
 
@@ -22,11 +22,25 @@ class QuestionMailerTest < ActionMailer::TestCase
       body = part.body.to_s
 
       assert_includes body, question.user.first_name
+      assert_includes body, "Respondemos sua pergunta."
       assert_includes body, question.body
       assert_includes body, question.answer_body
       assert_includes body, question.product.name
+      assert_includes body, "Sua pergunta"
+      assert_includes body, I18n.l(question.created_at, format: :date_at_time)
+      assert_includes body, "##{question.id}"
+      assert_includes body, "Resposta da Prisma Games"
+      assert_includes body, "Respondido pela equipe Prisma Games"
+      assert_includes body, I18n.l(question.answered_at.to_date)
+      assert_includes body, "Ver a resposta na loja"
       assert_includes body, "perguntas"
+      assert_includes body, "este endereço não recebe respostas"
     end
+
+    html_body = email.html_part.body.to_s
+
+    assert_includes html_body, "#007bff"
+    assert_includes html_body, "dragon-letter-full.png"
   end
 
   test "the first strike tells the customer the week-long pause and when it lifts" do

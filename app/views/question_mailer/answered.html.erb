@@ -1,6 +1,6 @@
 <%= render layout: "shared/email_card", locals: {
       badge_label: t("question_mailer.answered.badge_label"),
-      badge_color: "#1f8a5b",
+      badge_color: "#007bff",
       hero_image: "dragon-letter-full.png",
       hero_height: 180,
       heading: t("question_mailer.answered.heading"),
@@ -8,38 +8,32 @@
     } do %>
   <tr>
     <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
-      <%= t("question_mailer.answered.intro", product: @product.name) %>
+      <%= t("question_mailer.answered.intro_html", product: @product.name) %>
     </td>
   </tr>
-  <tr>
-    <td class="px" style="padding:20px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;border-radius:12px;">
-        <tr>
-          <td style="padding:16px 18px 0;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
-            <%= t("question_mailer.answered.your_question") %>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 18px 16px;font-size:15px;line-height:1.6;color:#374151;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
-            <%= @question.body %>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:0 18px;"><hr style="border:0;border-top:1px dashed #e5e7eb;margin:0;"></td>
-        </tr>
-        <tr>
-          <td style="padding:16px 18px 0;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1f8a5b;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
-            <%= t("question_mailer.answered.our_answer") %>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 18px 18px;font-size:15px;line-height:1.6;color:#1a1d21;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
-            <%= @question.answer_body %>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
+  <%= render "shared/email_quote_card",
+             eyebrow: t("question_mailer.answered.your_question"),
+             eyebrow_color: "#9aa0a8",
+             accent: "#e5e7eb",
+             quote: @question.body,
+             meta_lines: [ t("question_mailer.sent_meta_html",
+                             sent_at: email_datetime(@question.created_at),
+                             protocol: @question.id) ] %>
+  <%= render "shared/email_quote_card",
+             top: 12,
+             background: "#eef6ff",
+             border: "#cfe4ff",
+             eyebrow: t("question_mailer.answered.our_answer", store: t("products.questions.store_name")),
+             eyebrow_color: "#007bff",
+             quote: @question.answer_body,
+             meta_lines: [ t("question_mailer.answered.answer_meta",
+                             store: t("products.questions.store_name"),
+                             date: email_date(@question.answered_at)) ] %>
   <%= render "shared/email_cta", url: product_url(@product, anchor: "perguntas"),
              label: t("question_mailer.answered.cta") %>
+  <tr>
+    <td class="px" style="padding:16px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:13px;line-height:1.55;color:#6b7280;">
+      <%= t("question_mailer.answered.closing_note") %>
+    </td>
+  </tr>
 <% end %>
