@@ -520,7 +520,7 @@
 .checkout__trust { display: flex; flex-direction: column; gap: 9px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--pg-border); }
 .checkout__trust div { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--pg-muted); }
 .checkout__trust i { font-size: 15px; color: var(--pg-green); width: 16px; text-align: center; }
-.checkout__trust b { color: var(--pg-ink); font-weight: 600; }
+.checkout__trust b { font-size: 14px; color: var(--pg-ink); font-weight: 600; }
 
 .checkout__redirect {
   display: none;
