@@ -267,6 +267,31 @@ class OrderTest < ActiveSupport::TestCase
     assert_not change.automatic
   end
 
+  test "transition_to! lets only one of two concurrent callers through" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    rival = Order.find(order.id)
+
+    assert rival.transition_to!("in_production", actor: users(:admin))
+
+    assert_no_difference -> { order.status_changes.count } do
+      assert_not order.transition_to!("in_production", actor: users(:admin))
+    end
+    assert_equal 1, order.status_changes.where(to_status: "in_production").count
+  end
+
+  test "a lost transition still refreshes the caller's status so callers do not loop" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    Order.find(order.id).transition_to!("in_production", automatic: true)
+
+    order.transition_to!("in_production", automatic: true)
+
+    assert_equal "in_production", order.status
+  end
+
   test "transition_to! can flag an automatic move with no actor" do
     order = build_order
     order.save!
