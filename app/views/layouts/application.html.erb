@@ -6,10 +6,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <title><%= content_for(:title).presence || "Prisma Games" %></title>
-    <meta name="description" content="<%= content_for(:description).presence || "Prisma Games, especializada em desenvolvimento e produção de hardware para o Game Boy, da Nintendo." %>">
+    <title><%= content_for(:title).presence || OpenGraphHelper::SITE_NAME %></title>
+    <meta name="description" content="<%= og_description %>">
 
     <link rel="canonical" href="<%= canonical_url %>">
+
+    <%= render "shared/open_graph" %>
 
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>

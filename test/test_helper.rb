@@ -38,5 +38,13 @@ module ActiveSupport
     end
 
     fixtures :all
+
+    def with_canonical_host(host)
+      previous = Rails.application.config.x.canonical_host
+      Rails.application.config.x.canonical_host = host
+      yield
+    ensure
+      Rails.application.config.x.canonical_host = previous
+    end
   end
 end

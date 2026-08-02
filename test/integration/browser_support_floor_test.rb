@@ -27,4 +27,28 @@ class BrowserSupportFloorTest < ActionDispatch::IntegrationTest
       "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko" }
     assert_response :not_acceptable
   end
+
+  # Meta appends its crawler tokens as trailing products rather than inside a UA
+  # comment, so the useragent gem's bot? misses them and the Safari 9 it also
+  # reports used to earn a 406, which Meta then cached as our link preview.
+  test "Meta's composite crawler UA is served despite reporting Safari 9" do
+    get root_path, headers: { "HTTP_USER_AGENT" =>
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) " \
+      "Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0" }
+    assert_response :success
+    assert_select "meta[property='og:title']", count: 1
+  end
+
+  test "the bare facebookexternalhit UA is served" do
+    get root_path, headers: { "HTTP_USER_AGENT" =>
+      "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" }
+    assert_response :success
+  end
+
+  test "an old browser that is not a crawler is still blocked" do
+    get root_path, headers: { "HTTP_USER_AGENT" =>
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) " \
+      "Version/9.0.1 Safari/601.2.4" }
+    assert_response :not_acceptable
+  end
 end

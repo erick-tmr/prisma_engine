@@ -7,6 +7,17 @@
 <% photos = @product.product_photos.in_display_order.select { |p| p.image.attached? } %>
 <% main_src = photos.first ? Storefront::ImageSource.call(photos.first.image) : @product.image %>
 
+<% content_for :description, meta_description_from(@product.description) %>
+<% content_for :og_title, @product.title %>
+<% content_for :og_type, "product" %>
+<% content_for :og_image, main_src %>
+<% if @product.price_cents.positive? %>
+  <% content_for :og_extra do %>
+    <meta property="product:price:amount" content="<%= format("%.2f", @product.price_cents / 100.0) %>">
+    <meta property="product:price:currency" content="<%= @product.currency %>">
+  <% end %>
+<% end %>
+
 <div class="pdp">
   <%= render "shared/breadcrumb",
         crumbs: [["Início", root_path], ["Catálogo", products_path],
