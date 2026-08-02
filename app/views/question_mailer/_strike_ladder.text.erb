@@ -1,0 +1,4 @@
+<%= t("question_mailer.strike.ladder.heading") %>
+<% rungs.each do |rung| -%>
+<%= t("question_mailer.strike.ladder.line", ordinal: rung[:ordinal], date: email_date(rung[:reached_at]), penalty: t("question_mailer.strike.ladder.penalty.#{rung[:penalty]}")) %>
+<% end -%>

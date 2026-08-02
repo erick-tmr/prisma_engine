@@ -1,0 +1,16 @@
+<tr>
+  <td class="px" style="padding:20px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <% rungs.each_with_index do |rung, index| %>
+          <% if index.positive? %>
+            <td width="10" style="font-size:0;line-height:0;">&nbsp;</td>
+          <% end %>
+          <td width="31%" style="background:<%= rung[:reached_at] ? accent : "#e5e7eb" %>;border-radius:999px;height:8px;line-height:8px;font-size:0;">&nbsp;</td>
+        <% end %>
+      </tr>
+    </table>
+    <div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>
+    <div style="font-size:12px;font-weight:700;letter-spacing:.02em;color:<%= accent %>;"><%= caption %></div>
+  </td>
+</tr>
