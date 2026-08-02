@@ -61,6 +61,17 @@ module Questions
       assert_nil ban.expires_at
     end
 
+    test "the last strike is the most recent one, whatever order they were issued in" do
+      question_strikes(:spam_yellow_buyer).update!(created_at: 2.years.ago)
+      newest = strike(users(:buyer), questions(:answered_yellow), at: 1.day.ago)
+
+      assert_equal newest, Ban.new(users(:buyer)).last_strike
+    end
+
+    test "an account that never spammed has no last strike" do
+      assert_nil Ban.new(users(:orderless)).last_strike
+    end
+
     test "the ladder lists every rung and dates only the ones already reached" do
       ban = Ban.new(users(:buyer))
 

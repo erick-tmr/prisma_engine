@@ -20,5 +20,6 @@ class ProductsController < ApplicationController
                       .find_by(product_id: @product.id)
     @gotm = @gotm_product&.game_of_the_month
     @questions = @product.questions.visible.includes(:user).newest_first.to_a
+    @ban = Questions::Ban.new(current_user) if user_signed_in?
   end
 end

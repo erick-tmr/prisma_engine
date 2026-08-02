@@ -18,6 +18,7 @@ pt-BR:
       long: "%d de %B de %Y, %H:%M"
       short: "%d/%m %H:%M"
       date_at_time: "%d/%m/%Y às %H:%M"
+      day_month_at_hour: "%-d de %B, %Hh%M"
     am: am
     pm: pm
   auth:
@@ -297,6 +298,31 @@ pt-BR:
         first: "Uma pergunta sua foi marcada como spam, então sua conta só volta a perguntar em %{date}."
         second: "Perguntas suas já foram marcadas como spam duas vezes, então sua conta só volta a perguntar em %{date}."
         permanent: "Sua conta não pode mais enviar perguntas. Se acha que houve engano, fale com o suporte."
+      blocked_modal:
+        close: "Fechar"
+        bubble:
+          first: "Pare aí mesmo."
+          second: "Pare aí mesmo."
+          permanent: "Acesso negado."
+        title:
+          first: "Sua pergunta não foi enviada"
+          second: "Sua pergunta não foi enviada"
+          permanent: "Perguntas bloqueadas nesta conta"
+        lead:
+          first: "As perguntas desta conta estão pausadas por 7 dias: uma pergunta sua foi removida pela equipe."
+          second: "Esta é a segunda pergunta sua removida pela equipe, então a pausa agora é de 1 mês. Na próxima, o bloqueio passa a ser permanente."
+          permanent: "Foi a terceira pergunta sua removida pela equipe, então o bloqueio de perguntas agora é permanente. Só o suporte pode reverter, caso tenha havido engano."
+        quote_product_html: "Sua pergunta em <b>%{product}</b>"
+        removed: "Removida"
+        why: "A equipe removeu essa pergunta por não seguir as regras do espaço de perguntas, que existe para tirar dúvidas sobre o produto."
+        rule_label:
+          first: "Volta a perguntar em"
+          second: "Volta a perguntar em"
+          permanent: "Duração do bloqueio"
+        rule_permanent: "Permanente"
+        understood: "Entendi"
+        support: "Falar com o suporte"
+        fine: "Sua pergunta atual não foi enviada e continua salva no campo. Compras, pedidos e trocas seguem normais."
   account:
     greeting_html: "Olá, %{name}"
     short_label: "Minha conta"

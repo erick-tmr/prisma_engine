@@ -110,6 +110,7 @@ bi-shield-check
 bi-shield-exclamation
 bi-shield-lock
 bi-shield-lock-fill
+bi-slash-circle
 bi-sliders2
 bi-star
 bi-star-fill
@@ -133,4 +134,5 @@ bi-x
 bi-x-circle
 bi-x-circle-fill
 bi-x-lg
+bi-x-octagon-fill
 bi-youtube

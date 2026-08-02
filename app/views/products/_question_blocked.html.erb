@@ -1,0 +1,83 @@
+<% penalty = ban.penalty %>
+<% removed = ban.last_strike.question %>
+
+<% content_for :head do %>
+  <%= stylesheet_link_tag "components/question-blocked" %>
+<% end %>
+
+<div class="question-blocked<%= " question-blocked--permanent" if ban.permanent? %>"
+     data-question-blocked role="alertdialog" aria-modal="true" aria-hidden="true"
+     aria-labelledby="pergunta-bloqueada-titulo">
+  <div class="question-blocked__card" tabindex="-1" data-question-blocked-card>
+    <span class="question-blocked__strip" aria-hidden="true"></span>
+    <button type="button" class="question-blocked__close" data-question-blocked-close
+            aria-label="<%= t("products.questions.blocked_modal.close") %>">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="question-blocked__scene">
+      <img class="question-blocked__guard" src="/images/guard-sprite.png"
+           width="168" height="184" alt="" aria-hidden="true">
+      <span class="question-blocked__bubble">
+        <img class="question-blocked__stop" src="/images/guard-stop.png"
+             width="304" height="304" alt="" aria-hidden="true">
+        <%= t("products.questions.blocked_modal.bubble.#{penalty}") %>
+      </span>
+    </div>
+
+    <div class="question-blocked__body">
+      <h3 class="question-blocked__title" id="pergunta-bloqueada-titulo">
+        <%= t("products.questions.blocked_modal.title.#{penalty}") %>
+      </h3>
+      <p class="question-blocked__lead"><%= t("products.questions.blocked_modal.lead.#{penalty}") %></p>
+
+      <div class="question-blocked__quote">
+        <p class="question-blocked__quote-meta">
+          <span><%= t("products.questions.blocked_modal.quote_product_html", product: removed.product.name) %></span>
+          <span class="question-blocked__dot" aria-hidden="true"></span>
+          <span class="question-blocked__removed">
+            <i class="bi bi-x-octagon-fill" aria-hidden="true"></i>
+            <%= t("products.questions.blocked_modal.removed") %>
+          </span>
+        </p>
+        <blockquote class="question-blocked__quote-text"><%= removed.body %></blockquote>
+      </div>
+
+      <p class="question-blocked__why">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <span><%= t("products.questions.blocked_modal.why") %></span>
+      </p>
+
+      <p class="question-blocked__rule">
+        <span class="question-blocked__rule-label">
+          <%= t("products.questions.blocked_modal.rule_label.#{penalty}") %>
+        </span>
+        <span class="question-blocked__rule-value">
+          <% if ban.permanent? %>
+            <i class="bi bi-slash-circle" aria-hidden="true"></i>
+            <%= t("products.questions.blocked_modal.rule_permanent") %>
+          <% else %>
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <%= l(ban.expires_at, format: :day_month_at_hour) %>
+          <% end %>
+        </span>
+      </p>
+
+      <div class="question-blocked__actions">
+        <button type="button" class="question-blocked__ok" data-question-blocked-close>
+          <%= t("products.questions.blocked_modal.understood") %>
+        </button>
+        <a class="question-blocked__support" href="<%= social_links[:whatsapp] %>" target="_blank" rel="noopener">
+          <i class="bi bi-whatsapp" aria-hidden="true"></i>
+          <%= t("products.questions.blocked_modal.support") %>
+        </a>
+      </div>
+
+      <p class="question-blocked__fine"><%= t("products.questions.blocked_modal.fine") %></p>
+    </div>
+  </div>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_include_tag "storefront/question_blocked", type: "module" %>
+<% end %>

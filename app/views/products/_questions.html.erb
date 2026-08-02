@@ -29,6 +29,10 @@
     <%= render "products/question_gate" %>
   <% end %>
 
+  <% if ban&.active? %>
+    <%= render "products/question_blocked", ban: ban %>
+  <% end %>
+
   <% if questions.any? %>
     <ol class="product-questions__list" data-question-list
         data-page-size="<%= ProductsHelper::QUESTIONS_PAGE_SIZE %>">
