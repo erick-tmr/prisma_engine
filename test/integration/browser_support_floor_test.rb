@@ -28,9 +28,6 @@ class BrowserSupportFloorTest < ActionDispatch::IntegrationTest
     assert_response :not_acceptable
   end
 
-  # Meta appends its crawler tokens as trailing products rather than inside a UA
-  # comment, so the useragent gem's bot? misses them and the Safari 9 it also
-  # reports used to earn a 406, which Meta then cached as our link preview.
   test "Meta's composite crawler UA is served despite reporting Safari 9" do
     get root_path, headers: { "HTTP_USER_AGENT" =>
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) " \

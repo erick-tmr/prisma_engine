@@ -23,10 +23,8 @@ module OpenGraphHelper
     absolute_url(Storefront::CdnImage.transform(source, width: IMAGE_WIDTH))
   end
 
-  # Spacing the tags out first keeps "</p><p>" from welding the last word of one
-  # paragraph to the first of the next.
   def meta_description_from(html)
-    spaced = html.to_s.gsub("<", " <")
-    strip_tags(spaced).squish.truncate(DESCRIPTION_LIMIT, separator: " ").presence
+    tags_separated_from_text = html.to_s.gsub("<", " <")
+    strip_tags(tags_separated_from_text).squish.truncate(DESCRIPTION_LIMIT, separator: " ").presence
   end
 end

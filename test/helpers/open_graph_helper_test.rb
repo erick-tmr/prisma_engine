@@ -70,9 +70,6 @@ class OpenGraphHelperTest < ActionView::TestCase
     assert_operator meta_description_from(long).length, :<=, OpenGraphHelper::DESCRIPTION_LIMIT
   end
 
-  # In production Active Storage hands out CDN URLs, because R2Service#public_url and
-  # CdnImage.host both read config.x.r2_public_host. A share image has to go out resized
-  # through the CDN rather than as a full-size original off the bucket.
   test "a product photo is served resized through the CDN, not as the raw original" do
     request.host = "prismagames.com.br"
     content_for(:og_image, "https://cdn.prismagames.com.br/t9326z3vxne8aiob672i2avpvzfa")

@@ -4,10 +4,6 @@
 # the controller statically and does not inspect framework config.
 # nosemgrep: ruby.lang.security.missing-csrf-protection.missing-csrf-protection
 class ApplicationController < ActionController::Base
-  # Rails only exempts crawlers that name themselves inside a UA comment, which is
-  # where the useragent gem looks. Meta appends "facebookexternalhit/1.1 Facebot
-  # Twitterbot/1.0" as trailing products instead, so the Safari 9 it also reports
-  # got the 406 page cached as our link preview.
   CRAWLER_USER_AGENT = /bot|crawler|spider|facebookexternalhit/i
 
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
