@@ -4,7 +4,7 @@ class SyncShipmentJob < ApplicationJob
            ActiveRecord::LockWaitTimeout,
            wait: :polynomially_longer, attempts: 5
 
-  limits_concurrency to: 5, key: "correios_rastro"
+  limits_concurrency to: 1, key: ->(shipment_id) { shipment_id }
 
   def perform(shipment_id)
     shipment = Shipment.find_by(id: shipment_id)

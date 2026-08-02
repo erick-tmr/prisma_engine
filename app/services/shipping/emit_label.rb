@@ -4,8 +4,7 @@ module Shipping
       shipment = order.shipment
       return unless shipment
 
-      label = shipment.shipping_label || shipment.create_shipping_label!
-      case label.state
+      case label_for(shipment).state
       when "pending"           then Shipping::CreatePrePostagemJob.perform_later(order.id)
       when "prepost_created"   then Shipping::ConfirmPrePostagemJob.set(wait: Shipping::PREPOSTAGEM_INITIAL_DELAY).perform_later(order.id)
       when "prepost_confirmed" then Shipping::RequestLabelJob.perform_later(order.id)
@@ -18,5 +17,12 @@ module Shipping
       label.unclaim_requesting! if label&.requesting?
       resume(order)
     end
+
+    def self.label_for(shipment)
+      shipment.shipping_label || shipment.create_shipping_label!
+    rescue ActiveRecord::RecordNotUnique
+      shipment.reload.shipping_label
+    end
+    private_class_method :label_for
   end
 end

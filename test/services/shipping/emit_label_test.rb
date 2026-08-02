@@ -79,5 +79,18 @@ module Shipping
 
       assert_no_enqueued_jobs { Shipping::EmitLabel.resume(order) }
     end
+
+    test "adopts a label another caller created between our read and our write" do
+      order = orders(:awaiting)
+      shipment = order.shipment
+      assert_nil shipment.shipping_label
+
+      ShippingLabel.create!(shipment_id: shipment.id, state: :prepost_confirmed)
+
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ order.id ]) do
+        Shipping::EmitLabel.resume(order)
+      end
+      assert_equal 1, ShippingLabel.where(shipment_id: shipment.id).count
+    end
   end
 end

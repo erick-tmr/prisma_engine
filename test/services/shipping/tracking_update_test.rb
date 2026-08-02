@@ -61,6 +61,67 @@ module Shipping
       assert_nil shipment.reload.posted_at
     end
 
+    test "replaying the same feed neither raises nor duplicates a position" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, posted_event ])
+      assert_nothing_raised { Shipping::TrackingUpdate.apply(shipment, [ label_event, posted_event ]) }
+
+      positions = shipment.reload.tracking_events.pluck(:position)
+      assert_equal [ 0, 1 ], positions.sort
+      assert_equal positions.uniq, positions
+    end
+
+    test "a row already at that position is refreshed rather than inserted again" do
+      shipment = shipments(:labeled)
+      Shipping::TrackingUpdate.apply(shipment, [ posted_event ])
+      original = shipment.reload.tracking_events.find_by(position: 0)
+
+      Shipping::TrackingUpdate.apply(shipment, [ delivered_event ])
+
+      row = shipment.reload.tracking_events.find_by(position: 0)
+      assert_equal original.id, row.id
+      assert_equal "BDE", row.event_code
+      assert_equal "Objeto entregue ao destinatário", row.description
+    end
+
+    test "refreshing a row keeps the moment it was first seen and moves updated_at" do
+      shipment = shipments(:labeled)
+      Shipping::TrackingUpdate.apply(shipment, [ posted_event ])
+      original = shipment.reload.tracking_events.find_by(position: 0)
+      original.update_columns(created_at: 2.days.ago, updated_at: 2.days.ago)
+      first_seen = original.reload.created_at
+
+      Shipping::TrackingUpdate.apply(shipment, [ delivered_event ])
+
+      row = shipment.reload.tracking_events.find_by(position: 0)
+      assert_equal first_seen.to_i, row.created_at.to_i
+      assert_operator row.updated_at, :>, 1.minute.ago
+    end
+
+    test "a row written by a concurrent sync is adopted instead of colliding" do
+      shipment = shipments(:labeled)
+      shipment.tracking_events.create!(position: 0, event_code: "XX", event_type: "99")
+
+      assert_nothing_raised { Shipping::TrackingUpdate.apply(shipment, [ posted_event ]) }
+
+      assert_equal "PO", shipment.reload.tracking_events.find_by(position: 0).event_code
+    end
+
+    test "an unmapped code is logged only the first time that position is seen" do
+      shipment = shipments(:labeled)
+      mystery = event("ZZ", "99", "Evento misterioso", Time.utc(2026, 5, 22, 15, 0, 0))
+      logged = 0
+      logger = ->(_message) { logged += 1 }
+
+      Rails.logger.stub(:warn, logger) do
+        Shipping::TrackingUpdate.apply(shipment, [ mystery ])
+        Shipping::TrackingUpdate.apply(shipment, [ mystery ])
+      end
+
+      assert_equal 1, logged
+    end
+
     private
 
     def posted_event
