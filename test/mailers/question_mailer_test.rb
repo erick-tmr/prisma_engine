@@ -43,6 +43,17 @@ class QuestionMailerTest < ActionMailer::TestCase
     assert_includes html_body, "dragon-letter-full.png"
   end
 
+  test "every question email says in the footer that the address takes no replies" do
+    emails = [ QuestionMailer.answered(questions(:answered_yellow)),
+               QuestionMailer.strike(strike_for(users(:orderless), questions(:archived_yellow))) ]
+
+    emails.each do |email|
+      [ email.html_part, email.text_part ].each do |part|
+        assert_includes part.body.to_s, "não responda a esta mensagem"
+      end
+    end
+  end
+
   test "the first strike quotes the removed question and the week-long pause" do
     question = questions(:archived_yellow)
     strike = strike_for(users(:orderless), question)

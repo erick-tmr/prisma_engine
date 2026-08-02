@@ -97,6 +97,7 @@ pt-BR:
     help_footer_html: 'Precisa de ajuda? Escreva para <a href="mailto:%{email}">%{email}</a>.'
     help_footer: "Precisa de ajuda? Escreva para %{email}."
     tagline: "Clássicos que você ama, entregues voando."
+    automatic_notice: "Este é um e-mail automático, não responda a esta mensagem."
     greeting_html: "Olá, <strong>%{name}</strong>!"
     greeting: "Olá, %{name}!"
     signature: "Equipe Prisma Games"
