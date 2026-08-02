@@ -1,5 +1,9 @@
+require_relative "../logging/tagged_broadcast_logger"
+
 module StructuredLogging
   class ActiveJobLogSubscriber < ActiveSupport::LogSubscriber
+    ROTATION_KEEP = 5
+    ROTATION_SIZE = 500.megabytes
     OUTCOMES = {
       "enqueue" => { ok: "enqueued", error: "enqueue_failed" },
       "enqueue_at" => { ok: "scheduled", error: "enqueue_failed" },
@@ -11,8 +15,11 @@ module StructuredLogging
 
     attr_reader :logger
 
-    def self.install
+    class_attribute :log_path, instance_accessor: false
+
+    def self.install(log_path: nil)
       require "active_job/log_subscriber"
+      self.log_path = log_path
       ActiveJob::LogSubscriber.detach_from :active_job
       attach_to :active_job
     end
@@ -23,11 +30,21 @@ module StructuredLogging
 
     def initialize
       super
-      @logger = ActiveSupport::Logger.new($stdout)
+      @logger = build_logger
       @param_filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
     end
 
     private
+
+    def build_logger
+      path = self.class.log_path
+      return ActiveSupport::Logger.new($stdout) if path.blank?
+
+      Logging::TaggedBroadcastLogger.new(
+        ActiveSupport::Logger.new($stdout),
+        ActiveSupport::Logger.new(path, ROTATION_KEEP, ROTATION_SIZE)
+      )
+    end
 
     # :reek:FeatureEnvy reads fields off the Active Job event and its job.
     def emit(event)

@@ -7,9 +7,11 @@ set -Eeuo pipefail
 #
 # Rails writes lograge JSON to log/production.log on the persistent named volume
 # (config/deploy.yml), so the history survives deploys. We resolve that volume's
-# mountpoint on the host and copy production.log plus its rotation siblings
-# (production.log.0, .1, ...). Each line is a raw lograge JSON object (or a plain
-# Rails log line): no Docker json-file envelope, unlike the previous approach.
+# mountpoint on the host and copy every *.log* there: production.log plus its
+# rotation siblings (production.log.0, .1, ...) and production.jobs.log, which
+# carries the Active Job lines on its own larger rotation. Each line is a raw
+# JSON object (or a plain Rails log line): no Docker json-file envelope, unlike
+# the previous approach.
 #
 # Config comes from .env (PRODUCTION_LOG_HOST, optionally PRODUCTION_LOG_USER /
 # PRODUCTION_LOG_SSH_PORT / PRODUCTION_LOG_DIR / PRODUCTION_LOG_VOLUME). SSH auth
