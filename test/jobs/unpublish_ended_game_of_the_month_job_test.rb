@@ -32,6 +32,28 @@ class UnpublishEndedGameOfTheMonthJobTest < ActiveJob::TestCase
     assert_not products(:metroid).reload.published
   end
 
+  test "keeps a carry-over even when the incoming edition has not gone live yet" do
+    previous_month = 1.month.ago
+    ended = GameOfTheMonth.create!(year: previous_month.year, month: previous_month.month, note: "Especial Metroid")
+    ended.products << products(:yellow) << products(:metroid)
+    game_of_the_months(:current_month).update_columns(published_at: nil)
+
+    UnpublishEndedGameOfTheMonthJob.perform_now
+
+    assert products(:yellow).reload.published
+    assert_not products(:metroid).reload.published
+  end
+
+  test "books the Meta sync for the products it pulled from the storefront" do
+    previous_month = 1.month.ago
+    ended = GameOfTheMonth.create!(year: previous_month.year, month: previous_month.month, note: "Especial Metroid")
+    ended.products << products(:metroid)
+
+    assert_enqueued_with(job: SyncGameOfTheMonthCatalogJob, args: [ [ products(:metroid).id ] ]) do
+      UnpublishEndedGameOfTheMonthJob.perform_now
+    end
+  end
+
   test "keeps a product that carries over into the incoming edition" do
     previous_month = 1.month.ago
     ended = GameOfTheMonth.create!(year: previous_month.year, month: previous_month.month, note: "Especial Metroid")

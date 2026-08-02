@@ -31,7 +31,8 @@ class PublishGameOfTheMonthJobTest < ActiveJob::TestCase
 
   test "a booking left over from an earlier time no-ops when the edition was pushed back" do
     edition = staged_edition
-    edition.update!(publish_at: 1.hour.from_now)
+    later = 1.month.from_now
+    edition.update!(year: later.year, month: later.month, publish_at: later.beginning_of_month)
 
     PublishGameOfTheMonthJob.perform_now(edition.id)
 
@@ -42,8 +43,9 @@ class PublishGameOfTheMonthJobTest < ActiveJob::TestCase
   private
 
   def staged_edition
-    GameOfTheMonth.create!(year: 2031, month: 8, publish_at: 1.minute.ago).tap do |edition|
-      edition.products << products(:hidden)
-    end
+    GameOfTheMonth.for_current_month.destroy_all
+    GameOfTheMonth.create!(
+      year: Time.current.year, month: Time.current.month, publish_at: Time.current.beginning_of_month
+    ).tap { |edition| edition.products << products(:hidden) }
   end
 end

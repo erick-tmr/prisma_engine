@@ -34,6 +34,8 @@
         </div>
       </div>
 
+      <%= render "shared/form_errors", record: @product %>
+
       <%= form_with url: form_url, method: form_method, scope: :product,
             html: { class: "ed-grid", id: "ed-form", autocomplete: "off", novalidate: true },
             data: { catalog_editor: true, graph: @presenter.graph_json, current_edition: @presenter.current_edition },

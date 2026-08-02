@@ -13,6 +13,7 @@ class GameOfTheMonth < ApplicationRecord
            source: :product
 
   before_validation :apply_default_publish_at
+  validate :publish_at_within_edition_month
   after_commit :schedule_publish, on: [ :create, :update ]
   after_commit :cancel_scheduled_publish, on: :destroy
 
@@ -26,7 +27,9 @@ class GameOfTheMonth < ApplicationRecord
   validates :publish_at, presence: true
 
   scope :for_month, ->(year, month) { where(year: year, month: month) }
-  scope :current,   -> { for_month(Time.current.year, Time.current.month) }
+  scope :for_current_month, -> { for_month(Time.current.year, Time.current.month) }
+  scope :live,      -> { where.not(published_at: nil) }
+  scope :current,   -> { for_current_month.live }
 
   def self.current_product_ids
     current.first&.published_products&.ids || []
@@ -39,11 +42,23 @@ class GameOfTheMonth < ApplicationRecord
 
   private
 
-  def apply_default_publish_at
-    return if publish_at.present?
+  def edition_month
     return unless year.to_i.positive? && (1..12).cover?(month.to_i)
 
-    self.publish_at = Time.zone.local(year, month, 1)
+    Time.zone.local(year, month, 1).all_month
+  end
+
+  def apply_default_publish_at
+    return if publish_at.present?
+
+    self.publish_at = edition_month&.begin
+  end
+
+  def publish_at_within_edition_month
+    span = edition_month
+    return if publish_at.blank? || span.nil? || span.cover?(publish_at)
+
+    errors.add(:publish_at, :outside_edition_month)
   end
 
   def schedule_publish

@@ -181,6 +181,30 @@ module Catalog
       assert_equal chosen, edition.reload.publish_at
     end
 
+    test "a publish_at outside the edition month is refused and explained on the form" do
+      product = products(:metroid)
+
+      result = save(product, graph(gotm: {
+        enabled: true, year: 2031, month: 9, publish_at: "2031-08-25T10:30", brindes: []
+      }))
+
+      assert_not result.success?
+      assert_includes product.errors.full_messages,
+                      "Data de publicação do Jogo do Mês precisa cair dentro do mês da edição escolhida"
+    end
+
+    test "a publish_at outside the edition month leaves the edition untouched" do
+      GameOfTheMonth.create!(year: 2031, month: 9, publish_at: Time.zone.local(2031, 9, 1))
+
+      save(products(:metroid), graph(gotm: {
+        enabled: true, year: 2031, month: 9, publish_at: "2031-08-25T10:30", brindes: []
+      }))
+
+      edition = GameOfTheMonth.for_month(2031, 9).first
+      assert_equal Time.zone.local(2031, 9, 1), edition.publish_at
+      assert_empty edition.products
+    end
+
     test "saving a second product moves the whole edition to the new publish_at" do
       save(products(:metroid), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T10:30", brindes: [] }))
       save(products(:yellow), graph(gotm: { enabled: true, year: 2031, month: 8, publish_at: "2031-08-01T18:00", brindes: [] }))

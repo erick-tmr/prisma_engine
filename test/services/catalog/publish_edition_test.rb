@@ -2,6 +2,8 @@ require "test_helper"
 
 module Catalog
   class PublishEditionTest < ActiveSupport::TestCase
+    include ActiveJob::TestHelper
+
     test "publishes every product of the edition and stamps it" do
       edition = staged_edition
 
@@ -35,12 +37,21 @@ module Catalog
       assert_not products(:staged).reload.published
     end
 
+    test "books the Meta sync only once the publish has committed" do
+      edition = staged_edition
+
+      assert_enqueued_with(job: SyncGameOfTheMonthCatalogJob, args: [ [ products(:hidden).id ] ]) do
+        Catalog::PublishEdition.call(edition)
+      end
+    end
+
     private
 
     def staged_edition
-      GameOfTheMonth.create!(year: 2031, month: 8, publish_at: 1.minute.ago).tap do |edition|
-        edition.products << products(:hidden)
-      end
+      GameOfTheMonth.for_current_month.destroy_all
+      GameOfTheMonth.create!(
+        year: Time.current.year, month: Time.current.month, publish_at: Time.current.beginning_of_month
+      ).tap { |edition| edition.products << products(:hidden) }
     end
   end
 end
