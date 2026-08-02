@@ -40,8 +40,17 @@ ok "importmap audit"
 
 # Advisory in CI (it only annotates the ci-quality comment), but a gate here:
 # the contract is zero warnings on the files a branch touches.
+#
+# "Touched" spans commits, the index, the working tree and untracked files. The
+# committed range alone silently covers nothing when this runs before the first
+# commit, which is the normal moment to run it and exactly when new files are
+# still untracked: the step then reports green without reading a single file.
 step "reek (changed files)"
-CHANGED_RB="$(git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'app/**/*.rb' 'lib/**/*.rb' | tr '\n' ' ')"
+CHANGED_RB="$( {
+  git diff --name-only --diff-filter=ACMR origin/main...HEAD -- 'app/**/*.rb' 'lib/**/*.rb'
+  git diff --name-only --diff-filter=ACMR HEAD -- 'app/**/*.rb' 'lib/**/*.rb'
+  git ls-files --others --exclude-standard -- 'app/**/*.rb' 'lib/**/*.rb'
+} | sort -u | while read -r f; do [ -f "$f" ] && printf '%s ' "$f"; done )"
 if [ -n "$CHANGED_RB" ]; then
   if ! bundle exec reek --force-exclusion $CHANGED_RB; then
     printf '\n\033[1;31m✗ reek: fix the smell, or silence the detector in .reek.yml with a comment saying why\033[0m\n'
