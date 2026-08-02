@@ -18,4 +18,12 @@ class EmailHelperTest < ActionView::TestCase
   ensure
     Rails.application.config.x.r2_public_host = original
   end
+
+  test "stamps a moment as a Brazilian date and time" do
+    assert_equal "26/07/2026 às 09:14", email_datetime(Time.zone.local(2026, 7, 26, 9, 14))
+  end
+
+  test "stamps a moment as a Brazilian date, dropping the time" do
+    assert_equal "28/07/2026", email_date(Time.zone.local(2026, 7, 28, 23, 50))
+  end
 end

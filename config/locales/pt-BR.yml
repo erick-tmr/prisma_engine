@@ -6,6 +6,7 @@ pt-BR:
       short: "%d/%m"
       list: "%d %b %Y"
       day_month: "%-d de %B"
+      day_month_year: "%-d de %B de %Y"
     day_names: [domingo, segunda-feira, terça-feira, quarta-feira, quinta-feira, sexta-feira, sábado]
     abbr_day_names: [dom, seg, ter, qua, qui, sex, sáb]
     month_names: [~, janeiro, fevereiro, março, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro]
@@ -16,6 +17,7 @@ pt-BR:
       default: "%d/%m/%Y %H:%M"
       long: "%d de %B de %Y, %H:%M"
       short: "%d/%m %H:%M"
+      date_at_time: "%d/%m/%Y às %H:%M"
     am: am
     pm: pm
   auth:
