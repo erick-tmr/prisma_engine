@@ -441,6 +441,22 @@
   font-weight: 600;
 }
 
+.descr__body a {
+  color: var(--pg-green);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+  transition: color 0.15s ease;
+}
+
+.descr__body a:hover,
+.descr__body a:focus {
+  color: #0b7a43;
+  text-decoration-thickness: 2px;
+}
+
 .freebies {
   margin-top: 48px;
   border: 1px solid var(--pg-border);
