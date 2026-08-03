@@ -5,7 +5,7 @@
 
     <div class="dw-head">
       <div>
-        <h2><%= @question.answered? ? t("admin.questions.drawer.title_answered", id: @question.id) : t("admin.questions.drawer.title") %></h2>
+        <h2><%= drawer_title(@question) %></h2>
         <div class="sub">
           <%= t("admin.questions.drawer.received", time: relative_time_ago(@question.created_at)) %>
           <span class="pill pill--inline st-<%= @question.status %>"><%= t("admin.questions.statuses.#{@question.status}") %></span>
@@ -52,6 +52,12 @@
           </div>
         </div>
 
+        <% if @question.spam? %>
+          <div class="dw-locked">
+            <i class="bi bi-shield-exclamation"></i>
+            <div><%= t("admin.questions.drawer.spam_locked") %></div>
+          </div>
+        <% else %>
         <div>
           <div class="dw-label">
             <i class="bi bi-lightning-charge"></i> <%= t("admin.questions.canned.label") %>
@@ -81,6 +87,7 @@
             <div class="dw-hint"><i class="bi bi-eye"></i> <%= t("admin.questions.drawer.live_hint") %></div>
           <% end %>
         </div>
+        <% end %>
       </div>
 
       <div class="dw-foot">
@@ -94,11 +101,13 @@
           <button class="btn-ghost" type="submit" name="event" value="archive"><i class="bi bi-archive"></i> <%= t("admin.questions.drawer.archive") %></button>
         <% end %>
         <span class="grow"></span>
-        <button class="btn-ghost" type="submit" name="event" value="draft"><%= t("admin.questions.drawer.save_draft") %></button>
-        <button class="btn-dark" type="submit" name="event" value="answer">
-          <i class="bi bi-send"></i>
-          <%= @question.answered? ? t("admin.questions.drawer.update_answer") : t("admin.questions.drawer.send_answer") %>
-        </button>
+        <% unless @question.spam? %>
+          <button class="btn-ghost" type="submit" name="event" value="draft"><%= t("admin.questions.drawer.save_draft") %></button>
+          <button class="btn-dark" type="submit" name="event" value="answer">
+            <i class="bi bi-send"></i>
+            <%= @question.answered? ? t("admin.questions.drawer.update_answer") : t("admin.questions.drawer.send_answer") %>
+          </button>
+        <% end %>
       </div>
     <% end %>
   <% end %>
