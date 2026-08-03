@@ -22,6 +22,13 @@ module Admin
       "#{l(from, format: :list)} – #{l(to, format: :list)}"
     end
 
+    def drawer_title(question)
+      return t("admin.questions.drawer.title_spam") if question.spam?
+      return t("admin.questions.drawer.title_answered", id: question.id) if question.answered?
+
+      t("admin.questions.drawer.title")
+    end
+
     def status_trigger_label(statuses)
       case statuses.size
       when 0 then t("admin.dashboard.orders.filters.status_all")
@@ -41,7 +48,7 @@ module Admin
 
     def page_range(page, one, many)
       noun = page.total == 1 ? one : many
-      return safe_join([ tag.b(page.total), " #{noun}" ]) if page.total <= Admin::Page::PER
+      return safe_join([ tag.b(page.total), " #{noun}" ]) if page.total <= page.per
 
       safe_join([ tag.b("#{page.from}–#{page.to}"), " de ", tag.b(page.total), " #{noun}" ])
     end

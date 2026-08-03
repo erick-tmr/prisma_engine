@@ -23,7 +23,6 @@ const markup = (rows) => `
   <div class="app" data-list="orders" data-bulk-url="/admin/pedidos/lote" data-print-url="/admin/etiquetas/impressao">
     <aside data-sidebar></aside>
     <button id="menu-toggle" type="button"></button>
-    <input id="gsearch" type="text">
     <input id="o-name" name="q" data-filter="q" type="text">
     <div class="f-trigger" id="date-trigger" data-pop data-de="" data-ate="">
       <button id="date-clear" type="button" hidden></button>

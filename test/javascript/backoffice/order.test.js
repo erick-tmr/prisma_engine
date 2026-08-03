@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { bindConfirm, bindMenu, bindFlashDismiss } from "../../../app/javascript/backoffice/order.js";
+import { bindConfirm, bindFlashDismiss } from "../../../app/javascript/backoffice/shell.js";
+import { bindMenu } from "../../../app/javascript/backoffice/order.js";
 
 // Mirrors the data hooks in app/views/admin/orders/show.html.erb.
 function mount() {

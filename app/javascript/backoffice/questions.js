@@ -1,6 +1,6 @@
 import { createTable } from "backoffice/table";
 import { bindFilters, syncFilters } from "backoffice/filters";
-import { bindGlobalSearch, initShell } from "backoffice/shell";
+import { initShell } from "backoffice/shell";
 
 export function appendCanned(current, snippet) {
   const trimmed = current.trim();
@@ -36,7 +36,6 @@ export function initQuestions(root, doc = document) {
   });
   initShell(root);
   bindFilters(root, table);
-  bindGlobalSearch(root, $("#q-q"));
 
   const selected = new Set();
   const drawer = $("#drawer");

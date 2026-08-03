@@ -1,0 +1,33 @@
+<%# locals: (strike:, ordinal:, penalty:, client:) %>
+<% question = strike.question %>
+<article class="sk-item" data-strike="<%= strike.id %>">
+  <span class="sk-idx"><%= ordinal %></span>
+  <div class="sk-item-body">
+    <div class="sk-item-top">
+      <span class="pen">
+        <%= t("admin.clients.detail.strikes.penalty.#{penalty}.occurrence") %>
+        · <%= t("admin.clients.detail.strikes.penalty.#{penalty}.duration") %>
+      </span>
+      <span class="dotsep"></span>
+      <span><%= t("admin.clients.detail.strikes.marked_at", at: l(strike.created_at, format: :long), by: strike.issued_by.full_name) %></span>
+    </div>
+    <p class="sk-q">“<%= question.body %>”</p>
+    <div class="sk-qmeta">
+      <span class="sk-prod">
+        <span class="th"><%= question.product.category_label %></span>
+        <%= question.product.name %>
+      </span>
+      <span class="dotsep"></span>
+      <span><%= t("admin.clients.detail.strikes.asked_at", id: question.id, at: l(question.created_at, format: :long)) %></span>
+    </div>
+    <div class="sk-item-acts">
+      <%= link_to admin_questions_path(pergunta: question.id), class: "sk-btn" do %>
+        <i class="bi bi-box-arrow-up-right"></i> <%= t("admin.clients.detail.strikes.open_inbox") %>
+      <% end %>
+      <%= button_to admin_client_strike_path(client, strike), method: :delete, class: "sk-btn undo",
+                    form: { class: "sk-form", data: { confirm: t("admin.clients.detail.strikes.remove_confirm") } } do %>
+        <i class="bi bi-arrow-counterclockwise"></i> <%= t("admin.clients.detail.strikes.remove") %>
+      <% end %>
+    </div>
+  </div>
+</article>

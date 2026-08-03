@@ -13,12 +13,19 @@ export function initShell(root, doc = document) {
   dismissToasts(doc);
 }
 
-export function bindGlobalSearch(root, input) {
-  const gsearch = root.querySelector("#gsearch");
-  if (!gsearch || !input) return;
+export function bindConfirm(root) {
+  root.querySelectorAll("form[data-confirm]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+    });
+  });
+}
 
-  gsearch.addEventListener("input", (event) => {
-    input.value = event.target.value;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+export function bindFlashDismiss(root) {
+  root.querySelectorAll("[data-flash-close]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const flash = button.closest(".od-flash");
+      if (flash) flash.remove();
+    });
   });
 }

@@ -54,8 +54,6 @@ module Questions
       end
     end
 
-    private
-
     def penalty_for(count)
       count >= PERMANENT_AFTER ? "permanent" : PENALTIES[count - 1]
     end

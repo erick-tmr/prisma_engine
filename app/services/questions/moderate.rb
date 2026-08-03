@@ -1,6 +1,7 @@
 module Questions
   class Moderate
     EVENTS = %w[answer draft archive spam release].freeze
+    ANSWERING_EVENTS = %w[answer draft].freeze
 
     Result = Data.define(:question, :outcome, :reason) do
       def done?
@@ -20,6 +21,8 @@ module Questions
     end
 
     def call
+      return skipped("spam_locked") if @question.spam? && ANSWERING_EVENTS.include?(@event)
+
       case @event
       when "answer"  then publish_answer
       when "draft"   then save_draft

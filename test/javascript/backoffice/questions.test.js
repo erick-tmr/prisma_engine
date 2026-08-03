@@ -31,7 +31,6 @@ const shell = ({ drawerContent = "", spam = true } = {}) => `
   <div class="app" data-list="questions" data-bulk-url="/admin/perguntas/lote" data-bulk-error="falhou">
     <aside data-sidebar></aside>
     <button id="menu-toggle" type="button"></button>
-    <input id="gsearch" type="text">
     <input id="q-q" type="text" data-filter="q">
     <div data-part="chips"></div>
     <span data-part="count">0</span>

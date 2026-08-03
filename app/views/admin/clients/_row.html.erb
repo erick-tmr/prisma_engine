@@ -4,7 +4,7 @@
     <div class="who">
       <div class="who-av who-av--<%= avatar_tint(client.full_name) %>"><%= account_avatar_initials(client.full_name) %></div>
       <div class="who-meta">
-        <div class="nm"><%= client.full_name %></div>
+        <div class="nm"><a class="cell-link" href="<%= admin_client_path(client) %>"><%= client.full_name %></a></div>
         <div class="em"><%= client.email %></div>
       </div>
     </div>
@@ -20,11 +20,6 @@
   </td>
   <td class="cell-num"><%= l(client.created_at.to_date, format: :list) %></td>
   <td class="num cell-num"><%= client.orders_count %></td>
-  <td>
-    <% tag_style = { "active" => [ "tag-active", "bi-check-circle-fill" ],
-                     "pending" => [ "tag-pending", "bi-hourglass-split" ],
-                     "locked" => [ "tag-locked", "bi-lock-fill" ] }.fetch(client.situation) %>
-    <span class="tag <%= tag_style.first %>"><i class="bi <%= tag_style.last %>"></i> <%= t("admin.dashboard.situations.#{client.situation}") %></span>
-  </td>
+  <td><%= render "situation_tag", situation: client.situation %></td>
   <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
 </tr>

@@ -10,7 +10,6 @@ bi-arrows-fullscreen
 bi-arrows-move
 bi-bag
 bi-bag-check
-bi-bell
 bi-bookmark-plus
 bi-bookmark-star
 bi-box-arrow-left
@@ -28,6 +27,7 @@ bi-cash-coin
 bi-chat-dots
 bi-chat-left-text
 bi-chat-square-dots
+bi-check-circle
 bi-check-circle-fill
 bi-check-lg
 bi-check2

@@ -206,7 +206,6 @@ body {
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .icon-btn:hover { color: var(--pg-ink); border-color: #cfd4da; }
-.icon-btn .dot { position: absolute; top: 8px; right: 9px; width: 7px; height: 7px; border-radius: 50%; background: #e4322b; border: 2px solid #fff; }
 
 .content { padding: 26px 30px 60px; }
 

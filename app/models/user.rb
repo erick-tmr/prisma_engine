@@ -7,6 +7,8 @@ class User < ApplicationRecord
   has_many :questions, dependent: :destroy
   has_many :question_strikes, dependent: :destroy
 
+  scope :clients, -> { where(admin: false) }
+
   before_validation :normalize_cpf
 
   validates :full_name, presence: true

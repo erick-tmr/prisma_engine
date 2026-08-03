@@ -1,0 +1,145 @@
+<% content_for :title, t("admin.clients.detail.page_title", name: @presenter.full_name) %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell",
+                          "pages/backoffice-dashboard", "pages/backoffice-order", "pages/backoffice-client" %>
+<% end %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app" data-list="client">
+  <%= render "admin/sidebar", active: "clients" %>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menu-toggle" type="button" aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.clients.detail.topbar_title") %></h1>
+        <span class="crumb"><%= t("admin.clients.detail.crumb", name: @presenter.full_name) %></span>
+      </div>
+      <div class="topbar-right"></div>
+    </header>
+
+    <main class="content">
+      <%= link_to admin_clients_path, class: "od-back" do %>
+        <i class="bi bi-arrow-left"></i> <%= t("admin.clients.detail.back") %>
+      <% end %>
+
+      <% flash.each do |type, message| %>
+        <div class="od-flash od-flash--<%= type == "alert" ? "alert" : "ok" %>" role="alert">
+          <span class="od-flash__msg"><%= message %></span>
+          <button type="button" class="od-flash__close" data-flash-close aria-label="<%= t("admin.clients.detail.dismiss") %>"><i class="bi bi-x-lg"></i></button>
+        </div>
+      <% end %>
+
+      <div class="cl-head">
+        <div class="cl-av cust-av--<%= @presenter.avatar_tint_index %>"><%= account_avatar_initials(@presenter.full_name) %></div>
+        <div class="cl-head-main">
+          <div class="cl-head-name">
+            <h1><%= @presenter.full_name %></h1>
+            <%= render "situation_tag", situation: @presenter.situation %>
+            <%= render "question_badge", presenter: @presenter %>
+          </div>
+          <div class="cl-head-sub">
+            <span><%= t("admin.clients.detail.reference", number: @presenter.reference) %></span>
+            <span class="dotsep"></span>
+            <span><%= t("admin.clients.detail.cpf", value: format_cpf(@presenter.cpf)) %></span>
+            <span class="dotsep"></span>
+            <span><%= t("admin.clients.detail.since", date: l(@presenter.created_at.to_date, format: :long)) %></span>
+          </div>
+        </div>
+      </div>
+
+      <% stats = @presenter.stats %>
+      <div class="cl-stats">
+        <div class="cl-stat">
+          <div class="k"><%= t("admin.clients.detail.stats.orders") %></div>
+          <div class="v"><%= stats.orders %></div>
+          <div class="s"><%= t("admin.clients.detail.stats.cancelled", count: stats.cancelled) %></div>
+        </div>
+        <div class="cl-stat">
+          <div class="k"><%= t("admin.clients.detail.stats.spent") %></div>
+          <div class="v"><%= format_brl(stats.spent_cents) %></div>
+          <div class="s"><%= t("admin.clients.detail.stats.spent_hint") %></div>
+        </div>
+        <div class="cl-stat">
+          <div class="k"><%= t("admin.clients.detail.stats.ticket") %></div>
+          <div class="v"><%= stats.average_ticket_cents ? format_brl(stats.average_ticket_cents) : "–" %></div>
+          <div class="s"><%= t("admin.clients.detail.stats.ticket_hint", count: stats.paid) %></div>
+        </div>
+        <div class="cl-stat">
+          <div class="k"><%= t("admin.clients.detail.stats.last_order") %></div>
+          <div class="v"><%= stats.last_order ? l(stats.last_order.created_at.to_date, format: :list) : "–" %></div>
+          <div class="s"><%= stats.last_order&.number || t("admin.clients.detail.stats.no_orders") %></div>
+        </div>
+      </div>
+
+      <div class="od-grid">
+        <div class="od-col-main">
+          <%= render "strikes", presenter: @presenter, client: @client %>
+
+          <section class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.clients.detail.orders.heading") %></h2>
+                <div class="sub"><%= t("admin.clients.detail.orders.sub") %></div>
+              </div>
+              <div class="panel-top-right"><%= render "orders_count" %></div>
+            </div>
+            <%= render "orders_table" %>
+          </section>
+        </div>
+
+        <aside class="od-col-side">
+          <section class="cust-card">
+            <div class="cust-top">
+              <div class="cust-av cust-av--<%= @presenter.avatar_tint_index %>"><%= account_avatar_initials(@presenter.full_name) %></div>
+              <div class="cust-meta">
+                <div class="nm"><%= @presenter.full_name %></div>
+                <div class="sub"><%= t("admin.clients.detail.account_created", date: l(@presenter.created_at.to_date, format: :list)) %></div>
+              </div>
+            </div>
+            <div class="cust-rows">
+              <div class="cust-row"><i class="bi bi-envelope"></i> <span class="v"><%= @presenter.email %></span></div>
+              <div class="cust-row"><i class="bi bi-telephone"></i> <span class="v"><%= @presenter.phone.presence ? format_phone(@presenter.phone) : "–" %></span></div>
+              <div class="cust-row"><i class="bi bi-person-vcard"></i> <span class="v"><%= format_cpf(@presenter.cpf) %></span></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-top">
+              <div class="panel-top-main">
+                <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.clients.detail.addresses.heading") %></h2>
+              </div>
+              <div class="panel-top-right"><span class="result-count"><%= @presenter.addresses.size %></span></div>
+            </div>
+            <div class="ad-list">
+              <% @presenter.addresses.each do |address| %>
+                <div class="ad">
+                  <div class="ad-top">
+                    <span class="ad-tag<%= " main" if address.default? %>">
+                      <%= t("admin.clients.detail.addresses.#{address.default? ? "default" : "other"}") %>
+                    </span>
+                  </div>
+                  <div class="ad-body">
+                    <%= address.street %>, <%= address.number %><% if address.complement.present? %> · <%= address.complement %><% end %><br>
+                    <%= address.neighborhood %> · <%= address.city %>/<%= address.state %><br>
+                    <span class="cep"><%= t("admin.clients.detail.addresses.zip", value: number_to_cep(address.zip)) %></span>
+                  </div>
+                </div>
+              <% end %>
+              <% if @presenter.addresses.empty? %>
+                <div class="ad"><div class="ad-body"><%= t("admin.clients.detail.addresses.empty") %></div></div>
+              <% end %>
+            </div>
+            <div class="cl-mini"><%= t("admin.clients.detail.addresses.note") %></div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_import_module_tag "backoffice/client" %>
+<% end %>
