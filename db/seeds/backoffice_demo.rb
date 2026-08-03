@@ -123,6 +123,41 @@ orders.each_with_index do |(customer_index, status, days_ago, total_cents, quant
   order.save!
 end
 
+labeled_statuses = %w[label_issued shipped delivered]
+demo_external_ids = (1..orders.size).map { |index| "demo-order-#{index}" }
+tracking_prefixes = { "sedex" => "SS", "pac" => "OU", "mini_envios" => "OF" }
+transit_business_days = { "sedex" => 4, "pac" => 9, "mini_envios" => 11 }
+
+Order.where(external_id: demo_external_ids, status: labeled_statuses).includes(:shipment).find_each do |order|
+  shipment = order.shipment
+  next if shipment.nil? || shipment.tracking_code.present?
+
+  sequence = order.external_id.delete_prefix("demo-order-").to_i
+  posted_at = order.created_at + 1.day
+  business_days = transit_business_days.fetch(shipment.service, 8)
+  shipment.assign_attributes(
+    tracking_code: format("%s%09dBR", tracking_prefixes.fetch(shipment.service, "PG"), 100_000_000 + sequence),
+    delivery_business_days: business_days
+  )
+
+  case order.status
+  when "shipped"
+    shipment.assign_attributes(
+      posted_at: posted_at, tracking_state: :in_transit,
+      last_tracked_at: Time.current, last_tracking_status: "Objeto em trânsito para a cidade de destino"
+    )
+  when "delivered"
+    shipment.assign_attributes(
+      posted_at: posted_at, delivered_at: posted_at + business_days.days, tracking_state: :delivered,
+      last_tracked_at: Time.current, last_tracking_status: "Objeto entregue ao destinatário"
+    )
+  else
+    shipment.posting_deadline = order.created_at + 3.days
+  end
+
+  shipment.save!
+end
+
 # A real Correios pré-postagem label (SEDEX), reused as the printable sample for
 # every demo order that has reached label emission. The address shown in the UI
 # comes from each order's own shipment; this is just the stand-in label PDF the
@@ -130,8 +165,6 @@ end
 sample_label_path = Rails.root.join("db/seeds/correios_label_sample.pdf")
 if File.exist?(sample_label_path)
   sample_label = Base64.strict_encode64(File.binread(sample_label_path))
-  labeled_statuses = %w[label_issued shipped delivered]
-  demo_external_ids = (1..orders.size).map { |index| "demo-order-#{index}" }
 
   Order.where(external_id: demo_external_ids, status: labeled_statuses).includes(:shipment).find_each do |order|
     shipment = order.shipment

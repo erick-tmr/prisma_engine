@@ -7,6 +7,7 @@ Brazilian retro-game ecommerce. Rails + PostgreSQL, Bootstrap + jQuery storefron
 - `bin/dev`: Rails server. Run `docker compose up -d` first for Postgres.
 - `bin/setup`: fresh-machine setup. Needs `cmake` for `rugged` (undercover): `brew install cmake` / `sudo apt-get install -y cmake pkg-config`.
 - `bin/share-dev`: public Cloudflare Tunnel for client previews; reads `SHARE_AUTH_*` from `.env`.
+- `bin/rails dev:emails`: development only. Delivers one example of every mailer e-mail (every method of every preview in `test/mailers/previews/`) to the letter_opener inbox at `/cartas`, so the whole set can be reviewed side by side. Run `bin/rails db:seed` first: the previews pick real records, and the seeds guarantee an order with tracking data plus clients on 1, 2 and 3 strikes so the shipping and strike e-mails render in full.
 - `bin/pre-push-check`: local CI gauntlet; must pass before push. `SKIP_TESTS=1` for docs-only pushes.
 - `npm run test:js`: Vitest+jsdom unit tests for storefront ES modules (`test/javascript/*.test.js`). Node pinned in `.node-version`; `npm install` first. `pre-push-check` runs it too.
 - `SKIP_COVERAGE_FLOOR=1 bin/rails test:system`: Capybara + Cuprite (headless Chrome) E2E tests; needs Postgres up. `HEADLESS=0` shows the browser, `DENY_EXTERNAL=0` lifts the no-network fence. Not in `pre-push-check` (CI's `system-test` job runs it). See **System tests (E2E)**.
