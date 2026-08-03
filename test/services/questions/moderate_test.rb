@@ -92,6 +92,44 @@ module Questions
       assert_predicate question.reload, :draft?
     end
 
+    test "a spam question cannot be answered, so its strike is never stranded" do
+      question = questions(:spam_yellow)
+      result = moderate(question, "answer", answer_body: "Vem com caixa e manual.")
+
+      assert_not_predicate result, :done?
+      assert_equal "spam_locked", result.reason
+      assert_predicate question.reload, :spam?
+      assert_nil question.answer_body
+      assert_predicate Questions::Ban.new(question.user), :active?
+    end
+
+    test "a spam question cannot be drafted either" do
+      question = questions(:spam_yellow)
+      result = moderate(question, "draft", answer_body: "Rascunho.")
+
+      assert_not_predicate result, :done?
+      assert_equal "spam_locked", result.reason
+      assert_predicate question.reload, :spam?
+    end
+
+    test "an empty draft on a spam question does not slip it back to awaiting" do
+      question = questions(:spam_yellow)
+      result = moderate(question, "draft", answer_body: "")
+
+      assert_not_predicate result, :done?
+      assert_equal "spam_locked", result.reason
+      assert_predicate question.reload, :spam?
+    end
+
+    test "releasing is the only way out of spam, and it restores the normal flow" do
+      question = questions(:spam_yellow)
+
+      assert_predicate moderate(question, "release"), :done?
+      assert_predicate question.reload, :awaiting_answer?
+      assert_predicate moderate(question, "answer", answer_body: "Vem com caixa e manual."), :done?
+      assert_predicate question.reload, :answered?
+    end
+
     test "only moderated questions can be released" do
       result = moderate(questions(:awaiting_yellow), "release")
 

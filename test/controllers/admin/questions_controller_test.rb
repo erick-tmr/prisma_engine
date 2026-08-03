@@ -107,6 +107,30 @@ module Admin
       assert_select "[data-part=spam] #spam-modal", count: 0
     end
 
+    test "a spam question offers no way to answer it, only to release it" do
+      sign_in users(:admin)
+      get admin_questions_path, params: { status: "spam", pergunta: questions(:spam_yellow).id }
+
+      assert_response :success
+      assert_select "button[name=event][value=?]", "draft", count: 0
+      assert_select "button[name=event][value=?]", "answer", count: 0
+      assert_select "#dw-answer", count: 0
+      assert_select ".dw-locked"
+    end
+
+    test "answering a spam question is refused instead of stranding its strike" do
+      sign_in users(:admin)
+      question = questions(:spam_yellow)
+
+      assert_no_difference -> { QuestionStrike.count } do
+        patch admin_question_path(question), params: { event: "answer", answer_body: "Vem com caixa." }
+      end
+
+      assert_equal I18n.t("admin.questions.errors.spam_locked"), flash[:alert]
+      assert_nil flash[:notice]
+      assert_predicate question.reload, :spam?
+    end
+
     test "the spam confirmation spells out the penalty the account is about to take" do
       sign_in users(:admin)
       get admin_questions_path, params: { pergunta: questions(:awaiting_yellow).id }

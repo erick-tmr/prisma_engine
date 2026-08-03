@@ -37,6 +37,12 @@ module Admin
                    page_range(page_for(20, per: 8), "pedido", "pedidos")
     end
 
+    test "drawer_title names the state the question is actually in" do
+      assert_equal "Pergunta em spam", drawer_title(questions(:spam_yellow))
+      assert_equal "Pergunta ##{questions(:answered_yellow).id}", drawer_title(questions(:answered_yellow))
+      assert_equal "Responder pergunta", drawer_title(questions(:awaiting_yellow))
+    end
+
     test "sort_header links to the other direction and marks the active column" do
       inactive = sort_header({}, key: "total", label: "Total", sort: "date", dir: "desc")
       assert_includes inactive, "sortable"

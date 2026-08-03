@@ -1026,6 +1026,7 @@ pt-BR:
         aria: "Responder pergunta"
         title: "Responder pergunta"
         title_answered: "Pergunta #%{id}"
+        title_spam: "Pergunta em spam"
         close: "Fechar"
         received: "Recebida %{time}"
         strikes:
@@ -1038,6 +1039,7 @@ pt-BR:
         live_hint: "Esta pergunta já está visível na página do produto. Sua resposta entra logo abaixo dela."
         spam: "Spam"
         archive: "Arquivar"
+        spam_locked: "Pergunta marcada como spam. Ela não aparece na loja e não pode ser respondida. Clique em \"Não é spam\" para devolvê-la ao fluxo normal e o strike do cliente é removido junto."
         release_spam: "Não é spam"
         release_archived: "Restaurar"
         save_draft: "Salvar rascunho"
@@ -1094,6 +1096,7 @@ pt-BR:
         blank_answer: "Escreva a resposta antes de enviar."
         already_spam: "Esta pergunta já está marcada como spam."
         not_moderated: "Só perguntas em spam ou arquivadas podem ser liberadas."
+        spam_locked: "Pergunta marcada como spam não pode ser respondida. Libere a pergunta primeiro para voltar ao fluxo normal."
         unknown_event: "Ação desconhecida."
   activerecord:
     attributes:
