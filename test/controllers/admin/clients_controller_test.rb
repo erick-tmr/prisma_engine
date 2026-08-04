@@ -191,15 +191,24 @@ module Admin
       sign_in users(:admin)
       get admin_client_path(addresses(:locked_home).user)
 
-      assert_select ".ad-list .ad:first-child .ad-tag.main"
-      assert_select ".ad-body .cep", text: /CEP/
+      assert_select ".addr-list .addr:first-child .addr-tag.main"
+      assert_select ".addr-body .cep", text: /CEP/
+    end
+
+    test "the address book names who receives the delivery" do
+      sign_in users(:admin)
+      address = addresses(:locked_home)
+      get admin_client_path(address.user)
+
+      assert_select ".addr-receiver strong", text: address.receiver_name
+      assert_select ".addr-receiver .doc", text: "CPF 745.201.839-79"
     end
 
     test "a client with no address says so" do
       sign_in users(:admin)
       get admin_client_path(users(:orderless))
 
-      assert_select ".ad-list .ad-body", text: /ainda não cadastrou/
+      assert_select ".addr-list .addr-body", text: /ainda não cadastrou/
     end
   end
 end
