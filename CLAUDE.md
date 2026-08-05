@@ -47,6 +47,15 @@ Every external service is wrapped in three layers. Full rationale in `docs/archi
 
 No business rules in `Api::*`. No HTTP in the domain. A new vendor (or a vendor swap) is a new `Api` adapter; the domain shouldn't change.
 
+### Correios wire logging is a production requirement
+
+`Correios::Api::Client#trace_requests` attaches Faraday's `:logger` middleware with `headers: true, bodies: true` at `:info`, so **every Correios call logs in full**: method, URL, request headers, request body, response status, response headers, response body. This is deliberate and must stay on in production. Correios is the hardest provider we integrate: the documentation is thin and often wrong, failures arrive as undocumented `PPN-*` / `SRO-*` codes buried in a 200 body, and the gateway's real behaviour (rate-limit headers, async label generation, DCe validation) was only ever learned by reading actual traffic. When a pré-postagem sticks or a label never generates, the exact bytes we sent and received are the only evidence we have.
+
+- **Do not remove, downgrade to `:debug`, sample, or narrow it to headers-only** as a log-volume optimization. It is the majority of `production.log` by line count, and that cost is accepted.
+- **`REDACT_BEARER` is the part to preserve.** Tokens are filtered out of the dump; keep that filter working when touching this code, and keep new secrets out of the logged bodies.
+- If retention becomes the problem, raise the rotation budget in `config/environments/production.rb`, do not cut the tracing. Structured request/job lines already live in their own files (`production.log` / `production.jobs.log`), so verbose wire traces never hide the lograge signal.
+- `Meta::Api::Client` uses the same middleware for the same reason.
+
 ## System tests (E2E)
 
 - **Capybara + Cuprite** (headless Chrome over CDP, no Selenium/WebDriver), in-process, Minitest. Foundation in `test/application_system_test_case.rb`; specs in `test/system/*.rb`. Use `login_as_user` (Warden) for non-auth specs; the auth specs drive the real `/entrar`·`/cadastrar` forms.
