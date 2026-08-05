@@ -28,7 +28,8 @@ module Shipping
   PACKAGE_OVERHEAD_GRAMS = 52
 
   PREPOSTAGEM_INITIAL_DELAY = 10.seconds
-  PREPOSTAGEM_POLL_INTERVAL = 10.seconds
+  PREPOSTAGEM_POLL_BASE_DELAY = 10.seconds
+  PREPOSTAGEM_POLL_MAX_DELAY = 2.minutes
   PREPOSTAGEM_MAX_POLL_ATTEMPTS = 18
 
   PrePostagemPending = Class.new(StandardError)

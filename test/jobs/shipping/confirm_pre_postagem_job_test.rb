@@ -37,6 +37,27 @@ module Shipping
       assert_nil @label.error
     end
 
+    test "backs off exponentially between polls, capped at the ceiling" do
+      stub_status(item(7, "Pendente"))
+      expected = { 1 => 10.seconds, 2 => 20.seconds, 3 => 40.seconds, 4 => 80.seconds, 5 => 2.minutes, 12 => 2.minutes }
+
+      freeze_time do
+        expected.each do |attempt, delay|
+          assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ @order.id, attempt + 1 ], at: delay.from_now) do
+            Shipping::ConfirmPrePostagemJob.perform_now(@order.id, attempt)
+          end
+        end
+      end
+    end
+
+    test "the whole poll window outlasts a slow Correios promotion" do
+      total = (1...Shipping::PREPOSTAGEM_MAX_POLL_ATTEMPTS).sum do |attempt|
+        [ Shipping::PREPOSTAGEM_POLL_BASE_DELAY * (2**(attempt - 1)), Shipping::PREPOSTAGEM_POLL_MAX_DELAY ].min
+      end
+
+      assert_operator Shipping::PREPOSTAGEM_INITIAL_DELAY + total, :>, 20.minutes
+    end
+
     test "records an error once the poll attempts are exhausted" do
       stub_status(item(7, "Pendente"))
 

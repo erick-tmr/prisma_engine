@@ -39,10 +39,14 @@ module Shipping
 
     def reschedule_or_fail(attempt, error)
       if attempt < Shipping::PREPOSTAGEM_MAX_POLL_ATTEMPTS
-        self.class.set(wait: Shipping::PREPOSTAGEM_POLL_INTERVAL).perform_later(@order.id, attempt + 1)
+        self.class.set(wait: poll_delay(attempt)).perform_later(@order.id, attempt + 1)
       else
         @label.record_error!(error.message)
       end
+    end
+
+    def poll_delay(attempt)
+      [ Shipping::PREPOSTAGEM_POLL_BASE_DELAY * (2**(attempt - 1)), Shipping::PREPOSTAGEM_POLL_MAX_DELAY ].min
     end
   end
 end
