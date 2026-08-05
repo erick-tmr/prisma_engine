@@ -1,7 +1,7 @@
 import { createTable } from "backoffice/table";
 import { bindFilters, syncFilters } from "backoffice/filters";
 import { initShell } from "backoffice/shell";
-import { addMonths, applyPreset, datePopHtml, nextSelection, parseISO, startOfMonth, toISO } from "backoffice/date_picker";
+import { addMonths, anchorMonth, applyPreset, datePopHtml, nextSelection, parseISO, toISO } from "backoffice/date_picker";
 
 export const ACTIONS = [
   { id: "to_components", icon: "bi-box-seam", from: [ "payment_confirmed" ] },
@@ -92,7 +92,7 @@ export function initOrders(root, today = new Date()) {
   const statusTrigger = () => $("#status-trigger");
   const dateTrigger = () => $("#date-trigger");
 
-  const dp = { left: startOfMonth(today), sel: { from: null, to: null }, preset: null };
+  const dp = { left: anchorMonth({ from: null, to: null }, today), sel: { from: null, to: null }, preset: null };
   let openPopEl = null;
   let openTriggerEl = null;
 
@@ -294,7 +294,7 @@ export function initOrders(root, today = new Date()) {
       if (datePop.classList.contains("open")) { closePop(); return; }
 
       dp.sel = committedRange();
-      dp.left = addMonths(startOfMonth(dp.sel.to || today), -1);
+      dp.left = anchorMonth(dp.sel, today);
       dp.preset = null;
       renderDatePop();
       openPop(dateTrigger(), datePop);
@@ -307,7 +307,7 @@ export function initOrders(root, today = new Date()) {
     if (preset) {
       dp.sel = applyPreset(preset.dataset.p, today);
       dp.preset = preset.dataset.p;
-      dp.left = addMonths(startOfMonth(dp.sel.to), -1);
+      dp.left = anchorMonth(dp.sel, today);
       renderDatePop();
       return;
     }

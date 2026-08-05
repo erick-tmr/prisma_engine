@@ -285,7 +285,7 @@ describe("filters", () => {
     click(document.querySelector("#date-trigger"));
 
     click(document.querySelector('.dp-nav[data-nav="prev"]'));
-    expect(document.querySelector("#date-pop").innerHTML).toContain("Abril 2026");
+    expect(document.querySelector("#date-pop").innerHTML).toContain("Maio 2026");
 
     click(document.querySelector(".dp-day[data-d]"));
     click(document.querySelector("#dp-clear"));
@@ -303,16 +303,16 @@ describe("filters", () => {
     start();
     click(document.querySelector("#date-trigger"));
     click(document.querySelector('.dp-nav[data-nav="next"]'));
-    expect(document.querySelector("#date-pop").innerHTML).toContain("Junho 2026");
+    expect(document.querySelector("#date-pop").innerHTML).toContain("Agosto 2026");
   });
 
   it("applies an open-ended range from a single day", async () => {
     start();
     click(document.querySelector("#date-trigger"));
-    click(document.querySelector('.dp-day[data-d="2026-05-10"]'));
+    click(document.querySelector('.dp-day[data-d="2026-06-10"]'));
     click(document.querySelector("#dp-apply"));
 
-    await vi.waitFor(() => expect(window.location.search).toBe("?de=2026-05-10"));
+    await vi.waitFor(() => expect(window.location.search).toBe("?de=2026-06-10"));
   });
 
   it("applying an emptied draft drops the period entirely", async () => {
