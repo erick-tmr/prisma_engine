@@ -113,15 +113,20 @@
               </div>
               <div class="panel-top-right"><span class="result-count"><%= @presenter.addresses.size %></span></div>
             </div>
-            <div class="ad-list">
+            <div class="addr-list">
               <% @presenter.addresses.each do |address| %>
-                <div class="ad">
-                  <div class="ad-top">
-                    <span class="ad-tag<%= " main" if address.default? %>">
+                <div class="addr">
+                  <div class="addr-top">
+                    <span class="addr-tag<%= " main" if address.default? %>">
                       <%= t("admin.clients.detail.addresses.#{address.default? ? "default" : "other"}") %>
                     </span>
                   </div>
-                  <div class="ad-body">
+                  <div class="addr-receiver">
+                    <%= t("admin.clients.detail.addresses.for_label") %>
+                    <strong><%= address.receiver_name %></strong> ·
+                    <span class="doc"><%= t("admin.clients.detail.addresses.receiver_cpf", value: format_cpf(address.receiver_cpf)) %></span>
+                  </div>
+                  <div class="addr-body">
                     <%= address.street %>, <%= address.number %><% if address.complement.present? %> · <%= address.complement %><% end %><br>
                     <%= address.neighborhood %> · <%= address.city %>/<%= address.state %><br>
                     <span class="cep"><%= t("admin.clients.detail.addresses.zip", value: number_to_cep(address.zip)) %></span>
@@ -129,7 +134,7 @@
                 </div>
               <% end %>
               <% if @presenter.addresses.empty? %>
-                <div class="ad"><div class="ad-body"><%= t("admin.clients.detail.addresses.empty") %></div></div>
+                <div class="addr"><div class="addr-body"><%= t("admin.clients.detail.addresses.empty") %></div></div>
               <% end %>
             </div>
             <div class="cl-mini"><%= t("admin.clients.detail.addresses.note") %></div>

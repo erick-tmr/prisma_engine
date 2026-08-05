@@ -790,6 +790,8 @@ pt-BR:
           heading: "Endereços"
           default: "Entrega padrão"
           other: "Endereço"
+          for_label: "Para:"
+          receiver_cpf: "CPF %{value}"
           zip: "CEP %{value}"
           empty: "Este cliente ainda não cadastrou um endereço."
           note: "O endereço de entrega é escolhido pelo cliente no checkout e copiado para o pedido, então mudar aqui não altera pedidos já fechados."

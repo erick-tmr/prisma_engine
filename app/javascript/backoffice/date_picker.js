@@ -40,6 +40,17 @@ export function addMonths(d, n) {
   return new Date(d.getFullYear(), d.getMonth() + n, 1);
 }
 
+export function monthsBetween(from, to) {
+  return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+}
+
+export function anchorMonth(sel, today) {
+  const from = sel.from || today;
+  const to = sel.to || from;
+  if (monthsBetween(from, to) > 1) return addMonths(startOfMonth(to), -1);
+  return startOfMonth(from);
+}
+
 export function applyPreset(preset, today) {
   const midnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const end = new Date(midnight);

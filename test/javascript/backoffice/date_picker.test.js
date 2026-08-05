@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  MONTHS_LONG, PRESETS, addMonths, applyPreset, calendarHtml, datePopHtml, dpReadoutHtml,
-  fmtDate, monthCells, nextSelection, parseISO, sameDay, startOfMonth, toISO
+  MONTHS_LONG, PRESETS, addMonths, anchorMonth, applyPreset, calendarHtml, datePopHtml,
+  dpReadoutHtml, fmtDate, monthCells, monthsBetween, nextSelection, parseISO, sameDay,
+  startOfMonth, toISO
 } from "../../../app/javascript/backoffice/date_picker.js";
 
 const TODAY = new Date(2026, 5, 15, 14, 37, 12);
@@ -31,6 +32,32 @@ describe("date helpers", () => {
     expect(iso(startOfMonth(TODAY))).toBe("2026-06-01");
     expect(iso(addMonths(startOfMonth(TODAY), -1))).toBe("2026-05-01");
     expect(iso(addMonths(startOfMonth(TODAY), 1))).toBe("2026-07-01");
+  });
+});
+
+describe("anchorMonth", () => {
+  it("opens on the current month when nothing is selected", () => {
+    expect(iso(anchorMonth({ from: null, to: null }, TODAY))).toBe("2026-06-01");
+  });
+
+  it("starts at the month the range starts in", () => {
+    const week = applyPreset("7", TODAY);
+    expect(iso(anchorMonth(week, TODAY))).toBe("2026-06-01");
+    expect(iso(anchorMonth(applyPreset("prevmonth", TODAY), TODAY))).toBe("2026-05-01");
+  });
+
+  it("keeps a half-picked range on screen", () => {
+    expect(iso(anchorMonth({ from: parseISO("2026-04-20"), to: null }, TODAY))).toBe("2026-04-01");
+  });
+
+  it("shows the end of a range too long for two calendars", () => {
+    expect(iso(anchorMonth(applyPreset("ytd", TODAY), TODAY))).toBe("2026-05-01");
+  });
+
+  it("counts the months a range crosses", () => {
+    expect(monthsBetween(parseISO("2026-06-09"), parseISO("2026-06-15"))).toBe(0);
+    expect(monthsBetween(parseISO("2026-05-17"), parseISO("2026-06-15"))).toBe(1);
+    expect(monthsBetween(parseISO("2025-12-31"), parseISO("2026-06-15"))).toBe(6);
   });
 });
 
