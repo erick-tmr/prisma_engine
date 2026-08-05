@@ -47,6 +47,45 @@ Every external service is wrapped in three layers. Full rationale in `docs/archi
 
 No business rules in `Api::*`. No HTTP in the domain. A new vendor (or a vendor swap) is a new `Api` adapter; the domain shouldn't change.
 
+### Correios wire logging is a production requirement
+
+`Correios::Api::Client#trace_requests` attaches Faraday's `:logger` middleware with `headers: true, bodies: true` at `:info`, so **every Correios call logs in full**: method, URL, request headers, request body, response status, response headers, response body. This is deliberate and must stay on in production. Correios is the hardest provider we integrate: the documentation is thin and often wrong, failures arrive as undocumented `PPN-*` / `SRO-*` codes buried in a 200 body, and the gateway's real behaviour (rate-limit headers, async label generation, DCe validation) was only ever learned by reading actual traffic. When a pré-postagem sticks or a label never generates, the exact bytes we sent and received are the only evidence we have.
+
+- **Do not remove, downgrade to `:debug`, sample, or narrow it to headers-only** as a log-volume optimization. It is the majority of `production.log` by line count, and that cost is accepted.
+- **`REDACT_BEARER` is the part to preserve.** Tokens are filtered out of the dump; keep that filter working when touching this code, and keep new secrets out of the logged bodies.
+- If retention becomes the problem, raise the rotation budget in `config/environments/production.rb`, do not cut the tracing. Structured request/job lines already live in their own files (`production.log` / `production.jobs.log`), so verbose wire traces never hide the lograge signal.
+- `Meta::Api::Client` uses the same middleware for the same reason.
+
+### The label pipeline is a saga
+
+`Shipping::EmitLabel.resume(order)` reads the persisted `ShippingLabel#state` and enqueues the job for that step. It is safe to call at any time, from anywhere, any number of times: progress lives in the database, never in an in-memory handoff, so a replay after a crash, a deploy, a Correios timeout, or a repeated operator click converges on the same result. **Do not add deduplication to `resume`, and do not treat repeated enqueues as a correctness bug.** Re-deriving the next step from stored state is the mechanism that makes the chain resumable.
+
+Idempotency is enforced at the write boundaries instead:
+
+- `Order#claim_status` is a compare-and-swap (`where(id:, status: previous).update_all(...)` must affect exactly one row). Losers no-op, so N duplicate `advance_to_label_issued!` calls still produce one `status_changes` row and one customer email.
+- `ShippingLabel#claim_requesting!` is the same CAS on `prepost_confirmed → requesting`, so only one `RequestLabelJob` ever buys a recibo.
+- `mark_ready!` is a plain column update (no Active Storage attachment), and `DownloadLabel` reads `label.recibo_id` fresh off the row rather than from a captured argument. Parallel downloads therefore hit the same recibo, get the same PDF, and write the same bytes. That harmlessness is a property to preserve, not an accident: passing the recibo as a job argument would break it.
+
+**Every job that reaches Correios carries backoff and a concurrency cap**, and a new one must too:
+
+```ruby
+retry_on Correios::Api::TransientError,
+         ActiveRecord::Deadlocked,
+         ActiveRecord::LockWaitTimeout,
+         wait: :polynomially_longer, attempts: 5
+
+limits_concurrency to: 5, key: "correios_cartao"
+```
+
+`:polynomially_longer` is Rails' current name for what it used to call `:exponentially_longer` (`attempt ** 4` seconds plus jitter, so waits of roughly 3s, 20s, 95s, 290s). It lives on `Shipping::LabelStep` (inherited by `CreatePrePostagemJob` / `RequestLabelJob` / `DownloadLabelJob`), on `Shipping::ConfirmPrePostagemJob`, and on `SyncShipmentJob` (keyed per shipment instead). Two traps in that snippet, both real:
+
+- **`retry_on` governs only the exceptions it names.** A poll loop that raises and rescues its own error inside the job never reaches it and needs its own schedule. `ConfirmPrePostagemJob` is exactly that: `PrePostagemPending` is rescued internally and rescheduled by hand, so its spacing comes from `PREPOSTAGEM_POLL_BASE_DELAY * 2**(attempt - 1)`, capped at `PREPOSTAGEM_POLL_MAX_DELAY`. Correios promises no promotion deadline (one object sat at `Pendente` for 9m39s while siblings created the same second promoted instantly), so that window must stay generous.
+- **`limits_concurrency` is scoped per job class, not per key.** Solid Queue's default group is `self.class.name`, so the real key is `"<JobClass>/correios_cartao"` and the four label jobs hold four independent 5-slot budgets, not one shared 5. Within a class the key is a static string, so every order does contend for those 5 slots. Pass an explicit `group:` to actually share a budget across classes.
+
+Failures must stay loud. `Api::*` maps 429 / 5xx / timeout to `TransientError` (retried) and everything else to a non-retryable `Error`; a label-less 200 is definitive, not transient. `LabelGenerationFailedError` triggers `reset_for_relabel!`, capped at `MAX_RELABEL_ATTEMPTS`, after which `record_error!` persists the message and the job raises for an operator to pick up.
+
+Rate limiting the **operator** belongs in the UI, not in the saga: the backoffice bulk bar holds back a repeat of the same action on the same order for `BULK_THROTTLE_MS` (`app/javascript/backoffice/orders.js`).
+
 ## System tests (E2E)
 
 - **Capybara + Cuprite** (headless Chrome over CDP, no Selenium/WebDriver), in-process, Minitest. Foundation in `test/application_system_test_case.rb`; specs in `test/system/*.rb`. Use `login_as_user` (Warden) for non-auth specs; the auth specs drive the real `/entrar`·`/cadastrar` forms.

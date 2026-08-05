@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  ACTIONS, availableActions, bulkChipsHtml, bulkFormBody, bulkToastMessage, confirmText,
-  csrfHeader, escapeHtml, initOrders, plural, skippedLabelsMessage, tallyOutcomes
+  ACTIONS, BULK_THROTTLE_MS, availableActions, bulkChipsHtml, bulkFormBody, bulkToastMessage,
+  confirmText, csrfHeader, escapeHtml, initOrders, partitionThrottled, plural,
+  skippedLabelsMessage, tallyOutcomes, throttleKey, throttledMessage
 } from "../../../app/javascript/backoffice/orders.js";
 
 const TODAY = new Date(2026, 5, 15);
@@ -77,6 +78,31 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.useRealTimers();
   window.history.pushState({}, "", "/");
+});
+
+describe("bulk throttle helpers", () => {
+  it("keys a stamp by action and order number", () => {
+    expect(throttleKey("issue_label", "PG-1")).toBe("issue_label:PG-1");
+  });
+
+  it("holds back numbers stamped inside the window and releases the rest", () => {
+    const now = 1_000_000;
+    const sentAt = new Map([
+      [ "issue_label:PG-1", now - 1_000 ],
+      [ "issue_label:PG-2", now - BULK_THROTTLE_MS ],
+      [ "to_components:PG-3", now - 1_000 ]
+    ]);
+
+    const { fresh, throttled } = partitionThrottled([ "PG-1", "PG-2", "PG-3", "PG-4" ], "issue_label", sentAt, now);
+
+    expect(throttled).toEqual([ "PG-1" ]);
+    expect(fresh).toEqual([ "PG-2", "PG-3", "PG-4" ]);
+  });
+
+  it("counts the held-back orders in pt-BR", () => {
+    expect(throttledMessage(1)).toBe("1 pedido já enviado nos últimos 60s. A fila ainda está processando, aguarde.");
+    expect(throttledMessage(3)).toContain("3 pedidos já enviados");
+  });
 });
 
 describe("pure helpers", () => {
@@ -373,6 +399,41 @@ describe("bulk actions", () => {
     expect(url).toBe("/admin/pedidos/lote");
     expect(options.body.toString()).toBe("event=to_components&order_numbers%5B%5D=PG-1");
     expect(document.querySelector("#toasts .toast").textContent).toContain("1 atualizado");
+  });
+
+  const bulkCalls = () => window.fetch.mock.calls.filter(([ u ]) => u === "/admin/pedidos/lote").length;
+  const lastToast = () => [ ...document.querySelectorAll("#toasts .toast") ].at(-1).textContent;
+
+  it("throttles a repeat of the same action on the same order", async () => {
+    window.fetch.mockResolvedValue({
+      ok: true,
+      text: async () => `<span data-part="count">c</span><div data-part="table"></div>`,
+      json: async () => ({ results: [ { number: "PG-1", status: "payment_confirmed", outcome: "queued" } ] })
+    });
+    start(rows);
+    click(document.querySelector("#o-checkall"));
+    click(document.querySelector('[data-act="to_components"]'));
+    await vi.waitFor(() => expect(document.querySelector("#toasts .toast")).not.toBeNull());
+    const sent = bulkCalls();
+
+    click(document.querySelector('[data-act="to_components"]'));
+
+    await vi.waitFor(() => expect(lastToast()).toContain("1 pedido já enviado"));
+    expect(bulkCalls()).toBe(sent);
+    expect(lastToast()).toContain("nos últimos 60s");
+  });
+
+  it("lets a failed action be retried immediately", async () => {
+    window.fetch.mockRejectedValue(new Error("boom"));
+    start(rows);
+    click(document.querySelector("#o-checkall"));
+    click(document.querySelector('[data-act="to_components"]'));
+    await vi.waitFor(() => expect(lastToast()).toContain("Não foi possível aplicar a ação"));
+    const failed = bulkCalls();
+
+    click(document.querySelector('[data-act="to_components"]'));
+
+    await vi.waitFor(() => expect(bulkCalls()).toBe(failed + 1));
   });
 
   it("asks before cancelling and backs off when refused", async () => {
