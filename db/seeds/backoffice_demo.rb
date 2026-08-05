@@ -18,25 +18,43 @@ def valid_cpf(base9)
   "#{base9}#{d10}#{d11}"
 end
 
-# name, city, UF, situação (active / pending / locked)
+city_addresses = {
+  "São Paulo"      => { zip: "01310100", street: "Avenida Paulista",                    neighborhood: "Bela Vista",       state: "SP" },
+  "Campinas"       => { zip: "13010111", street: "Rua General Osório",                  neighborhood: "Centro",           state: "SP" },
+  "Rio de Janeiro" => { zip: "20040020", street: "Praça Pio X",                         neighborhood: "Centro",           state: "RJ" },
+  "Belo Horizonte" => { zip: "30130010", street: "Praça Sete de Setembro",              neighborhood: "Centro",           state: "MG" },
+  "Curitiba"       => { zip: "80010010", street: "Rua Marechal Deodoro",                neighborhood: "Centro",           state: "PR" },
+  "Porto Alegre"   => { zip: "90010150", street: "Praça da Alfândega",                  neighborhood: "Centro Histórico", state: "RS" },
+  "Fortaleza"      => { zip: "60025000", street: "Rua Senador Pompeu",                  neighborhood: "Centro",           state: "CE" },
+  "Santo André"    => { zip: "09015000", street: "Avenida Quinze de Novembro",          neighborhood: "Centro",           state: "SP" },
+  "Goiânia"        => { zip: "74003010", street: "Praça Doutor Pedro Ludovico Teixeira", neighborhood: "Setor Central",   state: "GO" },
+  "Joinville"      => { zip: "89201000", street: "Rua do Príncipe",                     neighborhood: "Centro",           state: "SC" },
+  "Salvador"       => { zip: "40020000", street: "Rua Chile",                           neighborhood: "Centro Histórico", state: "BA" },
+  "Ribeirão Preto" => { zip: "14010000", street: "Rua General Osório",                  neighborhood: "Centro",           state: "SP" },
+  "Florianópolis"  => { zip: "88010400", street: "Praça Quinze de Novembro",            neighborhood: "Centro",           state: "SC" },
+  "Recife"         => { zip: "50030230", street: "Cais do Apolo",                       neighborhood: "Recife",           state: "PE" }
+}.freeze
+
+# name, city, situação (active / pending / locked)
 customers = [
-  [ "Ana Beatriz Cardoso", "São Paulo",       "SP", :active ],
-  [ "Bruno Tanaka",        "Campinas",        "SP", :active ],
-  [ "Carla Menezes",       "Rio de Janeiro",  "RJ", :active ],
-  [ "Diego Fontes",        "Belo Horizonte",  "MG", :pending ],
-  [ "Eduarda Lima",        "Curitiba",        "PR", :active ],
-  [ "Felipe Andrade",      "Porto Alegre",    "RS", :active ],
-  [ "Gabriela Rocha",      "Fortaleza",       "CE", :locked ],
-  [ "Henrique Sales",      "Santo André",     "SP", :active ],
-  [ "Isabela Cunha",       "Goiânia",         "GO", :active ],
-  [ "João Pedro Nunes",    "Joinville",       "SC", :active ],
-  [ "Larissa Vieira",      "Salvador",        "BA", :pending ],
-  [ "Marcos Aurélio",      "Ribeirão Preto",  "SP", :active ],
-  [ "Natália Prado",       "Florianópolis",   "SC", :active ],
-  [ "Otávio Bittencourt",  "Recife",          "PE", :active ]
+  [ "Ana Beatriz Cardoso", "São Paulo",       :active ],
+  [ "Bruno Tanaka",        "Campinas",        :active ],
+  [ "Carla Menezes",       "Rio de Janeiro",  :active ],
+  [ "Diego Fontes",        "Belo Horizonte",  :pending ],
+  [ "Eduarda Lima",        "Curitiba",        :active ],
+  [ "Felipe Andrade",      "Porto Alegre",    :active ],
+  [ "Gabriela Rocha",      "Fortaleza",       :locked ],
+  [ "Henrique Sales",      "Santo André",     :active ],
+  [ "Isabela Cunha",       "Goiânia",         :active ],
+  [ "João Pedro Nunes",    "Joinville",       :active ],
+  [ "Larissa Vieira",      "Salvador",        :pending ],
+  [ "Marcos Aurélio",      "Ribeirão Preto",  :active ],
+  [ "Natália Prado",       "Florianópolis",   :active ],
+  [ "Otávio Bittencourt",  "Recife",          :active ]
 ]
 
-customer_records = customers.each_with_index.map do |(name, city, uf, situation), index|
+customer_records = customers.each_with_index.map do |(name, city, situation), index|
+  address = city_addresses.fetch(city)
   email = "#{name.parameterize}@prismagames.dev"
   user = User.find_or_initialize_by(email: email)
   if user.new_record?
@@ -52,12 +70,12 @@ customer_records = customers.each_with_index.map do |(name, city, uf, situation)
     user.locked_at = Time.current if situation == :locked
     user.save!
     user.addresses.create!(
-      receiver_name: name, receiver_cpf: user.cpf, zip: "01310100",
-      street: "Avenida Paulista", number: format("%03d", 100 + index),
-      neighborhood: "Centro", city: city, state: uf
+      receiver_name: name, receiver_cpf: user.cpf, zip: address.fetch(:zip),
+      street: address.fetch(:street), number: format("%03d", 100 + index),
+      neighborhood: address.fetch(:neighborhood), city: city, state: address.fetch(:state)
     )
   end
-  [ user, city, uf ]
+  [ user, city, address ]
 end
 
 # customer index, status, days ago, total (cents), item quantity
@@ -90,12 +108,13 @@ orders = [
 ]
 
 services = Shipping::SERVICES.keys.map(&:to_s)
+cartridge_weight_grams = 60
 
 orders.each_with_index do |(customer_index, status, days_ago, total_cents, quantity), index|
   order = Order.find_or_initialize_by(external_id: "demo-order-#{index + 1}")
   next unless order.new_record?
 
-  user, city, uf = customer_records[customer_index]
+  user, city, address = customer_records[customer_index]
   placed_at = Time.current - days_ago.days
   shipping_cents = 2990
   order.assign_attributes(
@@ -115,9 +134,13 @@ orders.each_with_index do |(customer_index, status, days_ago, total_cents, quant
   order.build_shipment(
     service: services[index % services.size],
     shipping_cents: shipping_cents,
+    weight_grams: quantity * cartridge_weight_grams + Shipping::PACKAGE_OVERHEAD_GRAMS,
+    height_cm: Shipping::PACKAGE_DIMENSIONS.fetch(:altura_cm),
+    width_cm: Shipping::PACKAGE_DIMENSIONS.fetch(:largura_cm),
+    length_cm: Shipping::PACKAGE_DIMENSIONS.fetch(:comprimento_cm),
     receiver_name: user.full_name, receiver_cpf: user.cpf,
-    zip: "01310100", street: "Avenida Paulista", number: format("%03d", 100 + index),
-    neighborhood: "Centro", city: city, state: uf,
+    zip: address.fetch(:zip), street: address.fetch(:street), number: format("%03d", 100 + index),
+    neighborhood: address.fetch(:neighborhood), city: city, state: address.fetch(:state),
     created_at: placed_at, updated_at: placed_at
   )
   order.save!
