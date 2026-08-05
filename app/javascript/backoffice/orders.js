@@ -18,6 +18,8 @@ export const ACTION_LABELS = {
 
 export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);
 
+export const BULK_THROTTLE_MS = 60_000;
+
 export function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 }
@@ -73,6 +75,26 @@ export function tallyOutcomes(results) {
   return counts;
 }
 
+export function throttleKey(actionId, number) {
+  return `${actionId}:${number}`;
+}
+
+export function partitionThrottled(numbers, actionId, sentAt, now) {
+  const fresh = [];
+  const throttled = [];
+  numbers.forEach((number) => {
+    const at = sentAt.get(throttleKey(actionId, number));
+    if (at !== undefined && now - at < BULK_THROTTLE_MS) throttled.push(number);
+    else fresh.push(number);
+  });
+  return { fresh, throttled };
+}
+
+export function throttledMessage(count) {
+  const label = plural(count, "pedido já enviado", "pedidos já enviados");
+  return `${count} ${label} nos últimos ${BULK_THROTTLE_MS / 1000}s. A fila ainda está processando, aguarde.`;
+}
+
 export function initOrders(root, today = new Date()) {
   const $ = (sel) => root.querySelector(sel);
   const table = createTable(root, {
@@ -83,6 +105,7 @@ export function initOrders(root, today = new Date()) {
   bindFilters(root, table);
 
   const selected = new Map();
+  const sentAt = new Map();
   const bulkbar = $("#bulkbar");
   const bulkPrint = $("#bulk-print");
   const datePop = $("#date-pop");
@@ -184,11 +207,18 @@ export function initOrders(root, today = new Date()) {
     const numbers = [ ...selected.entries() ].filter(([ , status ]) => action.from.includes(status)).map(([ n ]) => n);
     if (action.id === "cancel" && !window.confirm(confirmText(numbers.length))) return;
 
+    const { fresh, throttled } = partitionThrottled(numbers, actionId, sentAt, Date.now());
+    if (throttled.length > 0) toast("warn", throttledMessage(throttled.length));
+    if (fresh.length === 0) return;
+
+    const sentNow = Date.now();
+    fresh.forEach((number) => sentAt.set(throttleKey(actionId, number), sentNow));
+
     try {
       const res = await fetch(root.dataset.bulkUrl, {
         method: "POST",
         headers: { ...csrfHeader(document), "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
-        body: bulkFormBody(actionId, numbers)
+        body: bulkFormBody(actionId, fresh)
       });
       const data = await res.json();
       data.results.forEach((result) => {
@@ -197,6 +227,7 @@ export function initOrders(root, today = new Date()) {
       await table.reload({ push: false });
       toast(action.danger ? "warn" : "ok", bulkToastMessage(tallyOutcomes(data.results), ACTION_LABELS[action.id]));
     } catch (e) {
+      fresh.forEach((number) => sentAt.delete(throttleKey(actionId, number)));
       toast("warn", "Não foi possível aplicar a ação. Tente novamente.");
     }
   }
