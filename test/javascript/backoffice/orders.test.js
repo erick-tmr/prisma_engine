@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  ACTIONS, BULK_THROTTLE_MS, availableActions, bulkChipsHtml, bulkFormBody, bulkToastMessage,
-  confirmText, csrfHeader, escapeHtml, initOrders, partitionThrottled, plural,
-  skippedLabelsMessage, tallyOutcomes, throttleKey, throttledMessage
+  ACTIONS, BATCH_HOLD_MS, BATCH_KEY, BULK_THROTTLE_MS, availableActions, batchProgress, bulkChipsHtml,
+  bulkFormBody, bulkToastMessage, confirmText, csrfHeader, escapeHtml, initOrders, partitionThrottled,
+  plural, readBatch, skippedLabelsMessage, tallyOutcomes, throttleKey, throttledMessage, writeBatch,
+  BATCH_TTL_MS
 } from "../../../app/javascript/backoffice/orders.js";
+import { POLL_STEPS } from "../../../app/javascript/backoffice/label_feedback.js";
 
 const TODAY = new Date(2026, 5, 15);
 const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
@@ -12,16 +14,28 @@ const type = (el, value) => {
   el.dispatchEvent(new window.Event("input", { bubbles: true }));
 };
 
-const row = (number, status) => `
-  <tr data-order="${number}" data-status="${status}">
+const row = (number, status, corState = "idle") => `
+  <tr data-order="${number}" data-status="${status}"${corState === "queued" || corState === "running" ? ' class="is-busy"' : ""}>
     ${status === "merged" ? '<td class="checkcol"></td>'
       : `<td class="checkcol"><span class="rowcheck" data-check="${number}" role="checkbox"></span></td>`}
     <td><a class="cell-link" href="/admin/pedidos/${number}">${number}</a></td>
     <td class="client">cliente</td>
+    <td class="corcell">
+      <div data-part="correios-${number}" data-cor-state="${corState}">
+        ${corState === "failed" ? `<button class="proc-retry" data-retry="${number}" data-retry-url="/admin/etiquetas/${number}"></button>` : ""}
+      </div>
+    </td>
   </tr>`;
 
-const markup = (rows) => `
-  <div class="app" data-list="orders" data-bulk-url="/admin/pedidos/lote" data-print-url="/admin/etiquetas/impressao">
+const procbar = (attrs = {}) => {
+  const { total = 0, settled = 0, failed = 0, inFlight = 0, percent = 0 } = attrs;
+  return `<div class="procbar" data-part="procbar" data-total="${total}" data-settled="${settled}"
+    data-failed="${failed}" data-in-flight="${inFlight}" data-percent="${percent}"><div class="pb-fill"></div></div>`;
+};
+
+const markup = (rows, bar = procbar()) => `
+  <div class="app" data-list="orders" data-bulk-url="/admin/pedidos/lote" data-print-url="/admin/etiquetas/impressao"
+       data-feedback-url="/admin/pedidos/correios">
     <aside data-sidebar></aside>
     <button id="menu-toggle" type="button"></button>
     <input id="o-name" name="q" data-filter="q" type="text">
@@ -41,9 +55,10 @@ const markup = (rows) => `
     <div class="bulkbar" id="bulkbar" hidden>
       <b id="bulk-n">0</b>
       <button id="bulk-clear" type="button"></button>
-      <div id="bulk-actions"></div>
+      <div id="bulk-actions" data-issuing-label="Emitindo etiquetas…"></div>
       <button id="bulk-print" type="button" hidden></button>
     </div>
+    ${bar}
     <span data-part="count">count</span>
     <div data-part="table">
       <table><thead><tr><th><span class="rowcheck" id="o-checkall" role="checkbox"></span></th></tr></thead>
@@ -55,14 +70,15 @@ const markup = (rows) => `
 
 let app;
 
-const start = (rows = "") => {
-  document.body.innerHTML = markup(rows);
+const start = (rows = "", bar = procbar()) => {
+  document.body.innerHTML = markup(rows, bar);
   document.head.innerHTML = `<meta name="csrf-token" content="test-token">`;
   app = initOrders(document.querySelector(".app"), TODAY);
   return app;
 };
 
 beforeEach(() => {
+  window.sessionStorage.clear();
   window.history.pushState({}, "", "/admin");
   vi.spyOn(window, "fetch").mockResolvedValue({
     ok: true,
@@ -540,5 +556,216 @@ describe("printing labels", () => {
     click(document.querySelector("#bulk-print"));
 
     expect(window.fetch).not.toHaveBeenCalledWith("/admin/etiquetas/impressao", expect.anything());
+  });
+});
+
+describe("Correios feedback", () => {
+  it("remembers the batch a bulk emit queued and starts polling for it", async () => {
+    window.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ results: [
+        { number: "PG-1", outcome: "queued", status: "in_production" },
+        { number: "PG-2", outcome: "skipped", status: "delivered" }
+      ] }),
+      text: async () => `<div data-part="table"><tbody id="orders-body"></tbody></div>`
+    });
+
+    start(row("PG-1", "in_production") + row("PG-2", "in_production"));
+    click(document.querySelector("#o-checkall"));
+    click(document.querySelector('[data-act="issue_label"]'));
+
+    await vi.waitFor(() => expect(readBatch(window.sessionStorage)).toEqual(new Set([ "PG-1" ])));
+    expect(app.feedback.running).toBe(true);
+  });
+
+  it("resumes polling on load when the server already rendered a busy row", () => {
+    start(row("PG-1", "in_production", "running"));
+    expect(app.feedback.running).toBe(true);
+  });
+
+  it("resumes polling on load to settle a batch left in sessionStorage", () => {
+    writeBatch(window.sessionStorage, new Set([ "PG-1" ]));
+    start(row("PG-1", "label_issued", "done"));
+
+    expect(app.feedback.running).toBe(true);
+  });
+
+  it("stays idle when nothing is in flight and no batch is pending", () => {
+    start(row("PG-1", "label_issued", "done"));
+    expect(app.feedback.running).toBe(false);
+  });
+
+  it("paints the batch strip width from the server-rendered percentage", () => {
+    start(row("PG-1", "in_production", "running"), procbar({ total: 4, settled: 1, inFlight: 3, percent: 25 }));
+    expect(document.querySelector(".pb-fill").style.width).toBe("25%");
+  });
+
+  it("locks the emit chip while the batch is still running", () => {
+    start(row("PG-1", "in_production", "running") + row("PG-2", "in_production"),
+          procbar({ total: 4, settled: 1, inFlight: 3 }));
+    click(document.querySelector("#o-checkall"));
+
+    const chip = document.querySelector('[data-act="issue_label"]');
+    expect(chip.disabled).toBe(true);
+    expect(chip.textContent).toContain("Emitindo etiquetas…");
+    expect(chip.querySelector(".cnt").textContent).toBe("1/4");
+  });
+
+  it("refuses to select a row whose label is mid-emission", () => {
+    start(row("PG-1", "in_production", "running") + row("PG-2", "in_production"));
+
+    click(document.querySelector('[data-check="PG-1"]'));
+    expect(app.selected.size).toBe(0);
+
+    click(document.querySelector("#o-checkall"));
+    expect([ ...app.selected.keys() ]).toEqual([ "PG-2" ]);
+  });
+
+  it("retries a failed label through the single-order endpoint", async () => {
+    start(row("PG-1", "in_production", "failed"));
+    click(document.querySelector(".proc-retry"));
+
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledWith("/admin/etiquetas/PG-1", expect.objectContaining({
+      method: "POST",
+      headers: expect.objectContaining({ "X-CSRF-Token": "test-token" })
+    })));
+    await vi.waitFor(() => expect(app.feedback.running).toBe(true));
+  });
+
+  it("does not navigate to the order when the retry button is clicked", () => {
+    start(row("PG-1", "in_production", "failed"));
+    const link = document.querySelector("a.cell-link");
+    const clicked = vi.spyOn(link, "click");
+
+    click(document.querySelector(".proc-retry"));
+    expect(clicked).not.toHaveBeenCalled();
+  });
+
+  it("holds back a retry that was already sent moments ago", async () => {
+    start(row("PG-1", "in_production", "failed"));
+    click(document.querySelector(".proc-retry"));
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
+
+    click(document.querySelector(".proc-retry"));
+    await vi.waitFor(() =>
+      expect(document.querySelector("#toasts .toast").textContent).toContain("A fila ainda está processando"));
+    expect(window.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("warns and frees the throttle when the retry is rejected", async () => {
+    window.fetch.mockResolvedValue({ ok: false, json: async () => ({}) });
+    start(row("PG-1", "in_production", "failed"));
+    click(document.querySelector(".proc-retry"));
+
+    await vi.waitFor(() =>
+      expect(document.querySelector("#toasts .toast").textContent).toContain("Não foi possível reenviar"));
+    expect(readBatch(window.sessionStorage).size).toBe(0);
+  });
+
+  it("hides the finished strip and forgets the batch after the hold", async () => {
+    vi.useFakeTimers();
+    writeBatch(window.sessionStorage, new Set([ "PG-1" ]));
+    start(row("PG-1", "in_production", "running"), procbar({ total: 1, inFlight: 1 }));
+    window.fetch.mockResolvedValue({
+      ok: true,
+      text: async () => `<div data-part="correios-PG-1" data-cor-state="done"></div>${procbar({ total: 1, settled: 1 })}`
+    });
+
+    await vi.advanceTimersByTimeAsync(POLL_STEPS[0]);
+    expect(readBatch(window.sessionStorage).size).toBe(1);
+
+    // still up a second short of the hold, gone a moment after it
+    await vi.advanceTimersByTimeAsync(BATCH_HOLD_MS - 1_000);
+    expect(document.querySelector('[data-part="procbar"]').hidden).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1_001);
+    expect(readBatch(window.sessionStorage).size).toBe(0);
+    expect(document.querySelector('[data-part="procbar"]').hidden).toBe(true);
+  });
+
+  it("gives the finished strip two minutes on screen", () => {
+    expect(BATCH_HOLD_MS).toBe(120_000);
+  });
+});
+
+describe("batch storage", () => {
+  it("starts empty when sessionStorage holds nothing or holds junk", () => {
+    expect(readBatch(window.sessionStorage)).toEqual(new Set());
+
+    window.sessionStorage.setItem(BATCH_KEY, "{not json");
+    expect(readBatch(window.sessionStorage)).toEqual(new Set());
+  });
+
+  it("forgets a batch old enough to be abandoned rather than resurrecting it", () => {
+    const at = 1_000_000;
+    writeBatch(window.sessionStorage, new Set([ "PG-1" ]), at);
+
+    expect(readBatch(window.sessionStorage, at + BATCH_TTL_MS)).toEqual(new Set([ "PG-1" ]));
+    expect(readBatch(window.sessionStorage, at + BATCH_TTL_MS + 1)).toEqual(new Set());
+  });
+
+  it("discards a batch stored in the older format that carried no timestamp", () => {
+    window.sessionStorage.setItem(BATCH_KEY, JSON.stringify([ "PG-1", "PG-2" ]));
+
+    expect(readBatch(window.sessionStorage)).toEqual(new Set());
+  });
+
+  it("round-trips a batch through storage", () => {
+    writeBatch(window.sessionStorage, new Set([ "PG-1", "PG-2" ]));
+    expect(readBatch(window.sessionStorage)).toEqual(new Set([ "PG-1", "PG-2" ]));
+  });
+
+  it("survives a storage that refuses to write", () => {
+    const storage = { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } };
+
+    expect(readBatch(storage)).toEqual(new Set());
+    expect(() => writeBatch(storage, new Set([ "PG-1" ]))).not.toThrow();
+  });
+});
+
+describe("batchProgress", () => {
+  it("is null without a strip, or once the strip reports nothing in flight", () => {
+    document.body.innerHTML = `<div class="app"></div>`;
+    expect(batchProgress(document.querySelector(".app"))).toBeNull();
+
+    document.body.innerHTML = `<div class="app">${procbar({ total: 2, settled: 2 })}</div>`;
+    expect(batchProgress(document.querySelector(".app"))).toBeNull();
+  });
+
+  it("reports settled over total while a batch runs", () => {
+    document.body.innerHTML = `<div class="app">${procbar({ total: 5, settled: 2, inFlight: 3 })}</div>`;
+    expect(batchProgress(document.querySelector(".app"))).toEqual({ settled: 2, total: 5 });
+  });
+});
+
+describe("Correios feedback across a table reload", () => {
+  it("restarts polling when a filter change brings a busy row on screen", async () => {
+    start(row("PG-1", "label_issued", "done"));
+    expect(app.feedback.running).toBe(false);
+
+    window.fetch.mockResolvedValue({
+      ok: true,
+      text: async () =>
+        `<div data-part="table"><tbody id="orders-body">${row("PG-2", "in_production", "running")}</tbody></div>`
+    });
+    type(document.querySelector("#o-name"), "PG-2");
+
+    await vi.waitFor(() => expect(app.feedback.running).toBe(true));
+  });
+
+  it("keeps the strip up while the batch is still moving", async () => {
+    vi.useFakeTimers();
+    writeBatch(window.sessionStorage, new Set([ "PG-1" ]));
+    start(row("PG-1", "in_production", "running"), procbar({ total: 2, settled: 1, inFlight: 1 }));
+    window.fetch.mockResolvedValue({
+      ok: true,
+      text: async () =>
+        `<div data-part="correios-PG-1" data-cor-state="running"></div>${procbar({ total: 2, settled: 1, inFlight: 1 })}`
+    });
+
+    await vi.advanceTimersByTimeAsync(POLL_STEPS[0] + BATCH_HOLD_MS);
+
+    expect(readBatch(window.sessionStorage).size).toBe(1);
+    expect(document.querySelector('[data-part="procbar"]').hidden).toBe(false);
   });
 });

@@ -22,7 +22,7 @@ module Admin
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
     PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze
 
-    LifecycleStep = Data.define(:label, :classes, :auto_note)
+    LifecycleStep = Data.define(:label, :classes, :auto_note, :doing)
     Payment = Data.define(:method_label, :icon, :status_class, :status_icon, :status_label)
 
     def initialize(order)
@@ -98,6 +98,18 @@ module Admin
       order.label_issued? && !!order.shipping_label&.ready?
     end
 
+    def label_feedback
+      @label_feedback ||= LabelFeedback.new(order)
+    end
+
+    def label_in_flight?
+      label_feedback.in_flight?
+    end
+
+    def label_retryable?
+      label_feedback.failed?
+    end
+
     def lifecycle
       anchor = BRANCH_ANCHOR[status]
       branch = anchor.present? && FLOW.exclude?(status)
@@ -158,12 +170,24 @@ module Admin
 
     def with_branch_step(steps, current)
       steps[current] = steps[current].with(classes: "done")
-      steps.insert(current + 1, LifecycleStep.new(label: status_label, classes: "branch current", auto_note: nil))
+      steps.insert(current + 1, LifecycleStep.new(label: status_label, classes: "branch current", auto_note: nil, doing: nil))
       steps
     end
 
     def flow_step(step, index, current)
-      LifecycleStep.new(label: lifecycle_label(step), classes: step_class(index, current), auto_note: flow_auto_note(step))
+      doing = step == "label_issued" ? doing_note : nil
+      LifecycleStep.new(
+        label: lifecycle_label(step),
+        classes: doing ? "pending" : step_class(index, current),
+        auto_note: doing ? nil : flow_auto_note(step),
+        doing: doing
+      )
+    end
+
+    def doing_note
+      return unless label_in_flight?
+
+      I18n.t("admin.orders.lifecycle.doing_#{label_feedback.state}")
     end
 
     def step_class(index, current)

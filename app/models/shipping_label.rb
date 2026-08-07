@@ -42,6 +42,10 @@ class ShippingLabel < ApplicationRecord
     update!(error: message, errored_at: Time.current)
   end
 
+  def ready_for_retry!
+    update!(error: nil, errored_at: nil, relabel_attempts: 0)
+  end
+
   def pdf_bytes
     Base64.decode64(pdf_base64) if pdf_base64
   end

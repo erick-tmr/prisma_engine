@@ -92,5 +92,41 @@ module Shipping
       end
       assert_equal 1, ShippingLabel.where(shipment_id: shipment.id).count
     end
+
+    test "restart clears a recorded failure and resumes from the persisted step" do
+      label = @order.shipment.create_shipping_label!(state: :prepost_confirmed)
+      label.reset_for_relabel!
+      label.record_error!("PPN-295 rótulo não gerado")
+
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+        Shipping::EmitLabel.restart(@order)
+      end
+
+      assert_nil label.reload.error
+      assert_equal 0, label.relabel_attempts
+    end
+
+    test "restart unsticks a label parked mid-request" do
+      label = @order.shipment.create_shipping_label!(state: :prepost_confirmed)
+      label.claim_requesting!
+
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+        Shipping::EmitLabel.restart(@order)
+      end
+
+      assert label.reload.prepost_confirmed?
+    end
+
+    test "restart starts the saga for an order that never had a label" do
+      assert_enqueued_with(job: Shipping::CreatePrePostagemJob, args: [ @order.id ]) do
+        Shipping::EmitLabel.restart(@order)
+      end
+    end
+
+    test "restart is a no-op when the order has no shipment" do
+      order = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000)
+
+      assert_no_enqueued_jobs { Shipping::EmitLabel.restart(order) }
+    end
   end
 end

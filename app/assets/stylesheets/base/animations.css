@@ -7,3 +7,17 @@
   0%   { transform: scale(0.8); opacity: 0.6; }
   100% { transform: scale(1.6); opacity: 0; }
 }
+
+@keyframes pg-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pg-indet {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+
+@keyframes bo-fade-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}

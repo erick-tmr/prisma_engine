@@ -313,3 +313,72 @@ table.tbl tbody tr.sel-row td.checkcol { box-shadow: inset 3px 0 0 var(--pg-ink)
   .tbl-foot .foot-range, .tbl-foot .foot-single { text-align: center; }
 }
 
+
+/* ── Correios column: per-order label emission feedback ──────── */
+th.corcol, td.corcell { width: 176px; }
+
+.proc {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  font-size: 12px; font-weight: 600; border-radius: 999px; padding: 5px 11px;
+}
+.proc-queued { background: #f1f2f4; color: #8b929b; }
+.proc-run {
+  background: #fff; color: var(--pg-ink); border: 1px solid #d8dce2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.proc-ok { background: #eee9fa; color: #6b4fb0; }
+.proc-err { background: var(--pg-red-bg); color: var(--pg-red); }
+.proc-err i, .proc-ok i { font-size: 13px; }
+.proc-code { font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.02em; }
+
+.proc-bar {
+  position: relative; overflow: hidden; height: 2px; border-radius: 2px;
+  background: #e9ebee; margin-top: 6px; max-width: 148px;
+}
+.proc-bar > span {
+  position: absolute; inset: 0 auto 0 0; width: 34%; border-radius: 2px;
+  background: var(--pg-ink); animation: pg-indet 1.15s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+.proc-sub {
+  display: block; font-size: 11px; color: var(--pg-muted); margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.proc-retry {
+  border: 0; background: none; padding: 0; margin-top: 5px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 700; color: var(--pg-red); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.proc-retry:hover { color: #97281c; }
+
+.cor-code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: #8b929b; letter-spacing: 0.02em; }
+.cor-none { color: #c8ccd2; }
+
+table.tbl tbody tr.is-busy { background: #fbfbfe; }
+table.tbl tbody tr.is-busy .rowcheck { opacity: 0.35; pointer-events: none; }
+
+/* ── Batch progress strip ────────────────────────────────────── */
+.procbar {
+  display: flex; align-items: center; gap: 14px; padding: 13px 22px 15px;
+  border-bottom: 1px solid var(--pg-border); background: #fcfcfd; position: relative;
+}
+.procbar .pb-icon { font-size: 18px; color: var(--pg-green); }
+.procbar.has-fail .pb-icon { color: var(--pg-amber); }
+.procbar .spin { color: var(--pg-ink); }
+.procbar .pb-main { min-width: 0; flex: 1; }
+.procbar .pb-t { font-size: 13.5px; font-weight: 700; letter-spacing: -0.005em; }
+.procbar .pb-s { font-size: 12.5px; color: var(--pg-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.procbar .pb-s b { color: var(--pg-ink); font-weight: 700; }
+.procbar .pb-s .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+.procbar .pb-count { font-size: 12.5px; font-weight: 700; color: var(--pg-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.procbar .pb-track { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #eceef1; }
+.procbar .pb-fill { height: 100%; width: 0; background: var(--pg-ink); transition: width 0.4s ease; }
+.procbar.is-done .pb-fill { background: var(--pg-green); }
+.procbar.has-fail .pb-fill { background: var(--pg-amber); }
+
+.bulk-chip[disabled] { opacity: 0.42; cursor: not-allowed; }
+.bulk-chip[disabled]:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.18); }
+
+@media (prefers-reduced-motion: reduce) {
+  .proc-bar > span { animation: none; }
+}

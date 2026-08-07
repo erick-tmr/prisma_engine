@@ -92,4 +92,16 @@ class ShippingLabelTest < ActiveSupport::TestCase
     assert_nil @label.errored_at
     assert_equal 1, @label.relabel_attempts
   end
+
+  test "ready_for_retry! clears the error and hands back a full set of relabel attempts" do
+    @label.reset_for_relabel!
+    @label.record_error!("PPN-295 rótulo não gerado")
+
+    @label.ready_for_retry!
+
+    assert_nil @label.error
+    assert_nil @label.errored_at
+    assert_equal 0, @label.relabel_attempts
+    assert @label.prepost_confirmed?
+  end
 end

@@ -51,26 +51,60 @@ module Shipping
       assert_equal "01310100", @sent.dig("destinatario", "endereco", "cep")
     end
 
+    test "a pré-postagem with no codigoObjeto fails non-retryably, keeping the payload for review" do
+      stub_create(status: 201, codigo_objeto: nil)
+
+      error = assert_raises(Correios::Api::InvalidObjectError) do
+        Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
+      end
+
+      assert_match(/returned no codigoObjeto/, error.message)
+      assert_not_kind_of Correios::Api::TransientError, error, "must not be retried into a duplicate"
+
+      @shipment.reload
+      assert_nil @shipment.tracking_code
+      assert_equal "PRHelX4tO8Qsuqq0D47quwxA", @shipment.pre_post_id, "manual review needs the id"
+      assert_equal "PRHelX4tO8Qsuqq0D47quwxA", @shipment.pre_post_payload["id"], "and the full response"
+    end
+
+    test "an empty codigoObjeto is rejected the same way as a null one" do
+      stub_create(status: 201, codigo_objeto: "")
+
+      assert_raises(Correios::Api::InvalidObjectError) do
+        Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
+      end
+    end
+
+    test "a duplicate whose payload lacks the code keeps the pinned original and does not fail" do
+      @shipment.update!(tracking_code: "AD515656026BR", pre_post_id: "PRoriginal000000000000000")
+      stub_create(status: 201, codigo_objeto: nil)
+
+      shipment = Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
+
+      assert_equal "AD515656026BR", shipment.reload.tracking_code
+      assert_equal "PRoriginal000000000000000", shipment.pre_post_id
+    end
+
     private
 
     def request_for(service)
       Shipping::PrePostagemRequest.from_shipment(@shipment).with(service: service)
     end
 
-    def stub_create(status:, service: "03220")
+    def stub_create(status:, service: "03220", codigo_objeto: "AD515656026BR")
       stub_request(:post, URL)
         .with { |request| @sent = JSON.parse(request.body); true }
         .to_return(
           status: status,
-          body: response_body(service: service),
+          body: response_body(service: service, codigo_objeto: codigo_objeto),
           headers: { "Content-Type" => "application/json" }
         )
     end
 
-    def response_body(service:)
+    def response_body(service:, codigo_objeto: "AD515656026BR")
       {
         "id" => "PRHelX4tO8Qsuqq0D47quwxA",
-        "codigoObjeto" => "AD515656026BR",
+        "codigoObjeto" => codigo_objeto,
         "codigoServico" => service,
         "statusAtual" => 1,
         "descStatusAtual" => "Pré-atendido",

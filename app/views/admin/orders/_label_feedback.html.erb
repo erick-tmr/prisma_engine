@@ -1,0 +1,6 @@
+<%# locals: (feedbacks:, batch:) %>
+<% feedbacks.each do |feedback| %>
+  <%= render "admin/orders/correios_cell", feedback: feedback %>
+  <%= render "admin/orders/status_cell", order: feedback.order %>
+<% end %>
+<%= render "admin/orders/procbar", batch: batch %>

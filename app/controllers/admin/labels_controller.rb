@@ -4,7 +4,7 @@ module Admin
       order = Order.in_production.find_by(number: params[:number])
       return head :not_found unless order
 
-      Shipping::EmitLabel.resume(order)
+      Shipping::EmitLabel.restart(order)
       head :accepted
     end
 

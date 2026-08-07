@@ -1,6 +1,7 @@
 import { createTable } from "backoffice/table";
 import { bindFilters, syncFilters } from "backoffice/filters";
 import { initShell } from "backoffice/shell";
+import { applyBusyRows, applyProgress, applyRowStatus, createLabelFeedback, inFlight } from "backoffice/label_feedback";
 import { addMonths, anchorMonth, applyPreset, datePopHtml, nextSelection, parseISO, toISO } from "backoffice/date_picker";
 
 export const ACTIONS = [
@@ -20,6 +21,40 @@ export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);
 
 export const BULK_THROTTLE_MS = 60_000;
 
+export const BATCH_KEY = "pg_label_batch_v1";
+// How long "Lote concluído" stays up after the last label settles.
+export const BATCH_HOLD_MS = 120_000;
+// A batch older than this is abandoned, not in progress. Comfortably past the
+// poller's own 20-minute ceiling, so it only catches batches nothing finished.
+export const BATCH_TTL_MS = 30 * 60_000;
+export const RETRY_FAILED = "Não foi possível reenviar para os Correios. Tente novamente.";
+
+export function readBatch(storage, now = Date.now()) {
+  try {
+    const stored = JSON.parse(storage.getItem(BATCH_KEY));
+    if (!stored || now - stored.at > BATCH_TTL_MS) return new Set();
+
+    return new Set(stored.numbers);
+  } catch (e) {
+    return new Set();
+  }
+}
+
+export function writeBatch(storage, batch, now = Date.now()) {
+  try {
+    storage.setItem(BATCH_KEY, JSON.stringify({ numbers: [ ...batch ], at: now }));
+  } catch (e) {
+    /* a full or unavailable sessionStorage only costs the batch strip */
+  }
+}
+
+export function batchProgress(root) {
+  const procbar = root.querySelector('[data-part="procbar"]');
+  if (!procbar || Number(procbar.dataset.inFlight) === 0) return null;
+
+  return { settled: Number(procbar.dataset.settled), total: Number(procbar.dataset.total) };
+}
+
 export function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 }
@@ -34,11 +69,14 @@ export function availableActions(statuses) {
     .filter((entry) => entry.count > 0);
 }
 
-export function bulkChipsHtml(available) {
+export function bulkChipsHtml(available, busy = null) {
   if (available.length === 0) return `<span class="bulk-none">Nenhuma ação disponível para esta seleção</span>`;
-  return available.map(({ action, count }) =>
-    `<button type="button" class="bulk-chip ${action.danger ? "danger" : ""}" data-act="${action.id}"><i class="bi ${action.icon}"></i> ${escapeHtml(ACTION_LABELS[action.id])} <span class="cnt">${count}</span></button>`
-  ).join("");
+  return available.map(({ action, count }) => {
+    if (action.id === "issue_label" && busy) {
+      return `<button type="button" class="bulk-chip" data-act="${action.id}" disabled><span class="spin"></span> ${escapeHtml(busy.label)} <span class="cnt">${busy.settled}/${busy.total}</span></button>`;
+    }
+    return `<button type="button" class="bulk-chip ${action.danger ? "danger" : ""}" data-act="${action.id}"><i class="bi ${action.icon}"></i> ${escapeHtml(ACTION_LABELS[action.id])} <span class="cnt">${count}</span></button>`;
+  }).join("");
 }
 
 export function confirmText(count) {
@@ -95,10 +133,10 @@ export function throttledMessage(count) {
   return `${count} ${label} nos últimos ${BULK_THROTTLE_MS / 1000}s. A fila ainda está processando, aguarde.`;
 }
 
-export function initOrders(root, today = new Date()) {
+export function initOrders(root, today = new Date(), storage = window.sessionStorage) {
   const $ = (sel) => root.querySelector(sel);
   const table = createTable(root, {
-    onRender: () => syncSelection(),
+    onRender: () => afterRender(),
     onRestore: (params) => syncFilters(root, params)
   });
   initShell(root);
@@ -106,6 +144,13 @@ export function initOrders(root, today = new Date()) {
 
   const selected = new Map();
   const sentAt = new Map();
+  const batch = readBatch(storage);
+  let holdTimer = null;
+  const feedback = createLabelFeedback(root, {
+    path: root.dataset.feedbackUrl,
+    params: () => ({ ...table.params, lote: [ ...batch ] }),
+    onSwap: () => { syncSelection(); holdBatch(); }
+  });
   const bulkbar = $("#bulkbar");
   const bulkPrint = $("#bulk-print");
   const datePop = $("#date-pop");
@@ -149,14 +194,41 @@ export function initOrders(root, today = new Date()) {
     if (selected.size === 0) return;
 
     $("#bulk-n").textContent = selected.size;
-    $("#bulk-actions").innerHTML = bulkChipsHtml(availableActions(selectedStatuses()));
+    const wrap = $("#bulk-actions");
+    const progress = batchProgress(root);
+    wrap.innerHTML = bulkChipsHtml(
+      availableActions(selectedStatuses()),
+      progress && { ...progress, label: wrap.dataset.issuingLabel }
+    );
     bulkPrint.hidden = !selectedStatuses().some((s) => PRINTABLE_LABEL_STATUSES.has(s));
+  }
+
+  function afterRender() {
+    applyRowStatus(root);
+    applyBusyRows(root);
+    applyProgress(root);
+    syncSelection();
+    if (inFlight(root)) feedback.start();
+  }
+
+  function holdBatch() {
+    clearTimeout(holdTimer);
+    if (batch.size === 0 || inFlight(root)) return;
+
+    holdTimer = setTimeout(() => {
+      batch.clear();
+      writeBatch(storage, batch);
+      const procbar = root.querySelector('[data-part="procbar"]');
+      if (procbar) procbar.hidden = true;
+      renderBulk();
+    }, BATCH_HOLD_MS);
   }
 
   function syncSelection() {
     const rows = Array.from(root.querySelectorAll("#orders-body tr[data-order]"));
     rows.forEach((row) => {
       const on = selected.has(row.dataset.order);
+      if (on) selected.set(row.dataset.order, row.dataset.status);
       row.classList.toggle("sel-row", on);
       const box = row.querySelector("[data-check]");
       if (box) {
@@ -165,7 +237,7 @@ export function initOrders(root, today = new Date()) {
       }
     });
 
-    const selectable = rows.filter((row) => row.querySelector("[data-check]"));
+    const selectable = rows.filter((row) => selectableRow(row));
     const selN = selectable.filter((row) => selected.has(row.dataset.order)).length;
     const checkall = $("#o-checkall");
     if (checkall) {
@@ -175,14 +247,20 @@ export function initOrders(root, today = new Date()) {
     renderBulk();
   }
 
-  function toggleRow(number, status) {
+  function selectableRow(row) {
+    return !!row.querySelector("[data-check]") && !row.classList.contains("is-busy");
+  }
+
+  function toggleRow(number, status, row) {
+    if (!selectableRow(row)) return;
+
     if (selected.has(number)) selected.delete(number); else selected.set(number, status);
     syncSelection();
   }
 
   function toggleAll() {
     const rows = Array.from(root.querySelectorAll("#orders-body tr[data-order]"))
-      .filter((row) => row.querySelector("[data-check]"));
+      .filter((row) => selectableRow(row));
     const allSel = rows.length > 0 && rows.every((row) => selected.has(row.dataset.order));
     rows.forEach((row) => {
       if (allSel) selected.delete(row.dataset.order);
@@ -223,12 +301,33 @@ export function initOrders(root, today = new Date()) {
       const data = await res.json();
       data.results.forEach((result) => {
         if (selected.has(result.number)) selected.set(result.number, result.status);
+        if (result.outcome === "queued") batch.add(result.number);
       });
+      writeBatch(storage, batch);
       await table.reload({ push: false });
+      feedback.start();
       toast(action.danger ? "warn" : "ok", bulkToastMessage(tallyOutcomes(data.results), ACTION_LABELS[action.id]));
     } catch (e) {
       fresh.forEach((number) => sentAt.delete(throttleKey(actionId, number)));
       toast("warn", "Não foi possível aplicar a ação. Tente novamente.");
+    }
+  }
+
+  async function retryLabel(url, number) {
+    const { fresh } = partitionThrottled([ number ], "issue_label", sentAt, Date.now());
+    if (fresh.length === 0) { toast("warn", throttledMessage(1)); return; }
+
+    sentAt.set(throttleKey("issue_label", number), Date.now());
+    try {
+      const res = await fetch(url, { method: "POST", headers: { ...csrfHeader(document), "Accept": "application/json" } });
+      if (!res.ok) throw new Error(String(res.status));
+
+      batch.add(number);
+      writeBatch(storage, batch);
+      feedback.start();
+    } catch (e) {
+      sentAt.delete(throttleKey("issue_label", number));
+      toast("warn", RETRY_FAILED);
     }
   }
 
@@ -268,6 +367,12 @@ export function initOrders(root, today = new Date()) {
   }
 
   root.addEventListener("click", (event) => {
+    const retry = event.target.closest("[data-retry-url]");
+    if (retry) {
+      event.stopPropagation();
+      retryLabel(retry.dataset.retryUrl, retry.dataset.retry);
+      return;
+    }
     if (event.target.closest("#o-checkall")) {
       toggleAll();
       return;
@@ -275,7 +380,8 @@ export function initOrders(root, today = new Date()) {
     const check = event.target.closest("[data-check]");
     if (check) {
       event.stopPropagation();
-      toggleRow(check.dataset.check, check.closest("tr[data-order]").dataset.status);
+      const row = check.closest("tr[data-order]");
+      toggleRow(check.dataset.check, row.dataset.status, row);
       return;
     }
     const row = event.target.closest("#orders-body tr[data-order]");
@@ -376,16 +482,21 @@ export function initOrders(root, today = new Date()) {
   window.addEventListener("scroll", positionPop, true);
   window.addEventListener("resize", positionPop);
 
+  applyProgress(root);
   syncSelection();
+  if (inFlight(root) || batch.size > 0) feedback.start();
 
   return {
     table,
     selected,
+    feedback,
     destroy() {
       document.removeEventListener("click", onDocClick);
       document.removeEventListener("keydown", onDocKeydown);
       window.removeEventListener("scroll", positionPop, true);
       window.removeEventListener("resize", positionPop);
+      clearTimeout(holdTimer);
+      feedback.destroy();
       table.destroy();
     }
   };

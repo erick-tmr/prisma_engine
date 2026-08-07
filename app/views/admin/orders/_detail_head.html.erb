@@ -1,0 +1,6 @@
+<%# locals: (presenter:) %>
+<div class="od-head-num" data-part="head" data-cor-state="<%= presenter.label_feedback.state %>">
+  <h1><%= presenter.number %></h1>
+  <span class="pill pill-lg st-<%= presenter.status %>"><%= presenter.status_label %></span>
+  <%= render "admin/orders/head_chip", feedback: presenter.label_feedback %>
+</div>

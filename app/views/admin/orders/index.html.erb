@@ -6,7 +6,8 @@
 
 <div class="app-rainbow" aria-hidden="true"></div>
 
-<div class="app" data-list="orders" data-bulk-url="<%= admin_bulk_transitions_path %>" data-print-url="<%= admin_print_labels_path %>">
+<div class="app" data-list="orders" data-bulk-url="<%= admin_bulk_transitions_path %>" data-print-url="<%= admin_print_labels_path %>"
+     data-feedback-url="<%= admin_label_feedback_path %>">
   <%= render "admin/sidebar", active: "orders" %>
 
   <div class="main">
@@ -68,11 +69,13 @@
             <span class="bulk-count"><b id="bulk-n">0</b> <%= t("admin.dashboard.bulk.selected") %></span>
             <button class="bulk-clear" id="bulk-clear" type="button"><i class="bi bi-x-lg"></i> <%= t("admin.dashboard.bulk.clear") %></button>
           </div>
-          <div class="bulk-actions" id="bulk-actions"></div>
+          <div class="bulk-actions" id="bulk-actions" data-issuing-label="<%= t("admin.dashboard.bulk.issuing") %>"></div>
           <button class="bulk-chip bulk-print" id="bulk-print" type="button" hidden>
             <i class="bi bi-printer"></i> <%= t("admin.dashboard.bulk.print_labels") %>
           </button>
         </div>
+
+        <%= render "procbar", batch: Admin::LabelBatch.new([]) %>
 
         <%= render "results_table" %>
       </div>

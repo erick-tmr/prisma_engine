@@ -18,6 +18,11 @@ module Shipping
       resume(order)
     end
 
+    def self.restart(order)
+      order.shipment&.shipping_label&.ready_for_retry!
+      recover(order)
+    end
+
     def self.label_for(shipment)
       shipment.shipping_label || shipment.create_shipping_label!
     rescue ActiveRecord::RecordNotUnique

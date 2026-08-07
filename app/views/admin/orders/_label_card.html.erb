@@ -1,0 +1,28 @@
+<%# locals: (feedback:) %>
+<% case feedback.state %>
+<% when "queued" %>
+  <div class="act-proc is-queued">
+    <div class="ap-head"><span class="spin"></span> <%= t("admin.orders.detail.label.queued_title") %></div>
+    <div class="ap-sub"><%= t("admin.orders.detail.label.queued_sub") %></div>
+    <div class="ap-bar"><span></span></div>
+  </div>
+<% when "running" %>
+  <div class="act-proc">
+    <div class="ap-head"><span class="spin"></span> <%= t("admin.orders.detail.label.running_title") %></div>
+    <div class="ap-sub">
+      <%= t("admin.orders.detail.label.running_sub_html",
+            elapsed: tag.b("0s", data: { elapsed_since: feedback.since&.iso8601 })) %>
+    </div>
+    <div class="ap-bar"><span></span></div>
+  </div>
+<% when "failed" %>
+  <div class="act-proc is-err">
+    <div class="ap-head">
+      <i class="bi bi-exclamation-triangle-fill"></i> <%= t("admin.orders.detail.label.failed_title") %>
+    </div>
+    <div class="ap-sub"><%= t("admin.orders.detail.label.failed_sub_html", error: feedback.error_message) %></div>
+    <button type="button" class="ap-retry" data-retry-url="<%= admin_label_path(feedback.number) %>">
+      <i class="bi bi-arrow-clockwise"></i> <%= t("admin.orders.detail.label.retry") %>
+    </button>
+  </div>
+<% end %>
