@@ -31,9 +31,15 @@ Actions:
                    Stops on a dirty working tree, or when main holds commits
                    origin/main does not, rather than resetting over them.
                    --yes skips the confirmation, for cron.
+  health [opts]    Read-only sanity sweep of the production VPS: host resources,
+                   firewall, containers, TLS, Postgres, Solid Queue, the nightly
+                   R2 backup, the heartbeat monitor, the durable logs and a few
+                   application invariants. Exits 1 on warnings, 2 on failures.
+                   --hours N scans a wider log window, --verify-restore also
+                   proves the newest dump is a readable archive.
   help             Show this message.
 
-Runbook: docs/deployment.md
+Runbooks: docs/deployment.md, docs/vps-healthcheck.md
 TXT
 }
 
@@ -94,6 +100,10 @@ cmd_deploy() {
   bin/kamal deploy
 
   printf '\n\033[1;32m✓ Deployed %s to production.\033[0m\n' "$(git rev-parse --short HEAD)"
+}
+
+cmd_health() {
+  exec deploy/vps-healthcheck.sh "$@"
 }
 
 ACTION="${1:-help}"
