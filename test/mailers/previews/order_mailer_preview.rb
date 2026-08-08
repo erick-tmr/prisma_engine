@@ -1,6 +1,6 @@
 class OrderMailerPreview < ActionMailer::Preview
   def payment_confirmed
-    OrderMailer.payment_confirmed(Order.first)
+    OrderMailer.payment_confirmed(Order.paid.recent_first.first || Order.first)
   end
 
   def label_issued
@@ -22,6 +22,9 @@ class OrderMailerPreview < ActionMailer::Preview
   private
 
   def shipped_order
-    Order.joins(:shipment).first || Order.first
+    tracked = Order.joins(:shipment)
+                   .where.not(shipments: { tracking_code: nil })
+                   .where.not(shipments: { delivery_business_days: nil })
+    tracked.recent_first.first || Order.joins(:shipment).recent_first.first || Order.first
   end
 end
