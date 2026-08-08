@@ -153,18 +153,20 @@ pt-BR:
       cta: "Ver meus pedidos"
     delivery_issue:
       correios_says: "O que os Correios informaram:"
+      support_note: "Estamos à disposição caso necessite do nosso apoio, conte conosco."
+      tracking_note: "Informe este código aos Correios para que eles localizem o seu pacote."
       awaiting_pickup:
         subject: "Os Correios não conseguiram entregar o pedido %{number}"
         badge_label: "Entrega não realizada"
         heading: "Os Correios não conseguiram entregar seu pedido."
-        intro: "Na tentativa de entrega, os Correios registraram o endereço como insuficiente e levaram o pacote de volta para uma unidade deles. Para receber, entre em contato com os Correios pelo código de rastreio abaixo e confirme o endereço completo."
-        cta: "Acompanhar nos Correios"
+        intro: "Na tentativa de entrega, os Correios registraram o endereço como insuficiente e levaram o pacote de volta para uma unidade deles. Entre em contato com os Correios, confirme o endereço completo e veja com eles como resolver a situação."
+        cta: "Falar com os Correios"
       unknown:
         subject: "Problema na entrega do pedido %{number}"
         badge_label: "Atenção na entrega"
-        heading: "Tivemos um percalço no caminho."
-        intro: "Os Correios reportaram um problema na entrega do seu pedido. Nossa equipe já está cuidando disso e vai entrar em contato. Se preferir, fale com a gente pelo suporte abaixo."
-        cta: "Falar com o suporte"
+        heading: "Os Correios não concluíram a entrega."
+        intro: "Os Correios registraram um problema na entrega do seu pedido. Entre em contato com os Correios e veja como podem resolver a situação."
+        cta: "Falar com os Correios"
   welcome_mailer:
     account_created:
       subject: "Bem-vindo à Prisma Games!"
@@ -446,7 +448,7 @@ pt-BR:
           description: "Seu pedido foi entregue."
         delivery_issue:
           label: "Problema na entrega"
-          description: "Houve um problema na entrega do seu pedido. Entre em contato para resolvermos."
+          description: "Houve um problema na entrega do seu pedido."
         awaiting_refund:
           label: "Aguardando reembolso"
           description: "Cancelamento solicitado. Estamos processando o reembolso do seu pagamento."

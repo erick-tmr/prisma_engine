@@ -112,10 +112,13 @@ class OrderMailerTest < ActionMailer::TestCase
 
     [ email.html_part, email.text_part ].each do |part|
       body = part.body.to_s
-      assert_includes body, "problema na entrega"
+      assert_includes body, "Entre em contato com os Correios e veja como podem resolver a situação"
+      assert_includes body, "conte conosco"
       assert_includes body, order.shipment.tracking_code
-      assert_includes body, "Falar com o suporte"
-      assert_includes body, "mailto:vininess@hotmail.com"
+      assert_includes body, "Falar com os Correios"
+      assert_includes body, Shipping::CORREIOS_CONTACT_URL
+      assert_not_includes body, "Falar com o suporte"
+      assert_not_includes body, "Nossa equipe já está cuidando disso"
     end
 
     assert_includes email.html_part.body.to_s, "dragon-letter-full.png"
@@ -136,10 +139,12 @@ class OrderMailerTest < ActionMailer::TestCase
 
     [ email.html_part, email.text_part ].each do |part|
       body = part.body.to_s
-      assert_includes body, "entre em contato com os Correios"
+      assert_includes body, "confirme o endereço completo"
+      assert_includes body, "conte conosco"
       assert_includes body, detalhe
       assert_includes body, order.shipment.tracking_code
-      assert_includes body, "Acompanhar nos Correios"
+      assert_includes body, "Falar com os Correios"
+      assert_includes body, Shipping::CORREIOS_CONTACT_URL
       assert_includes body, order.shipment.tracking_url
     end
   end

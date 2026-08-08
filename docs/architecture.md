@@ -406,13 +406,19 @@ the order straight from `delivery_issue` to `delivered` (a single edge, so no
 spurious "postado" e-mail). If the customer never collects, the object comes back to
 us and the eventual return code lands in the same map.
 
-**Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table that says,
-per issue signal, which `tracking_state` it derives and who the customer should
-contact. `OrderMailer#delivery_issue` re-derives the issue from the persisted events
-rather than from the status change, so a new Correios problem is a row in that table
-plus a locale block; anything uncatalogued falls back to the generic `unknown` copy
-pointing at our own support. Correios' own `detalhe` string is quoted verbatim in the
-e-mail and in both tracking timelines.
+**Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
+issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`
+re-derives the issue from the persisted events rather than from the status change, so
+a new Correios problem is a row in that table plus a locale block; anything
+uncatalogued falls back to the generic `unknown` copy. Correios' own `detalhe` string
+is quoted verbatim in the e-mail and in both tracking timelines.
+
+**Every delivery-issue e-mail sends the customer to Correios, never to us.** The
+package is in Correios' hands at that point and only they can say where it is or
+release it, so the CTA is `Shipping::CORREIOS_CONTACT_URL` (their Central de
+Atendimento) for every kind, with the tracking code shown prominently above it
+because Correios asks for it first. Routing these to our own support only adds a hop:
+we would have to tell the customer the same thing.
 
 **Rate limit:** the rastro gateway returns its token-bucket limits in response
 headers: `x-ratelimit-replenish-rate: 50` (50 req/s), `x-ratelimit-burst-capacity: 55`,

@@ -22,6 +22,14 @@
       </td>
     </tr>
   <% end %>
-  <%= render "shared/email_tracking_chip", code: @order.shipment.tracking_code %>
-  <%= render "shared/email_cta", url: @issue_url, label: t("#{scope}.cta") %>
+  <tr>
+    <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("order_mailer.delivery_issue.support_note") %>
+    </td>
+  </tr>
+  <%= render "shared/email_tracking_panel",
+             code: @order.shipment.tracking_code,
+             note: t("order_mailer.delivery_issue.tracking_note"),
+             track_url: @order.shipment.tracking_url %>
+  <%= render "shared/email_cta", url: Shipping::CORREIOS_CONTACT_URL, label: t("#{scope}.cta") %>
 <% end %>

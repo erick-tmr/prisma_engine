@@ -11,7 +11,6 @@ module Shipping
       issue = Shipping::DeliveryIssue.for(shipment)
 
       assert_equal :awaiting_pickup, issue.kind
-      assert_equal :correios, issue.contact
       assert_equal "Por favor, aguarde. Será informada aqui a unidade em que o objeto ficará disponível para retirada",
                    issue.detail
     end
@@ -32,7 +31,6 @@ module Shipping
       issue = Shipping::DeliveryIssue.for(shipment)
 
       assert_equal Shipping::DeliveryIssue::UNKNOWN, issue.kind
-      assert_equal :support, issue.contact
       assert_nil issue.detail
     end
 

@@ -2,26 +2,20 @@ module Shipping
   module DeliveryIssue
     UNKNOWN = :unknown
 
-    ISSUES = {
-      awaiting_pickup: { state: "delivery_issue", contact: :correios }
-    }.freeze
+    STATES = { awaiting_pickup: "delivery_issue" }.freeze
 
     Issue = Data.define(:kind, :event) do
       def detail
         event&.detail
       end
-
-      def contact
-        ISSUES.dig(kind, :contact) || :support
-      end
     end
 
     def self.issue?(signal)
-      ISSUES.key?(signal)
+      STATES.key?(signal)
     end
 
     def self.state_for(signal)
-      ISSUES.dig(signal, :state)
+      STATES[signal]
     end
 
     def self.signal_for(event)

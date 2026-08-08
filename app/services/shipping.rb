@@ -23,6 +23,8 @@ module Shipping
 
   ORIGIN_CEP = "37600000".freeze
 
+  CORREIOS_CONTACT_URL = "https://www.correios.com.br/falecomoscorreios/central-de-atendimento".freeze
+
   POSTAGE_CARD_NUMBER = "0076738043".freeze
 
   PACKAGE_OVERHEAD_GRAMS = 52
