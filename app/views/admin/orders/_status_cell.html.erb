@@ -1,0 +1,4 @@
+<%# locals: (order:) %>
+<div data-part="status-<%= order.number %>" data-row-status="<%= order.status %>">
+  <span class="pill st-<%= order.status %>"><%= t("account.orders.states.#{order.status}.label") %></span>
+</div>

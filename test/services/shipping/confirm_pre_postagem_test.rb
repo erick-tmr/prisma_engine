@@ -41,6 +41,17 @@ module Shipping
       assert_nil @shipment.reload.correios_status
     end
 
+    test "an item with no statusAtual stays pending and never erases a status already confirmed" do
+      @shipment.update!(correios_status: 2, correios_status_label: "Pré-postado")
+      stub_status(item(nil, nil))
+
+      assert_raises(Shipping::PrePostagemPending) { Shipping::ConfirmPrePostagem.call(@shipment) }
+
+      @shipment.reload
+      assert_equal 2, @shipment.correios_status, "a hollow poll must not walk the status backwards"
+      assert_equal "Pré-postado", @shipment.correios_status_label
+    end
+
     test "raises PrePostagemPending without calling Correios when there is no tracking code" do
       @shipment.update!(tracking_code: nil)
 

@@ -49,7 +49,7 @@ module Admin
     end
 
     def base
-      Order.joins(:user).preload(:user, :order_items, :shipment)
+      Order.joins(:user).preload(:user, :order_items, { shipment: :shipping_label })
     end
 
     def by_query(scope)

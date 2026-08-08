@@ -29,13 +29,13 @@ module Shipping
         cep_destino:   cep_destino,
         weight_grams:  weight_grams,
         service_codes: Shipping::SERVICES.values
-      ).index_by { |row| row["nuRequisicao"] }
+      ).index_by { |row| Correios::Api::Payload.string(row, "nuRequisicao") }
 
       prazo_rows = Correios::Api::Prazo.fetch(
         cep_origem:    Shipping::ORIGIN_CEP,
         cep_destino:   cep_destino,
         service_codes: Shipping::SERVICES.values
-      ).index_by { |row| row["nuRequisicao"] }
+      ).index_by { |row| Correios::Api::Payload.string(row, "nuRequisicao") }
 
       Shipping::SERVICES.map do |key, code|
         build_service(key, code, preco_rows[code], prazo_rows[code])
@@ -44,25 +44,33 @@ module Shipping
 
     def build_service(key, code, preco, prazo)
       common = { key: key, label: Shipping.service_label(key) }
-      tx_erro = preco && preco["txErro"]
+      tx_erro = Correios::Api::Payload.string(preco, "txErro").presence
       return common.merge(eligible: false, reason: classify_error(tx_erro)) if tx_erro
+      return common.merge(eligible: false, reason: ineligibility_reason(key)) unless eligible?(code, preco, prazo)
 
-      if eligible?(code, preco, prazo)
-        price_cents = parse_price_cents(preco["pcFinal"]) + handling_fee_cents
-        common.merge(
-          eligible:        true,
-          price_cents:     price_cents,
-          price_formatted: HasMoney.format(price_cents),
-          business_days:   prazo["prazoEntrega"].to_i
-        )
-      else
-        common.merge(eligible: false, reason: ineligibility_reason(key))
-      end
+      price_cents = quoted_price_cents(preco)
+      # A row that quotes no price is not a free delivery: without this the
+      # customer would be charged the handling fee alone for a real shipment.
+      return common.merge(eligible: false, reason: :api_error) if price_cents.nil?
+
+      common.merge(
+        eligible: true, price_cents: price_cents, price_formatted: HasMoney.format(price_cents),
+        business_days: Correios::Api::Payload.integer(prazo, "prazoEntrega").to_i
+      )
     end
 
     def eligible?(requested_code, preco, prazo)
       return false unless preco && prazo
-      preco["coProduto"] == requested_code && prazo["coProduto"] == requested_code
+
+      reader = Correios::Api::Payload
+      reader.string(preco, "coProduto") == requested_code && reader.string(prazo, "coProduto") == requested_code
+    end
+
+    def quoted_price_cents(preco)
+      price = Correios::Api::Payload.decimal(preco, "pcFinal")
+      return if price.nil? || !price.positive?
+
+      (price * 100).round + handling_fee_cents
     end
 
     # :reek:ControlParameter
@@ -73,10 +81,6 @@ module Shipping
     # :reek:ControlParameter
     def classify_error(tx_erro)
       tx_erro.match?(/CEP/i) ? :invalid_cep : :api_error
-    end
-
-    def parse_price_cents(raw)
-      (raw.to_s.tr(",", ".").to_f * 100).round
     end
 
     def handling_fee_cents

@@ -30,11 +30,27 @@ module Shipping
     def call
       response = Correios::Api::PrePostagem.create(request_body)
       Shipping::ShipmentFactory.update_from_pre_postagem(shipment, response)
+      validate_pre_postagem!
+      shipment
     end
 
     private
 
     attr_reader :request, :shipment
+
+    # A pré-postagem missing either field is unusable: every later step keys off
+    # tracking_code, RequestLabel keys off pre_post_id, and nothing can backfill
+    # either. Persist the payload first so the raw response survives for manual
+    # review, then fail non-retryably rather than advancing the saga onto an
+    # object we can neither track nor turn into a rótulo.
+    def validate_pre_postagem!
+      missing = %w[codigoObjeto id].zip([ shipment.tracking_code, shipment.pre_post_id ])
+                                   .filter_map { |field, value| field if value.blank? }
+      return if missing.empty?
+
+      raise Correios::Api::InvalidObjectError,
+            "pré-postagem #{shipment.pre_post_id.inspect} came back without #{missing.join(' and ')}"
+    end
 
     def request_body
       {

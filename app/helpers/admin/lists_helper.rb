@@ -8,6 +8,28 @@ module Admin
       PhoneFormat.call(digits)
     end
 
+    def procbar_lines(batch)
+      return finished_procbar_lines(batch) unless batch.running?
+
+      lines = [ procbar_current(batch), t("admin.dashboard.orders.batch.progress_html",
+                                          settled: batch.settled, total: batch.total) ]
+      lines << t("admin.dashboard.orders.batch.failures_html", failed: batch.failed) if batch.failed.positive?
+      lines
+    end
+
+    def procbar_current(batch)
+      number = batch.current_number
+      return t("admin.dashboard.orders.batch.waiting") if number.blank?
+
+      t("admin.dashboard.orders.batch.processing_html", number: number)
+    end
+
+    def finished_procbar_lines(batch)
+      lines = [ t("admin.dashboard.orders.batch.done_html", settled: batch.settled, total: batch.total) ]
+      lines << t("admin.dashboard.orders.batch.done_failures_html", failed: batch.failed) if batch.failed.positive?
+      lines
+    end
+
     def batch_period(batch)
       from = batch.period_from
       to = batch.period_to

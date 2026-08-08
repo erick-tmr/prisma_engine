@@ -1,0 +1,48 @@
+<%# locals: (presenter:) %>
+<div data-part="status-card">
+  <div class="status-now">
+    <div class="status-now-label"><%= t("admin.orders.detail.current_status") %></div>
+    <div><span class="pill st-<%= presenter.status %>"><%= presenter.status_label %></span></div>
+    <p class="status-now-desc"><%= presenter.status_description %></p>
+  </div>
+
+  <div class="lifecycle">
+    <% presenter.lifecycle.each do |step| %>
+      <div class="lc-step <%= step.classes %>">
+        <span class="lc-node"></span>
+        <div class="lc-label">
+          <%= step.label %>
+          <% if step.auto_note %><span class="lc-auto"><%= step.auto_note %></span><% end %>
+          <% if step.doing %><span class="lc-doing"><%= step.doing %></span><% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="status-actions">
+    <div class="status-actions-head"><%= t("admin.orders.detail.actions") %></div>
+    <div class="act-list">
+      <%= render "admin/orders/label_card", feedback: presenter.label_feedback %>
+
+      <% presenter.available_actions.each do |action| %>
+        <%= button_to admin_order_transition_path(presenter.number, event: action[:id]),
+              method: :post, class: action[:button_class], disabled: presenter.label_in_flight?,
+              form: { class: "act-form", data: action[:form_data] } do %>
+          <i class="bi <%= action[:icon] %>"></i>
+          <span><%= action[:label] %><span class="act-to"><%= t("admin.orders.detail.action_target", status: action[:target_label]) %></span></span>
+          <i class="bi bi-arrow-right act-arrow"></i>
+        <% end %>
+      <% end %>
+
+      <% if presenter.label_printable? %>
+        <%= link_to admin_order_label_path(presenter.number), class: "act-btn", target: "_blank", rel: "noopener" do %>
+          <i class="bi bi-printer"></i><span><%= t("admin.orders.detail.print_label") %></span>
+        <% end %>
+      <% end %>
+
+      <% if presenter.available_actions.empty? && !presenter.label_in_flight? && !presenter.label_retryable? %>
+        <div class="act-none"><i class="bi bi-info-circle"></i><div><%= presenter.auto_next_note %></div></div>
+      <% end %>
+    </div>
+  </div>
+</div>

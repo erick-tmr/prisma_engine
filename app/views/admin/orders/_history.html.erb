@@ -1,0 +1,15 @@
+<%# locals: (presenter:) %>
+<div class="od-history" data-part="history">
+  <% presenter.history.each_with_index do |entry, index| %>
+    <div class="hist-item<%= " is-latest" if index.zero? %>">
+      <span class="hist-dot dotc-<%= entry[:status] %>"></span>
+      <div class="hist-body">
+        <div>
+          <div class="desc"><b><%= entry[:label] %></b></div>
+          <div class="who-by"><%= entry[:by] %></div>
+        </div>
+        <div class="time"><%= l(entry[:at], format: :short) %></div>
+      </div>
+    </div>
+  <% end %>
+</div>

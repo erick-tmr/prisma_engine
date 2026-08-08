@@ -549,6 +549,7 @@ pt-BR:
         selected: "selecionados"
         clear: "Limpar seleção"
         print_labels: "Imprimir etiquetas"
+        issuing: "Emitindo etiquetas…"
       views:
         orders:
           title: "Pedidos"
@@ -585,10 +586,33 @@ pt-BR:
           client: "Cliente"
           date: "Data"
           status: "Status"
+          correios: "Correios"
           total: "Total"
         empty:
           title: "Nenhum pedido encontrado"
           hint: "Ajuste os filtros de período, status ou busca."
+        correios:
+          queued: "Na fila"
+          queued_sub: "Aguardando o processamento da fila"
+          running: "Emitindo etiqueta…"
+          failed: "Falha na emissão"
+          retry: "Tentar de novo"
+          done: "Etiqueta emitida"
+          none: "–"
+          step:
+            prepost_created: "Aguardando a confirmação dos Correios"
+            prepost_confirmed: "Solicitando a etiqueta"
+            requesting: "Solicitando a etiqueta"
+            requested: "Baixando o PDF da etiqueta"
+        batch:
+          title: "Emitindo etiquetas nos Correios"
+          waiting: "Aguardando o SIGEP"
+          processing_html: "Processando <span class=\"mono\">%{number}</span>"
+          progress_html: "<b>%{settled}</b> de <b>%{total}</b> concluídos"
+          failures_html: "<b>%{failed}</b> com falha"
+          done_title: "Lote concluído"
+          done_html: "<b>%{settled}</b> de <b>%{total}</b> etiquetas emitidas"
+          done_failures_html: "<b>%{failed}</b> com falha, use \"Tentar de novo\" na coluna Correios"
       clients:
         heading: "Clientes"
         sub: "Todos os clientes cadastrados na loja."
@@ -881,6 +905,17 @@ pt-BR:
         request_notes: "Observações"
         request_notes_blank: "Sem observações"
         merged_into_html: "Este pedido foi consolidado no pedido %{number}. Os itens seguem na entrega desse pedido."
+        label:
+          chip_queued: "Etiqueta na fila"
+          chip_running: "Emitindo etiqueta…"
+          chip_failed: "Falha na emissão"
+          queued_title: "Na fila para emissão"
+          queued_sub: "A emissão foi enfileirada. O processamento começa em alguns segundos."
+          running_title: "Emitindo etiqueta nos Correios…"
+          running_sub_html: "Aguardando a resposta do SIGEP · %{elapsed} decorridos. Não repita a ação: o status muda sozinho quando a etiqueta sai."
+          failed_title: "Os Correios recusaram a emissão"
+          failed_sub_html: "%{error}. O pedido continua em <b>Em produção</b>, nada foi cobrado nem duplicado."
+          retry: "Tentar novamente"
       states:
         awaiting_payment:
           description: "Pedido criado. A confirmação do pagamento é automática via webhook da InfinitePay."
@@ -920,6 +955,8 @@ pt-BR:
         delivered: "Entregue"
         auto_webhook: "automático (webhook)"
         auto_correios: "automático (Correios)"
+        doing_queued: "na fila dos Correios"
+        doing_running: "emitindo agora…"
     production_report:
       page_title: "Relatório de produção · Backoffice | Prisma Games"
       heading: "Relatório de produção"

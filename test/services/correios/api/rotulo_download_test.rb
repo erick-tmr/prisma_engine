@@ -53,6 +53,17 @@ module Correios
         assert_match "PPN-288", error.message
       end
 
+      test "a 200 carrying both keys but no bytes is not a label" do
+        stub_request(:get, URL).to_return(
+          status: 200,
+          body: { "nome" => nil, "dados" => nil, "mensagem" => "PPN-291: rótulo ainda não gerado" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+        error = assert_raises(Correios::Api::TransientError) { Correios::Api::RotuloDownload.fetch(RECIBO) }
+        assert_match "PPN-291", error.message, "a hollow body still takes the classified path"
+      end
+
       test "raises TransientError when PPN-291 reports the label is not generated yet" do
         stub_request(:get, URL).to_return(
           status: 200,

@@ -190,5 +190,40 @@ module Admin
       events = presenter.tracking_events
       assert_equal %w[DO PO], events.map(&:event_code)
     end
+
+    test "an order with no label in flight leaves the lifecycle and the actions alone" do
+      presenter = OrderPresenter.new(orders(:producing))
+
+      assert_not presenter.label_in_flight?
+      assert_not presenter.label_retryable?
+      assert_equal "idle", presenter.label_feedback.state
+      assert_nil presenter.lifecycle.find { |step| step.doing }
+    end
+
+    test "the etiqueta step goes pending while the label is being emitted" do
+      order = orders(:producing)
+      label = order.shipment.create_shipping_label!(state: :pending)
+      presenter = OrderPresenter.new(order.reload)
+
+      assert presenter.label_in_flight?
+      step = presenter.lifecycle.find { |entry| entry.doing }
+      assert_equal I18n.t("admin.orders.lifecycle.label_issued"), step.label
+      assert_equal I18n.t("admin.orders.lifecycle.doing_queued"), step.doing
+      assert_equal "pending", step.classes
+      assert_nil step.auto_note
+
+      label.update!(state: :requesting)
+      doing = OrderPresenter.new(order.reload).lifecycle.find { |entry| entry.doing }.doing
+      assert_equal I18n.t("admin.orders.lifecycle.doing_running"), doing
+    end
+
+    test "a failed label is retryable without being in flight" do
+      order = orders(:producing)
+      order.shipment.create_shipping_label!(state: :prepost_confirmed).record_error!("PPN-320")
+      presenter = OrderPresenter.new(order.reload)
+
+      assert presenter.label_retryable?
+      assert_not presenter.label_in_flight?
+    end
   end
 end

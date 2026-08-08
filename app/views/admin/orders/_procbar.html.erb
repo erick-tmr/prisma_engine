@@ -1,0 +1,21 @@
+<%# locals: (batch:) %>
+<div class="procbar<%= " is-done" unless batch.running? %><%= " has-fail" if batch.failed.positive? %>"
+     data-part="procbar" data-total="<%= batch.total %>" data-settled="<%= batch.settled %>"
+     data-failed="<%= batch.failed %>" data-in-flight="<%= batch.in_flight %>"
+     data-percent="<%= batch.percent %>"<%= " hidden".html_safe if batch.empty? %>>
+  <% if batch.running? %>
+    <span class="spin lg"></span>
+  <% else %>
+    <i class="bi <%= batch.failed.positive? ? "bi-exclamation-circle-fill" : "bi-check-circle-fill" %> pb-icon"></i>
+  <% end %>
+
+  <div class="pb-main">
+    <div class="pb-t">
+      <%= batch.running? ? t("admin.dashboard.orders.batch.title") : t("admin.dashboard.orders.batch.done_title") %>
+    </div>
+    <div class="pb-s"><%= safe_join(procbar_lines(batch), " · ") %></div>
+  </div>
+
+  <span class="pb-count"><%= batch.percent %>%</span>
+  <div class="pb-track"><div class="pb-fill"></div></div>
+</div>

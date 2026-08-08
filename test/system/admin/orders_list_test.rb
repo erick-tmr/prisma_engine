@@ -71,4 +71,76 @@ class AdminOrdersListTest < ApplicationSystemTestCase
     assert_current_path admin_reports_path
     assert_selector "[data-list=reports]"
   end
+
+  test "the Correios column reports each stage of a label emission" do
+    order = orders(:producing)
+    label = order.shipment.create_shipping_label!(state: :pending)
+
+    visit admin_root_path
+    cell = "tr[data-order='#{order.number}'] [data-cor-state]"
+
+    assert_selector "#{cell}[data-cor-state='queued']"
+    assert_selector "tr[data-order='#{order.number}'].is-busy"
+
+    label.update!(state: :requesting)
+    assert_selector "#{cell}[data-cor-state='running']", wait: 8
+    assert_selector "#{cell} .proc-run"
+
+    label.record_error!("PPN-320 destinatário inválido")
+    assert_selector "#{cell}[data-cor-state='failed']", wait: 8
+    assert_selector "#{cell} .proc-retry"
+    assert_no_selector "tr[data-order='#{order.number}'].is-busy"
+  end
+
+  test "a settled order shows its tracking code and never starts a poll" do
+    order = orders(:labeled)
+    order.shipment.update!(tracking_code: "PG515656027BR")
+
+    visit admin_root_path
+
+    assert_selector "tr[data-order='#{order.number}'] [data-cor-state='done'] .proc-ok .proc-code",
+                    text: "PG515656027BR"
+    assert_no_selector "tr[data-order='#{order.number}'] [data-cor-state='done'] .proc-sub"
+    assert_selector "[data-part='procbar']", visible: :hidden
+  end
+
+  test "retrying a rejected label hands the order back to the saga" do
+    order = orders(:producing)
+    label = order.shipment.create_shipping_label!(state: :prepost_confirmed)
+    label.record_error!("PPN-320 destinatário inválido")
+
+    visit admin_root_path
+    within "tr[data-order='#{order.number}']" do
+      find(".proc-retry").click
+    end
+
+    assert_selector "tr[data-order='#{order.number}'] [data-cor-state='running']", wait: 8
+    assert_nil label.reload.errored_at
+  end
+
+  test "the status pill settles with the Correios cell instead of going stale" do
+    order = orders(:producing)
+    label = order.shipment.create_shipping_label!(state: :requested)
+
+    visit admin_root_path
+    row = "tr[data-order='#{order.number}']"
+    assert_selector "#{row} .pill", text: I18n.t("account.orders.states.in_production.label")
+
+    label.mark_ready!(filename: "etiqueta.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
+    order.advance_to_label_issued!
+
+    assert_selector "#{row} [data-cor-state='done']", wait: 8
+    assert_selector "#{row} .pill", text: I18n.t("account.orders.states.label_issued.label")
+    assert_selector "#{row}[data-status='label_issued']"
+  end
+
+  test "a busy row cannot be selected into a bulk action" do
+    order = orders(:producing)
+    order.shipment.create_shipping_label!(state: :requesting)
+
+    visit admin_root_path
+    find("#o-checkall").click
+
+    assert_no_selector "tr[data-order='#{order.number}'] [data-check].on"
+  end
 end

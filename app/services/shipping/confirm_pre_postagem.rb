@@ -27,11 +27,18 @@ module Shipping
 
     attr_reader :shipment
 
+    # An item with no statusAtual is Correios still assembling the object, not a
+    # move backwards: writing the nil through would erase a status we already
+    # confirmed, so it stays pending and the job reschedules itself.
     def refresh_status(item)
+      reader = Correios::Api::Payload
+      status = reader.integer(item, "statusAtual")
+      raise Shipping::PrePostagemPending, "#{shipment.tracking_code} has no statusAtual yet" if status.nil?
+
       shipment.update!(
-        correios_status: item["statusAtual"],
-        correios_status_label: item["descStatusAtual"],
-        correios_status_at: Correios::Api::Timestamp.parse(item["dataHoraStatusAtual"])
+        correios_status: status,
+        correios_status_label: reader.string(item, "descStatusAtual").presence,
+        correios_status_at: reader.time(item, "dataHoraStatusAtual")
       )
     end
   end

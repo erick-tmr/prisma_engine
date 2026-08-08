@@ -1,0 +1,11 @@
+<%# locals: (feedback:) %>
+<% case feedback.state %>
+<% when "queued" %>
+  <span class="headpill-proc"><span class="spin"></span> <%= t("admin.orders.detail.label.chip_queued") %></span>
+<% when "running" %>
+  <span class="headpill-proc"><span class="spin"></span> <%= t("admin.orders.detail.label.chip_running") %></span>
+<% when "failed" %>
+  <span class="headpill-proc is-err">
+    <i class="bi bi-exclamation-triangle-fill"></i> <%= t("admin.orders.detail.label.chip_failed") %>
+  </span>
+<% end %>

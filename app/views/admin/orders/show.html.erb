@@ -6,7 +6,7 @@
 
 <div class="app-rainbow" aria-hidden="true"></div>
 
-<div class="app" data-bo-order>
+<div class="app" data-bo-order data-feedback-url="<%= admin_order_label_feedback_path(@presenter.number) %>">
   <%= render "admin/sidebar", active: "orders" %>
 
   <div class="main">
@@ -33,10 +33,7 @@
 
       <div class="od-head">
         <div class="od-head-main">
-          <div class="od-head-num">
-            <h1><%= @presenter.number %></h1>
-            <span class="pill pill-lg st-<%= @presenter.status %>"><%= @presenter.status_label %></span>
-          </div>
+          <%= render "detail_head", presenter: @presenter %>
           <div class="od-head-sub">
             <span><%= t("admin.orders.detail.placed_on", date: l(@presenter.placed_at.to_date, format: :long)) %></span>
             <span class="dotsep"></span>
@@ -182,20 +179,7 @@
                 <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.history") %></h2>
               </div>
             </div>
-            <div class="od-history">
-              <% @presenter.history.each_with_index do |entry, index| %>
-                <div class="hist-item<%= " is-latest" if index.zero? %>">
-                  <span class="hist-dot dotc-<%= entry[:status] %>"></span>
-                  <div class="hist-body">
-                    <div>
-                      <div class="desc"><b><%= entry[:label] %></b></div>
-                      <div class="who-by"><%= entry[:by] %></div>
-                    </div>
-                    <div class="time"><%= l(entry[:at], format: :short) %></div>
-                  </div>
-                </div>
-              <% end %>
-            </div>
+            <%= render "history", presenter: @presenter %>
           </div>
         </div>
 
@@ -204,45 +188,7 @@
             <div class="status-card-top">
               <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.status_section") %></h2>
             </div>
-            <div class="status-now">
-              <div class="status-now-label"><%= t("admin.orders.detail.current_status") %></div>
-              <div><span class="pill st-<%= @presenter.status %>"><%= @presenter.status_label %></span></div>
-              <p class="status-now-desc"><%= @presenter.status_description %></p>
-            </div>
-
-            <div class="lifecycle">
-              <% @presenter.lifecycle.each do |step| %>
-                <div class="lc-step <%= step.classes %>">
-                  <span class="lc-node"></span>
-                  <div class="lc-label"><%= step.label %><% if step.auto_note %><span class="lc-auto"><%= step.auto_note %></span><% end %></div>
-                </div>
-              <% end %>
-            </div>
-
-            <div class="status-actions">
-              <div class="status-actions-head"><%= t("admin.orders.detail.actions") %></div>
-              <div class="act-list">
-                <% @presenter.available_actions.each do |action| %>
-                  <%= button_to admin_order_transition_path(@presenter.number, event: action[:id]),
-                        method: :post, class: action[:button_class],
-                        form: { class: "act-form", data: action[:form_data] } do %>
-                    <i class="bi <%= action[:icon] %>"></i>
-                    <span><%= action[:label] %><span class="act-to"><%= t("admin.orders.detail.action_target", status: action[:target_label]) %></span></span>
-                    <i class="bi bi-arrow-right act-arrow"></i>
-                  <% end %>
-                <% end %>
-
-                <% if @presenter.label_printable? %>
-                  <%= link_to admin_order_label_path(@presenter.number), class: "act-btn", target: "_blank", rel: "noopener" do %>
-                    <i class="bi bi-printer"></i><span><%= t("admin.orders.detail.print_label") %></span>
-                  <% end %>
-                <% end %>
-
-                <% if @presenter.available_actions.empty? %>
-                  <div class="act-none"><i class="bi bi-info-circle"></i><div><%= @presenter.auto_next_note %></div></div>
-                <% end %>
-              </div>
-            </div>
+            <%= render "status_card", presenter: @presenter %>
           </section>
 
           <section class="cust-card">

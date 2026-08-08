@@ -70,6 +70,7 @@ bi-grip-vertical
 bi-hand-thumbs-up
 bi-handbag
 bi-heart
+bi-hourglass
 bi-hourglass-split
 bi-image
 bi-inbox

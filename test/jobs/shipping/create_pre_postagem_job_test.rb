@@ -24,6 +24,22 @@ module Shipping
       assert_equal "AD515656026BR", @shipment.reload.tracking_code
     end
 
+    test "a pré-postagem with no codigoObjeto is recorded on the label for manual review" do
+      label = @shipment.create_shipping_label!
+      stub_create(codigo_objeto: nil)
+
+      assert_raises(Correios::Api::InvalidObjectError) do
+        Shipping::CreatePrePostagemJob.perform_now(@order.id)
+      end
+      assert_no_enqueued_jobs only: Shipping::ConfirmPrePostagemJob
+
+      label.reload
+      assert label.pending?, "the saga must not advance onto an untrackable object"
+      assert_match(/came back without codigoObjeto/, label.error)
+      assert label.errored_at.present?, "operator needs it flagged for review"
+      assert_equal "PR-1", @shipment.reload.pre_post_id
+    end
+
     test "no-ops when the order does not exist" do
       assert_nothing_raised { Shipping::CreatePrePostagemJob.perform_now(-1) }
     end
@@ -72,16 +88,17 @@ module Shipping
 
     private
 
-    def stub_create
+    def stub_create(codigo_objeto: "AD515656026BR")
       stub_request(:post, URL).to_return(
-        status: 201, body: response_body, headers: { "Content-Type" => "application/json" }
+        status: 201, body: response_body(codigo_objeto: codigo_objeto),
+        headers: { "Content-Type" => "application/json" }
       )
     end
 
-    def response_body
+    def response_body(codigo_objeto: "AD515656026BR")
       {
         "id" => "PR-1",
-        "codigoObjeto" => "AD515656026BR",
+        "codigoObjeto" => codigo_objeto,
         "codigoServico" => "03298",
         "statusAtual" => 1,
         "descStatusAtual" => "Pré-atendido",

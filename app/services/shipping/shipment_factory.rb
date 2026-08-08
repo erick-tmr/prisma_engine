@@ -29,15 +29,16 @@ module Shipping
     end
 
     def attributes
+      reader = Correios::Api::Payload
       {
-        tracking_code: payload.fetch("codigoObjeto"),
-        pre_post_id: payload["id"],
-        service_code: payload["codigoServico"],
-        correios_status: payload["statusAtual"],
-        correios_status_label: payload["descStatusAtual"],
-        correios_status_at: Correios::Api::Timestamp.parse(payload["dataHoraStatusAtual"]),
-        posting_deadline: Correios::Api::Timestamp.parse(payload["prazoPostagem"]),
-        requested_at: Correios::Api::Timestamp.parse(payload["dataHora"]),
+        tracking_code: reader.string(payload, "codigoObjeto").presence,
+        pre_post_id: reader.string(payload, "id").presence,
+        service_code: reader.string(payload, "codigoServico").presence,
+        correios_status: reader.integer(payload, "statusAtual"),
+        correios_status_label: reader.string(payload, "descStatusAtual").presence,
+        correios_status_at: reader.time(payload, "dataHoraStatusAtual"),
+        posting_deadline: reader.time(payload, "prazoPostagem"),
+        requested_at: reader.time(payload, "dataHora"),
         pre_post_payload: payload
       }
     end

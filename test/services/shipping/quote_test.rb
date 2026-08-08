@@ -97,6 +97,42 @@ module Shipping
       assert_requested :post, PRECO_URL, times: 2
     end
 
+    test "a row that quotes no price is ineligible, never a delivery charged at the handling fee alone" do
+      StoreSetting.current.update!(handling_fee_cents: 500)
+      stub_request(:post, PRECO_URL).to_return(
+        status: 200, headers: { "Content-Type" => "application/json" },
+        body: [ { "coProduto" => "03220", "nuRequisicao" => "03220", "pcFinal" => nil },
+                { "coProduto" => "03298", "nuRequisicao" => "03298", "pcFinal" => "0,00" },
+                { "coProduto" => "04227", "nuRequisicao" => "04227", "pcFinal" => "19,84" } ].to_json
+      )
+      stub_prazo(eligible: %w[03220 03298 04227])
+
+      services = Shipping::Quote.call(cep_destino: "01310100", weight_grams: 150).index_by { |s| s[:key] }
+
+      assert_not services[:sedex][:eligible]
+      assert_equal :api_error, services[:sedex][:reason]
+      assert_nil services[:sedex][:price_cents]
+      assert_not services[:pac][:eligible], "a zero price is not a free shipment"
+      assert_equal :api_error, services[:pac][:reason]
+      assert services[:mini_envios][:eligible]
+      assert_equal 2484, services[:mini_envios][:price_cents]
+    end
+
+    test "a row that quotes a price but no prazo is still eligible, with no promised window" do
+      stub_preco(eligible: %w[03220 03298 04227])
+      stub_request(:post, PRAZO_URL).to_return(
+        status: 200, headers: { "Content-Type" => "application/json" },
+        body: [ { "coProduto" => "03220", "nuRequisicao" => "03220", "prazoEntrega" => nil },
+                { "coProduto" => "03298", "nuRequisicao" => "03298", "prazoEntrega" => 5 },
+                { "coProduto" => "04227", "nuRequisicao" => "04227", "prazoEntrega" => 8 } ].to_json
+      )
+
+      sedex = Shipping::Quote.call(cep_destino: "01310100", weight_grams: 150).first
+
+      assert sedex[:eligible]
+      assert_equal 0, sedex[:business_days]
+    end
+
     private
 
     def stub_preco(eligible:, swapped: {})

@@ -1,5 +1,6 @@
 <%# locals: (order:) %>
-<tr data-order="<%= order.number %>" data-status="<%= order.status %>">
+<% feedback = Admin::LabelFeedback.new(order) %>
+<tr data-order="<%= order.number %>" data-status="<%= order.status %>"<%= " class=\"is-busy\"".html_safe if feedback.in_flight? %>>
   <% if order.merged? %>
     <td class="checkcol"></td>
   <% else %>
@@ -23,7 +24,8 @@
     <%= l(order.created_at.to_date, format: :list) %>
     <div class="cell-sub"><%= t("admin.lists.items", count: order.order_items.sum(&:quantity)) %></div>
   </td>
-  <td><span class="pill st-<%= order.status %>"><%= t("account.orders.states.#{order.status}.label") %></span></td>
+  <td><%= render "admin/orders/status_cell", order: order %></td>
+  <td class="corcell"><%= render "admin/orders/correios_cell", feedback: feedback %></td>
   <td class="num"><span class="amount"><%= format_brl(order.total_cents) %></span></td>
   <td class="num"><i class="bi bi-chevron-right row-chev"></i></td>
 </tr>

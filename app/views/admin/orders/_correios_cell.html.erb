@@ -1,0 +1,34 @@
+<%# locals: (feedback:) %>
+<div class="corcell-in" data-part="correios-<%= feedback.number %>" data-cor-state="<%= feedback.state %>">
+  <% case feedback.state %>
+  <% when "queued" %>
+    <span class="proc proc-queued"><i class="bi bi-hourglass"></i> <%= t("admin.dashboard.orders.correios.queued") %></span>
+    <span class="proc-sub"><%= t("admin.dashboard.orders.correios.queued_sub") %></span>
+  <% when "running" %>
+    <span class="proc proc-run"><span class="spin"></span> <%= t("admin.dashboard.orders.correios.running") %></span>
+    <span class="proc-sub"><%= t("admin.dashboard.orders.correios.step.#{feedback.step}") %></span>
+    <div class="proc-bar"><span></span></div>
+  <% when "failed" %>
+    <span class="proc proc-err"><i class="bi bi-exclamation-triangle-fill"></i> <%= t("admin.dashboard.orders.correios.failed") %></span>
+    <span class="proc-sub"><%= feedback.error_message %></span>
+    <button type="button" class="proc-retry" data-retry="<%= feedback.number %>"
+            data-retry-url="<%= admin_label_path(feedback.number) %>">
+      <i class="bi bi-arrow-clockwise"></i> <%= t("admin.dashboard.orders.correios.retry") %>
+    </button>
+  <% when "done" %>
+    <span class="proc proc-ok">
+      <i class="bi bi-check-lg"></i>
+      <% if feedback.code.present? %>
+        <span class="proc-code"><%= feedback.code %></span>
+      <% else %>
+        <%= t("admin.dashboard.orders.correios.done") %>
+      <% end %>
+    </span>
+  <% else %>
+    <% if feedback.code.present? %>
+      <span class="cor-code"><%= feedback.code %></span>
+    <% else %>
+      <span class="cor-none"><%= t("admin.dashboard.orders.correios.none") %></span>
+    <% end %>
+  <% end %>
+</div>
