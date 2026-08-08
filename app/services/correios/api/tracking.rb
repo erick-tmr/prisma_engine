@@ -19,7 +19,7 @@ module Correios
         response = request
         raise_for_status(response)
         objeto = parse_objeto(response.body)
-        eventos = Array(objeto["eventos"])
+        eventos = identified(Array(objeto["eventos"]))
         raise_if_invalid(objeto) if eventos.empty?
         chronological(eventos.map { |evento| normalize(evento) })
       end
@@ -45,24 +45,39 @@ module Correios
       end
 
       def parse_objeto(body)
-        JSON.parse(body.presence || "{}").dig("objetos", 0) || {}
+        Correios::Api::Payload.hash(JSON.parse(body.presence || "{}").dig("objetos", 0))
       rescue JSON::ParserError => error
         raise Correios::Api::Error, "unparseable rastro body: #{error.message}"
       end
 
+      # codigo + tipo are the only keys EVENT_SIGNALS matches on, so an event
+      # missing either can never be classified and would land in the catch-all
+      # that reads as movement, advancing the shipment on nothing at all.
+      def identified(eventos)
+        eventos.select { |evento| identifiable?(evento) }
+      end
+
+      def identifiable?(evento)
+        return true if %w[codigo tipo].all? { |key| Correios::Api::Payload.string(evento, key).present? }
+
+        Rails.logger.error("[correios-rastro] dropped unidentifiable event for #{tracking_code}: #{evento.inspect}")
+        false
+      end
+
       def raise_if_invalid(objeto)
-        message = objeto["mensagem"].to_s
+        message = Correios::Api::Payload.string(objeto, "mensagem")
         return unless message.match?(/\bSRO-019\b/i)
 
         raise Correios::Api::InvalidObjectError, message
       end
 
       def normalize(evento)
+        reader = Correios::Api::Payload
         {
-          code: evento["codigo"],
-          type: evento["tipo"],
-          description: evento["descricao"].presence,
-          occurred_at: Correios::Api::Timestamp.parse(evento["dtHrCriado"]),
+          code: reader.string(evento, "codigo"),
+          type: reader.string(evento, "tipo"),
+          description: reader.string(evento, "descricao").presence,
+          occurred_at: reader.time(evento, "dtHrCriado"),
           payload: evento
         }
       end

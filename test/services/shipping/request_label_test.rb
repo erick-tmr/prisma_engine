@@ -20,5 +20,20 @@ module Shipping
       assert_equal "P", @sent["tipoRotulo"]
       assert_equal "ET", @sent["formatoRotulo"]
     end
+
+    test "a response with no usable idRecibo fails non-retryably instead of buying a blank recibo" do
+      shipment = Shipment.create!(tracking_code: "AD1", pre_post_id: "PR-99", order: orders(:producing))
+
+      [ {}, { "idRecibo" => nil }, { "idRecibo" => "" } ].each do |body|
+        stub_request(:post, URL).to_return(status: 200, body: body.to_json,
+                                           headers: { "Content-Type" => "application/json" })
+
+        error = assert_raises(Correios::Api::InvalidObjectError) { Shipping::RequestLabel.call(shipment) }
+
+        assert_match(/idRecibo came back empty/, error.message)
+        assert_match(/PR-99/, error.message, "the operator needs the pré-postagem it belongs to")
+        assert_not_kind_of Correios::Api::TransientError, error
+      end
+    end
   end
 end

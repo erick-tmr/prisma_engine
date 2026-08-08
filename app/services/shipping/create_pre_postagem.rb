@@ -30,7 +30,7 @@ module Shipping
     def call
       response = Correios::Api::PrePostagem.create(request_body)
       Shipping::ShipmentFactory.update_from_pre_postagem(shipment, response)
-      ensure_object_code!
+      validate_pre_postagem!
       shipment
     end
 
@@ -38,15 +38,18 @@ module Shipping
 
     attr_reader :request, :shipment
 
-    # A pré-postagem that comes back without a codigoObjeto is unusable: every
-    # later step keys off tracking_code, and nothing can backfill it. Persist the
-    # payload first so the pre_post_id survives for manual review, then fail
-    # non-retryably rather than advancing the saga onto an object we cannot track.
-    def ensure_object_code!
-      return if shipment.tracking_code.present?
+    # A pré-postagem missing either field is unusable: every later step keys off
+    # tracking_code, RequestLabel keys off pre_post_id, and nothing can backfill
+    # either. Persist the payload first so the raw response survives for manual
+    # review, then fail non-retryably rather than advancing the saga onto an
+    # object we can neither track nor turn into a rótulo.
+    def validate_pre_postagem!
+      missing = %w[codigoObjeto id].zip([ shipment.tracking_code, shipment.pre_post_id ])
+                                   .filter_map { |field, value| field if value.blank? }
+      return if missing.empty?
 
       raise Correios::Api::InvalidObjectError,
-            "pré-postagem #{shipment.pre_post_id.inspect} returned no codigoObjeto"
+            "pré-postagem #{shipment.pre_post_id.inspect} came back without #{missing.join(' and ')}"
     end
 
     def request_body

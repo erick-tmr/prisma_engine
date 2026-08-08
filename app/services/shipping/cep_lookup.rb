@@ -22,11 +22,11 @@ module Shipping
     def call
       payload = Correios::Api::Cep.find(cep)
       {
-        cep: payload["cep"].presence || cep,
-        street: payload["logradouro"].presence,
+        cep: read(payload, "cep").presence || cep,
+        street: read(payload, "logradouro").presence,
         neighborhood: neighborhood_for(payload),
         city: city_for(payload),
-        state: payload["uf"].presence
+        state: read(payload, "uf").presence
       }.compact
     end
 
@@ -34,18 +34,23 @@ module Shipping
 
     attr_reader :cep
 
+    def read(payload, key)
+      Correios::Api::Payload.string(payload, key)
+    end
+
     def city_for(payload)
-      (payload["nomeMunicipio"].presence ||
-        payload["localidadeSuperior"].presence ||
-        payload["localidade"].presence)
+      (read(payload, "nomeMunicipio").presence ||
+        read(payload, "localidadeSuperior").presence ||
+        read(payload, "localidade").presence)
     end
 
     # bairro wins when present; otherwise localidade fills it in when it names
     # something other than the municipality itself (the town-wide CEP case).
     def neighborhood_for(payload)
-      return payload["bairro"] if payload["bairro"].present?
+      bairro = read(payload, "bairro")
+      return bairro if bairro.present?
 
-      localidade = payload["localidade"].to_s
+      localidade = read(payload, "localidade")
       return nil if localidade.empty? || localidade == city_for(payload)
 
       localidade

@@ -58,7 +58,7 @@ module Shipping
         Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
       end
 
-      assert_match(/returned no codigoObjeto/, error.message)
+      assert_match(/came back without codigoObjeto/, error.message)
       assert_not_kind_of Correios::Api::TransientError, error, "must not be retried into a duplicate"
 
       @shipment.reload
@@ -75,6 +75,42 @@ module Shipping
       end
     end
 
+    test "a codigoObjeto Correios omitted entirely fails in our own vocabulary, not with a KeyError" do
+      stub_raw({ "id" => "PRHelX4tO8Qsuqq0D47quwxA", "codigoServico" => "03220" })
+
+      error = assert_raises(Correios::Api::InvalidObjectError) do
+        Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
+      end
+
+      assert_match(/came back without codigoObjeto/, error.message)
+      assert_equal "PRHelX4tO8Qsuqq0D47quwxA", @shipment.reload.pre_post_id, "manual review needs the id"
+    end
+
+    test "a pré-postagem with no id is rejected too: nothing can request a rótulo for it" do
+      stub_raw({ "codigoObjeto" => "AD515656026BR", "codigoServico" => "03220" })
+
+      error = assert_raises(Correios::Api::InvalidObjectError) do
+        Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
+      end
+
+      assert_match(/came back without id/, error.message)
+      assert_equal({ "codigoObjeto" => "AD515656026BR", "codigoServico" => "03220" },
+                   @shipment.reload.pre_post_payload, "the raw response is what review has to go on")
+    end
+
+    test "a response missing both fields names both, and leaves the columns null so a retry can still pin" do
+      stub_raw({ "codigoServico" => "03220" })
+
+      error = assert_raises(Correios::Api::InvalidObjectError) do
+        Shipping::CreatePrePostagem.call(request_for(:sedex), shipment: @shipment)
+      end
+
+      assert_match(/came back without codigoObjeto and id/, error.message)
+      @shipment.reload
+      assert_nil @shipment.tracking_code
+      assert_nil @shipment.pre_post_id, "an empty string here would pin the row to junk"
+    end
+
     test "a duplicate whose payload lacks the code keeps the pinned original and does not fail" do
       @shipment.update!(tracking_code: "AD515656026BR", pre_post_id: "PRoriginal000000000000000")
       stub_create(status: 201, codigo_objeto: nil)
@@ -89,6 +125,12 @@ module Shipping
 
     def request_for(service)
       Shipping::PrePostagemRequest.from_shipment(@shipment).with(service: service)
+    end
+
+    def stub_raw(body)
+      stub_request(:post, URL).to_return(
+        status: 201, body: body.to_json, headers: { "Content-Type" => "application/json" }
+      )
     end
 
     def stub_create(status:, service: "03220", codigo_objeto: "AD515656026BR")

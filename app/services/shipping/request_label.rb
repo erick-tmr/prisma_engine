@@ -13,7 +13,9 @@ module Shipping
 
     def call
       response = Correios::Api::RotuloRequest.create(payload)
-      response.fetch("idRecibo")
+      Correios::Api::Payload.require_string(
+        response, "idRecibo", "rótulo request for pré-postagem #{shipment.pre_post_id.inspect}"
+      )
     end
 
     private

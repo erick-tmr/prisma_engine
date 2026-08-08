@@ -97,6 +97,30 @@ module Correios
         assert_raises(Correios::Api::InvalidObjectError) { Correios::Api::Tracking.fetch(CODE) }
       end
 
+      test "drops events Correios sent without a codigo or tipo, keeping the identifiable ones" do
+        body = {
+          "objetos" => [ { "codObjeto" => CODE, "eventos" => [
+            event("BDE", "01", "2026-05-23T10:58:58", "Objeto entregue ao destinatário"),
+            { "tipo" => "01", "dtHrCriado" => "2026-05-23T09:00:00", "descricao" => "sem codigo" },
+            { "codigo" => "PO", "dtHrCriado" => "2026-05-22T14:51:02", "descricao" => "sem tipo" },
+            event("FC", "82", "2026-05-22T13:11:04", "Etiqueta emitida")
+          ] } ]
+        }.to_json
+        stub_objetos(status: 200, body: body)
+
+        events = Correios::Api::Tracking.fetch(CODE)
+
+        assert_equal %w[FC BDE], events.map { |event| event[:code] },
+                     "an event that cannot be classified must not read as movement"
+      end
+
+      test "an objeto whose events are all unidentifiable yields nothing rather than a false movement" do
+        body = { "objetos" => [ { "codObjeto" => CODE, "eventos" => [ { "descricao" => "?" } ] } ] }.to_json
+        stub_objetos(status: 200, body: body)
+
+        assert_empty Correios::Api::Tracking.fetch(CODE)
+      end
+
       private
 
       def stub_objetos(status:, body:)

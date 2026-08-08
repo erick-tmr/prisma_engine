@@ -17,5 +17,17 @@ module Shipping
       assert_equal "etiqueta.pdf", result.filename
       assert_equal "JVBERi0=", result.pdf_base64
     end
+
+    test "a label with no bytes is rejected rather than stored as a ready but empty PDF" do
+      [ { "nome" => "etiqueta.pdf", "dados" => nil }, { "nome" => nil, "dados" => "JVBERi0=" },
+        { "nome" => "etiqueta.pdf" } ].each do |body|
+        Correios::Api::RotuloDownload.stub(:fetch, body) do
+          error = assert_raises(Correios::Api::InvalidObjectError) { Shipping::DownloadLabel.call(RECIBO) }
+
+          assert_match(/came back empty/, error.message)
+          assert_match(/#{RECIBO}/, error.message)
+        end
+      end
+    end
   end
 end

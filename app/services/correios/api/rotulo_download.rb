@@ -20,9 +20,9 @@ module Correios
         response = get
         raise_for_status(response)
         body = JSON.parse(response.body)
-        return body if body.is_a?(Hash) && body.key?("nome") && body.key?("dados")
+        return body if label_in?(body)
 
-        message = body.is_a?(Hash) ? body["mensagem"] : response.body
+        message = Correios::Api::Payload.string(body, "mensagem").presence || response.body
         Rails.logger.warn("[RotuloDownload] recibo=#{recibo_id} sem etiqueta: #{message}")
         raise error_class_for(message), "rótulo download sem etiqueta (recibo #{recibo_id}): #{message}"
       end
@@ -30,6 +30,13 @@ module Correios
       private
 
       attr_reader :recibo_id
+
+      # A hollow 200 (both keys present, both null) is the same "no label yet" as
+      # a body carrying a PPN code, so it takes the same classified path instead
+      # of being handed on as a label with no bytes.
+      def label_in?(body)
+        %w[nome dados].all? { |key| Correios::Api::Payload.string(body, key).present? }
+      end
 
       def error_class_for(message)
         text = message.to_s

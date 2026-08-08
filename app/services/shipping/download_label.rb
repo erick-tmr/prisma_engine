@@ -4,7 +4,11 @@ module Shipping
 
     def self.call(recibo_id)
       response = Correios::Api::RotuloDownload.fetch(recibo_id)
-      Result.new(filename: response.fetch("nome"), pdf_base64: response.fetch("dados"))
+      context = "rótulo download (recibo #{recibo_id})"
+      Result.new(
+        filename: Correios::Api::Payload.require_string(response, "nome", context),
+        pdf_base64: Correios::Api::Payload.require_string(response, "dados", context)
+      )
     end
   end
 end

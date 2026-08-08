@@ -35,7 +35,7 @@ module Shipping
 
       label.reload
       assert label.pending?, "the saga must not advance onto an untrackable object"
-      assert_match(/returned no codigoObjeto/, label.error)
+      assert_match(/came back without codigoObjeto/, label.error)
       assert label.errored_at.present?, "operator needs it flagged for review"
       assert_equal "PR-1", @shipment.reload.pre_post_id
     end
