@@ -104,15 +104,43 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_includes html_body, "Postado"
   end
 
-  test "delivery_issue explains the problem and shows the tracking code" do
+  test "delivery_issue falls back to the generic copy when no issue event is catalogued" do
     order = orders(:delivered)
     email = OrderMailer.delivery_issue(order)
 
     assert_equal "Problema na entrega do pedido #{order.number}", email.subject
-    body = email.html_part.body.to_s
-    assert_includes body, "problema na entrega"
-    assert_includes body, order.shipment.tracking_code
-    assert_includes body, "Falar com o suporte"
-    assert_includes body, "dragon-letter-full.png"
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, "problema na entrega"
+      assert_includes body, order.shipment.tracking_code
+      assert_includes body, "Falar com o suporte"
+      assert_includes body, "mailto:vininess@hotmail.com"
+    end
+
+    assert_includes email.html_part.body.to_s, "dragon-letter-full.png"
+  end
+
+  test "delivery_issue sends the Correios pickup copy and quotes what Correios said" do
+    order = orders(:delivered)
+    detalhe = "Por favor, aguarde. Será informada aqui a unidade em que o objeto ficará disponível para retirada"
+    order.shipment.tracking_events.create!(
+      position: 0, event_code: "BDE", event_type: "98",
+      description: "Objeto não entregue - Endereço insuficiente",
+      occurred_at: Time.current, payload: { "detalhe" => detalhe }
+    )
+
+    email = OrderMailer.delivery_issue(order)
+
+    assert_equal "Os Correios não conseguiram entregar o pedido #{order.number}", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, "entre em contato com os Correios"
+      assert_includes body, detalhe
+      assert_includes body, order.shipment.tracking_code
+      assert_includes body, "Acompanhar nos Correios"
+      assert_includes body, order.shipment.tracking_url
+    end
   end
 end

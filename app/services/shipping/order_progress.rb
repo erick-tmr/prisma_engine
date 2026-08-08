@@ -3,9 +3,10 @@ module Shipping
     LEG = %w[label_issued shipped delivered].freeze
 
     TARGETS = {
-      "in_transit" => { advance_to: "shipped",   then_to: nil },
-      "delivered"  => { advance_to: "delivered", then_to: nil },
-      "returned"   => { advance_to: "shipped",   then_to: "delivery_issue" }
+      "in_transit"     => { advance_to: "shipped",   then_to: nil },
+      "delivered"      => { advance_to: "delivered", then_to: nil },
+      "returned"       => { advance_to: "shipped",   then_to: "delivery_issue" },
+      "delivery_issue" => { advance_to: "shipped",   then_to: "delivery_issue" }
     }.freeze
 
     def self.apply(shipment)
@@ -22,6 +23,7 @@ module Shipping
       return unless plan
 
       Order.transaction do
+        resume_from_issue
         walk_to(plan[:advance_to])
         branch_to(plan[:then_to])
       end
@@ -30,6 +32,12 @@ module Shipping
     private
 
     attr_reader :shipment, :order
+
+    def resume_from_issue
+      return unless order.delivery_issue? && shipment.tracking_delivered?
+
+      order.transition_to!("delivered", automatic: true)
+    end
 
     def walk_to(target)
       target_index = LEG.index(target)

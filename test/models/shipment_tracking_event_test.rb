@@ -25,6 +25,16 @@ class ShipmentTrackingEventTest < ActiveSupport::TestCase
     assert_equal "ZZ/99", event.summary
   end
 
+  test "detail is the Correios instruction that came with the event" do
+    event = ShipmentTrackingEvent.new(payload: { "detalhe" => "Aguardando postagem pelo remetente" })
+    assert_equal "Aguardando postagem pelo remetente", event.detail
+  end
+
+  test "detail is nil when the event carries no instruction" do
+    assert_nil ShipmentTrackingEvent.new(payload: {}).detail
+    assert_nil ShipmentTrackingEvent.new(payload: { "detalhe" => "" }).detail
+  end
+
   test "destination reads the unit type, city and UF from the payload" do
     event = ShipmentTrackingEvent.new(payload: {
       "unidadeDestino" => { "tipo" => "Unidade de Tratamento", "endereco" => { "cidade" => "SAO PAULO", "uf" => "SP" } }

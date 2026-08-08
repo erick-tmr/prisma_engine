@@ -7,6 +7,10 @@ class ShipmentTrackingEvent < ApplicationRecord
     description.presence || "#{event_code}/#{event_type}"
   end
 
+  def detail
+    payload["detalhe"].presence
+  end
+
   def destination
     unit_location(payload["unidadeDestino"])
   end

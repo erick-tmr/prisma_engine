@@ -232,8 +232,8 @@ class OrderTest < ActiveSupport::TestCase
     assert order.delivery_issue?
   end
 
-  test "delivery_issue resolves to refund, reship or cancel" do
-    %w[awaiting_refund shipped cancelled].each do |target|
+  test "delivery_issue resolves to refund, reship, delivery or cancel" do
+    %w[awaiting_refund shipped delivered cancelled].each do |target|
       order = order_in_delivery_issue
       order.transition_to!(target)
       assert_equal target, order.status
@@ -242,7 +242,7 @@ class OrderTest < ActiveSupport::TestCase
 
   test "delivery_issue refuses a non-resolution edge" do
     order = order_in_delivery_issue
-    assert_raises(Order::InvalidTransition) { order.transition_to!("delivered") }
+    assert_raises(Order::InvalidTransition) { order.transition_to!("in_production") }
   end
 
   test "creating an order records an initial automatic status change" do

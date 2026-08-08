@@ -391,10 +391,28 @@ Six customer-facing states in pt-BR. The flow is **not linear**, with two branch
 Our Correios contract has **no webhooks**, so tracking is **polled**.
 
 **Event interpretation:** `Shipping::TrackingUpdate` maps confirmed `(code, type)`
-pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label); anything
-else that isn't the label counts as in-transit. We **don't know the `returned` code
-yet**: uncatalogued `(code, type)` pairs are persisted as events *and* logged
-(`unmapped event …`) so we can identify them from real data and extend the map.
+pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label / failed
+delivery); anything else that isn't the label counts as in-transit. We **don't know
+the `returned` code yet**: uncatalogued `(code, type)` pairs are persisted as events
+*and* logged (`unmapped event …`) so we can identify them from real data and extend
+the map.
+
+**Failed delivery attempts** are not terminal. `BDE/98` ("Objeto não entregue,
+Endereço insuficiente", seen on PG-95039) derives `tracking_state: delivery_issue`,
+which flags the order for attention without closing it: the object stays with
+Correios awaiting pickup, so polling continues and later movement does not clear the
+flag. A `delivered` signal outranks it, and `Shipping::OrderProgress` then resumes
+the order straight from `delivery_issue` to `delivered` (a single edge, so no
+spurious "postado" e-mail). If the customer never collects, the object comes back to
+us and the eventual return code lands in the same map.
+
+**Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table that says,
+per issue signal, which `tracking_state` it derives and who the customer should
+contact. `OrderMailer#delivery_issue` re-derives the issue from the persisted events
+rather than from the status change, so a new Correios problem is a row in that table
+plus a locale block; anything uncatalogued falls back to the generic `unknown` copy
+pointing at our own support. Correios' own `detalhe` string is quoted verbatim in the
+e-mail and in both tracking timelines.
 
 **Rate limit:** the rastro gateway returns its token-bucket limits in response
 headers: `x-ratelimit-replenish-rate: 50` (50 req/s), `x-ratelimit-burst-capacity: 55`,

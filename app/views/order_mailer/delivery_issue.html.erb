@@ -1,16 +1,27 @@
+<% scope = "order_mailer.delivery_issue.#{@issue.kind}" %>
 <%= render layout: "shared/email_card", locals: {
-      badge_label: t("order_mailer.delivery_issue.badge_label"),
+      badge_label: t("#{scope}.badge_label"),
       badge_color: "#e08a00",
       hero_image: "dragon-letter-full.png",
       hero_height: 180,
-      heading: t("order_mailer.delivery_issue.heading"),
+      heading: t("#{scope}.heading"),
       first_name: @order.user.first_name
     } do %>
   <tr>
     <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
-      <%= t("order_mailer.delivery_issue.intro") %>
+      <%= t("#{scope}.intro") %>
     </td>
   </tr>
+  <% if @issue.detail.present? %>
+    <tr>
+      <td class="px" style="padding:16px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;">
+        <div style="background:#fff8ec;border-left:3px solid #e08a00;border-radius:8px;padding:12px 16px;font-size:14px;line-height:1.6;color:#6b4a00;">
+          <%= t("order_mailer.delivery_issue.correios_says") %>
+          <strong style="color:#4a3300;"><%= @issue.detail %></strong>
+        </div>
+      </td>
+    </tr>
+  <% end %>
   <%= render "shared/email_tracking_chip", code: @order.shipment.tracking_code %>
-  <%= render "shared/email_cta", url: "mailto:#{t('mailer.support_email')}", label: t("order_mailer.delivery_issue.cta") %>
+  <%= render "shared/email_cta", url: @issue_url, label: t("#{scope}.cta") %>
 <% end %>

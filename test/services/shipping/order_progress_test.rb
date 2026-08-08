@@ -10,6 +10,7 @@ module Shipping
       "shipped"          => %w[payment_confirmed in_production label_issued shipped],
       "delivered"        => %w[payment_confirmed in_production label_issued shipped delivered],
       "production_issue" => %w[payment_confirmed in_production production_issue],
+      "delivery_issue"   => %w[payment_confirmed in_production label_issued shipped delivery_issue],
       "awaiting_refund"  => %w[payment_confirmed awaiting_refund],
       "cancelled"        => %w[cancelled]
     }.freeze
@@ -71,6 +72,56 @@ module Shipping
         Shipping::OrderProgress.apply(shipment)
       end
 
+      assert order.reload.delivery_issue?
+    end
+
+    test "delivery_issue tracking flags the order and emails the customer" do
+      order, shipment = order_with_shipment("shipped", :delivery_issue)
+
+      assert_enqueued_email_with OrderMailer, :delivery_issue, args: [ order ] do
+        Shipping::OrderProgress.apply(shipment)
+      end
+
+      assert order.reload.delivery_issue?
+    end
+
+    test "delivery_issue tracking walks a label_issued order through shipped first" do
+      order, shipment = order_with_shipment("label_issued", :delivery_issue)
+
+      Shipping::OrderProgress.apply(shipment)
+
+      assert order.reload.delivery_issue?
+      assert_equal %w[shipped delivery_issue],
+                   order.status_changes.chronological.last(2).map(&:to_status)
+    end
+
+    test "a flagged order stays put while tracking keeps reporting the issue" do
+      order, shipment = order_with_shipment("delivery_issue", :delivery_issue)
+
+      assert_no_difference -> { order.status_changes.count } do
+        2.times { Shipping::OrderProgress.apply(shipment) }
+      end
+      assert order.reload.delivery_issue?
+    end
+
+    test "a flagged order resumes to delivered once the customer collects it" do
+      order, shipment = order_with_shipment("delivery_issue", :delivered)
+
+      assert_enqueued_email_with OrderMailer, :delivered, args: [ order ] do
+        assert_difference -> { order.status_changes.count }, 1 do
+          Shipping::OrderProgress.apply(shipment)
+        end
+      end
+
+      assert order.reload.delivered?
+    end
+
+    test "a flagged order is not dragged back to shipped by stale movement" do
+      order, shipment = order_with_shipment("delivery_issue", :in_transit)
+
+      assert_no_difference -> { order.status_changes.count } do
+        Shipping::OrderProgress.apply(shipment)
+      end
       assert order.reload.delivery_issue?
     end
 

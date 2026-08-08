@@ -16,10 +16,21 @@ class OrderMailerPreview < ActionMailer::Preview
   end
 
   def delivery_issue
-    OrderMailer.delivery_issue(shipped_order)
+    OrderMailer.delivery_issue(order_matching_issue(:catalogued) || shipped_order)
+  end
+
+  def delivery_issue_unknown
+    OrderMailer.delivery_issue(order_matching_issue(:unknown) || shipped_order)
   end
 
   private
+
+  def order_matching_issue(wanted)
+    Order.joins(:shipment).where.not(shipments: { tracking_code: nil }).recent_first.find do |order|
+      unknown = Shipping::DeliveryIssue.for(order.shipment).kind == Shipping::DeliveryIssue::UNKNOWN
+      unknown == (wanted == :unknown)
+    end
+  end
 
   def shipped_order
     tracked = Order.joins(:shipment)

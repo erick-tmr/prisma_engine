@@ -104,7 +104,8 @@ orders = [
   [ 11, "in_production",      5,  67_400, 2 ],
   [ 13, "payment_confirmed",  3,  39_900, 1 ],
   [ 1,  "awaiting_components", 7,  88_800, 3 ],
-  [ 3,  "label_issued",      11,  45_000, 1 ]
+  [ 3,  "label_issued",      11,  45_000, 1 ],
+  [ 6,  "delivery_issue",    24,  63_400, 2 ]
 ]
 
 services = Shipping::SERVICES.keys.map(&:to_s)
@@ -146,7 +147,7 @@ orders.each_with_index do |(customer_index, status, days_ago, total_cents, quant
   order.save!
 end
 
-labeled_statuses = %w[label_issued shipped delivered]
+labeled_statuses = %w[label_issued shipped delivered delivery_issue]
 demo_external_ids = (1..orders.size).map { |index| "demo-order-#{index}" }
 tracking_prefixes = { "sedex" => "SS", "pac" => "OU", "mini_envios" => "OF" }
 transit_business_days = { "sedex" => 4, "pac" => 9, "mini_envios" => 11 }
@@ -174,11 +175,50 @@ Order.where(external_id: demo_external_ids, status: labeled_statuses).includes(:
       posted_at: posted_at, delivered_at: posted_at + business_days.days, tracking_state: :delivered,
       last_tracked_at: Time.current, last_tracking_status: "Objeto entregue ao destinatário"
     )
+  when "delivery_issue"
+    shipment.assign_attributes(
+      posted_at: posted_at, tracking_state: :delivery_issue,
+      last_tracked_at: Time.current, last_tracking_status: "Objeto não entregue - Endereço insuficiente"
+    )
   else
     shipment.posting_deadline = order.created_at + 3.days
   end
 
   shipment.save!
+end
+
+# Correios rastro history, so the customer and backoffice timelines have something
+# to render locally. Mirrors a real SRO feed: `detalhe` only shows up on some codes.
+# hours are relative to the shipment's posted_at.
+transit_feed = [
+  [ -24, "FC",  "82", "Etiqueta emitida", "Aguardando postagem pelo remetente" ],
+  [   0, "PO",  "09", "Objeto postado após o horário limite da unidade", "Sujeito a encaminhamento no próximo dia útil" ],
+  [   7, "RO",  "01", "Objeto em transferência - por favor aguarde", nil ],
+  [  44, "OEC", "01", "Objeto saiu para entrega ao destinatário", "É preciso ter alguém no endereço para receber o carteiro" ]
+]
+closing_feed = {
+  "shipped"        => [],
+  "delivered"      => [ [ 50, "BDE", "01", "Objeto entregue ao destinatário", nil ] ],
+  "delivery_issue" => [
+    [ 50, "BDE", "98", "Objeto não entregue - Endereço insuficiente",
+      "Por favor, aguarde. Será informada aqui a unidade em que o objeto ficará disponível para retirada" ],
+    [ 74, "RO", "01", "Objeto em transferência - por favor aguarde", nil ]
+  ]
+}
+
+Order.where(external_id: demo_external_ids, status: closing_feed.keys).includes(:shipment).find_each do |order|
+  shipment = order.shipment
+  next if shipment.nil? || shipment.tracking_events.exists?
+
+  legs = order.shipped? ? transit_feed.first(3) : transit_feed
+  (legs + closing_feed.fetch(order.status)).each_with_index do |(hours, code, type, description, detalhe), position|
+    shipment.tracking_events.create!(
+      position: position, tracking_code: shipment.tracking_code,
+      event_code: code, event_type: type, description: description,
+      occurred_at: shipment.posted_at + hours.hours,
+      payload: { "codigo" => code, "tipo" => type, "descricao" => description, "detalhe" => detalhe }.compact
+    )
+  end
 end
 
 # A real Correios pré-postagem label (SEDEX), reused as the printable sample for

@@ -18,10 +18,20 @@ class OrderMailer < ApplicationMailer
   end
 
   def delivery_issue(order)
-    deliver_for(order)
+    @order = order
+    @issue = Shipping::DeliveryIssue.for(order.shipment)
+    @issue_url = issue_url
+    mail(to: order.user.email,
+         subject: t("order_mailer.delivery_issue.#{@issue.kind}.subject", number: order.number))
   end
 
   private
+
+  def issue_url
+    return @order.shipment.tracking_url if @issue.contact == :correios
+
+    "mailto:#{t('mailer.support_email')}"
+  end
 
   def deliver_for(order)
     @order = order

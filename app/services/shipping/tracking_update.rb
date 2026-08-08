@@ -7,7 +7,8 @@ module Shipping
       %w[DO 01] => :in_transit,
       %w[OEC 01] => :in_transit,
       %w[BDE 01] => :delivered,
-      %w[BDE 20] => :in_transit
+      %w[BDE 20] => :in_transit,
+      %w[BDE 98] => :awaiting_pickup
     }.freeze
 
     UNIQUE_BY = %i[shipment_id position].freeze
@@ -15,6 +16,10 @@ module Shipping
 
     def self.apply(shipment, events)
       new(shipment, events).apply
+    end
+
+    def self.signal_for(code, type)
+      EVENT_SIGNALS[[ code, type ]]
     end
 
     def self.uncatalogued_codes
@@ -86,9 +91,18 @@ module Shipping
 
     def derive_state
       return "delivered" if any_signal?(:delivered)
+
+      issue = issue_state
+      return issue if issue
       return "in_transit" if events.any? { |event| moved?(event) }
 
       "pending"
+    end
+
+    def issue_state
+      latest = events.reverse.find { |event| DeliveryIssue.issue?(signal(event)) }
+
+      latest && DeliveryIssue.state_for(signal(latest))
     end
 
     def any_signal?(kind)
@@ -96,7 +110,7 @@ module Shipping
     end
 
     def signal(event)
-      EVENT_SIGNALS[key(event)]
+      self.class.signal_for(event[:code], event[:type])
     end
 
     def key(event)

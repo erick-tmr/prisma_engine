@@ -10,7 +10,7 @@ class Shipment < ApplicationRecord
   }.freeze
 
   enum :tracking_state,
-       { pending: 0, in_transit: 1, delivered: 2, returned: 3, unavailable: 4 },
+       { pending: 0, in_transit: 1, delivered: 2, returned: 3, unavailable: 4, delivery_issue: 5 },
        prefix: :tracking
 
   FINAL_TRACKING_STATES = %w[delivered returned unavailable].freeze

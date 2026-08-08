@@ -108,6 +108,32 @@ module Shipping
       assert_equal "PO", shipment.reload.tracking_events.find_by(position: 0).event_code
     end
 
+    test "a failed delivery attempt puts the shipment in delivery_issue" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, posted_event, failed_delivery_event ])
+
+      assert shipment.reload.tracking_delivery_issue?
+      assert_equal "Objeto não entregue - Endereço insuficiente", shipment.last_tracking_status
+    end
+
+    test "delivery_issue survives later movement, since the object still needs attention" do
+      shipment = shipments(:labeled)
+      transfer = event("RO", "01", "Objeto em transferência - por favor aguarde", Time.utc(2026, 5, 27, 9, 0, 0))
+
+      Shipping::TrackingUpdate.apply(shipment, [ posted_event, failed_delivery_event, transfer ])
+
+      assert shipment.reload.tracking_delivery_issue?
+    end
+
+    test "a delivery after a failed attempt clears the issue" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ posted_event, failed_delivery_event, delivered_event ])
+
+      assert shipment.reload.tracking_delivered?
+    end
+
     test "an unmapped code is logged only the first time that position is seen" do
       shipment = shipments(:labeled)
       mystery = event("ZZ", "99", "Evento misterioso", Time.utc(2026, 5, 22, 15, 0, 0))
@@ -134,6 +160,10 @@ module Shipping
 
     def delivered_event
       event("BDE", "01", "Objeto entregue ao destinatário", Time.utc(2026, 5, 26, 11, 3, 0))
+    end
+
+    def failed_delivery_event
+      event("BDE", "98", "Objeto não entregue - Endereço insuficiente", Time.utc(2026, 5, 26, 18, 47, 30))
     end
 
     def event(code, type, description, occurred_at)
