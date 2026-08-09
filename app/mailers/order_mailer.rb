@@ -17,6 +17,10 @@ class OrderMailer < ApplicationMailer
     deliver_for(order)
   end
 
+  def returned(order)
+    deliver_for(order)
+  end
+
   def delivery_issue(order)
     @order = order
     @issue = Shipping::DeliveryIssue.for(order.shipment)

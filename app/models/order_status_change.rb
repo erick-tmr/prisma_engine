@@ -4,7 +4,8 @@ class OrderStatusChange < ApplicationRecord
     "label_issued"      => :label_issued,
     "shipped"           => :shipped,
     "delivered"         => :delivered,
-    "delivery_issue"    => :delivery_issue
+    "delivery_issue"    => :delivery_issue,
+    "returned"          => :returned
   }.freeze
 
   belongs_to :order

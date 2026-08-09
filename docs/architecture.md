@@ -397,14 +397,26 @@ the `returned` code yet**: uncatalogued `(code, type)` pairs are persisted as ev
 *and* logged (`unmapped event …`) so we can identify them from real data and extend
 the map.
 
-**Failed delivery attempts** are not terminal. `BDE/98` ("Objeto não entregue,
-Endereço insuficiente", seen on PG-95039) derives `tracking_state: delivery_issue`,
-which flags the order for attention without closing it: the object stays with
-Correios awaiting pickup, so polling continues and later movement does not clear the
-flag. A `delivered` signal outranks it, and `Shipping::OrderProgress` then resumes
-the order straight from `delivery_issue` to `delivered` (a single edge, so no
-spurious "postado" e-mail). If the customer never collects, the object comes back to
-us and the eventual return code lands in the same map.
+**`delivery_issue` is never an endpoint.** `BDE/98` ("Objeto não entregue, Endereço
+insuficiente", seen on PG-95039) derives `tracking_state: delivery_issue`, which
+flags the order for attention without closing it: the object stays with Correios
+awaiting pickup, so polling continues and later movement does not clear the flag. It
+resolves exactly two ways, both single edges so neither replays an earlier e-mail:
+
+- the customer collects it at the unit, a `delivered` signal outranks the issue, and
+  the order goes `delivery_issue → delivered`;
+- Correios gives up and the package physically returns to us, and the order goes
+  `delivery_issue → returned` ("Devolvido"), from which an operator reships, refunds
+  or cancels.
+
+Those are different facts and get different order statuses, because "the object is
+sitting at a Correios unit" and "the box is back on our shelf" call for different
+work and different customer copy. **`returned` is operator-driven for now.** We have
+never seen a Correios return code in production data, so nothing derives
+`tracking_state: returned` yet; the backoffice "Recebido de volta" action is how an
+order reaches it, since the operator is the one who sees the package arrive. The
+`OrderProgress` mapping for that tracking state already points at the right status,
+so cataloguing the code later is a one-line change rather than a redesign.
 
 **Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
 issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`

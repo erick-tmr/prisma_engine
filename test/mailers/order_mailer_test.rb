@@ -104,6 +104,25 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_includes html_body, "Postado"
   end
 
+  test "returned tells the customer the package is back with us and asks how to proceed" do
+    order = orders(:delivered)
+    email = OrderMailer.returned(order)
+
+    assert_equal [ order.user.email ], email.to
+    assert_equal "Seu pedido #{order.number} voltou para a gente", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, order.user.first_name
+      assert_includes body, "devolveram o pacote para o nosso endereço"
+      assert_includes body, "reembolso"
+      assert_includes body, "Falar com a gente"
+      assert_includes body, "mailto:vininess@hotmail.com"
+    end
+
+    assert_includes email.html_part.body.to_s, "Devolvido"
+  end
+
   test "delivery_issue falls back to the generic copy when no issue event is catalogued" do
     order = orders(:delivered)
     email = OrderMailer.delivery_issue(order)

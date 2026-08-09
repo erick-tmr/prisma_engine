@@ -6,6 +6,7 @@ module Admin
       "awaiting_components" => "payment_confirmed",
       "production_issue"    => "in_production",
       "delivery_issue"      => "shipped",
+      "returned"            => "shipped",
       "awaiting_refund"     => "payment_confirmed",
       "cancelled"           => "awaiting_payment",
       "merged"              => "payment_confirmed"

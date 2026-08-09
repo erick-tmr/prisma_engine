@@ -32,6 +32,7 @@ class Order < ApplicationRecord
     shipped
     delivered
     delivery_issue
+    returned
     awaiting_refund
     cancelled
     merged
@@ -46,9 +47,10 @@ class Order < ApplicationRecord
     "in_production"       => %w[label_issued production_issue],
     "production_issue"    => %w[in_production merged],
     "label_issued"        => %w[shipped],
-    "shipped"             => %w[delivered delivery_issue],
+    "shipped"             => %w[delivered delivery_issue returned],
     "delivered"           => [],
-    "delivery_issue"      => %w[awaiting_refund shipped delivered cancelled],
+    "delivery_issue"      => %w[delivered returned awaiting_refund shipped cancelled],
+    "returned"            => %w[awaiting_refund shipped cancelled],
     "awaiting_refund"     => %w[cancelled],
     "cancelled"           => %w[payment_confirmed],
     "merged"              => []

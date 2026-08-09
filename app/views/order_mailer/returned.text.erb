@@ -1,0 +1,13 @@
+<%= t("mailer.greeting", name: @order.user.first_name) %>
+
+<%= t("order_mailer.returned.heading") %>
+
+<%= t("order_mailer.returned.intro") %>
+
+<%= t("order_mailer.returned.next_step") %>
+
+<%= render "summary", shipping_service: @order.shipment.service_label %>
+
+<%= t("order_mailer.returned.cta") %>: mailto:<%= t("mailer.support_email") %>
+
+<%= t("mailer.signature") %>

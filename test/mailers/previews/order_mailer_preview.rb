@@ -15,6 +15,10 @@ class OrderMailerPreview < ActionMailer::Preview
     OrderMailer.delivered(shipped_order)
   end
 
+  def returned
+    OrderMailer.returned(shipped_order)
+  end
+
   def delivery_issue
     OrderMailer.delivery_issue(order_matching_issue(:catalogued) || shipped_order)
   end

@@ -2,12 +2,19 @@ require "test_helper"
 
 module Admin
   class OrderActionsTest < ActiveSupport::TestCase
-    test "delivery_issue offers refund, reship and a danger cancel" do
+    test "delivery_issue offers returned, refund, reship and a danger cancel" do
       actions = OrderActions.available_for("delivery_issue")
 
+      assert_equal %w[mark_returned issue_refund reship cancel_issue], actions.map(&:id)
+      assert_equal %w[returned awaiting_refund shipped cancelled], actions.map(&:to)
+      assert_equal [ false, false, false, true ], actions.map(&:danger)
+    end
+
+    test "a returned order can be reshipped, refunded or cancelled, but not returned again" do
+      actions = OrderActions.available_for("returned")
+
       assert_equal %w[issue_refund reship cancel_issue], actions.map(&:id)
-      assert_equal %w[awaiting_refund shipped cancelled], actions.map(&:to)
-      assert_equal [ false, false, true ], actions.map(&:danger)
+      assert_not_includes actions.map(&:id), "mark_returned"
     end
 
     test "lookup finds an action by id and returns nil for an unknown one" do
