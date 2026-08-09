@@ -156,8 +156,9 @@ pt-BR:
       badge_label: "Devolvido"
       heading: "Seu pedido voltou para a nossa casa."
       intro: "Os Correios não conseguiram concluir a entrega e devolveram o pacote para o nosso endereço. Ele já está de volta com a gente, em segurança."
-      next_step: "Agora é com você: podemos enviar de novo para o endereço que preferir ou fazer o reembolso do pedido. Responda este e-mail ou fale com a gente pelo suporte abaixo para combinarmos."
-      cta: "Falar com a gente"
+      next_step: "Vamos analisar o motivo da devolução. Chame a gente no WhatsApp para combinarmos os próximos passos."
+      cta: "Falar no WhatsApp"
+      whatsapp_message: "Olá! Meu pedido %{number} voltou pelos Correios e gostaria de combinar o que fazer."
     delivery_issue:
       correios_says: "O que os Correios informaram:"
       support_note: "Estamos à disposição caso necessite do nosso apoio, conte conosco."

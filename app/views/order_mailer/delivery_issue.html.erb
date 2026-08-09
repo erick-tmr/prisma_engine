@@ -2,7 +2,7 @@
 <%= render layout: "shared/email_card", locals: {
       badge_label: t("#{scope}.badge_label"),
       badge_color: "#e08a00",
-      hero_image: "dragon-letter-full.png",
+      hero_image: @hero,
       hero_height: 180,
       heading: t("#{scope}.heading"),
       first_name: @order.user.first_name

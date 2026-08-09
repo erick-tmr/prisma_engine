@@ -1,7 +1,7 @@
 <%= render layout: "shared/email_card", locals: {
       badge_label: t("order_mailer.returned.badge_label"),
       badge_color: "#b9650a",
-      hero_image: "dragon-letter-full.png",
+      hero_image: "dragon-fly.png",
       hero_height: 180,
       heading: t("order_mailer.returned.heading"),
       first_name: @order.user.first_name
@@ -17,5 +17,5 @@
     </td>
   </tr>
   <%= render "summary", shipping_service: @order.shipment.service_label %>
-  <%= render "shared/email_cta", url: "mailto:#{t('mailer.support_email')}", label: t("order_mailer.returned.cta") %>
+  <%= render "shared/email_cta", url: @whatsapp_url, label: t("order_mailer.returned.cta") %>
 <% end %>

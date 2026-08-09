@@ -115,12 +115,23 @@ class OrderMailerTest < ActionMailer::TestCase
       body = part.body.to_s
       assert_includes body, order.user.first_name
       assert_includes body, "devolveram o pacote para o nosso endereço"
-      assert_includes body, "reembolso"
-      assert_includes body, "Falar com a gente"
-      assert_includes body, "mailto:vininess@hotmail.com"
+      assert_includes body, "Vamos analisar o motivo da devolução"
+      assert_includes body, "Falar no WhatsApp"
+      assert_includes body, "https://wa.me/5535920001100?text="
+      assert_not_includes body, "Responda este e-mail"
+      assert_not_includes body, "sem custo"
+      assert_not_includes body, "por sua conta"
     end
 
     assert_includes email.html_part.body.to_s, "Devolvido"
+    assert_includes email.html_part.body.to_s, "dragon-fly.png"
+  end
+
+  test "returned opens WhatsApp with the order number already written out" do
+    order = orders(:delivered)
+    url = OrderMailer.returned(order).text_part.body.to_s[%r{https://wa\.me/\S+}]
+
+    assert_includes CGI.unescape(url), "Meu pedido #{order.number} voltou pelos Correios"
   end
 
   test "delivery_issue falls back to the generic copy when no issue event is catalogued" do
@@ -140,7 +151,7 @@ class OrderMailerTest < ActionMailer::TestCase
       assert_not_includes body, "Nossa equipe já está cuidando disso"
     end
 
-    assert_includes email.html_part.body.to_s, "dragon-letter-full.png"
+    assert_includes email.html_part.body.to_s, "dragon-face.png"
   end
 
   test "delivery_issue sends the Correios pickup copy and quotes what Correios said" do
@@ -166,5 +177,14 @@ class OrderMailerTest < ActionMailer::TestCase
       assert_includes body, Shipping::CORREIOS_CONTACT_URL
       assert_includes body, order.shipment.tracking_url
     end
+
+    assert_includes email.html_part.body.to_s, "dragon-letter-full.png"
+  end
+
+  test "each delivery-issue kind gets its own hero, so the two copies do not look alike" do
+    heroes = OrderMailer::ISSUE_HEROES.values
+
+    assert_equal heroes.uniq, heroes
+    assert_includes heroes, OrderMailer::DEFAULT_ISSUE_HERO
   end
 end
