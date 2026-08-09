@@ -15,11 +15,13 @@ module Admin
                  to: "cancelled", icon: "bi-cash-coin", danger: false),
       Action.new(id: "cancel", from: %w[awaiting_payment],
                  to: "cancelled", icon: "bi-x-circle", danger: true),
-      Action.new(id: "issue_refund", from: %w[delivery_issue],
+      Action.new(id: "mark_returned", from: %w[delivery_issue],
+                 to: "returned", icon: "bi-box-arrow-in-left", danger: false),
+      Action.new(id: "issue_refund", from: %w[delivery_issue returned],
                  to: "awaiting_refund", icon: "bi-arrow-counterclockwise", danger: false),
-      Action.new(id: "reship", from: %w[delivery_issue],
+      Action.new(id: "reship", from: %w[delivery_issue returned],
                  to: "shipped", icon: "bi-truck", danger: false),
-      Action.new(id: "cancel_issue", from: %w[delivery_issue],
+      Action.new(id: "cancel_issue", from: %w[delivery_issue returned],
                  to: "cancelled", icon: "bi-x-circle", danger: true)
     ].freeze
 

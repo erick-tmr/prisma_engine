@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/logging/tagged_broadcast_logger"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -44,7 +45,12 @@ Rails.application.configure do
     config.solid_queue.silence_polling = true
 
     stdout_logger = ActiveSupport::TaggedLogging.logger($stdout)
-    config.logger = ActiveSupport::BroadcastLogger.new(
+    # Must be the tagged variant: ActiveSupport::BroadcastLogger only guards
+    # against re-running a block in #dispatch, and #tagged goes through
+    # method_missing instead, which runs it once per sink. ActiveJob wraps every
+    # enqueue in tag_logger, so a two-sink broadcast enqueues the job twice and
+    # the customer gets the e-mail twice.
+    config.logger = Logging::TaggedBroadcastLogger.new(
       ActiveSupport::TaggedLogging.logger(Rails.root.join("log", "development.log")),
       stdout_logger
     )

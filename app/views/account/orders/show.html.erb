@@ -119,6 +119,9 @@
               <div class="order-detail__track-body">
                 <div>
                   <div class="desc"><%= event.summary %></div>
+                  <% if event.detail %>
+                    <div class="meta"><%= event.detail %></div>
+                  <% end %>
                   <% if event.posting_unit %>
                     <div class="meta"><%= event.posting_unit %></div>
                   <% end %>

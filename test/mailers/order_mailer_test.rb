@@ -104,15 +104,87 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_includes html_body, "Postado"
   end
 
-  test "delivery_issue explains the problem and shows the tracking code" do
+  test "returned tells the customer the package is back with us and asks how to proceed" do
+    order = orders(:delivered)
+    email = OrderMailer.returned(order)
+
+    assert_equal [ order.user.email ], email.to
+    assert_equal "Seu pedido #{order.number} voltou para a gente", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, order.user.first_name
+      assert_includes body, "devolveram o pacote para o nosso endereço"
+      assert_includes body, "Vamos analisar o motivo da devolução"
+      assert_includes body, "Falar no WhatsApp"
+      assert_includes body, "https://wa.me/5535920001100?text="
+      assert_not_includes body, "Responda este e-mail"
+      assert_not_includes body, "sem custo"
+      assert_not_includes body, "por sua conta"
+    end
+
+    assert_includes email.html_part.body.to_s, "Devolvido"
+    assert_includes email.html_part.body.to_s, "dragon-fly.png"
+  end
+
+  test "returned opens WhatsApp with the order number already written out" do
+    order = orders(:delivered)
+    url = OrderMailer.returned(order).text_part.body.to_s[%r{https://wa\.me/\S+}]
+
+    assert_includes CGI.unescape(url), "Meu pedido #{order.number} voltou pelos Correios"
+  end
+
+  test "delivery_issue falls back to the generic copy when no issue event is catalogued" do
     order = orders(:delivered)
     email = OrderMailer.delivery_issue(order)
 
     assert_equal "Problema na entrega do pedido #{order.number}", email.subject
-    body = email.html_part.body.to_s
-    assert_includes body, "problema na entrega"
-    assert_includes body, order.shipment.tracking_code
-    assert_includes body, "Falar com o suporte"
-    assert_includes body, "dragon-letter-full.png"
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, "Entre em contato com os Correios e veja como podem resolver a situação"
+      assert_includes body, "conte conosco"
+      assert_includes body, order.shipment.tracking_code
+      assert_includes body, "Falar com os Correios"
+      assert_includes body, Shipping::CORREIOS_CONTACT_URL
+      assert_not_includes body, "Falar com o suporte"
+      assert_not_includes body, "Nossa equipe já está cuidando disso"
+    end
+
+    assert_includes email.html_part.body.to_s, "dragon-face.png"
+  end
+
+  test "delivery_issue sends the Correios pickup copy and quotes what Correios said" do
+    order = orders(:delivered)
+    detalhe = "Por favor, aguarde. Será informada aqui a unidade em que o objeto ficará disponível para retirada"
+    order.shipment.tracking_events.create!(
+      position: 0, event_code: "BDE", event_type: "98",
+      description: "Objeto não entregue - Endereço insuficiente",
+      occurred_at: Time.current, payload: { "detalhe" => detalhe }
+    )
+
+    email = OrderMailer.delivery_issue(order)
+
+    assert_equal "Os Correios não conseguiram entregar o pedido #{order.number}", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, "confirme o endereço completo"
+      assert_includes body, "conte conosco"
+      assert_includes body, detalhe
+      assert_includes body, order.shipment.tracking_code
+      assert_includes body, "Falar com os Correios"
+      assert_includes body, Shipping::CORREIOS_CONTACT_URL
+      assert_includes body, order.shipment.tracking_url
+    end
+
+    assert_includes email.html_part.body.to_s, "dragon-letter-full.png"
+  end
+
+  test "each delivery-issue kind gets its own hero, so the two copies do not look alike" do
+    heroes = OrderMailer::ISSUE_HEROES.values
+
+    assert_equal heroes.uniq, heroes
+    assert_includes heroes, OrderMailer::DEFAULT_ISSUE_HERO
   end
 end

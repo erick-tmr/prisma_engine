@@ -130,9 +130,9 @@ module Admin
       assert_equal "Problema na produção", branch.label
     end
 
-    test "available_actions for delivery_issue offers refund, reship and a danger cancel" do
+    test "available_actions for delivery_issue offers returned, refund, reship and a danger cancel" do
       actions = order_in("delivery_issue").available_actions
-      assert_equal %w[issue_refund reship cancel_issue], actions.map { |a| a[:id] }
+      assert_equal %w[mark_returned issue_refund reship cancel_issue], actions.map { |a| a[:id] }
       cancel = actions.find { |a| a[:id] == "cancel_issue" }
       assert_equal "act-btn danger", cancel[:button_class]
       assert_includes cancel[:form_data][:confirm], "Cancelar o pedido"

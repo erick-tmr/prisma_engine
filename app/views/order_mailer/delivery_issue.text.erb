@@ -1,11 +1,18 @@
+<% scope = "order_mailer.delivery_issue.#{@issue.kind}" %>
 <%= t("mailer.greeting", name: @order.user.first_name) %>
 
-<%= t("order_mailer.delivery_issue.heading") %>
+<%= t("#{scope}.heading") %>
 
-<%= t("order_mailer.delivery_issue.intro") %>
+<%= t("#{scope}.intro") %>
+<% if @issue.detail.present? %>
+<%= t("order_mailer.delivery_issue.correios_says") %> <%= @issue.detail %>
+<% end %>
+<%= t("order_mailer.delivery_issue.support_note") %>
 
 <%= t("order_mailer.tracking_code", code: @order.shipment.tracking_code) %>
+<%= t("order_mailer.delivery_issue.tracking_note") %>
 
-<%= t("order_mailer.delivery_issue.cta") %>: mailto:<%= t("mailer.support_email") %>
+<%= t("#{scope}.cta") %>: <%= Shipping::CORREIOS_CONTACT_URL %>
+<%= t("order_mailer.track_link") %>: <%= @order.shipment.tracking_url %>
 
 <%= t("mailer.signature") %>

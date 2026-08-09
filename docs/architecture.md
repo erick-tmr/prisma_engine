@@ -391,10 +391,46 @@ Six customer-facing states in pt-BR. The flow is **not linear**, with two branch
 Our Correios contract has **no webhooks**, so tracking is **polled**.
 
 **Event interpretation:** `Shipping::TrackingUpdate` maps confirmed `(code, type)`
-pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label); anything
-else that isn't the label counts as in-transit. We **don't know the `returned` code
-yet**: uncatalogued `(code, type)` pairs are persisted as events *and* logged
-(`unmapped event …`) so we can identify them from real data and extend the map.
+pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label / failed
+delivery); anything else that isn't the label counts as in-transit. We **don't know
+the `returned` code yet**: uncatalogued `(code, type)` pairs are persisted as events
+*and* logged (`unmapped event …`) so we can identify them from real data and extend
+the map.
+
+**`delivery_issue` is never an endpoint.** `BDE/98` ("Objeto não entregue, Endereço
+insuficiente", seen on PG-95039) derives `tracking_state: delivery_issue`, which
+flags the order for attention without closing it: the object stays with Correios
+awaiting pickup, so polling continues and later movement does not clear the flag. It
+resolves exactly two ways, both single edges so neither replays an earlier e-mail:
+
+- the customer collects it at the unit, a `delivered` signal outranks the issue, and
+  the order goes `delivery_issue → delivered`;
+- Correios gives up and the package physically returns to us, and the order goes
+  `delivery_issue → returned` ("Devolvido"), from which an operator reships, refunds
+  or cancels.
+
+Those are different facts and get different order statuses, because "the object is
+sitting at a Correios unit" and "the box is back on our shelf" call for different
+work and different customer copy. **`returned` is operator-driven for now.** We have
+never seen a Correios return code in production data, so nothing derives
+`tracking_state: returned` yet; the backoffice "Recebido de volta" action is how an
+order reaches it, since the operator is the one who sees the package arrive. The
+`OrderProgress` mapping for that tracking state already points at the right status,
+so cataloguing the code later is a one-line change rather than a redesign.
+
+**Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
+issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`
+re-derives the issue from the persisted events rather than from the status change, so
+a new Correios problem is a row in that table plus a locale block; anything
+uncatalogued falls back to the generic `unknown` copy. Correios' own `detalhe` string
+is quoted verbatim in the e-mail and in both tracking timelines.
+
+**Every delivery-issue e-mail sends the customer to Correios, never to us.** The
+package is in Correios' hands at that point and only they can say where it is or
+release it, so the CTA is `Shipping::CORREIOS_CONTACT_URL` (their Central de
+Atendimento) for every kind, with the tracking code shown prominently above it
+because Correios asks for it first. Routing these to our own support only adds a hop:
+we would have to tell the customer the same thing.
 
 **Rate limit:** the rastro gateway returns its token-bucket limits in response
 headers: `x-ratelimit-replenish-rate: 50` (50 req/s), `x-ratelimit-burst-capacity: 55`,
