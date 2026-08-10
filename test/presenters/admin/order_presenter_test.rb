@@ -191,6 +191,21 @@ module Admin
       assert_equal %w[DO PO], events.map(&:event_code)
     end
 
+    test "tracking code and url come from the shipment" do
+      presenter = OrderPresenter.new(orders(:delivered))
+      assert_equal "PG515656026BR", presenter.tracking_code
+      assert_includes presenter.tracking_url, "PG515656026BR"
+    end
+
+    test "tracking code and url are nil without a shipment" do
+      presenter = OrderPresenter.new(orders(:delivered))
+      presenter.order.shipment.destroy!
+      presenter.order.reload
+
+      assert_nil presenter.tracking_code
+      assert_nil presenter.tracking_url
+    end
+
     test "an order with no label in flight leaves the lifecycle and the actions alone" do
       presenter = OrderPresenter.new(orders(:producing))
 
