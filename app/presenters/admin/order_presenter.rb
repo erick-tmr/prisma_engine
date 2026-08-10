@@ -76,6 +76,14 @@ module Admin
       order.tracking_events.sort_by(&:occurred_at).reverse
     end
 
+    def tracking_code
+      order.shipment&.tracking_code
+    end
+
+    def tracking_url
+      order.shipment&.tracking_url
+    end
+
     def available_actions
       OrderActions.available_for(status).each_with_index.map do |action, index|
         {

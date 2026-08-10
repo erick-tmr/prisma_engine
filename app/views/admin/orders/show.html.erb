@@ -150,6 +150,15 @@
                 <div class="panel-top-main">
                   <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.detail.tracking") %></h2>
                 </div>
+                <% if @presenter.tracking_code.present? %>
+                  <div class="panel-top-right">
+                    <span class="od-track-code" data-tracking-code><%= @presenter.tracking_code %></span>
+                    <a class="od-track-link" href="<%= @presenter.tracking_url %>" target="_blank" rel="noopener">
+                      <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                      <span><%= t("admin.orders.detail.tracking_external") %></span>
+                    </a>
+                  </div>
+                <% end %>
               </div>
               <div class="od-track">
                 <% @presenter.tracking_events.each_with_index do |event, index| %>

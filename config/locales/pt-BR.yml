@@ -907,6 +907,7 @@ pt-BR:
         payment_pending: "Aguardando pagamento"
         payment_method_unknown: "Forma de pagamento não identificada"
         tracking: "Rastreamento Correios"
+        tracking_external: "Rastrear nos Correios"
         destination: "Destino"
         history: "Histórico de status"
         status_section: "Status do pedido"
