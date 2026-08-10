@@ -80,6 +80,17 @@ describe("bindAddressForm: CEP lookup", () => {
     expect(val(form, "city")).toBe("São Paulo");
     expect(val(form, "state")).toBe("SP");
     expect(document.activeElement).toBe(form.querySelector('[name="address[number]"]'));
+    expect(val(form, "number")).toBe("");
+  });
+
+  it("never writes the looked-up street into the number field", async () => {
+    const form = mountAddressForm();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => CEP }));
+    form.querySelector("[data-mask-cep]").value = "01310-100";
+    blur(form);
+    await tick();
+    expect(val(form, "street")).toBe("Av. Paulista");
+    expect(val(form, "number")).toBe("");
   });
 
   it("clears stale fields when the response is sparse (town-wide CEP)", async () => {
