@@ -76,7 +76,8 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Código de rastreamento/, body)
     assert_match(/PG515656026BR/, body)
     assert_select "[data-tracking-copy]"
-    assert_select "a[href=?][target=?]", "https://rastreamento.correios.com.br/app/index.php", "_blank"
+    assert_select "a[href=?][target=?]",
+                  "https://rastreamento.correios.com.br/app/index.php?objetos=PG515656026BR", "_blank"
     assert_select "script[src*='order_tracking']"
     assert_match(/Objeto entregue ao destinatário/, body)
     assert_match(%r{Postado em São Paulo / SP}, body)

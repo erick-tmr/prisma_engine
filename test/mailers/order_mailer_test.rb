@@ -66,7 +66,7 @@ class OrderMailerTest < ActionMailer::TestCase
       assert_includes body, "29 de julho"
       assert_includes body, "Rua XV de Novembro, 500 · Curitiba/PR"
       assert_includes body, "Frete · SEDEX"
-      assert_includes body, "rastreamento.correios.com.br/app/index.php?objeto=PG515656028BR"
+      assert_includes body, "rastreamento.correios.com.br/app/index.php?objetos=PG515656028BR"
     end
 
     assert_includes email.text_part.body.to_s,
