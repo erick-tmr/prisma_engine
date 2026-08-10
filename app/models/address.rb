@@ -6,6 +6,8 @@ class Address < ApplicationRecord
     AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO
   ].freeze
 
+  NUMBER_LIMIT = 6
+
   belongs_to :user
 
   before_validation :normalize_zip
@@ -14,6 +16,7 @@ class Address < ApplicationRecord
 
   validates :zip, presence: true, format: { with: /\A\d{8}\z/, message: :invalid_format }
   validates :street, :number, :neighborhood, :city, presence: true
+  validates :number, length: { maximum: NUMBER_LIMIT }, allow_blank: true
   validates :state, presence: true, inclusion: { in: UF_LIST, message: :not_in_list }
   validates :receiver_name, presence: true
   validates :receiver_cpf, presence: true, cpf: true

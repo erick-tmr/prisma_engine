@@ -1205,6 +1205,8 @@ pt-BR:
           attributes:
             zip:
               invalid_format: "deve conter 8 dígitos"
+            number:
+              too_long: "pode ter no máximo %{count} caracteres. Informe apenas o número, sem o nome da rua"
             state:
               not_in_list: "não é uma UF válida"
             receiver_cpf:

@@ -57,6 +57,26 @@ class AddressTest < ActiveSupport::TestCase
     assert_not build_address(number: nil).valid?
   end
 
+  test "number accepts letters alongside digits" do
+    assert build_address(number: "448b").valid?
+  end
+
+  test "number accepts the Correios limit exactly" do
+    assert build_address(number: "1" * Address::NUMBER_LIMIT).valid?
+  end
+
+  test "number longer than the Correios limit is rejected" do
+    address = build_address(number: "1" * (Address::NUMBER_LIMIT + 1))
+    assert_not address.valid?
+    assert_includes address.errors.attribute_names, :number
+  end
+
+  test "a whole street line pasted into number is rejected instead of silently truncated" do
+    address = build_address(number: "Rua Joel Jorge de Melo 105")
+    assert_not address.valid?
+    assert_includes address.errors.full_messages.to_sentence, "apenas o número"
+  end
+
   test "neighborhood is required" do
     assert_not build_address(neighborhood: nil).valid?
   end
