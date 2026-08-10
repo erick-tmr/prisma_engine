@@ -129,6 +129,23 @@ module Admin
       assert_select ".od-track-item.is-current"
       assert_select ".od-track .meta", text: "Agência dos Correios - CAMBUI - MG"
       assert_select ".od-track .meta", text: "Destino: Unidade de Tratamento - SAO PAULO - SP"
+      assert_select ".od-track-code", false
+    end
+
+    test "show links the tracking code out to the Correios lookup once one exists" do
+      sign_in users(:admin)
+      shipment = orders(:shipped_order).shipment
+      shipment.tracking_events.create!(
+        position: 3, event_code: "PO", event_type: "01", description: "Objeto postado",
+        occurred_at: 7.days.ago, payload: {}
+      )
+      shipment.update!(tracking_code: "AD755533683BR")
+
+      get admin_order_path(orders(:shipped_order))
+
+      assert_response :success
+      assert_select ".od-track-code", text: "AD755533683BR"
+      assert_select ".od-track-link[href=?][target=?][rel=?]", shipment.tracking_url, "_blank", "noopener"
     end
 
     test "show renders the printable label and the auto-next note for a label_issued order" do

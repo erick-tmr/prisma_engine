@@ -64,7 +64,7 @@ class ShipmentTest < ActiveSupport::TestCase
 
   test "tracking_url points the customer at the Correios lookup for this parcel" do
     assert_equal(
-      "https://rastreamento.correios.com.br/app/index.php?objeto=PG515656026BR",
+      "https://rastreamento.correios.com.br/app/index.php?objetos=PG515656026BR",
       shipments(:delivered).tracking_url
     )
   end

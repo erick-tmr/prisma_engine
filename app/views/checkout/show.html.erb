@@ -102,7 +102,7 @@
                 </div>
                 <div class="field checkout__col--1">
                   <%= f.label :number, "Número", class: "field__label" %>
-                  <%= f.text_field :number, name: "address[number]", class: "field__input", required: true, placeholder: "Nº" %>
+                  <%= f.text_field :number, name: "address[number]", class: "field__input", required: true, placeholder: "Nº", maxlength: Address::NUMBER_LIMIT %>
                 </div>
                 <div class="field checkout__col--3">
                   <%= f.label :complement, class: "field__label" do %>Complemento <span class="opt">(opcional)</span><% end %>

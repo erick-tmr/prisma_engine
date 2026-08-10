@@ -56,7 +56,7 @@ class Shipment < ApplicationRecord
   end
 
   def tracking_url
-    "#{TRACKING_URL}?objeto=#{tracking_code}"
+    "#{TRACKING_URL}?objetos=#{tracking_code}"
   end
 
   def short_address
