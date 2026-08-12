@@ -6,14 +6,7 @@ class CheckoutController < ApplicationController
   layout "checkout"
 
   def show
-    @cart = current_cart
-    persist_cart_if_cleaned
-    return redirect_to cart_path, notice: ERROR_MESSAGES[:empty_cart] if @cart.empty?
-
-    @addresses = current_user.addresses.default_first
-    @selected_address = address_chosen_in_session || @addresses.first
-    @selected_shipping_service = session["checkout_shipping_service"]
-    @mergeable_orders = current_user.orders.mergeable.includes(:shipment, order_items: OrderItem::PHOTO_INCLUDES)
+    render_checkout
   end
 
   def create
@@ -24,17 +17,40 @@ class CheckoutController < ApplicationController
   end
 
   def create_address
-    address = current_user.addresses.build(address_params)
-    if address.save
-      session["checkout_address_id"] = address.id
-      redirect_to checkout_path
-    else
-      flash[:alert] = address.errors.full_messages.to_sentence
-      redirect_to checkout_path
+    @address = current_user.addresses.build(address_params)
+    if @address.save
+      session["checkout_address_id"] = @address.id
+      return redirect_to checkout_path
     end
+
+    log_address_rejection
+    render_checkout(status: :unprocessable_entity)
   end
 
   private
+
+  def render_checkout(status: :ok)
+    @cart = current_cart
+    persist_cart_if_cleaned
+    return redirect_to cart_path, notice: ERROR_MESSAGES[:empty_cart] if @cart.empty?
+
+    load_delivery_choices
+    render :show, status: status
+  end
+
+  def load_delivery_choices
+    @address ||= current_user.addresses.build
+    @addresses = current_user.addresses.default_first
+    @selected_address = address_chosen_in_session || @addresses.first
+    @selected_shipping_service = session["checkout_shipping_service"]
+    @mergeable_orders = current_user.orders.mergeable.includes(:shipment, order_items: OrderItem::PHOTO_INCLUDES)
+  end
+
+  def log_address_rejection
+    Rails.logger.info(
+      "[Checkout] address rejected user=#{current_user.id} fields=#{@address.errors.attribute_names.join(',')}"
+    )
+  end
 
   def address_chosen_in_session
     chosen_id = session.delete("checkout_address_id").to_i

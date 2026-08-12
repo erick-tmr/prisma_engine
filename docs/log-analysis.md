@@ -121,6 +121,7 @@ timestamps, not "now". Example LogQL:
 {job="prisma_engine"} | json | user_id="25"                # every request by one user (abuse trace)
 {job="prisma_engine"} | json | remote_ip="203.0.113.7"     # every request from one client IP
 {job="prisma_engine", status="422"} | json | params != ""  # what was submitted on every rejection
+{job="prisma_engine"} |= "[Checkout] address rejected"     # which address fields keep failing
 
 {job="prisma_engine", event="job"}                         # all job events
 {job="prisma_engine", event="job", outcome="errored"}      # failed job runs
