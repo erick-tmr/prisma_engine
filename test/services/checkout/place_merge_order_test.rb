@@ -4,9 +4,11 @@ module Checkout
   class PlaceMergeOrderTest < ActiveSupport::TestCase
     PRECO_URL = "#{Correios::Api::BASE_URL}/preco/v1/nacional".freeze
     PRAZO_URL = "#{Correios::Api::BASE_URL}/prazo/v1/nacional".freeze
+    PAYMENT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
 
     setup do
       Rails.cache.clear
+      @linked = []
       @user = User.create!(
         email: "pmo@example.com", password: "password123",
         full_name: "PMO Cliente", cpf: "39053344705", phone: "11900000000", confirmed_at: 1.day.ago
@@ -17,6 +19,24 @@ module Checkout
 
     def cart
       @cart ||= Cart::Bag.new.add(product: products(:yellow), quantity: 1)
+    end
+
+    def place(overrides = {})
+      PlaceMergeOrder.call(**{ user: @user, cart: cart, payment_link: minting_link }.merge(overrides))
+    end
+
+    def minting_link
+      lambda do |order|
+        @linked << order
+        PAYMENT_URL
+      end
+    end
+
+    def rejecting_link
+      lambda do |order|
+        @linked << order
+        raise InfinitePay::Api::Error, "infinitepay returned 422: invalid item price"
+      end
     end
 
     def add_order(status:, frete:, service: "pac", created: 1.day.ago)
@@ -38,7 +58,7 @@ module Checkout
 
       result = nil
       assert_difference [ "Order.count", "OrderMerge.count" ], 1 do
-        result = PlaceMergeOrder.call(user: @user, cart: cart, observation: "Sem pressa")
+        result = place(observation: "Sem pressa")
       end
 
       assert result.success?
@@ -70,24 +90,61 @@ module Checkout
       add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
       stub_preco_prazo
 
-      result = PlaceMergeOrder.call(user: @user, cart: cart, receiver_obs: "Entregar na portaria")
+      result = place(receiver_obs: "Entregar na portaria")
 
       assert result.success?
       assert_equal "Entregar na portaria", result.order.shipment.receiver_obs
     end
 
+    test "returns the minted payment url alongside the carrier" do
+      add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
+      stub_preco_prazo
+
+      assert_equal PAYMENT_URL, place.payment_url
+    end
+
+    test "mints the link before the carrier is written, from an order that already carries its identity" do
+      add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
+      stub_preco_prazo
+
+      place
+      linked = @linked.sole
+      assert_not linked.new_record?
+      assert_match(/\APG-\d{5}\z/, linked.number)
+      assert linked.webhook_token.present?
+    end
+
+    test "writes no carrier, no shipment and no merge plan when the payment link is rejected" do
+      add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
+      absorbed = add_order(status: "awaiting_components", frete: 700, created: 1.day.ago)
+      stub_preco_prazo
+
+      result = nil
+      assert_no_difference [ "Order.count", "OrderMerge.count", "OrderItem.count", "Shipment.count" ] do
+        result = place(payment_link: rejecting_link)
+      end
+
+      assert_not result.success?
+      assert_equal :payment_error, result.error
+      assert_nil result.order
+      assert_nil result.payment_url
+      assert absorbed.reload.awaiting_components?
+    end
+
     test "fails on an empty cart" do
       add_order(status: "payment_confirmed", frete: 500)
-      result = PlaceMergeOrder.call(user: @user, cart: Cart::Bag.new)
+      result = place(cart: Cart::Bag.new)
       assert_not result.success?
       assert_equal :empty_cart, result.error
+      assert_empty @linked
     end
 
     test "fails when the user has no mergeable orders" do
       stub_preco_prazo
-      result = PlaceMergeOrder.call(user: @user, cart: cart)
+      result = place
       assert_not result.success?
       assert_equal :no_mergeable, result.error
+      assert_empty @linked
     end
 
     private

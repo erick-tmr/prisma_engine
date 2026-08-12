@@ -12,8 +12,13 @@ module InfinitePay
         Faraday.new(url: InfinitePay::Api::BASE_URL) do |conn|
           conn.options.open_timeout = OPEN_TIMEOUT
           conn.options.timeout = READ_TIMEOUT
+          trace_requests(conn)
           conn.adapter Faraday.default_adapter
         end
+      end
+
+      def trace_requests(conn)
+        conn.response :logger, Rails.logger, { headers: true, bodies: true, log_level: :info }
       end
 
       def raise_for_status(response, ok: [ 200, 201 ])

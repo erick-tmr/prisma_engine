@@ -20,9 +20,7 @@ class CheckoutController < ApplicationController
     result = place_order
     return render_create_failure(ERROR_MESSAGES.fetch(result.error)) unless result.success?
 
-    start_payment(result.order)
-  rescue InfinitePay::Api::Error
-    render_create_failure(ERROR_MESSAGES[:payment_error])
+    redirect_to_payment(result)
   end
 
   def create_address
@@ -46,14 +44,22 @@ class CheckoutController < ApplicationController
   def place_order
     if merge_requested?
       Checkout::PlaceMergeOrder.call(
-        user: current_user, cart: current_cart,
+        user: current_user, cart: current_cart, payment_link: payment_link,
         observation: params[:observation], receiver_obs: params[:receiver_obs]
       )
     else
       Checkout::PlaceOrder.call(
-        user: current_user, cart: current_cart,
+        user: current_user, cart: current_cart, payment_link: payment_link,
         address_id: params[:address_id], shipping_service: params[:shipping_service],
         observation: params[:observation], receiver_obs: params[:receiver_obs]
+      )
+    end
+  end
+
+  def payment_link
+    lambda do |order|
+      Payments::Checkout.start(
+        order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token)
       )
     end
   end
@@ -62,13 +68,11 @@ class CheckoutController < ApplicationController
     ActiveModel::Type::Boolean.new.cast(params[:merge_everything])
   end
 
-  def start_payment(order)
-    payment_url = Payments::Checkout.start(
-      order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token)
-    )
+  def redirect_to_payment(result)
+    payment_url = result.payment_url
     clear_cart!
     respond_to do |format|
-      format.json { render json: { payment_url:, return_url: checkout_return_url(order_nsu: order.number) } }
+      format.json { render json: { payment_url:, return_url: checkout_return_url(order_nsu: result.order.number) } }
       # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
       format.html { redirect_to payment_url, allow_other_host: true }
     end

@@ -1,23 +1,24 @@
 module Checkout
   class PlaceOrder
-    Result = Data.define(:order, :error) do
+    Result = Data.define(:order, :payment_url, :error) do
       def success?
         error.nil?
       end
     end
 
-    def self.call(user:, cart:, address_id:, shipping_service:, observation: nil, receiver_obs: nil)
+    def self.call(user:, cart:, address_id:, shipping_service:, payment_link:, observation: nil, receiver_obs: nil)
       new(
         user: user, cart: cart, address_id: address_id, shipping_service: shipping_service,
-        observation: observation, receiver_obs: receiver_obs
+        payment_link: payment_link, observation: observation, receiver_obs: receiver_obs
       ).call
     end
 
-    def initialize(user:, cart:, address_id:, shipping_service:, observation: nil, receiver_obs: nil)
+    def initialize(user:, cart:, address_id:, shipping_service:, payment_link:, observation: nil, receiver_obs: nil)
       @user             = user
       @cart             = cart
       @address_id       = address_id
       @shipping_service = shipping_service.to_s
+      @payment_link     = payment_link
       @observation      = observation
       @receiver_obs     = receiver_obs
     end
@@ -32,17 +33,25 @@ module Checkout
       service = eligible_service(address)
       return failure(:shipping_unavailable) unless service
 
-      Result.new(order: build_order(address, service), error: nil)
+      place(build_order(address, service))
     rescue Correios::Api::Error
       failure(:shipping_error)
     end
 
     private
 
-    attr_reader :user, :cart, :address_id, :shipping_service, :observation, :receiver_obs
+    attr_reader :user, :cart, :address_id, :shipping_service, :payment_link, :observation, :receiver_obs
 
     def failure(error)
-      Result.new(order: nil, error: error)
+      Result.new(order: nil, payment_url: nil, error: error)
+    end
+
+    def place(order)
+      payment_url = payment_link.call(order)
+      order.save!
+      Result.new(order: order, payment_url: payment_url, error: nil)
+    rescue InfinitePay::Api::Error
+      failure(:payment_error)
     end
 
     def package_weight
@@ -57,17 +66,16 @@ module Checkout
     def build_order(address, service)
       subtotal = cart.subtotal_cents
       shipping = service[:price_cents]
-      Order.transaction do
-        order = Order.create!(
-          user:                   user,
-          subtotal_cents:         subtotal,
-          total_cents:            subtotal + shipping,
-          observation:            observation,
-          order_items_attributes: cart.lines.map { |line| Checkout::CartItems.attributes_for(line) }
-        )
-        order.create_shipment!(shipment_attributes(address, service))
-        order
-      end
+      order = Order.new(
+        user:                   user,
+        subtotal_cents:         subtotal,
+        total_cents:            subtotal + shipping,
+        observation:            observation,
+        order_items_attributes: cart.lines.map { |line| Checkout::CartItems.attributes_for(line) }
+      )
+      order.build_shipment(shipment_attributes(address, service))
+      order.assign_number
+      order
     end
 
     def shipment_attributes(address, service)

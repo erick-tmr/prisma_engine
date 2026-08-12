@@ -77,5 +77,43 @@ module Payments
         true
       end
     end
+
+    test "omits the frete line when a merge carrier charges nothing extra for shipping" do
+      @order.shipment.update!(shipping_cents: 0)
+      @order.update!(total_cents: 18_000)
+      stub_links
+
+      start
+
+      assert_requested(:post, LINKS_URL) do |req|
+        items = JSON.parse(req.body)["items"]
+        assert_equal [ "Cartucho Zelda" ], items.map { |item| item["description"] }
+        assert_equal 18_000, items.sum { |item| item["price"] * item["quantity"] }
+        true
+      end
+    end
+
+    test "logs the rejection with the order number and the vendor message, then re-raises" do
+      stub_request(:post, LINKS_URL).to_return(status: 422, body: { "message" => "invalid item price" }.to_json)
+
+      log = with_log_sink { assert_raises(InfinitePay::Api::Error) { start } }
+
+      assert_match "[Payments::Checkout]", log
+      assert_match "order=#{@order.number}", log
+      assert_match "infinitepay returned 422", log
+      assert_match "invalid item price", log
+    end
+
+    private
+
+    def with_log_sink
+      sink = StringIO.new
+      previous_logger = Rails.logger
+      Rails.logger = ActiveSupport::Logger.new(sink)
+      yield
+      sink.string
+    ensure
+      Rails.logger = previous_logger
+    end
   end
 end

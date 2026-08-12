@@ -1,18 +1,22 @@
 module Checkout
   class PlaceMergeOrder
-    Result = Data.define(:order, :error) do
+    Result = Data.define(:order, :payment_url, :error) do
       def success?
         error.nil?
       end
     end
 
-    def self.call(user:, cart:, observation: nil, receiver_obs: nil)
-      new(user: user, cart: cart, observation: observation, receiver_obs: receiver_obs).call
+    def self.call(user:, cart:, payment_link:, observation: nil, receiver_obs: nil)
+      new(
+        user: user, cart: cart, payment_link: payment_link,
+        observation: observation, receiver_obs: receiver_obs
+      ).call
     end
 
-    def initialize(user:, cart:, observation: nil, receiver_obs: nil)
+    def initialize(user:, cart:, payment_link:, observation: nil, receiver_obs: nil)
       @user         = user
       @cart         = cart
+      @payment_link = payment_link
       @observation  = observation
       @receiver_obs = receiver_obs
     end
@@ -24,30 +28,37 @@ module Checkout
       quote = MergeQuote.call(user: user, cart: cart)
       return failure(quote.error) unless quote.eligible?
 
-      Result.new(order: build_carrier(quote), error: nil)
+      place(build_carrier(quote))
     end
 
     private
 
-    attr_reader :user, :cart, :observation, :receiver_obs
+    attr_reader :user, :cart, :payment_link, :observation, :receiver_obs
 
     def failure(error)
-      Result.new(order: nil, error: error)
+      Result.new(order: nil, payment_url: nil, error: error)
+    end
+
+    def place(carrier)
+      payment_url = payment_link.call(carrier)
+      carrier.save!
+      Result.new(order: carrier, payment_url: payment_url, error: nil)
+    rescue InfinitePay::Api::Error
+      failure(:payment_error)
     end
 
     def build_carrier(quote)
-      Order.transaction do
-        carrier = Order.create!(
-          user:                   user,
-          subtotal_cents:         quote.subtotal_cents,
-          total_cents:            quote.amount_cents,
-          observation:            observation,
-          order_items_attributes: cart.lines.map { |line| CartItems.attributes_for(line) }
-        )
-        carrier.create_shipment!(shipment_attributes(quote))
-        create_plan(carrier, quote)
-        carrier
-      end
+      carrier = Order.new(
+        user:                   user,
+        subtotal_cents:         quote.subtotal_cents,
+        total_cents:            quote.amount_cents,
+        observation:            observation,
+        order_items_attributes: cart.lines.map { |line| CartItems.attributes_for(line) }
+      )
+      carrier.build_shipment(shipment_attributes(quote))
+      carrier.build_order_merge(plan_attributes(quote))
+      carrier.assign_number
+      carrier
     end
 
     def shipment_attributes(quote)
@@ -78,16 +89,15 @@ module Checkout
       }
     end
 
-    def create_plan(carrier, quote)
-      OrderMerge.create!(
-        carrier_order:           carrier,
+    def plan_attributes(quote)
+      {
         master_order:            quote.master,
         absorbed_order_ids:      quote.absorbed_orders.map(&:id),
         combined_weight_grams:   quote.combined_weight_grams,
         combined_service:        quote.service,
         combined_shipping_cents: quote.combined_shipping_cents,
         paid_fretes_cents:       quote.paid_fretes_cents
-      )
+      }
     end
   end
 end
