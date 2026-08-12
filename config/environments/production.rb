@@ -1,5 +1,6 @@
 require "active_support/core_ext/integer/time"
 require_relative "../../lib/logging/tagged_broadcast_logger"
+require_relative "../../lib/logging/request_params"
 require_relative "../../lib/middleware/canonical_host"
 
 Rails.application.configure do
@@ -72,7 +73,8 @@ Rails.application.configure do
       host: request.host,
       remote_ip: request.headers["CF-Connecting-IP"].presence || request.remote_ip,
       user_agent: request.user_agent,
-      user_id: user&.id
+      user_id: user&.id,
+      params: Logging::RequestParams.call(request)
     }.compact
   end
 

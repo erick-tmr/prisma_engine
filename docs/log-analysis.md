@@ -29,8 +29,21 @@ bin/log-analysis down        # stop the stack, keep ingested data
   into a single JSON line tagged `event: "request"`: `method`, `path`, `status`,
   `controller`, `action`, `duration` (ms), plus `request_id`, `host`, `remote_ip`
   (the real client IP, read from Cloudflare's `CF-Connecting-IP` header, falling
-  back to `request.remote_ip`), `user_agent`, and `user_id`. Raw request params are
-  not logged (PII).
+  back to `request.remote_ip`), `user_agent`, `user_id`, and `params`.
+- `params` (`lib/logging/request_params.rb`) carries **what the customer actually
+  submitted**, so a report like "the address form kept rejecting me" is answerable
+  from the logs instead of guessed at. Writes (POST/PATCH/PUT/DELETE) log the full
+  body plus the path params; reads log only the query string, since `path` already
+  names the record. Note `path` itself is query-less: lograge strips it, which is
+  why `order_nsu` used to be invisible on `/checkout/retorno`.
+- Redaction here is deliberately **narrower than `config.filter_parameters`**.
+  Credentials are stripped (`passw`, `secret`, `token`, `_key`, `crypt`, `salt`,
+  `certificate`, `otp`, `cvv`, `cvc`), but the customer's own data (e-mail, CPF,
+  phone, address) is kept, exactly as InfinitePay payloads are (see CLAUDE.md).
+  A filtered body is unreadable precisely when it matters, and production logs are
+  private. Individual values are clamped at 512 characters, uploads log as
+  `#<upload name Nb>` rather than their bytes, and a body that cannot be read logs
+  as `[UNREADABLE]` rather than taking the request down.
 - Active Job runs (Solid Queue is in-Puma, so jobs log to the same STDOUT) emit one
   JSON line per event tagged `event: "job"`, via
   `StructuredLogging::ActiveJobLogSubscriber`: `job_event` (enqueue/enqueue_at/perform/
@@ -107,6 +120,7 @@ timestamps, not "now". Example LogQL:
 {job="prisma_engine"} | json | request_id="<id>"           # one request, end to end
 {job="prisma_engine"} | json | user_id="25"                # every request by one user (abuse trace)
 {job="prisma_engine"} | json | remote_ip="203.0.113.7"     # every request from one client IP
+{job="prisma_engine", status="422"} | json | params != ""  # what was submitted on every rejection
 
 {job="prisma_engine", event="job"}                         # all job events
 {job="prisma_engine", event="job", outcome="errored"}      # failed job runs
