@@ -1,11 +1,29 @@
 module Phones
+  COUNTRY_CODE = "55".freeze
+  AREA_CODE = /\A[1-9][1-9]\z/
+  LANDLINE_DIGITS = 10
+  MOBILE_DIGITS = 11
+
   module_function
 
-  def e164(raw)
-    digits = raw.to_s.gsub(/\D/, "")
-    return if digits.empty?
+  def national(raw)
+    digits = drop_country_code(raw.to_s.gsub(/\D/, ""))
+    digits if brazilian?(digits)
+  end
 
-    digits = "55#{digits}" unless digits.start_with?("55") && digits.size >= 12
-    "+#{digits}"
+  def e164(raw)
+    digits = national(raw)
+    "+#{COUNTRY_CODE}#{digits}" if digits
+  end
+
+  def drop_country_code(digits)
+    digits.length > MOBILE_DIGITS ? digits.delete_prefix(COUNTRY_CODE) : digits
+  end
+
+  def brazilian?(digits)
+    return false unless [ LANDLINE_DIGITS, MOBILE_DIGITS ].include?(digits.length)
+    return false unless digits[0, 2].match?(AREA_CODE)
+
+    digits.length == LANDLINE_DIGITS || digits[2] == "9"
   end
 end

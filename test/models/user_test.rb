@@ -69,6 +69,36 @@ class UserTest < ActiveSupport::TestCase
     assert_includes user.errors.attribute_names, :phone
   end
 
+  test "a phone missing its area code is rejected instead of reaching the payment link" do
+    user = User.new(base_attrs(phone: "99942-4875", cpf: "52998224725"))
+    assert_not user.valid?
+    assert_includes user.errors.attribute_names, :phone
+  end
+
+  test "a country code swallowed by the fixed-width mask is rejected" do
+    user = User.new(base_attrs(phone: "(55) 21976-0285", cpf: "52998224725"))
+    assert_not user.valid?
+    assert_includes user.errors.attribute_names, :phone
+  end
+
+  test "the rejected phone is kept as typed so the customer can see what to correct" do
+    user = User.new(base_attrs(phone: "99942-4875", cpf: "52998224725"))
+    user.valid?
+    assert_equal "99942-4875", user.phone
+  end
+
+  test "a valid phone is normalized to one stored shape" do
+    user = User.new(base_attrs(phone: "+55 11 98765-4321", cpf: "52998224725"))
+    assert user.valid?, user.errors.full_messages.to_sentence
+    assert_equal "(11) 98765-4321", user.phone
+  end
+
+  test "a landline is accepted and normalized" do
+    user = User.new(base_attrs(phone: "1133334444", cpf: "52998224725"))
+    assert user.valid?, user.errors.full_messages.to_sentence
+    assert_equal "(11) 3333-4444", user.phone
+  end
+
   test "first_name returns the first whitespace-separated token" do
     assert_equal "Cliente", users(:confirmed).first_name
   end

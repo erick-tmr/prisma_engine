@@ -25,7 +25,7 @@ module Users
       user = User.find_by(email: "novo@example.com")
       assert_not_nil user
       assert_nil user.confirmed_at, "user should remain unconfirmed until they click the link"
-      assert_equal "11988887777", user.phone
+      assert_equal "(11) 98888-7777", user.phone
       # Devise's generic flash is suppressed in favor of the dedicated page,
       # which receives the email via query string to populate its pill.
       assert_redirected_to new_user_confirmation_path(email: "novo@example.com")

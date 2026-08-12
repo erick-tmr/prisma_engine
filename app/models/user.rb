@@ -10,10 +10,11 @@ class User < ApplicationRecord
   scope :clients, -> { where(admin: false) }
 
   before_validation :normalize_cpf
+  before_validation :normalize_phone
 
   validates :full_name, presence: true
   validates :cpf, presence: true, uniqueness: true, cpf: true
-  validates :phone, presence: true, length: { maximum: 20 }
+  validates :phone, presence: true, length: { maximum: 20 }, phone: true
 
   def first_name
     full_name.to_s.split(/\s+/).first
@@ -27,5 +28,10 @@ class User < ApplicationRecord
 
   def normalize_cpf
     self.cpf = cpf.to_s.gsub(/\D/, "").presence
+  end
+
+  def normalize_phone
+    digits = Phones.national(phone)
+    self.phone = digits ? PhoneFormat.call(digits) : phone.presence
   end
 end
