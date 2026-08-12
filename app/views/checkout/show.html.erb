@@ -1,8 +1,9 @@
 <% content_for :title, "Checkout | Prisma Games" %>
 <%
-  selected = @selected_address
-  fmt_cep  = ->(zip) { "#{zip[0, 5]}-#{zip[5, 3]}" }
-  count    = @cart.total_quantity
+  selected    = @selected_address
+  fmt_cep     = ->(zip) { "#{zip[0, 5]}-#{zip[5, 3]}" }
+  count       = @cart.total_quantity
+  addr_failed = @address.errors.any?
 %>
 
 <div class="checkout">
@@ -49,7 +50,7 @@
               </div>
             </div>
 
-            <div class="checkout__addr-list<%= ' is-open' unless selected %>" data-addr-list>
+            <div class="checkout__addr-list<%= ' is-open' if !selected || addr_failed %>" data-addr-list>
               <% @addresses.each do |addr| %>
                 <label class="checkout__addr-opt<%= ' is-selected' if addr.id == selected&.id %>" data-addr-opt
                        data-address-id="<%= addr.id %>"
@@ -74,51 +75,54 @@
               <button class="checkout__addr-add" data-addr-add-btn type="button"><i class="bi bi-plus-lg"></i> Adicionar novo endereço</button>
             </div>
 
-            <%= form_with url: checkout_address_path, method: :post, class: "checkout__addr-form", id: "addr-form",
+            <%= form_with model: @address, url: checkout_address_path, method: :post, id: "addr-form",
+                          class: "checkout__addr-form#{' is-open' if addr_failed}",
                           html: { novalidate: true,
                                   data: { addr_form: true,
                                           user_name: current_user.full_name,
                                           user_cpf: format_cpf(current_user.cpf),
                                           cep_lookup_url: "#{account_addresses_path}/cep" } } do |f| %>
+              <%= render "shared/form_errors", record: @address %>
+
               <label class="checkout__form-self">
                 <%= check_box_tag :receiver_self, "1", false, data: { receiver_self: true } %> Eu mesmo(a) sou quem vai receber
               </label>
               <div class="checkout__form-grid">
                 <div class="field checkout__col--4">
                   <%= f.label :receiver_name, "Nome de quem vai receber", class: "field__label" %>
-                  <%= f.text_field :receiver_name, name: "address[receiver_name]", class: "field__input", required: true, placeholder: "Nome completo" %>
+                  <%= f.text_field :receiver_name, class: "field__input", required: true, placeholder: "Nome completo" %>
                 </div>
                 <div class="field checkout__col--2">
                   <%= f.label :receiver_cpf, "CPF do destinatário", class: "field__label" %>
-                  <%= f.text_field :receiver_cpf, name: "address[receiver_cpf]", class: "field__input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
+                  <%= f.text_field :receiver_cpf, class: "field__input", required: true, inputmode: "numeric", maxlength: 14, placeholder: "000.000.000-00", data: { addr_cpf: true } %>
                 </div>
                 <div class="field checkout__col--2">
                   <%= f.label :zip, "CEP", class: "field__label" %>
-                  <%= f.text_field :zip, name: "address[zip]", class: "field__input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { mask_cep: true } %>
+                  <%= f.text_field :zip, class: "field__input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { addr_cep: true } %>
                 </div>
                 <div class="field checkout__col--3">
                   <%= f.label :street, "Endereço", class: "field__label" %>
-                  <%= f.text_field :street, name: "address[street]", class: "field__input", required: true, placeholder: "Rua, avenida…" %>
+                  <%= f.text_field :street, class: "field__input", required: true, placeholder: "Rua, avenida…" %>
                 </div>
                 <div class="field checkout__col--1">
                   <%= f.label :number, "Número", class: "field__label" %>
-                  <%= f.text_field :number, name: "address[number]", class: "field__input", required: true, placeholder: "Nº", maxlength: Address::NUMBER_LIMIT %>
+                  <%= f.text_field :number, class: "field__input", required: true, placeholder: "Nº", maxlength: Address::NUMBER_LIMIT %>
                 </div>
                 <div class="field checkout__col--3">
                   <%= f.label :complement, class: "field__label" do %>Complemento <span class="opt">(opcional)</span><% end %>
-                  <%= f.text_field :complement, name: "address[complement]", class: "field__input", placeholder: "Apto, bloco…" %>
+                  <%= f.text_field :complement, class: "field__input", placeholder: "Apto, bloco…" %>
                 </div>
                 <div class="field checkout__col--3">
                   <%= f.label :neighborhood, "Bairro", class: "field__label" %>
-                  <%= f.text_field :neighborhood, name: "address[neighborhood]", class: "field__input", required: true, placeholder: "Bairro" %>
+                  <%= f.text_field :neighborhood, class: "field__input", required: true, placeholder: "Bairro" %>
                 </div>
                 <div class="field checkout__col--4">
                   <%= f.label :city, "Cidade", class: "field__label" %>
-                  <%= f.text_field :city, name: "address[city]", class: "field__input", required: true, placeholder: "Cidade" %>
+                  <%= f.text_field :city, class: "field__input", required: true, placeholder: "Cidade" %>
                 </div>
                 <div class="field checkout__col--2">
                   <%= f.label :state, "UF", class: "field__label" %>
-                  <%= f.select :state, Address::UF_LIST, { include_blank: "–" }, name: "address[state]", class: "field__input", required: true %>
+                  <%= f.select :state, Address::UF_LIST, { include_blank: "–" }, class: "field__input", required: true %>
                 </div>
               </div>
               <div class="checkout__form-actions">

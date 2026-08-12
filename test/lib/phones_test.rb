@@ -13,4 +13,39 @@ class PhonesTest < ActiveSupport::TestCase
     assert_nil Phones.e164("")
     assert_nil Phones.e164(nil)
   end
+
+  test "e164 accepts a landline" do
+    assert_equal "+551133334444", Phones.e164("(11) 3333-4444")
+  end
+
+  test "e164 keeps DDD 55 intact instead of reading it as the country code" do
+    assert_equal "+5555999998888", Phones.e164("(55) 99999-8888")
+    assert_equal "+555533334444", Phones.e164("(55) 3333-4444")
+  end
+
+  test "e164 rejects a number missing its area code rather than shipping a short one" do
+    assert_nil Phones.e164("99942-4875")
+  end
+
+  test "e164 rejects the country code swallowed by a fixed-width mask" do
+    assert_nil Phones.e164("(55) 21976-0285")
+  end
+
+  test "e164 rejects an area code containing a zero" do
+    assert_nil Phones.e164("(01) 99999-8888")
+    assert_nil Phones.e164("(10) 99999-8888")
+  end
+
+  test "e164 rejects an eleven digit number that is not a mobile" do
+    assert_nil Phones.e164("(11) 83333-4444")
+  end
+
+  test "e164 rejects anything longer than a country code plus a mobile" do
+    assert_nil Phones.e164("+55 (11) 98765-43210")
+  end
+
+  test "national hands back the bare digits" do
+    assert_equal "11987654321", Phones.national("+55 (11) 98765-4321")
+    assert_nil Phones.national("123")
+  end
 end

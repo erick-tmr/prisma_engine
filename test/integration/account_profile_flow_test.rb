@@ -33,7 +33,7 @@ class AccountProfileFlowTest < ActionDispatch::IntegrationTest
     sign_in users(:confirmed)
     patch account_profile_path, params: { user: { phone: "11912345678", email: users(:confirmed).email } }
     assert_redirected_to account_profile_path
-    assert_equal "11912345678", users(:confirmed).reload.phone
+    assert_equal "(11) 91234-5678", users(:confirmed).reload.phone
   end
 
   test "PATCH update with an invalid email re-renders the form" do

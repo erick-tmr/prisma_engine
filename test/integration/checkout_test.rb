@@ -335,11 +335,66 @@ class CheckoutTest < ActionDispatch::IntegrationTest
         city: "Itajubá", state: "MG", receiver_name: "Maria", receiver_cpf: "11111111111"
       } }
     end
-    assert_redirected_to checkout_path
-    assert flash[:alert].present?
+    assert_response :unprocessable_entity
+    assert_select ".flash--danger", /CPF do destinatário não é válido/
+  end
+
+  test "POST /checkout/endereco keeps every submitted value when the address is rejected" do
+    sign_in @user
+    add_yellow_to_cart
+
+    post checkout_address_path, params: { address: {
+      zip: "37500100", street: "Rua das Acácias", number: "45", complement: "Fundos",
+      neighborhood: "Centro", city: "Itajubá", state: "MG",
+      receiver_name: "Maria Pereira", receiver_cpf: "11111111111"
+    } }
+
+    assert_response :unprocessable_entity
+    assert_select "form#addr-form.is-open" do
+      assert_select "input[name='address[receiver_name]'][value=?]", "Maria Pereira"
+      assert_select "input[name='address[street]'][value=?]", "Rua das Acácias"
+      assert_select "input[name='address[number]'][value=?]", "45"
+      assert_select "input[name='address[complement]'][value=?]", "Fundos"
+      assert_select "input[name='address[neighborhood]'][value=?]", "Centro"
+      assert_select "input[name='address[city]'][value=?]", "Itajubá"
+      assert_select "input[name='address[zip]'][value=?]", "37500100"
+      assert_select "select[name='address[state]'] option[selected][value=?]", "MG"
+    end
+  end
+
+  test "POST /checkout/endereco logs the rejected fields so the failure is greppable" do
+    sign_in @user
+    add_yellow_to_cart
+
+    logged = capture_log do
+      post checkout_address_path, params: { address: {
+        zip: "37500100", street: "Rua X", number: "45", neighborhood: "Centro",
+        city: "Itajubá", state: "MG", receiver_name: "Maria", receiver_cpf: "11111111111"
+      } }
+    end
+
+    assert_match(/\[Checkout\] address rejected user=#{@user.id} fields=receiver_cpf/, logged)
+  end
+
+  test "POST /checkout/endereco on an empty cart still bounces to the cart" do
+    sign_in @user
+
+    post checkout_address_path, params: { address: { zip: "37500100" } }
+
+    assert_redirected_to cart_path
   end
 
   private
+
+  def capture_log
+    io = StringIO.new
+    previous = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+    yield
+    io.string
+  ensure
+    Rails.logger = previous
+  end
 
   def add_yellow_to_cart
     post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }

@@ -140,8 +140,12 @@
         $('input[type="number"][data-spinner]').inputSpinner();
         $('[data-mask-cpf]').mask('000.000.000-00', { reverse: true });
         $('[data-mask-cnpj]').mask('00.000.000/0000-00', { reverse: true });
-        $('[data-mask-phone]').mask('(00) 00000-0000');
-        $('[data-mask-cep]').mask('00000-000');
+        var phoneMask = function (value) {
+          return value.replace(/\D/g, '').length > 11 ? '+00 (00) 00000-0000' : '(00) 00000-0000';
+        };
+        $('[data-mask-phone]').mask(phoneMask, {
+          onKeyPress: function (value, event, field, options) { field.mask(phoneMask(value), options); }
+        });
 
         // .flash is our brand flash; Bootstrap's data-bs-dismiss looks for
         // .alert, so dismiss is wired directly here.

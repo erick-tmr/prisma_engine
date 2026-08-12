@@ -1197,6 +1197,8 @@ pt-BR:
           attributes:
             cpf:
               invalid: "não é válido"
+            phone:
+              invalid: "informe DDD e número, por exemplo (11) 91234-5678"
         question:
           attributes:
             body:
