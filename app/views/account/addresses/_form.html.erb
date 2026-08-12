@@ -24,11 +24,11 @@
     </div>
     <div class="field col-receiver-cpf">
       <%= f.label :receiver_cpf, t("account.addresses.fields.receiver_cpf"), class: "field__label" %>
-      <%= f.text_field :receiver_cpf, class: "field__input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
+      <%= f.text_field :receiver_cpf, class: "field__input", required: true, inputmode: "numeric", maxlength: 14, placeholder: "000.000.000-00", data: { "addr-cpf": true } %>
     </div>
     <div class="field col-zip">
       <%= f.label :zip, t("account.addresses.fields.zip"), class: "field__label" %>
-      <%= f.text_field :zip, class: "field__input", required: true, data: { "mask-cep": true }, inputmode: "numeric", placeholder: "00000-000" %>
+      <%= f.text_field :zip, class: "field__input", required: true, data: { "addr-cep": true }, inputmode: "numeric", placeholder: "00000-000" %>
     </div>
     <div class="field col-street">
       <%= f.label :street, t("account.addresses.fields.street"), class: "field__label" %>

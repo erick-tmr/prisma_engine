@@ -94,11 +94,11 @@
                 </div>
                 <div class="field checkout__col--2">
                   <%= f.label :receiver_cpf, "CPF do destinatário", class: "field__label" %>
-                  <%= f.text_field :receiver_cpf, class: "field__input", required: true, inputmode: "numeric", placeholder: "000.000.000-00" %>
+                  <%= f.text_field :receiver_cpf, class: "field__input", required: true, inputmode: "numeric", maxlength: 14, placeholder: "000.000.000-00", data: { addr_cpf: true } %>
                 </div>
                 <div class="field checkout__col--2">
                   <%= f.label :zip, "CEP", class: "field__label" %>
-                  <%= f.text_field :zip, class: "field__input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { mask_cep: true } %>
+                  <%= f.text_field :zip, class: "field__input", required: true, inputmode: "numeric", maxlength: 9, placeholder: "00000-000", data: { addr_cep: true } %>
                 </div>
                 <div class="field checkout__col--3">
                   <%= f.label :street, "Endereço", class: "field__label" %>
