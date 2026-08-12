@@ -159,6 +159,41 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     assert_equal CHECKOUT_URL, response.headers["Location"]
   end
 
+  test "POST /checkout with merge_everything sends no frete item when the master already covers it" do
+    sign_in @user
+    add_yellow_to_cart
+    orders(:confirmed_paid).shipment.update!(shipping_cents: 99_999)
+    stub_preco_prazo
+    stub_links
+
+    assert_difference [ "Order.count", "OrderMerge.count" ], 1 do
+      post checkout_create_path, params: { merge_everything: "1" }
+    end
+
+    carrier = Order.last
+    assert_equal 0, carrier.shipment.shipping_cents
+    assert_equal carrier.subtotal_cents, carrier.total_cents
+    assert_requested(:post, LINKS_URL) do |req|
+      items = JSON.parse(req.body)["items"]
+      assert_empty items.select { |item| item["price"].zero? }
+      assert_equal carrier.total_cents, items.sum { |item| item["price"] * item["quantity"] }
+      true
+    end
+  end
+
+  test "POST /checkout with merge_everything leaves no carrier or plan behind when the link fails" do
+    sign_in @user
+    add_yellow_to_cart
+    stub_preco_prazo
+    stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")
+
+    assert_no_difference [ "Order.count", "OrderMerge.count", "OrderItem.count", "Shipment.count" ] do
+      post checkout_create_path, params: { merge_everything: "1" }
+    end
+    assert_redirected_to checkout_path
+    assert_match(/não foi possível iniciar o pagamento/i, flash[:alert])
+  end
+
   test "POST /checkout with merge_everything but no eligible orders flashes the merge error" do
     sign_in users(:buyer)
     post cart_items_path, params: { product_id: products(:yellow).id, quantity: 1, option_ids: [] }
@@ -213,22 +248,25 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     stub_preco_prazo
     stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")
 
-    post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }, as: :json
+    assert_no_difference "Order.count" do
+      post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }, as: :json
+    end
     assert_response :unprocessable_entity
     assert_match(/não foi possível iniciar o pagamento/i, response.parsed_body["error"])
   end
 
-  test "POST /checkout keeps the order but flashes when the InfinitePay link fails" do
+  test "POST /checkout leaves no order behind when the InfinitePay link fails" do
     sign_in @user
     add_yellow_to_cart
     stub_preco_prazo
     stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")
 
-    assert_difference "Order.count", 1 do
+    assert_no_difference [ "Order.count", "OrderItem.count", "Shipment.count", "OrderStatusChange.count" ] do
       post checkout_create_path, params: { address_id: @address.id, shipping_service: "pac" }
     end
     assert_redirected_to checkout_path
     assert_match(/não foi possível iniciar o pagamento/i, flash[:alert])
+    assert cookies[:cart].present?
   end
 
   test "POST /checkout with an empty cart flashes the empty-cart error" do

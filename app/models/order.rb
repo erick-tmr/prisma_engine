@@ -13,7 +13,7 @@ class Order < ApplicationRecord
   belongs_to :merged_into, class_name: "Order", optional: true
   has_one :shipment, dependent: :nullify
   has_one :shipping_label, through: :shipment
-  has_one :order_merge, foreign_key: :carrier_order_id, dependent: :destroy
+  has_one :order_merge, foreign_key: :carrier_order_id, inverse_of: :carrier_order, dependent: :destroy
   has_many :order_items, dependent: :destroy
   has_many :merged_orders, class_name: "Order", foreign_key: :merged_into_id, dependent: :nullify
   has_many :payment_webhook_events, dependent: :destroy
@@ -140,6 +140,12 @@ class Order < ApplicationRecord
     awaiting_payment? && payment_deadline.past?
   end
 
+  def assign_number
+    return if number.present?
+
+    self.number = generate_unique_number
+  end
+
   private
 
   def claim_status(previous, target)
@@ -155,12 +161,6 @@ class Order < ApplicationRecord
   def prevent_destroy
     errors.add(:base, "Orders are kept for history and cannot be deleted; cancel instead.")
     throw :abort
-  end
-
-  def assign_number
-    return if number.present?
-
-    self.number = generate_unique_number
   end
 
   def generate_unique_number

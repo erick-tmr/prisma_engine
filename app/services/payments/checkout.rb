@@ -12,6 +12,9 @@ module Payments
 
     def start
       InfinitePay::Api::Checkout.create(payload)
+    rescue InfinitePay::Api::Error => error
+      Rails.logger.error("[Payments::Checkout] order=#{order.number} link rejected: #{error.message}")
+      raise
     end
 
     private
@@ -34,8 +37,9 @@ module Payments
       items = order.order_items.map do |item|
         { description: item.name, quantity: item.quantity, price: item.unit_price_cents }
       end
+      return items unless shipment.shipping_cents.positive?
+
       items << { description: "Frete: #{shipment.service}", quantity: 1, price: shipment.shipping_cents }
-      items
     end
 
     def customer

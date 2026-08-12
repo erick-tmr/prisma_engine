@@ -1,5 +1,5 @@
 class OrderMerge < ApplicationRecord
-  belongs_to :carrier_order, class_name: "Order"
+  belongs_to :carrier_order, class_name: "Order", inverse_of: :order_merge
   belongs_to :master_order, class_name: "Order"
 
   validates :combined_weight_grams, :combined_shipping_cents, :paid_fretes_cents,

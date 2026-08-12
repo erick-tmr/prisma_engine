@@ -4,9 +4,11 @@ module Checkout
   class PlaceOrderTest < ActiveSupport::TestCase
     PRECO_URL = "#{Correios::Api::BASE_URL}/preco/v1/nacional".freeze
     PRAZO_URL = "#{Correios::Api::BASE_URL}/prazo/v1/nacional".freeze
+    PAYMENT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
 
     setup do
       Rails.cache.clear
+      @linked = []
       @user = users(:confirmed)
       @address = @user.addresses.create!(
         zip: "01310100", street: "Av. Paulista", number: "1578",
@@ -36,8 +38,22 @@ module Checkout
     def place(overrides = {})
       PlaceOrder.call(**{
         user: @user, cart: populated_cart,
-        address_id: @address.id, shipping_service: "pac"
+        address_id: @address.id, shipping_service: "pac", payment_link: minting_link
       }.merge(overrides))
+    end
+
+    def minting_link
+      lambda do |order|
+        @linked << order
+        PAYMENT_URL
+      end
+    end
+
+    def rejecting_link(error_class = InfinitePay::Api::Error)
+      lambda do |order|
+        @linked << order
+        raise error_class, "infinitepay returned 422: invalid item price"
+      end
     end
 
     test "creates an order snapshotting totals, the chosen service price, address and items" do
@@ -103,8 +119,63 @@ module Checkout
       assert_equal "Entregar na portaria", shipment.receiver_obs
     end
 
+    test "returns the minted payment url alongside the order" do
+      stub_preco_prazo(all_eligible: true)
+
+      result = place
+      assert_equal PAYMENT_URL, result.payment_url
+    end
+
+    test "mints the link before the order is written, from an order that already carries its identity" do
+      stub_preco_prazo(all_eligible: true)
+
+      place
+      linked = @linked.sole
+      assert_not linked.new_record?
+      assert_match(/\APG-\d{5}\z/, linked.number)
+      assert linked.webhook_token.present?
+    end
+
+    test "writes nothing when the payment link is rejected" do
+      stub_preco_prazo(all_eligible: true)
+
+      result = nil
+      assert_no_difference [ "Order.count", "OrderItem.count", "Shipment.count", "OrderStatusChange.count" ] do
+        result = place(payment_link: rejecting_link)
+      end
+
+      assert_not result.success?
+      assert_equal :payment_error, result.error
+      assert_nil result.order
+      assert_nil result.payment_url
+      assert_equal 1, @linked.length
+    end
+
+    test "writes nothing when the payment link fails transiently" do
+      stub_preco_prazo(all_eligible: true)
+
+      result = nil
+      assert_no_difference "Order.count" do
+        result = place(payment_link: rejecting_link(InfinitePay::Api::TransientError))
+      end
+
+      assert_equal :payment_error, result.error
+    end
+
+    test "never reaches the payment provider when the order cannot be placed" do
+      stub_request(:post, PRECO_URL).to_return(status: 503, body: "down")
+      stub_request(:post, PRAZO_URL).to_return(status: 200, body: "[]")
+
+      assert_equal :shipping_error, place.error
+      assert_equal :empty_cart, place(cart: Cart::Bag.new).error
+      assert_empty @linked
+    end
+
     test "fails when the cart is empty" do
-      result = PlaceOrder.call(user: @user, cart: Cart::Bag.new, address_id: @address.id, shipping_service: "pac")
+      result = PlaceOrder.call(
+        user: @user, cart: Cart::Bag.new, address_id: @address.id,
+        shipping_service: "pac", payment_link: minting_link
+      )
       assert_not result.success?
       assert_equal :empty_cart, result.error
       assert_nil result.order
