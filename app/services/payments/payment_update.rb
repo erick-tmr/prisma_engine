@@ -36,7 +36,8 @@ module Payments
       order.update!(
         external_id:    payload["transaction_nsu"],
         receipt_url:    payload["receipt_url"],
-        payment_method: payload["capture_method"]
+        payment_method: payload["capture_method"],
+        invoice_slug:   payload["invoice_slug"]
       )
       order.confirm_payment!(automatic: true)
       Orders::Merge.call(order_merge: order.order_merge, actor: order.user) if order.order_merge&.pending?
