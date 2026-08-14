@@ -27,7 +27,7 @@ if [ -f .env ]; then
 fi
 
 CLOUDFLARED_BIN="${CLOUDFLARED_BIN:-./tmp/bin/cloudflared}"
-PORT="${PORT:-3000}"
+export PORT="${PORT:-3000}"
 # SHARE_TIMEOUT is optional. Unset/empty = run until Ctrl-C.
 SHARE_TIMEOUT="${SHARE_TIMEOUT:-}"
 
@@ -65,9 +65,29 @@ LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 # 3. Start Rails (background) in SHARE_MODE, bound to all interfaces. The
 #    initializer wires basic auth + dev-route blocking; the env config drops
 #    web-console and verbose error pages.
-echo "==> Starting Rails (SHARE_MODE=1) on 0.0.0.0:${PORT}"
-bin/rails server -b 0.0.0.0 -p "$PORT" &
-RAILS_PID=$!
+if ! gem list foreman -i --silent; then
+  echo "==> Installing foreman"
+  gem install foreman
+fi
+
+echo "==> Starting Rails + jobs (SHARE_MODE=1) on 0.0.0.0:${PORT}"
+setsid foreman start -f Procfile.dev &
+APP_SID=$!
+
+stop_session() {
+  local sid="${1:-0}"
+  [ "$sid" -gt 1 ] 2>/dev/null || return 0
+
+  echo "==> Stopping Rails + jobs (session ${sid}): graceful, then forced after 5s"
+  pkill -TERM -s "$sid" 2>/dev/null || true
+  for _ in $(seq 1 10); do
+    pgrep -s "$sid" >/dev/null 2>&1 || return 0
+    sleep 0.5
+  done
+
+  echo "==> Formation didn't exit gracefully, sending SIGKILL"
+  pkill -KILL -s "$sid" 2>/dev/null || true
+}
 
 cleanup() {
   # Disarm the trap so additional Ctrl-Cs during cleanup don't re-enter this
@@ -81,18 +101,7 @@ cleanup() {
 
   # Puma traps SIGTERM as a graceful shutdown and waits for keep-alive
   # connections (cloudflared holds one open). Send TERM, give it 5s, then KILL.
-  if kill -0 "$RAILS_PID" 2>/dev/null; then
-    echo "==> Stopping Rails (pid $RAILS_PID): graceful, then forced after 5s"
-    kill -TERM "$RAILS_PID" 2>/dev/null || true
-    for _ in $(seq 1 10); do
-      kill -0 "$RAILS_PID" 2>/dev/null || break
-      sleep 0.5
-    done
-    if kill -0 "$RAILS_PID" 2>/dev/null; then
-      echo "==> Rails didn't exit gracefully, sending SIGKILL"
-      kill -KILL "$RAILS_PID" 2>/dev/null || true
-    fi
-  fi
+  stop_session "${APP_SID:-0}"
 
   wait 2>/dev/null || true
   exit 0
@@ -124,7 +133,7 @@ done
 
 # 6. Auto-stop after SHARE_TIMEOUT, only if it was set. Empty = run forever.
 if [ -n "$SHARE_TIMEOUT" ]; then
-  ( sleep "$SHARE_TIMEOUT" ; echo; echo "==> SHARE_TIMEOUT (${SHARE_TIMEOUT}) reached, shutting down"; kill "$RAILS_PID" "$TUNNEL_PID" 2>/dev/null || true ) &
+  ( sleep "$SHARE_TIMEOUT" ; echo; echo "==> SHARE_TIMEOUT (${SHARE_TIMEOUT}) reached, shutting down"; kill -TERM $$ 2>/dev/null || true ) &
   TIMEOUT_PID=$!
   TIMEOUT_NOTE="Auto-stops in ${SHARE_TIMEOUT}.  Ctrl-C to stop sooner."
 else
@@ -148,4 +157,4 @@ cat <<BANNER
 ==================================================================
 BANNER
 
-wait "$RAILS_PID"
+wait "$APP_SID"
