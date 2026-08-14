@@ -35,11 +35,26 @@ module Checkout
     end
 
     def record_transaction
+      verified = Payments::Verification.call(order: @order, payload: return_payload)
+      return unless verified.verified?
+
       @order.update!(
-        external_id:    params[:transaction_nsu],
-        receipt_url:    params[:receipt_url],
-        payment_method: params[:capture_method]
+        external_id:    verified.payload["transaction_nsu"],
+        receipt_url:    verified.payload["receipt_url"],
+        payment_method: verified.payload["capture_method"],
+        invoice_slug:   verified.payload["invoice_slug"]
       )
+    rescue InfinitePay::Api::Error
+      Rails.logger.warn("[Checkout::ReturnsController] order=#{@order.number} could not reach infinitepay to verify the transaction")
+    end
+
+    def return_payload
+      {
+        "order_nsu"       => @order.number,
+        "transaction_nsu" => params[:transaction_nsu],
+        "invoice_slug"    => params[:slug],
+        "receipt_url"     => params[:receipt_url]
+      }
     end
 
     def payment_state

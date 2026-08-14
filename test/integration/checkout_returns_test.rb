@@ -4,20 +4,26 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   LINKS_URL = "#{InfinitePay::Api::BASE_URL}/links".freeze
+  CHECK_URL = "#{InfinitePay::Api::BASE_URL}/payment_check".freeze
   CHECKOUT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
 
   setup do
     @user = users(:confirmed)
   end
 
-  test "GET /checkout/retorno records the transaction and shows the pending state" do
-    sign_in @user
-    order = create_order_for(@user)
-
+  def return_with_transaction(order)
     get checkout_return_path, params: {
-      order_nsu: order.number, transaction_nsu: "txn-123",
+      order_nsu: order.number, transaction_nsu: "txn-123", slug: "uXnT2kndIV",
       receipt_url: "https://recibo.infinitepay.io/txn-123", capture_method: "credit_card"
     }
+  end
+
+  test "GET /checkout/retorno records the verified transaction and shows the pending state" do
+    sign_in @user
+    order = create_order_for(@user)
+    stub_check("paid_amount" => order.total_cents, "capture_method" => "credit_card")
+
+    return_with_transaction(order)
 
     assert_response :success
     assert_match(/Pagamento em processamento/, response.body)
@@ -27,6 +33,31 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     assert_equal "txn-123", order.external_id
     assert_equal "https://recibo.infinitepay.io/txn-123", order.receipt_url
     assert_equal "credit_card", order.payment_method
+    assert_equal "uXnT2kndIV", order.invoice_slug
+  end
+
+  test "GET /checkout/retorno does not record a transaction infinitepay has not seen paid" do
+    sign_in @user
+    order = create_order_for(@user)
+    stub_check("paid" => false)
+
+    return_with_transaction(order)
+
+    assert_response :success
+    assert_select ".pay-return.pay-return--pending"
+    assert_nil order.reload.external_id
+  end
+
+  test "GET /checkout/retorno still renders when infinitepay cannot be reached" do
+    sign_in @user
+    order = create_order_for(@user)
+    stub_request(:post, CHECK_URL).to_return(status: 503, body: "down")
+
+    return_with_transaction(order)
+
+    assert_response :success
+    assert_select ".pay-return.pay-return--pending"
+    assert_nil order.reload.external_id
   end
 
   test "GET /checkout/retorno shows the success state for a confirmed order" do
@@ -156,6 +187,13 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
   def stub_links
     stub_request(:post, LINKS_URL).to_return(
       status: 200, body: { "url" => CHECKOUT_URL }.to_json, headers: { "Content-Type" => "application/json" }
+    )
+  end
+
+  def stub_check(overrides = {})
+    body = { "success" => true, "paid" => true, "paid_amount" => 19_984, "capture_method" => "pix" }
+    stub_request(:post, CHECK_URL).to_return(
+      status: 200, body: body.merge(overrides).to_json, headers: { "Content-Type" => "application/json" }
     )
   end
 

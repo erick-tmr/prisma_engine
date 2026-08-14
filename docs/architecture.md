@@ -338,6 +338,31 @@ Critical patterns (provider-agnostic):
 - Store `external_payment_id` and `payment_method` (pix/card) on Order for reconciliation
 - Pix-specific: order is `aguardando_pagamento` until the webhook confirms; show QR code + copy-paste code; expire after 30 min
 
+##### The payment webhook is an untrusted hint, not a source of truth
+
+`POST /pagamentos/webhook/:token` is authenticated only by `Order#webhook_token`, and InfinitePay
+publishes that URL in the JavaScript of their own hosted payment page. Anyone who opens a checkout
+link can read the token, so the body that arrives on it is attacker-controlled.
+
+The delivery therefore only tells us **which** transaction to look at. `Payments::ProcessWebhookJob`
+hands it to `Payments::Verification`, which asks InfinitePay directly
+(`InfinitePay::Api::PaymentCheck`, `POST /payment_check`) whether that transaction is paid, and only
+a `paid: true` answer reaches `Payments::PaymentUpdate`. Three properties make that a real boundary:
+
+- The lookup is keyed on **our** `order.number`, never the `order_nsu` in the delivery, so a genuine
+  transaction lifted from another order does not verify against this one.
+- `paid_amount` and `capture_method` are read off the API response. The delivery's own figures are
+  discarded, so inflating `paid_amount` past `order.total_cents` buys nothing.
+- Verification short-circuits before the HTTP call when the order is no longer awaiting payment, so
+  replays and floods against confirmed orders cost nothing.
+
+The design fails closed: a delivery with no `invoice_slug` does not confirm. When InfinitePay reports
+the transaction as not yet paid, the job re-checks on a bounded schedule (`Payments::VERIFY_*`,
+roughly 30s / 60s / 120s) to absorb lag between their webhook and their read model, then gives up
+with a log line rather than a failed execution. `Checkout::ReturnsController` runs the same
+verification before recording the redirect's query params, and degrades to the pending state if
+InfinitePay is unreachable.
+
 #### Inventory race conditions
 
 Only relevant when a product opts into stock (see §0.1). For unlimited / made-to-order products there is nothing to race over, and checkout always succeeds.

@@ -21,6 +21,22 @@ module InfinitePay
         conn.response :logger, Rails.logger, { headers: true, bodies: true, log_level: :info }
       end
 
+      def post_json(path, payload)
+        connection.post(path) do |req|
+          req.headers["Accept"]       = "application/json"
+          req.headers["Content-Type"] = "application/json"
+          req.body = payload.to_json
+        end
+      rescue Faraday::TimeoutError, Faraday::ConnectionFailed => error
+        raise InfinitePay::Api::TransientError, "infinitepay #{path} request failed: #{error.message}"
+      end
+
+      def parse(raw)
+        JSON.parse(raw.presence || "{}")
+      rescue JSON::ParserError => error
+        raise InfinitePay::Api::Error, "unparseable infinitepay body: #{error.message}"
+      end
+
       def raise_for_status(response, ok: [ 200, 201 ])
         status = response.status
         return if ok.include?(status)
