@@ -48,7 +48,7 @@ use this when you want a verdict.
 | Security | ufw active and its open ports, fail2ban jails and ban count, ssh auth failures, unattended-upgrades |
 | Docker / app | web container running and restart count, deployed sha vs `origin/main`, kamal-proxy, reclaimable docker space, origin smoke test, Rails `/up`, edge smoke test through Cloudflare, origin TLS cert expiry |
 | Postgres | reachable, size, connections vs `max_connections`, idle-in-transaction age, longest active query, cache hit ratio, deadlocks, temp files, dead-tuple ratio, never-vacuumed tables, int4 sequence headroom |
-| Solid Queue | failed executions, ready/claimed/scheduled depth, oldest unfinished job, worker heartbeat freshness |
+| Solid Queue | failed executions broken down per job class (see below), ready/claimed/scheduled depth, oldest unfinished job and its class, worker heartbeat freshness |
 | Backups | timer enabled and active, last run exit status, newest daily age and size, retention count, size sanity against the recent median, weekly promotion age, which databases are deliberately not dumped |
 | Downdetector | `HC_PING_URL` present, egress to the ping host, monitor status via the healthchecks.io API when a key is set, coverage gaps |
 | Integrations | InfinitePay webhook endpoint reachable and rejecting unknown tokens, Correios reachable and authenticating on both tokens |
@@ -57,6 +57,41 @@ use this when you want a verdict.
 
 Thresholds live in one block at the top of `deploy/vps-healthcheck.remote.sh`. They are
 tuned to the current box (1 core, 3.8 GB RAM, 48 GB disk); revisit them if it is resized.
+
+## Failed executions
+
+A count alone does not tell you whether the queue is on fire or holding two-day-old
+residue, so a non-zero `failed executions` is followed by one block per job class and
+exception, ordered by row count. Each block answers the three triage questions in turn:
+
+```
+[FAIL] failed executions           2 row(s) awaiting triage: RefreshRecommendationsJob x2
+[ -- ] RefreshRecommendationsJob   2x Faraday::SSLError, 2026-08-12 07:00 to 2026-08-13 07:00
+[ -- ] - raised                    certificate has expired @ /rails/app/services/link_preview/api/client.rb:22
+[ -- ] - recovery                  last success 2026-08-14 07:00, after the newest failure: recovered, the row(s) are residue
+[ -- ] - logs                      24 job event(s) on record; newest 2026-08-14T07:00:03.195Z performed in 2976.07ms
+```
+
+- **raised** is the newest exception message in the group, followed by the first `app/`
+  frame of its backtrace. Gem frames sit at the top of most backtraces, so the app frame is
+  what names the code that actually broke. The stored error is JSON; when it is not, the
+  raw text is shown under an `unparseable error` heading rather than swallowed.
+- **recovery** compares the newest failure against the last `finished_at` for that class.
+  `Solid Queue` never sweeps `solid_queue_failed_executions`, so a class that has succeeded
+  since is reported as residue: the rows are history, not an outage. One that has not is
+  reported as still failing, which is the case worth waking up for.
+- **logs** correlates against the durable Rails logs on the `prisma_engine_logs` volume,
+  matched on the `job_class` field that `StructuredLogging::ActiveJobLogSubscriber` emits.
+  It counts every event on record (not only the `HOURS` window, since a failure is usually
+  older than it) and renders the newest one: outcome, exception, duration and arguments.
+
+The terminal prints those three as their own indented lines. In the HTML report they fold
+into the job's own row instead, so one failing class reads as one block: any record whose
+name starts with `- ` is rendered as a sub-item of the row above it, which is the only
+coupling between the two scripts beyond the TSV columns.
+
+`FAILED_GROUPS_MAX` caps the blocks at five. When more groups exist, the extra ones are
+counted in a closing line rather than silently dropped.
 
 ## Integrations
 
