@@ -41,6 +41,7 @@ DEAD_TUPLE_WARN_PCT=20
 DEAD_TUPLE_MIN_ROWS=1000
 QUEUE_READY_WARN=100
 QUEUE_AGE_WARN_SECS=3600
+FAILED_GROUPS_MAX=5
 BACKUP_AGE_FAIL_HOURS=36
 BACKUP_SHRINK_WARN_PCT=60
 WEEKLY_AGE_WARN_DAYS=10
@@ -103,6 +104,15 @@ threshold() {
 
 psql_primary() { sudo -u postgres psql -tAX -F'|' -d "$DB_NAME" -c "$1" 2>/dev/null || true; }
 psql_queue()   { sudo -u postgres psql -tAX -F'|' -d "$QUEUE_DB_NAME" -c "$1" 2>/dev/null || true; }
+
+log_dir=$(docker volume inspect "$LOG_VOLUME" --format '{{.Mountpoint}}' 2>/dev/null || true)
+
+job_log_summary() {
+  [ -n "$log_dir" ] && [ -d "$log_dir" ] || return 0
+  { grep -hF "\"job_class\":\"$1\"" "$log_dir"/*.log* 2>/dev/null || true; } |
+    awk '{ seen += 1; if ($0 > newest) newest = $0 }
+         END { if (seen) printf "%d\t%s\n", seen, newest }'
+}
 
 section "HOST"
 
@@ -370,21 +380,100 @@ queue_stats=$(psql_queue "
          (SELECT count(*) FROM solid_queue_scheduled_executions),
          (SELECT count(*) FROM solid_queue_claimed_executions),
          (SELECT COALESCE(max(EXTRACT(epoch FROM now() - created_at))::int, 0)
-            FROM solid_queue_jobs WHERE finished_at IS NULL);")
+            FROM solid_queue_jobs WHERE finished_at IS NULL),
+         (SELECT class_name FROM solid_queue_jobs WHERE finished_at IS NULL
+           ORDER BY created_at LIMIT 1);")
 if [ -z "$queue_stats" ]; then
   report FAIL "solid queue" "queue database unreachable"
 else
-  IFS='|' read -r q_failed q_ready q_sched q_claimed q_age <<<"$queue_stats"
+  IFS='|' read -r q_failed q_ready q_sched q_claimed q_age q_oldest_class <<<"$queue_stats"
   if [ "${q_failed:-0}" -gt 0 ]; then
-    report FAIL "failed executions" "${q_failed} row(s) awaiting triage"
+    failed_groups=$(psql_queue "
+      WITH parsed AS (
+        SELECT j.class_name,
+               f.created_at,
+               f.error AS raw_error,
+               CASE WHEN f.error IS JSON OBJECT THEN f.error::jsonb END AS err
+          FROM solid_queue_failed_executions f
+          JOIN solid_queue_jobs j ON j.id = f.job_id
+      ), fields AS (
+        SELECT class_name,
+               created_at,
+               COALESCE(err ->> 'exception_class', 'unparseable error') AS exception_class,
+               COALESCE(err ->> 'message', raw_error, 'no message recorded') AS message,
+               (SELECT frame
+                  FROM jsonb_array_elements_text(
+                         CASE WHEN jsonb_typeof(err -> 'backtrace') = 'array'
+                              THEN err -> 'backtrace' ELSE '[]'::jsonb END) AS frame
+                 WHERE frame LIKE '%/app/%' LIMIT 1) AS app_frame
+          FROM parsed
+      )
+      SELECT class_name,
+             exception_class,
+             count(*),
+             to_char(min(created_at), 'YYYY-MM-DD HH24:MI'),
+             to_char(max(created_at), 'YYYY-MM-DD HH24:MI'),
+             to_char((SELECT max(finished_at) FROM solid_queue_jobs s
+                       WHERE s.class_name = fields.class_name), 'YYYY-MM-DD HH24:MI'),
+             (array_agg(app_frame ORDER BY created_at DESC)
+                FILTER (WHERE app_frame IS NOT NULL))[1],
+             replace(left((array_agg(message ORDER BY created_at DESC))[1], 220), E'\n', ' ')
+        FROM fields
+       GROUP BY class_name, exception_class
+       ORDER BY count(*) DESC, max(created_at) DESC;")
+
+    failed_summary=$(printf '%s\n' "$failed_groups" | awk -F'|' '
+      $1 != "" { seen += 1; if (seen <= 3) printf "%s%s x%s", (seen > 1 ? ", " : ""), $1, $3 }
+      END { if (seen > 3) printf ", +%d more group(s)", seen - 3 }')
+    report FAIL "failed executions" "${q_failed} row(s) awaiting triage${failed_summary:+: $failed_summary}"
+
+    groups_seen=0; groups_hidden=0
+    while IFS='|' read -r g_class g_exception g_count g_first g_last g_success g_frame g_message; do
+      [ -n "$g_class" ] || continue
+      groups_seen=$((groups_seen + 1))
+      if [ "$groups_seen" -gt "$FAILED_GROUPS_MAX" ]; then
+        groups_hidden=$((groups_hidden + 1))
+        continue
+      fi
+
+      window="$g_last"
+      [ "$g_first" = "$g_last" ] || window="${g_first} to ${g_last}"
+      report INFO "${g_class}" "${g_count}x ${g_exception}, ${window}"
+      report INFO "- raised" "${g_message}${g_frame:+ @ ${g_frame}}"
+
+      if [ -z "$g_success" ]; then
+        report INFO "- recovery" "no successful run of this job on record: still failing"
+      elif [[ "$g_success" > "$g_last" ]]; then
+        report INFO "- recovery" "last success ${g_success}, after the newest failure: recovered, the row(s) are residue"
+      else
+        report INFO "- recovery" "last success ${g_success}, before the newest failure: still failing"
+      fi
+
+      log_summary=$(job_log_summary "$g_class")
+      if [ -z "$log_summary" ]; then
+        report INFO "- logs" "no line for this job class in ${LOG_VOLUME}"
+      else
+        IFS=$'\t' read -r log_count log_line <<<"$log_summary"
+        newest_event=$(printf '%s' "$log_line" | jq -r '
+          "\(.time) \(.outcome // .job_event // "?")"
+            + (if .exception then " \(.exception)" else "" end)
+            + (if .duration then " in \(.duration)ms" else "" end)
+            + (if .arguments then " args=\(.arguments | tostring)" else "" end)' 2>/dev/null || true)
+        report INFO "- logs" "${log_count} job event(s) on record; newest ${newest_event:0:180}"
+      fi
+    done <<<"$failed_groups"
+
+    if [ "$groups_hidden" -gt 0 ]; then
+      report INFO "further groups" "${groups_hidden} beyond the first ${FAILED_GROUPS_MAX} not detailed; query the queue database for the rest"
+    fi
   else
     report OK "failed executions" "0"
   fi
   threshold "${q_ready:-0}" "$QUEUE_READY_WARN" 1000 "ready backlog" "${q_ready} ready, ${q_claimed} claimed, ${q_sched} scheduled"
   if [ "${q_age:-0}" -ge "$QUEUE_AGE_WARN_SECS" ]; then
-    report WARN "oldest unfinished job" "$((q_age / 60))m old"
+    report WARN "oldest unfinished job" "$((q_age / 60))m old${q_oldest_class:+ (${q_oldest_class})}"
   else
-    report OK "oldest unfinished job" "${q_age:-0}s old"
+    report OK "oldest unfinished job" "${q_age:-0}s old${q_oldest_class:+ (${q_oldest_class})}"
   fi
 
   stale_workers=$(psql_queue "
@@ -574,7 +663,6 @@ fi
 
 section "LOGS (last ${HOURS}h)"
 
-log_dir=$(docker volume inspect "$LOG_VOLUME" --format '{{.Mountpoint}}' 2>/dev/null || true)
 if [ -z "$log_dir" ] || [ ! -d "$log_dir" ]; then
   report FAIL "log volume" "${LOG_VOLUME} not found"
 else

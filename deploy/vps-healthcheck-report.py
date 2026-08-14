@@ -34,11 +34,18 @@ if fail:
 elif warn:
     verdict, verdict_class = ("Warnings", "warn")
 
+# A record whose name starts with "- " is a continuation of the one above it: the terminal
+# prints it as its own indented line, the report folds it into the parent row so a failing
+# job and everything known about it read as one block.
 sections = []
 for section, status, name, detail in rows:
     if not sections or sections[-1][0] != section:
         sections.append((section, []))
-    sections[-1][1].append((status, name, detail))
+    entries = sections[-1][1]
+    if name.startswith("- ") and entries:
+        entries[-1][3].append((name[2:], detail))
+    else:
+        entries.append([status, name, detail, []])
 
 LABEL = {"OK": "OK", "WARN": "WARN", "FAIL": "FAIL", "INFO": "INFO"}
 CLASS = {"OK": "ok", "WARN": "warn", "FAIL": "fail", "INFO": "info"}
@@ -95,6 +102,12 @@ td.s { width: 4.5rem; }
 td.n { width: 15rem; font-weight: 560; }
 td.d { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: .82rem; word-break: break-word; }
+td.d .lead { color: var(--ink); }
+dl.sub { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3rem .9rem;
+  margin: .5rem 0 0; padding: .1rem 0 .1rem .8rem; border-left: 2px solid var(--line); }
+dl.sub dt { font-family: ui-sans-serif, system-ui, sans-serif; font-size: .68rem;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding-top: .15rem; }
+dl.sub dd { margin: 0; }
 .pill { display: inline-block; min-width: 3.2rem; text-align: center; padding: .12rem .45rem;
   border-radius: 5px; font-size: .7rem; font-weight: 700; letter-spacing: .04em; }
 .pill.ok { background: var(--ok-bg); color: var(--ok); }
@@ -125,11 +138,16 @@ parts.append("</div>")
 
 for section, entries in sections:
     parts.append(f"<section><h2>{esc(section)}</h2><table><tbody>")
-    for status, name, detail in entries:
+    for status, name, detail, children in entries:
         cls = CLASS.get(status, "info")
+        cell = esc(detail)
+        if children:
+            cell = f'<div class="lead">{cell}</div><dl class="sub">' + "".join(
+                f"<dt>{esc(label)}</dt><dd>{esc(value)}</dd>" for label, value in children
+            ) + "</dl>"
         parts.append(
             f'<tr class="{cls}"><td class="s"><span class="pill {cls}">{LABEL.get(status, status)}</span></td>'
-            f'<td class="n">{esc(name)}</td><td class="d">{esc(detail)}</td></tr>'
+            f'<td class="n">{esc(name)}</td><td class="d">{cell}</td></tr>'
         )
     parts.append("</tbody></table></section>")
 
