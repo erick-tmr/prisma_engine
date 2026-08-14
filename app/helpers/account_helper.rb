@@ -61,4 +61,8 @@ module AccountHelper
   def order_payment_status_icon(status)
     ORDER_PAYMENT_STATUS_ICONS.fetch(status.to_sym, "bi-hourglass-split")
   end
+
+  def order_support_url(order)
+    NavHelper.whatsapp_url(t("account.orders.show.support_message", number: order.number))
+  end
 end

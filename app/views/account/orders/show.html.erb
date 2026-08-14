@@ -51,6 +51,19 @@
               <span class="opts"><%= item.chosen_options.join(" · ") %></span>
             <% end %>
             <span class="qty"><%= t("account.orders.show.quantity", count: item.quantity) %> · <%= format_brl(item.unit_price_cents) %></span>
+            <% if item.custom_order? %>
+              <div class="order-detail__pedido">
+                <div class="order-detail__pedido-head"><i class="bi bi-card-checklist"></i> <%= t("account.orders.show.request_heading") %></div>
+                <div class="order-detail__pedido-field">
+                  <span class="k"><%= t("account.orders.show.requested_game") %></span>
+                  <span class="v"><%= item.requested_game %></span>
+                </div>
+                <div class="order-detail__pedido-field">
+                  <span class="k"><%= t("account.orders.show.request_notes") %></span>
+                  <span class="v<%= " is-empty" if item.request_notes.blank? %>"><%= item.request_notes.presence || t("account.orders.show.request_notes_blank") %></span>
+                </div>
+              </div>
+            <% end %>
           </div>
           <span class="order-detail__item-line"><%= format_brl(item.line_total_cents) %></span>
         </div>
@@ -62,6 +75,15 @@
         <div class="row-t row-total"><span><%= t("account.orders.show.total") %></span><span><%= format_brl(@order.total_cents) %></span></div>
       </div>
     </div>
+
+    <% if @order.observation.present? %>
+      <div class="order-detail__subcard">
+        <div class="order-detail__subcard-head"><i class="bi bi-chat-left-text"></i> <%= t("account.orders.show.observation") %></div>
+        <div class="order-detail__info-body">
+          <p class="order-detail__obs"><%= @order.observation %></p>
+        </div>
+      </div>
+    <% end %>
 
     <div class="order-detail__info-grid">
       <div class="order-detail__subcard">
@@ -144,12 +166,13 @@
       <% end %>
     <% end %>
 
-    <% if @order.cancellable? %>
-      <div class="panel__actions">
-        <%= button_to t("account.orders.show.cancel"), cancelar_account_order_path(@order),
-              method: :post, class: "button-ghost button-ghost--danger" %>
-      </div>
     <% end %>
-    <% end %>
+
+    <div class="order-detail__support">
+      <p class="order-detail__support-text"><%= t("account.orders.show.support_text") %></p>
+      <a class="order-detail__support-btn" href="<%= order_support_url(@order) %>" target="_blank" rel="noopener">
+        <i class="bi bi-whatsapp" aria-hidden="true"></i> <%= t("account.orders.show.support_cta") %>
+      </a>
+    </div>
   </div>
 </div>

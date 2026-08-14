@@ -238,7 +238,6 @@ body {
 .st-label_issued         { background: #eee9fa; color: #6b4fb0; }
 .st-shipped              { background: #e6f0fb; color: #2f7fd1; }
 .st-delivered            { background: #e4f4ec; color: #1f8a5b; }
-.st-awaiting_refund      { background: #fdeede; color: #b9650a; }
 .st-delivery_issue       { background: #fdece8; color: #c2410c; }
 .st-returned             { background: #fdeede; color: #b9650a; }
 .st-cancelled            { background: #f3f4f6; color: #9aa0a8; }
@@ -252,7 +251,6 @@ body {
 .dotc-label_issued { background: #6b4fb0; }
 .dotc-shipped { background: #2f7fd1; }
 .dotc-delivered { background: #1f8a5b; }
-.dotc-awaiting_refund { background: #b9650a; }
 .dotc-delivery_issue { background: #c2410c; }
 .dotc-returned { background: #b9650a; }
 .dotc-cancelled { background: #9aa0a8; }

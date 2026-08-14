@@ -406,10 +406,30 @@ Six customer-facing states in pt-BR. The flow is **not linear**, with two branch
 
 **Cross-cutting:**
 
-- Modeled with `aasm`. Each transition is auditable (who/when/why), triggers side effects via background jobs, and is recoverable.
+- Modeled as a plain `Order::TRANSITIONS` hash guarded by `Order#transition_to!`, not `aasm`. Each transition is auditable (who/when/why) through an `OrderStatusChange` row written in the same transaction, triggers side effects via background jobs, and is recoverable.
 - The 2-day stuck-in-production rule and the production-report scan run as recurring jobs (same Solid Queue + `config/recurring.yml` shape as `SyncPendingShipmentsJob`).
 - 4.2 → 5 → 6 are driven by `Shipping::TrackingUpdate` interpreting rastro events (§ "Shipment tracking sync"); the order subscribes to the same final-state signals the `Shipment` already exposes.
-- Cancellation is allowed only before `em_producao` (3.2) per §0.1. An **unpaid** order cancels straight to `cancelled`; a **paid** one enters `awaiting_refund` ("Aguardando reembolso") and waits there. InfinitePay refunds are a manual process, so an operator confirms the money was returned before moving it to `cancelled`.
+
+**Cancellation is an operator action, and it follows the cartridge.** Customers cannot
+cancel: the storefront order page offers WhatsApp support instead, because by the time
+someone wants out there is usually a physical object to account for and that is a
+conversation, not a button. An admin can cancel from any status where **we** still hold
+the item (`Order::CANCELLABLE_STATUSES`, derived from the graph rather than hand-listed,
+so the two cannot drift): everything from `aguardando_pagamento` through
+`etiqueta_emitida`, plus `returned`. Once the package is posted the edge disappears. A
+`shipped`, `delivered` or `delivery_issue` order is cancellable only after the operator
+marks it **Recebido de volta** (`returned`), which is exactly the claim "the box is back
+on our shelf". `delivery_issue` in particular is not cancellable: the object is sitting
+with Correios, not with us.
+
+There is no `awaiting_refund` state. It existed to carry "a refund is owed", but
+InfinitePay refunds are chased by hand there anyway, so the status tracked nothing the
+operator did not already know and cost an extra click to close. A cancelled order that
+was already paid is distinguishable from one that never was: `Order#unpaid?` asks whether
+the order ever reached `payment_confirmed`, which is what keeps `payment_status` honest on
+the customer's page and what stops a late webhook from resurrecting an operator's cancel.
+That resurrection edge (`cancelled → payment_confirmed`) exists only for orders
+`CancelExpiredOrdersJob` auto-cancelled without payment.
 
 #### Shipment tracking sync (Correios polling): **shipped**
 

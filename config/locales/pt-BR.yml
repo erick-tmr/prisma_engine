@@ -460,19 +460,12 @@ pt-BR:
         returned:
           label: "Devolvido"
           description: "Os Correios devolveram o pedido para a gente. Vamos combinar com você um novo envio ou o reembolso."
-        awaiting_refund:
-          label: "Aguardando reembolso"
-          description: "Cancelamento solicitado. Estamos processando o reembolso do seu pagamento."
         cancelled:
           label: "Cancelado"
           description: "Seu pedido foi cancelado."
         merged:
           label: "Consolidado"
           description: "Este pedido foi juntado a outro para envio em uma única entrega."
-      cancel:
-        cancelled: "Pedido cancelado."
-        awaiting_refund: "Cancelamento solicitado. O reembolso será processado manualmente e o pedido será encerrado assim que a devolução for concluída."
-        unavailable: "Este pedido não pode mais ser cancelado."
       show:
         placed_on: "Feito em %{date}"
         back: "Voltar para pedidos"
@@ -494,8 +487,15 @@ pt-BR:
         tracking_copy: "Copiar código"
         tracking_external: "Rastrear nos Correios"
         destination: "Destino"
-        cancel: "Cancelar pedido"
         merged_into_html: "Este pedido foi juntado ao pedido %{number} e será enviado em uma única entrega."
+        observation: "Sua observação"
+        request_heading: "Sob encomenda"
+        requested_game: "Jogo solicitado"
+        request_notes: "Observações"
+        request_notes_blank: "Sem observações"
+        support_text: "Precisa de ajuda sobre seu pedido? Entre em contato que estaremos felizes em lhe atender."
+        support_cta: "Falar no WhatsApp"
+        support_message: "Olá tenho uma dúvida com relação ao pedido número %{number}"
   admin:
     sessions:
       title: "Backoffice | Prisma Games"
@@ -664,12 +664,9 @@ pt-BR:
         to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
         flag_issue: "Marcar problema"
-        refund_done: "Reembolso processado"
         cancel: "Cancelar"
         mark_returned: "Recebido de volta"
-        issue_refund: "Reembolsar"
         reship: "Reenviar"
-        cancel_issue: "Cancelar pedido"
       situations:
         active: "Ativo"
         pending: "Pendente"
@@ -955,13 +952,11 @@ pt-BR:
         shipped:
           description: "Em trânsito. A entrega é confirmada automaticamente pelo rastreio dos Correios."
         delivered:
-          description: "Pedido entregue ao cliente. Fluxo encerrado."
+          description: "Pedido entregue ao cliente. Se o pacote voltar para nós, marque como Recebido de volta."
         delivery_issue:
-          description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se voltar para nós, marque como Devolvido."
+          description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se voltar para nós, marque como Recebido de volta para poder cancelar."
         returned:
-          description: "O pacote voltou para o nosso endereço. Reenvie, reembolse ou cancele o pedido."
-        awaiting_refund:
-          description: "Cancelamento solicitado pelo cliente. Processe o reembolso para encerrar o pedido."
+          description: "O pacote voltou para o nosso endereço. Reenvie ou cancele o pedido."
         cancelled:
           description: "Pedido cancelado. Nenhuma ação adicional."
         merged:
@@ -969,7 +964,7 @@ pt-BR:
       auto_next:
         label_issued: "O status avança para Enviado automaticamente quando os Correios registram a postagem."
         shipped: "O status avança para Entregue automaticamente pelo rastreio dos Correios."
-        delivered: "Este pedido está concluído. Não há mais transições disponíveis."
+        delivered: "Este pedido está concluído. Só volta a se mover se o pacote retornar para nós."
         cancelled: "Este pedido foi cancelado. Não há mais transições disponíveis."
       lifecycle:
         awaiting_payment: "Pagamento"

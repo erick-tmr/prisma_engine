@@ -30,9 +30,7 @@ Rails.application.routes.draw do
       member { patch :default }
       collection { get "cep/:cep", action: :lookup_cep, as: :lookup_cep, constraints: { cep: /[\d-]{8,9}/ } }
     end
-    resources :pedidos, controller: "orders", as: :orders, only: %i[index show] do
-      member { post :cancelar, action: :cancel }
-    end
+    resources :pedidos, controller: "orders", as: :orders, only: %i[index show]
   end
 
   scope path: "admin", module: "admin", as: :admin do

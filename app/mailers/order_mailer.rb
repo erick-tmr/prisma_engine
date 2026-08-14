@@ -39,9 +39,7 @@ class OrderMailer < ApplicationMailer
   private
 
   def whatsapp_url(order)
-    message = t("order_mailer.returned.whatsapp_message", number: order.number)
-
-    "#{NavHelper::SOCIAL_LINKS.fetch(:whatsapp)}?text=#{CGI.escape(message)}"
+    NavHelper.whatsapp_url(t("order_mailer.returned.whatsapp_message", number: order.number))
   end
 
   def deliver_for(order)

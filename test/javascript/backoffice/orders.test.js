@@ -134,8 +134,14 @@ describe("pure helpers", () => {
 
   it("offers only the actions the selection can actually take", () => {
     expect(availableActions([ "payment_confirmed", "payment_confirmed", "delivered" ]))
-      .toEqual([ { action: ACTIONS[0], count: 2 } ]);
+      .toEqual([ { action: ACTIONS[0], count: 2 }, { action: ACTIONS[3], count: 2 } ]);
     expect(availableActions([ "delivered" ])).toEqual([]);
+  });
+
+  it("withholds bulk cancel once the package is out, until it comes back to us", () => {
+    expect(availableActions([ "shipped" ])).toEqual([]);
+    expect(availableActions([ "delivery_issue" ])).toEqual([]);
+    expect(availableActions([ "returned" ])).toEqual([ { action: ACTIONS[3], count: 1 } ]);
   });
 
   it("renders chips, or says there is nothing to do", () => {

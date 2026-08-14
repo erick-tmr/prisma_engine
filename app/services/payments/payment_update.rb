@@ -29,7 +29,7 @@ module Payments
     end
 
     def confirmable?
-      order.awaiting_payment? || order.cancelled?
+      order.unpaid?
     end
 
     def confirm!

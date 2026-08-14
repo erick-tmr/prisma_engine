@@ -322,6 +322,20 @@ the live database), then the final command drops the throwaway.
 - An hourly job (e.g. `SyncPendingShipmentsJob`) appears in the logs.
 - `bin/kamal dbconsole` connects to host Postgres.
 
+## One-off data scripts
+
+Some changes need production rows moved before the code that stops understanding them
+ships. These live in `deploy/`, open an SSH tunnel to the VPS's localhost Postgres and run
+`bin/rails runner` against it, exactly like `deploy/seed-prod-catalog.sh`. They read
+`PRODUCTION_LOG_HOST/USER/SSH_PORT` and `PRISMA_ENGINE_DATABASE_PASSWORD` from `.env`.
+
+- `deploy/seed-prod-catalog.sh`: bootstrap the initial catalog + hero banner images into
+  the prod R2 bucket. Runbook: `docs/seeding-images.md`.
+- `deploy/retire-awaiting-refund.sh`: move every order still parked in the retired
+  `awaiting_refund` status to `cancelled`, writing the matching `order_status_changes` row.
+  **Run it before deploying the backoffice-only-cancellation change**, so no order sits in
+  a status the running code has no label for. Idempotent: a second run matches zero rows.
+
 ## Production logs
 
 The app logs structured JSON (one line per request, via lograge) to STDOUT, captured

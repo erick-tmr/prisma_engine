@@ -31,7 +31,7 @@ module Payments
     attr_reader :order, :payload
 
     def confirmable?
-      order.awaiting_payment? || order.cancelled?
+      order.unpaid?
     end
 
     def identifiers_missing?

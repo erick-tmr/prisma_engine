@@ -12,7 +12,7 @@ module Admin
       "shipped"             => %w[payment_confirmed in_production label_issued shipped],
       "delivered"           => %w[payment_confirmed in_production label_issued shipped delivered],
       "delivery_issue"      => %w[payment_confirmed in_production label_issued shipped delivery_issue],
-      "awaiting_refund"     => %w[payment_confirmed awaiting_refund],
+      "returned"            => %w[payment_confirmed in_production label_issued shipped returned],
       "cancelled"           => %w[cancelled],
       "merged"              => %w[payment_confirmed merged]
     }.freeze
@@ -77,9 +77,9 @@ module Admin
       assert_equal master, fresh.merged_into
     end
 
-    test "available_actions for payment_confirmed: a single primary move, no confirm (production is report-only)" do
+    test "available_actions for payment_confirmed: a primary move plus the danger cancel (production is report-only)" do
       actions = order_in("payment_confirmed").available_actions
-      assert_equal %w[to_components], actions.map { |a| a[:id] }
+      assert_equal %w[to_components cancel], actions.map { |a| a[:id] }
       assert_equal "act-btn primary", actions.first[:button_class]
       assert_equal({}, actions.first[:form_data])
       assert_equal "Aguardando componentes", actions.first[:target_label]
@@ -92,14 +92,18 @@ module Admin
       assert_includes action[:form_data][:confirm], "Cancelar o pedido"
     end
 
-    test "available_actions for in_production offers only flag_issue, not a manual issue_label" do
+    test "available_actions for in_production offers flag_issue and cancel, not a manual issue_label" do
       actions = order_in("in_production").available_actions
-      assert_equal %w[flag_issue], actions.map { |a| a[:id] }
+      assert_equal %w[flag_issue cancel], actions.map { |a| a[:id] }
     end
 
-    test "available_actions is empty for terminal/automatic states" do
-      %w[label_issued shipped delivered cancelled].each do |status|
-        assert_empty order_in(status).available_actions, status
+    test "available_actions is empty for a cancelled order" do
+      assert_empty order_in("cancelled").available_actions
+    end
+
+    test "available_actions for a posted order offers only the return, never a direct cancel" do
+      %w[shipped delivered].each do |status|
+        assert_equal %w[mark_returned], order_in(status).available_actions.map { |a| a[:id] }, status
       end
     end
 
@@ -130,10 +134,15 @@ module Admin
       assert_equal "Problema na produção", branch.label
     end
 
-    test "available_actions for delivery_issue offers returned, refund, reship and a danger cancel" do
+    test "available_actions for delivery_issue offers returned and reship, but no cancel" do
       actions = order_in("delivery_issue").available_actions
-      assert_equal %w[mark_returned issue_refund reship cancel_issue], actions.map { |a| a[:id] }
-      cancel = actions.find { |a| a[:id] == "cancel_issue" }
+      assert_equal %w[mark_returned reship], actions.map { |a| a[:id] }
+    end
+
+    test "available_actions for a returned order offers reship and a danger cancel" do
+      actions = order_in("returned").available_actions
+      assert_equal %w[reship cancel], actions.map { |a| a[:id] }
+      cancel = actions.find { |a| a[:id] == "cancel" }
       assert_equal "act-btn danger", cancel[:button_class]
       assert_includes cancel[:form_data][:confirm], "Cancelar o pedido"
     end

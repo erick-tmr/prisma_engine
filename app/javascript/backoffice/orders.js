@@ -4,17 +4,21 @@ import { initShell } from "backoffice/shell";
 import { applyBusyRows, applyProgress, applyRowStatus, createLabelFeedback, inFlight } from "backoffice/label_feedback";
 import { addMonths, anchorMonth, applyPreset, datePopHtml, nextSelection, parseISO, toISO } from "backoffice/date_picker";
 
+export const CANCELLABLE_STATUSES = [
+  "awaiting_payment", "payment_confirmed", "awaiting_components",
+  "in_production", "production_issue", "label_issued", "returned"
+];
+
 export const ACTIONS = [
   { id: "to_components", icon: "bi-box-seam", from: [ "payment_confirmed" ] },
   { id: "issue_label", icon: "bi-upc-scan", from: [ "in_production" ] },
   { id: "flag_issue", icon: "bi-exclamation-triangle", from: [ "in_production" ] },
-  { id: "refund_done", icon: "bi-cash-coin", from: [ "awaiting_refund" ] },
-  { id: "cancel", icon: "bi-x-circle", danger: true, from: [ "awaiting_payment" ] }
+  { id: "cancel", icon: "bi-x-circle", danger: true, from: CANCELLABLE_STATUSES }
 ];
 
 export const ACTION_LABELS = {
   to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
-  flag_issue: "Marcar problema", refund_done: "Reembolso processado", cancel: "Cancelar"
+  flag_issue: "Marcar problema", cancel: "Cancelar"
 };
 
 export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);

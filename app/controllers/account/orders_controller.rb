@@ -8,16 +8,6 @@ module Account
       @order = find_order
     end
 
-    def cancel
-      order = find_order
-      if order.cancellable?
-        order.cancel_by_customer!(actor: current_user)
-        redirect_to account_order_path(order), notice: t("account.orders.cancel.#{order.status}")
-      else
-        redirect_to account_order_path(order), alert: t("account.orders.cancel.unavailable")
-      end
-    end
-
     private
 
     def find_order
