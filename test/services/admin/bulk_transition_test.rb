@@ -123,5 +123,34 @@ module Admin
       assert_equal "not_returnable", result["results"].sole["reason"]
       assert_equal shipment_id, order.reload.return_shipment.id
     end
+    test "start_return applies the operator's service to the whole batch" do
+      a = orders(:delivered)
+      b = orders(:shipped_order)
+      b.transition_to!("delivered", automatic: true)
+
+      Admin::BulkTransition.call(order_numbers: [ a.number, b.number ], event: "start_return",
+                                 actor: users(:admin), service: "sedex")
+
+      assert_equal "sedex", a.reload.return_shipment.service
+      assert_equal "sedex", b.reload.return_shipment.service
+    end
+
+    test "start_return without a service falls back to the default" do
+      order = orders(:delivered)
+
+      Admin::BulkTransition.call(order_numbers: [ order.number ], event: "start_return", actor: users(:admin))
+
+      assert_equal Shipping::DEFAULT_RETURN_SERVICE, order.reload.return_shipment.service
+    end
+
+    test "start_return refuses a bad service without touching any order" do
+      order = orders(:delivered)
+
+      result = Admin::BulkTransition.call(order_numbers: [ order.number ], event: "start_return",
+                                          actor: users(:admin), service: "teleport")
+
+      assert_equal "invalid_service", result["results"].sole["reason"]
+      assert order.reload.delivered?
+    end
   end
 end

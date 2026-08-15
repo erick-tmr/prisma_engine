@@ -24,6 +24,31 @@ module Admin
       assert_equal users(:admin), @order.status_changes.chronological.last.actor
     end
 
+    test "the operator's service choice reaches the return shipment" do
+      sign_in users(:admin)
+
+      post admin_order_return_path(@order.number), params: { service: "sedex" }
+
+      assert_equal "sedex", @order.reload.return_shipment.service
+    end
+
+    test "no service falls back to the default" do
+      sign_in users(:admin)
+
+      post admin_order_return_path(@order.number)
+
+      assert_equal Shipping::DEFAULT_RETURN_SERVICE, @order.reload.return_shipment.service
+    end
+
+    test "a service Correios does not sell us is refused by name" do
+      sign_in users(:admin)
+
+      post admin_order_return_path(@order.number), params: { service: "teleport" }
+
+      assert_equal I18n.t("admin.orders.returns.errors.invalid_service"), flash[:alert]
+      assert @order.reload.delivered?
+    end
+
     test "a refused authorization says why and changes nothing" do
       sign_in users(:admin)
       order = orders(:producing)

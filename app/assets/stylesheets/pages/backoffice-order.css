@@ -337,3 +337,15 @@
   .act-proc .ap-bar > span,
   .lc-step.pending .lc-node { animation: none; }
 }
+
+.return-form { display: flex; flex-direction: column; gap: 8px; }
+.return-service { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--bo-muted, #6b7280); }
+.return-service-select {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 9px;
+  border-radius: 9px;
+  border: 1px solid var(--bo-border, #e5e7eb);
+  background: #fff;
+  color: inherit;
+}

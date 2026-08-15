@@ -83,5 +83,35 @@ module Shipping
 
       assert @order.reload.delivered?
     end
+    test "defaults to PAC, the cheapest service that carries a cartridge" do
+      @order.shipment.update!(service: "sedex")
+
+      inbound = Shipping::StartReturn.call(order: @order).return_shipment
+
+      assert_equal Shipping::DEFAULT_RETURN_SERVICE, inbound.service
+      assert_equal "pac", inbound.service
+    end
+
+    test "takes the service the operator picked, whatever the outbound one was" do
+      @order.shipment.update!(service: "pac")
+
+      inbound = Shipping::StartReturn.call(order: @order, service: "sedex").return_shipment
+
+      assert_equal "sedex", inbound.service
+    end
+
+    test "a blank service falls back to the default rather than failing" do
+      inbound = Shipping::StartReturn.call(order: @order, service: "").return_shipment
+
+      assert_equal Shipping::DEFAULT_RETURN_SERVICE, inbound.service
+    end
+
+    test "refuses a service Correios does not sell us, changing nothing" do
+      result = Shipping::StartReturn.call(order: @order, service: "teleport")
+
+      assert_equal :invalid_service, result.error
+      assert @order.reload.delivered?
+      assert_nil @order.return_shipment
+    end
   end
 end

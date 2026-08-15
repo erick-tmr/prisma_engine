@@ -1,13 +1,14 @@
 module Admin
   class BulkTransition
-    def self.call(order_numbers:, event:, actor:)
-      new(order_numbers: order_numbers, event: event, actor: actor).call
+    def self.call(order_numbers:, event:, actor:, service: nil)
+      new(order_numbers: order_numbers, event: event, actor: actor, service: service).call
     end
 
-    def initialize(order_numbers:, event:, actor:)
+    def initialize(order_numbers:, event:, actor:, service: nil)
       @numbers = Array(order_numbers)
       @event = event.to_s
       @actor = actor
+      @service = service
     end
 
     def call
@@ -33,7 +34,7 @@ module Admin
 
     def start_returns
       orders.map do |order|
-        result = Shipping::StartReturn.call(order: order, actor: @actor)
+        result = Shipping::StartReturn.call(order: order, actor: @actor, service: @service)
         next result_for(order, "skipped", result.error.to_s) unless result.success?
 
         result_for(order.reload, "queued")

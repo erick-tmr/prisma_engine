@@ -601,6 +601,7 @@ pt-BR:
         selected: "selecionados"
         clear: "Limpar seleção"
         print_labels: "Imprimir etiquetas"
+        return_service: "Serviço da devolução"
         issuing: "Emitindo etiquetas…"
       views:
         orders:
@@ -945,6 +946,7 @@ pt-BR:
         action_target: "→ %{status}"
         print_label: "Imprimir etiqueta Correios"
         start_return: "Iniciar devolução"
+        return_service: "Serviço"
         cancel_return: "Cancelar devolução"
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
@@ -961,6 +963,7 @@ pt-BR:
             not_cancellable: "Este pedido não tem devolução em andamento para cancelar."
             no_return: "Este pedido não tem devolução em andamento para cancelar."
             already_posted: "O cliente já postou a devolução, então ela não pode mais ser cancelada."
+            invalid_service: "Escolha um serviço de envio válido para a devolução."
         transition_done: "Status atualizado para %{status}."
         transition_invalid: "Esta ação não está disponível para o status atual do pedido."
         cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."

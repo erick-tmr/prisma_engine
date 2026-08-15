@@ -182,7 +182,7 @@ def ensure_return_demo(user, index)
   order = ensure_order("returning", "returning", index, user)
   outbound = order.shipment
   shipment = order.return_shipment ||
-             Shipment.create!(order: order, direction: :inbound,
+             Shipment.create!(order: order, direction: :inbound, service: Shipping::DEFAULT_RETURN_SERVICE,
                               **outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
   shipment.update!(tracking_code: "PR#{format('%09d', order.id)}BR", tracking_state: :unavailable)
   label = shipment.shipping_label || shipment.create_shipping_label!

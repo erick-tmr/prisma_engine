@@ -41,11 +41,17 @@
       <% end %>
 
       <% if presenter.return_startable? %>
-        <%= button_to admin_order_return_path(presenter.number), method: :post,
-              class: "act-btn", form: { class: "act-form" } do %>
-          <i class="bi bi-arrow-counterclockwise"></i>
-          <span><%= t("admin.orders.detail.start_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
-          <i class="bi bi-arrow-right act-arrow"></i>
+        <%= form_with url: admin_order_return_path(presenter.number), method: :post, class: "act-form return-form" do |form| %>
+          <label class="return-service">
+            <span><%= t("admin.orders.detail.return_service") %></span>
+            <%= form.select :service, Shipping::SERVICES.keys.map { |key| [ Shipping.service_label(key), key ] },
+                  { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "return-service-select" %>
+          </label>
+          <button type="submit" class="act-btn">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span><%= t("admin.orders.detail.start_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
+            <i class="bi bi-arrow-right act-arrow"></i>
+          </button>
         <% end %>
       <% end %>
 
