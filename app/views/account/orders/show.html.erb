@@ -128,7 +128,10 @@
           <i class="bi bi-arrow-counterclockwise"></i> <%= t("account.orders.show.return_title") %>
         </div>
         <div class="order-detail__info-body">
-          <% if order_return_label_ready?(@order) %>
+          <% if @order.returning? %>
+            <div class="strong"><%= t("account.orders.show.return_posted_lead") %></div>
+            <div><%= t("account.orders.show.return_posted", code: @order.return_shipment.tracking_code) %></div>
+          <% elsif order_return_label_ready?(@order) %>
             <div class="strong"><%= t("account.orders.show.return_instructions_lead") %></div>
             <div class="order-detail__return-package">
               <div class="order-detail__return-package-head"><%= t("account.orders.show.return_package_title") %></div>
@@ -150,9 +153,6 @@
             <a class="order-detail__return-btn" href="<%= return_label_account_order_path(@order) %>" target="_blank" rel="noopener">
               <i class="bi bi-download" aria-hidden="true"></i> <%= t("account.orders.show.return_label_cta") %>
             </a>
-          <% elsif @order.returning? %>
-            <div class="strong"><%= t("account.orders.show.return_posted_lead") %></div>
-            <div><%= t("account.orders.show.return_posted", code: @order.return_shipment.tracking_code) %></div>
           <% else %>
             <div class="strong"><%= t("account.orders.show.return_pending_lead") %></div>
             <div><%= t("account.orders.show.return_pending") %></div>

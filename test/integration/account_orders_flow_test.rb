@@ -265,6 +265,23 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_select ".order-detail__info-body", text: /#{Regexp.escape(I18n.t("account.orders.show.return_pending"))}/
   end
 
+  test "a posted return stops instructing, even if its label outlived the postagem" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf")
+    order.return_shipment.update!(tracking_code: "PR999888777BR")
+    order.transition_to!("returning", automatic: true)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-steps", false
+    assert_select ".order-detail__return-package", false
+    assert_select ".order-detail__return-btn", false
+    assert_select ".order-detail__info-body", text: /PR999888777BR/
+  end
+
   test "a posted return shows the tracking code, since the label is gone by then" do
     order = orders(:delivered)
     sign_in order.user
