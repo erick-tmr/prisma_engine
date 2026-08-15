@@ -522,7 +522,7 @@ pt-BR:
         return_title: "Devolução"
         return_tracking: "Rastreio da devolução"
         return_instructions_lead: "Sua etiqueta de devolução está pronta."
-        return_package_title: "Sobre o pacote"
+        return_package_title: "Como embalar o pedido para devolução"
         return_package_reuse: "Sempre que possível, use o mesmo pacote em que o pedido chegou até você."
         return_package_specs: "Se não der, escolha um pacote de no máximo %{dimensions}, medindo comprimento × largura × altura, nessa ordem. O peso total, somando o pacote e o item, precisa ficar em até %{weight}. Esses são os limites do Mini Envios."
         return_package_over: "Fora dessas especificações o envio sai do Mini Envios, e a diferença do frete é descontada do valor do seu reembolso."
