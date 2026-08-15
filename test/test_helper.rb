@@ -41,6 +41,24 @@ module ActiveSupport
 
     SPARE_CPFS = %w[52987411340 61829374591 70345182626 81572639482].freeze
 
+    def bare_order(user: users(:confirmed))
+      Order.create!(user: user, subtotal_cents: 1_000, total_cents: 1_000)
+    end
+
+    def one_page_pdf(text = "PRISMA")
+      page = CombinePDF.create_page([ 0, 0, 595.276, 841.89 ])
+      page.textbox(text, x: 20, y: 620, width: 260, height: 40, font_size: 18)
+      document = CombinePDF.new
+      document << page
+      Base64.strict_encode64(document.to_pdf)
+    end
+
+    def ready_label!(label, filename:, pdf: one_page_pdf)
+      label.store_label!(filename: filename, pdf: pdf)
+      label.store_dce!(filename: "declaracao-#{filename}", pdf: pdf)
+      label
+    end
+
     def count_queries
       count = 0
       counter = ->(*, payload) { count += 1 unless payload[:name].to_s.match?(/SCHEMA|TRANSACTION/) }

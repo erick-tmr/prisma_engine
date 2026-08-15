@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_15_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -199,6 +199,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.string "payment_method"
     t.bigint "production_batch_id"
     t.string "receipt_url"
+    t.text "return_reason"
     t.string "status", default: "awaiting_payment", null: false
     t.integer "subtotal_cents", null: false
     t.integer "total_cents", null: false
@@ -356,6 +357,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.datetime "created_at", null: false
     t.datetime "delivered_at"
     t.integer "delivery_business_days"
+    t.integer "direction", default: 0, null: false
     t.integer "height_cm"
     t.datetime "last_tracked_at"
     t.string "last_tracking_status"
@@ -384,7 +386,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.integer "weight_grams"
     t.integer "width_cm"
     t.string "zip"
-    t.index ["order_id"], name: "index_shipments_on_order_id"
+    t.index ["order_id", "direction"], name: "index_shipments_on_order_id_and_direction", unique: true
     t.index ["pre_post_id"], name: "index_shipments_on_pre_post_id", unique: true
     t.index ["tracking_code"], name: "index_shipments_on_tracking_code", unique: true
     t.index ["tracking_state"], name: "index_shipments_on_tracking_state"
@@ -392,6 +394,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
 
   create_table "shipping_labels", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.text "dce_base64"
+    t.string "dce_filename"
     t.string "error"
     t.datetime "errored_at"
     t.string "filename"

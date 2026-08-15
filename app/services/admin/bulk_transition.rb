@@ -27,6 +27,7 @@ module Admin
       orders.map { |order| order.in_production? ? result_for(order, "queued") : result_for(order, "skipped", "not_available") }
     end
 
+
     def transition_all
       action = OrderActions.lookup(@event)
       return orders.map { |order| result_for(order, "skipped", "unknown_event") } if action.nil?

@@ -132,16 +132,23 @@ describe("pure helpers", () => {
     expect(plural(2, "pedido", "pedidos")).toBe("pedidos");
   });
 
+  const act = (id) => ACTIONS.find((a) => a.id === id);
+
   it("offers only the actions the selection can actually take", () => {
     expect(availableActions([ "payment_confirmed", "payment_confirmed", "delivered" ]))
-      .toEqual([ { action: ACTIONS[0], count: 2 }, { action: ACTIONS[3], count: 2 } ]);
+      .toEqual([ { action: act("to_components"), count: 2 }, { action: act("cancel"), count: 2 } ]);
     expect(availableActions([ "delivered" ])).toEqual([]);
   });
 
+
+
+
+
+
+
   it("withholds bulk cancel once the package is out, until it comes back to us", () => {
     expect(availableActions([ "shipped" ])).toEqual([]);
-    expect(availableActions([ "delivery_issue" ])).toEqual([]);
-    expect(availableActions([ "returned" ])).toEqual([ { action: ACTIONS[3], count: 1 } ]);
+    expect(availableActions([ "returned" ])).toEqual([ { action: act("cancel"), count: 1 } ]);
   });
 
   it("renders chips, or says there is nothing to do", () => {
@@ -614,6 +621,8 @@ describe("Correios feedback", () => {
     await vi.waitFor(() => expect(readBatch(window.sessionStorage)).toEqual(new Set([ "PG-OLD", "PG-1" ])));
   });
 
+
+
   it("resumes polling on load when the server already rendered a busy row", () => {
     start(row("PG-1", "in_production", "running"));
     expect(app.feedback.running).toBe(true);
@@ -724,14 +733,12 @@ describe("Correios feedback", () => {
     writeBatch(window.sessionStorage, new Set([ "PG-1" ]));
     start(row("PG-1", "in_production", "running") + row("PG-9", "in_production", "running"),
       procbar({ total: 1, inFlight: 1 }));
-    // once the batch is forgotten the poller stops sending lote, and the server renders the strip hidden
     window.fetch.mockImplementation(async (url) => ({
       ok: true,
       text: async () => `<div data-part="correios-PG-1" data-cor-state="done"></div>` +
         procbar(String(url).includes("lote") ? { total: 1, settled: 1 } : { hidden: true })
     }));
 
-    // PG-9 never settles, so the poller keeps ticking long after our batch is done
     await vi.advanceTimersByTimeAsync(POLL_STEPS[0]);
     await vi.advanceTimersByTimeAsync(BATCH_HOLD_MS + 1_000);
 

@@ -6,5 +6,5 @@
 <% end -%>
 
 <%= t("order_mailer.subtotal") %>: <%= format_brl(@order.subtotal_cents) %>
-<%= local_assigns[:shipping_service] ? t("order_mailer.shipping_with_service", service: shipping_service) : t("order_mailer.shipping") %>: <%= format_brl(@order.total_cents - @order.subtotal_cents) %>
+<%= t("order_mailer.shipping_with_service", service: shipping_service) %>: <%= format_brl(@order.total_cents - @order.subtotal_cents) %>
 <%= t("order_mailer.total") %>: <%= format_brl(@order.total_cents) %>

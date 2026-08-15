@@ -58,12 +58,34 @@ class ShippingLabelTest < ActiveSupport::TestCase
     assert @label.prepost_confirmed?
   end
 
-  test "mark_ready! stores the filename and base64 PDF" do
-    @label.mark_ready!(filename: "label.pdf", pdf: "JVBERi0=")
+  test "store_label! parks the label with its PDF, short of ready" do
+    @label.store_label!(filename: "label.pdf", pdf: "JVBERi0=")
 
-    assert @label.ready?
+    assert @label.label_downloaded?
     assert_equal "label.pdf", @label.filename
     assert_equal "JVBERi0=", @label.pdf_base64
+    assert_nil @label.dce_base64
+  end
+
+  test "store_dce! adds the declaração and only then is the label ready" do
+    @label.store_label!(filename: "label.pdf", pdf: "JVBERi0=")
+    @label.store_dce!(filename: "declaracao.pdf", pdf: "RENF")
+
+    assert @label.ready?
+    assert_equal "declaracao.pdf", @label.dce_filename
+    assert_equal "RENF", @label.dce_base64
+    assert_equal "JVBERi0=", @label.pdf_base64
+  end
+
+  test "both writers clear a recorded error" do
+    @label.record_error!("boom")
+    @label.store_label!(filename: "l.pdf", pdf: "x")
+    assert_nil @label.error
+
+    @label.record_error!("boom again")
+    @label.store_dce!(filename: "d.pdf", pdf: "x")
+    assert_nil @label.error
+    assert_nil @label.errored_at
   end
 
   test "record_error! captures the message and a timestamp without advancing" do
@@ -77,8 +99,15 @@ class ShippingLabelTest < ActiveSupport::TestCase
   test "pdf_bytes decodes the stored base64; nil when no PDF yet" do
     assert_nil @label.pdf_bytes
 
-    @label.mark_ready!(filename: "label.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
+    @label.store_label!(filename: "label.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
     assert_equal "%PDF-1.4", @label.pdf_bytes
+  end
+
+  test "dce_bytes decodes the stored declaração; nil until one is stored" do
+    assert_nil @label.dce_bytes
+
+    @label.store_dce!(filename: "declaracao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 dace"))
+    assert_equal "%PDF-1.4 dace", @label.dce_bytes
   end
 
   test "reset_for_relabel! rewinds to prepost_confirmed, clears the recibo and counts the attempt" do

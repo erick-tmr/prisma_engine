@@ -1,0 +1,21 @@
+<%= render layout: "shared/email_card", locals: {
+      badge_label: t("order_mailer.awaiting_return.badge_label"),
+      badge_color: "#b9650a",
+      hero_image: "dragon-letter-full.png",
+      hero_height: 180,
+      heading: t("order_mailer.awaiting_return.heading"),
+      first_name: @order.user.first_name
+    } do %>
+  <tr>
+    <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("order_mailer.awaiting_return.intro") %>
+    </td>
+  </tr>
+  <tr>
+    <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("order_mailer.awaiting_return.page_note") %>
+    </td>
+  </tr>
+  <%= render "summary", shipping_service: @order.shipment.service_label %>
+  <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.awaiting_return.cta") %>
+<% end %>

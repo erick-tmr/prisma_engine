@@ -17,6 +17,7 @@ class OrderMailerTest < ActionMailer::TestCase
       assert_includes body, "R$ 349,90"
       assert_includes body, "Seu pedido acaba de decolar!"
       assert_includes body, "Acompanhar pedido"
+      assert_includes body, "Frete · #{order.shipment.service_label}"
     end
 
     html_body = email.html_part.body.to_s
@@ -97,6 +98,8 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_equal "Seu pedido #{order.number} foi entregue", email.subject
     assert_includes email.html_part.body.to_s, order.shipment.tracking_code
     assert_includes email.text_part.body.to_s, order.shipment.tracking_code
+    assert_includes email.html_part.body.to_s, "Frete · #{order.shipment.service_label}"
+    assert_includes email.text_part.body.to_s, "Frete · #{order.shipment.service_label}"
 
     html_body = email.html_part.body.to_s
     assert_includes html_body, "Ver meus pedidos"
@@ -124,7 +127,7 @@ class OrderMailerTest < ActionMailer::TestCase
     end
 
     assert_includes email.html_part.body.to_s, "Devolvido"
-    assert_includes email.html_part.body.to_s, "dragon-fly.png"
+    assert_includes email.html_part.body.to_s, "dragon-face.png"
   end
 
   test "returned opens WhatsApp with the order number already written out" do
@@ -186,5 +189,45 @@ class OrderMailerTest < ActionMailer::TestCase
 
     assert_equal heroes.uniq, heroes
     assert_includes heroes, OrderMailer::DEFAULT_ISSUE_HERO
+  end
+  test "awaiting_return points the customer at their order page for the label" do
+    order = orders(:delivered)
+    Shipping::StartReturn.call(order: order)
+
+    mail = OrderMailer.awaiting_return(order.reload)
+
+    assert_equal [ order.user.email ], mail.to
+    assert_equal I18n.t("order_mailer.awaiting_return.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.awaiting_return.page_note")
+    assert_includes mail.html_part.body.to_s, order.shipment.service_label
+    assert_includes mail.html_part.body.to_s, order.number
+  end
+
+  test "returning carries the return tracking code" do
+    order = orders(:delivered)
+    Shipping::StartReturn.call(order: order)
+    order.reload.return_shipment.update!(tracking_code: "PR123456789BR")
+
+    mail = OrderMailer.returning(order)
+
+    assert_equal I18n.t("order_mailer.returning.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, "PR123456789BR"
+  end
+
+  test "returned blames Correios only when the package bounced back on its own" do
+    bounced = OrderMailer.returned(orders(:delivered))
+
+    assert_equal I18n.t("order_mailer.returned.bounced.subject", number: orders(:delivered).number), bounced.subject
+    assert_includes bounced.html_part.body.to_s, I18n.t("order_mailer.returned.bounced.intro")
+  end
+
+  test "returned thanks the customer when they asked for the return" do
+    order = orders(:delivered)
+    Shipping::StartReturn.call(order: order)
+
+    mail = OrderMailer.returned(order.reload)
+
+    assert_equal I18n.t("order_mailer.returned.expected.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.returned.expected.intro")
   end
 end

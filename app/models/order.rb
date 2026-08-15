@@ -8,11 +8,17 @@ class Order < ApplicationRecord
   OBSERVATION_LIMIT = 280
   OBSERVATION_STORAGE_LIMIT = OBSERVATION_LIMIT * 5
 
+  RETURN_REASON_LIMIT = 500
+
   belongs_to :user
   belongs_to :production_batch, optional: true
   belongs_to :merged_into, class_name: "Order", optional: true
-  has_one :shipment, dependent: :nullify
+  has_one :shipment, -> { where(direction: :outbound) },
+          inverse_of: :order, dependent: :nullify
+  has_one :return_shipment, -> { where(direction: :inbound) },
+          class_name: "Shipment", inverse_of: :order, dependent: :destroy
   has_one :shipping_label, through: :shipment
+  has_one :return_shipping_label, through: :return_shipment, source: :shipping_label
   has_one :order_merge, foreign_key: :carrier_order_id, inverse_of: :carrier_order, dependent: :destroy
   has_many :order_items, dependent: :destroy
   has_many :merged_orders, class_name: "Order", foreign_key: :merged_into_id, dependent: :nullify
@@ -32,6 +38,8 @@ class Order < ApplicationRecord
     shipped
     delivered
     delivery_issue
+    awaiting_return
+    returning
     returned
     cancelled
     merged
@@ -47,8 +55,10 @@ class Order < ApplicationRecord
     "production_issue"    => %w[in_production merged cancelled],
     "label_issued"        => %w[shipped cancelled],
     "shipped"             => %w[delivered delivery_issue returned],
-    "delivered"           => %w[returned],
-    "delivery_issue"      => %w[delivered returned shipped],
+    "delivered"           => %w[awaiting_return returned],
+    "delivery_issue"      => %w[delivered awaiting_return returned shipped],
+    "awaiting_return"     => %w[returning returned delivered],
+    "returning"           => %w[returned delivered],
     "returned"            => %w[shipped cancelled],
     "cancelled"           => %w[payment_confirmed],
     "merged"              => []
@@ -67,8 +77,9 @@ class Order < ApplicationRecord
   validates :subtotal_cents, :total_cents,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :observation, length: { maximum: OBSERVATION_LIMIT }, on: :create
+  validates :return_reason, length: { maximum: RETURN_REASON_LIMIT }, allow_blank: true
 
-  normalizes :observation, with: ->(value) { value.strip.presence }
+  normalizes :observation, :return_reason, with: ->(value) { value.strip.presence }
 
   before_validation :assign_number, on: :create
   after_create :record_initial_status
@@ -124,6 +135,14 @@ class Order < ApplicationRecord
 
   def shippable?
     !cancelled?
+  end
+
+  def return_leg?
+    Shipping::RETURN_WALK.include?(status)
+  end
+
+  def tracked_shipment
+    return_leg? ? return_shipment : shipment
   end
 
   def cancel!(**opts)

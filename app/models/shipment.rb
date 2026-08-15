@@ -13,6 +13,8 @@ class Shipment < ApplicationRecord
        { pending: 0, in_transit: 1, delivered: 2, returned: 3, unavailable: 4, delivery_issue: 5 },
        prefix: :tracking
 
+  enum :direction, { outbound: 0, inbound: 1 }
+
   FINAL_TRACKING_STATES = %w[delivered returned unavailable].freeze
 
   TERMINAL_PREPOST_STATUSES = [ 4, 5, 6 ].freeze

@@ -1,12 +1,12 @@
 module Admin
   class LabelFeedback
-    RUNNING_STATES = %w[prepost_created prepost_confirmed requesting requested].freeze
+    RUNNING_STATES = %w[prepost_created prepost_confirmed requesting requested label_downloaded].freeze
     IN_FLIGHT = %w[queued running].freeze
     ERROR_LIMIT = 120
 
     def initialize(order)
       @order = order
-      @label = order.shipment&.shipping_label
+      @label = order.tracked_shipment&.shipping_label
     end
 
     attr_reader :order, :label
@@ -31,7 +31,9 @@ module Admin
     end
 
     def done?
-      !!label&.ready? && order.label_issued?
+      return false unless label&.ready?
+
+      order.return_leg? || order.label_issued?
     end
 
     def failed?

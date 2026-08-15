@@ -23,9 +23,19 @@ class OrderMailer < ApplicationMailer
     deliver_for(order)
   end
 
-  def returned(order)
-    @whatsapp_url = whatsapp_url(order)
+  def awaiting_return(order)
     deliver_for(order)
+  end
+
+  def returning(order)
+    deliver_for(order)
+  end
+
+  def returned(order)
+    @order = order
+    @kind = order.return_shipment ? "expected" : "bounced"
+    @whatsapp_url = whatsapp_url(order)
+    mail(to: order.user.email, subject: t("order_mailer.returned.#{@kind}.subject", number: order.number))
   end
 
   def delivery_issue(order)

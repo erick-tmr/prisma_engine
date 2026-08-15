@@ -1,18 +1,5 @@
 module Shipping
   class OrderProgress
-    LEG = %w[label_issued shipped delivered].freeze
-
-    TARGETS = {
-      "in_transit"     => { advance_to: "shipped",   then_to: nil },
-      "delivered"      => { advance_to: "delivered", then_to: nil },
-      "returned"       => { advance_to: "shipped",   then_to: "returned" },
-      "delivery_issue" => { advance_to: "shipped",   then_to: "delivery_issue" }
-    }.freeze
-
-    # A flagged order leaves delivery_issue only once tracking says the object
-    # stopped waiting: the customer collected it, or it came back to us.
-    RESOLUTIONS = { "delivered" => "delivered", "returned" => "returned" }.freeze
-
     def self.apply(shipment)
       new(shipment).apply
     end
@@ -20,11 +7,12 @@ module Shipping
     def initialize(shipment)
       @shipment = shipment
       @order = shipment.order
+      @progress = Shipping::Leg.for(shipment).progress
     end
 
     def apply
-      plan = TARGETS[shipment.tracking_state]
-      return unless plan
+      plan = progress.targets[shipment.tracking_state]
+      return warn_unmapped unless plan
 
       Order.transaction do
         resolve_issue
@@ -35,24 +23,36 @@ module Shipping
 
     private
 
-    attr_reader :shipment, :order
+    attr_reader :shipment, :order, :progress
 
+    def warn_unmapped
+      return unless progress.notable_unmapped.include?(shipment.tracking_state)
+
+      Rails.logger.warn(
+        "[correios-rastro] unmapped #{shipment.direction} state=#{shipment.tracking_state} " \
+        "tracking_code=#{shipment.tracking_code} order=#{order.number}"
+      )
+    end
+
+    # A flagged order leaves delivery_issue only once tracking says the object
+    # stopped waiting: the customer collected it, or it came back to us.
     def resolve_issue
-      target = RESOLUTIONS[shipment.tracking_state]
-      return unless order.delivery_issue? && target
+      target = progress.resolutions[shipment.tracking_state]
+      return unless target && order.status == progress.issue_status
 
       order.transition_to!(target, automatic: true)
     end
 
     def walk_to(target)
-      target_index = LEG.index(target)
-      while (current = LEG.index(order.status)) && current < target_index
-        order.transition_to!(LEG[current + 1], automatic: true)
+      walk = progress.walk
+      target_index = walk.index(target)
+      while (current = walk.index(order.status)) && current < target_index
+        order.transition_to!(walk[current + 1], automatic: true)
       end
     end
 
     def branch_to(target)
-      return unless target && order.status == "shipped"
+      return unless target && order.status == progress.branch_status
 
       order.transition_to!(target, automatic: true)
     end

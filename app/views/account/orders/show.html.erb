@@ -21,7 +21,7 @@
         <span class="status-pill status-pill--<%= @order.status %>">
           <%= t("account.orders.states.#{@order.status}.label") %>
         </span>
-        <p><%= t("account.orders.states.#{@order.status}.description") %></p>
+        <p><%= order_state_description(@order) %></p>
       </div>
     </div>
 
@@ -111,61 +111,70 @@
       </div>
     </div>
 
-    <% tracking_code = @order.shipment.tracking_code %>
-    <% if tracking_code.present? || @order.shipping_visible? %>
-      <div class="order-detail__subcard order-detail__subcard--flush">
-        <div class="order-detail__subcard-head order-detail__subcard-head--row">
-          <span><i class="bi bi-truck"></i> <%= t("account.orders.show.tracking") %></span>
-          <% if tracking_code.present? %>
-            <div class="order-detail__track-code" data-order-tracking>
-              <span class="order-detail__track-code-label"><%= t("account.orders.show.tracking_code") %></span>
-              <span class="order-detail__track-code-value" data-tracking-code><%= tracking_code %></span>
-              <button type="button" class="order-detail__track-code-btn" data-tracking-copy
-                      title="<%= t("account.orders.show.tracking_copy") %>" aria-label="<%= t("account.orders.show.tracking_copy") %>">
-                <i class="bi bi-clipboard"></i>
-              </button>
-              <a class="order-detail__track-code-btn" href="<%= @order.shipment.tracking_url %>"
-                 target="_blank" rel="noopener"
-                 title="<%= t("account.orders.show.tracking_external") %>" aria-label="<%= t("account.orders.show.tracking_external") %>">
-                <i class="bi bi-box-arrow-up-right"></i>
-              </a>
-            </div>
-          <% end %>
-        </div>
-        <% if @order.shipping_visible? %>
-        <div class="order-detail__track">
-          <% events = @order.tracking_events.sort_by(&:occurred_at).reverse %>
-          <% events.each_with_index do |event, index| %>
-            <div class="order-detail__track-item<%= ' is-current' if index.zero? %>">
-              <span class="order-detail__track-dot"></span>
-              <div class="order-detail__track-body">
-                <div>
-                  <div class="desc"><%= event.summary %></div>
-                  <% if event.detail %>
-                    <div class="meta"><%= event.detail %></div>
-                  <% end %>
-                  <% if event.posting_unit %>
-                    <div class="meta"><%= event.posting_unit %></div>
-                  <% end %>
-                  <% if event.destination %>
-                    <div class="meta"><%= t("account.orders.show.destination") %>: <%= event.destination %></div>
-                  <% end %>
-                </div>
-                <div class="time"><%= l(event.occurred_at, format: :short) %></div>
-              </div>
-            </div>
-          <% end %>
-        </div>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render "tracking", shipment: @order.shipment,
+          title: t("account.orders.show.tracking"), icon: "bi-truck" %>
 
-    <% if tracking_code.present? %>
+    <% if @order.shipment.tracking_code.present? || @order.return_shipment&.tracking_code.present? %>
       <% content_for :scripts do %>
         <%= javascript_include_tag "storefront/order_tracking", type: "module" %>
       <% end %>
     <% end %>
 
+    <% end %>
+
+    <% if @order.awaiting_return? || @order.returning? %>
+      <div class="order-detail__subcard">
+        <div class="order-detail__subcard-head">
+          <i class="bi bi-arrow-counterclockwise"></i> <%= t("account.orders.show.return_title") %>
+        </div>
+        <div class="order-detail__info-body">
+          <% if @order.returning? %>
+            <div class="strong"><%= t("account.orders.show.return_posted_lead") %></div>
+            <div><%= t("account.orders.show.return_posted", code: @order.return_shipment.tracking_code) %></div>
+          <% elsif order_return_label_ready?(@order) %>
+            <div class="strong"><%= t("account.orders.show.return_instructions_lead") %></div>
+            <div class="order-detail__return-package">
+              <div class="order-detail__return-package-head"><%= t("account.orders.show.return_package_title") %></div>
+              <p><%= t("account.orders.show.return_package_reuse") %></p>
+              <p><%= t("account.orders.show.return_package_specs") %></p>
+              <p class="order-detail__return-package-warn"><%= t("account.orders.show.return_package_over") %></p>
+            </div>
+            <figure class="order-detail__return-figure">
+              <%= image_tag "/images/mini-envios-dimensoes.png", loading: "lazy",
+                    alt: t("account.orders.show.return_package_figure_alt",
+                           max: Shipping.mini_envios_dimensions, min: Shipping.mini_envios_min_dimensions,
+                           weight: Shipping.mini_envios_weight) %>
+              <figcaption>
+                <i class="bi bi-rulers" aria-hidden="true"></i>
+                <span><%= t("account.orders.show.return_package_figure_caption",
+                            max: Shipping.mini_envios_dimensions, min: Shipping.mini_envios_min_dimensions,
+                            weight: Shipping.mini_envios_weight) %></span>
+              </figcaption>
+            </figure>
+            <ol class="order-detail__return-steps">
+              <li><%= t("account.orders.show.return_step_print") %></li>
+              <li><%= t("account.orders.show.return_step_label") %></li>
+              <li><%= t("account.orders.show.return_step_declaration") %></li>
+              <li><%= t("account.orders.show.return_step_post") %></li>
+            </ol>
+            <p class="order-detail__return-tip">
+              <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+              <span><%= t("account.orders.show.return_tip") %></span>
+            </p>
+            <a class="order-detail__return-btn" href="<%= return_label_account_order_path(@order) %>" target="_blank" rel="noopener">
+              <i class="bi bi-download" aria-hidden="true"></i> <%= t("account.orders.show.return_label_cta") %>
+            </a>
+          <% else %>
+            <div class="strong"><%= t("account.orders.show.return_pending_lead") %></div>
+            <div><%= t("account.orders.show.return_pending") %></div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @order.return_shipment %>
+      <%= render "tracking", shipment: @order.return_shipment,
+            title: t("account.orders.show.return_tracking"), icon: "bi-arrow-counterclockwise" %>
     <% end %>
 
     <div class="order-detail__support">

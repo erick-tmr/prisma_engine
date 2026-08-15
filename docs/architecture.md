@@ -399,6 +399,37 @@ Six customer-facing states in pt-BR. The flow is **not linear**, with two branch
 | 5 | `enviado` | "Seu pedido foi enviado aos correios." + mini-envios disclaimer; Correios sub-statuses surfaced AliExpress-style for the in-transit timeline. | Correios rastro first transit event (via `Shipping::TrackingUpdate`) |
 | 6 | `entregue` | "Seu pedido foi entregue." | Correios rastro delivery event |
 
+**The return leg (reverse logistics).** A `delivered` or `delivery_issue` order can be sent
+back, on an operator's authorization, through a second leg that reuses the entire label
+saga:
+
+| # | State | Description shown to the customer | Trigger |
+|---|---|---|---|
+| 7 | `aguardando_devolucao` | "Sua devolução já está encaminhada. Imprima a etiqueta, cole no pacote e leve em qualquer agência." | Manual (operator), via `Shipping::StartReturn` |
+| 8 | `devolucao_a_caminho` | "Os Correios registraram a postagem da sua devolução." | Correios rastro first transit event on the inbound object |
+| 9 | `devolvido` | "O pedido voltou para a gente." | Correios rastro delivery event on the inbound object |
+
+The return is a **second `Shipment` row on the same order**, distinguished by a `direction`
+enum (`outbound` / `inbound`) and enforced one-per-direction by a unique index on
+`[order_id, direction]`. Its address columns keep meaning *the customer's end of the
+shipment*; the direction decides whether that party fills `remetente` or `destinatario`.
+Everything asymmetric between the two legs lives in one place, `Shipping::Leg`: which
+statuses may emit a label, whether a ready label announces itself on the order, which way
+the parties face, and the tracking-state to order-status table `Shipping::OrderProgress`
+walks. Nothing else asks a shipment its direction.
+
+Mechanically it is a plain pré-postagem billed to our own postage card with the addresses
+swapped, so `logisticaReversa` stays `"N"` and the customer pays nothing at the counter.
+`awaiting_return` is entered on the operator's click rather than when the label is ready,
+so a failed return label shows as an order sitting in `awaiting_return` with a failed
+label chip rather than an order that silently never entered the leg. Aborting a return
+destroys the inbound shipment, which frees the unique index for a fresh attempt and leaves
+the abandoned pré-postagem to expire at Correios; there is no cancel endpoint wrapped.
+
+`returned` now has two producers, so its customer e-mail branches on which one: a package
+Correios bounced back on its own still blames Correios, while one the customer was
+authorized to send does not.
+
 **Branch points** (the flow is not linear):
 
 - After **2 `pagamento_confirmado`** → either **3.1 `aguardando_componentes`** (manual; operator flags missing parts) or **3.2 `em_producao`** (auto; the order first appears on the production report). From 3.1, an operator move flips to 3.2 once components arrive.
@@ -420,7 +451,10 @@ so the two cannot drift): everything from `aguardando_pagamento` through
 `shipped`, `delivered` or `delivery_issue` order is cancellable only after the operator
 marks it **Recebido de volta** (`returned`), which is exactly the claim "the box is back
 on our shelf". `delivery_issue` in particular is not cancellable: the object is sitting
-with Correios, not with us.
+with Correios, not with us. The two return-leg states follow the same rule and for the
+same reason: in `aguardando_devolucao` the customer still holds the item and in
+`devolucao_a_caminho` it is in the post, so neither carries a `cancelled` edge. The
+operator cancels once it lands, from `devolvido`.
 
 There is no `awaiting_refund` state. It existed to carry "a refund is owed", but
 InfinitePay refunds are chased by hand there anyway, so the status tracked nothing the

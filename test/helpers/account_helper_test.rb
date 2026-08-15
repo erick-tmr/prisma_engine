@@ -73,4 +73,30 @@ class AccountHelperTest < ActionView::TestCase
     assert_equal "", account_avatar_initials("")
     assert_equal "", account_avatar_initials("   ")
   end
+  test "the return label is only ready once the saga finished writing it" do
+    order = orders(:delivered)
+    assert_not order_return_label_ready?(order)
+
+    Shipping::StartReturn.call(order: order)
+    assert_not order_return_label_ready?(order.reload)
+
+    ready_label!(order.return_shipping_label, filename: "d.pdf", pdf: "x")
+    assert order_return_label_ready?(order.reload)
+  end
+
+  test "an authorized return explains itself differently while its label is building" do
+    order = orders(:delivered)
+    Shipping::StartReturn.call(order: order)
+    assert_equal I18n.t("account.orders.states.awaiting_return.description_pending"),
+                 order_state_description(order.reload)
+
+    ready_label!(order.return_shipping_label, filename: "d.pdf", pdf: "x")
+    assert_equal I18n.t("account.orders.states.awaiting_return.description"),
+                 order_state_description(order.reload)
+  end
+
+  test "every other status reads its own description" do
+    assert_equal I18n.t("account.orders.states.delivered.description"),
+                 order_state_description(orders(:delivered))
+  end
 end

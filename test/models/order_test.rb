@@ -431,6 +431,37 @@ class OrderTest < ActiveSupport::TestCase
     assert_not order.cancellable?
   end
 
+  test "the return leg is not cancellable, because the item is not on our shelf" do
+    assert_not_includes Order::CANCELLABLE_STATUSES, "awaiting_return"
+    assert_not_includes Order::CANCELLABLE_STATUSES, "returning"
+    assert_includes Order::CANCELLABLE_STATUSES, "returned"
+  end
+
+  test "a delivered order walks the whole return leg" do
+    order = build_order
+    order.save!
+    order.update_column(:status, "delivered")
+
+    Shipping::RETURN_WALK.each { |step| order.transition_to!(step) }
+
+    assert order.reload.returned?
+    assert_equal Shipping::RETURN_WALK, order.status_changes.chronological.last(3).map(&:to_status)
+  end
+
+  test "an authorized return can be abandoned back to delivered from either step" do
+    %w[awaiting_return returning].each do |status|
+      order = build_order
+      order.save!
+      order.update_column(:status, "delivered")
+      order.transition_to!("awaiting_return")
+      order.transition_to!("returning") if status == "returning"
+
+      order.transition_to!("delivered")
+
+      assert order.reload.delivered?
+    end
+  end
+
   test "paid scopes to every state the money has cleared" do
     assert_equal Order::STATUSES - %w[awaiting_payment cancelled merged], Order::PAID_STATUSES
 

@@ -249,5 +249,48 @@ module Admin
       assert presenter.label_retryable?
       assert_not presenter.label_in_flight?
     end
+
+    test "a return is offered on a delivered order and withdrawn once one is open" do
+      order = orders(:delivered)
+      assert Admin::OrderPresenter.new(order).return_startable?
+
+      Shipping::StartReturn.call(order: order)
+      presenter = Admin::OrderPresenter.new(order.reload)
+      assert_not presenter.return_startable?
+      assert presenter.return_abortable?
+      assert_not presenter.return_label_printable?
+    end
+
+    test "a return in production is never authorizable, and one with no shipment neither" do
+      assert_not Admin::OrderPresenter.new(orders(:producing)).return_startable?
+
+      order = bare_order
+      order.update_column(:status, "delivered")
+      assert_not Admin::OrderPresenter.new(order).return_startable?
+    end
+
+    test "a posted return can no longer be aborted, and a ready label can be printed" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order)
+      ready_label!(order.reload.return_shipping_label, filename: "d.pdf", pdf: "x")
+      order.return_shipment.update!(posted_at: Time.current)
+
+      presenter = Admin::OrderPresenter.new(order.reload)
+      assert_not presenter.return_abortable?
+      assert presenter.return_label_printable?
+    end
+
+    test "an order outside the return leg is not abortable" do
+      assert_not Admin::OrderPresenter.new(orders(:producing)).return_abortable?
+    end
+
+    test "the lifecycle rail renders for every status, including the return leg" do
+      Order::STATUSES.each do |status|
+        order = orders(:delivered)
+        order.update_column(:status, status)
+
+        assert_nothing_raised { Admin::OrderPresenter.new(order).lifecycle }
+      end
+    end
   end
 end

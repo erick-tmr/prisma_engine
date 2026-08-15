@@ -1,0 +1,13 @@
+<%= t("mailer.greeting", name: @order.user.first_name) %>
+
+<%= t("order_mailer.awaiting_return.heading") %>
+
+<%= t("order_mailer.awaiting_return.intro") %>
+
+<%= t("order_mailer.awaiting_return.page_note") %>
+
+<%= render "summary", shipping_service: @order.shipment.service_label %>
+
+<%= t("order_mailer.awaiting_return.cta") %>: <%= account_order_url(@order) %>
+
+<%= t("mailer.signature") %>

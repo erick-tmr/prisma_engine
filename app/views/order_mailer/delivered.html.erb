@@ -12,7 +12,7 @@
     </td>
   </tr>
   <%= render "shared/email_steps", current: 3 %>
-  <%= render "summary" %>
+  <%= render "summary", shipping_service: @order.shipment.service_label %>
   <%= render "shared/email_tracking_chip", code: @order.shipment.tracking_code %>
   <%= render "shared/email_cta", url: account_orders_url, label: t("order_mailer.delivered.cta") %>
 <% end %>

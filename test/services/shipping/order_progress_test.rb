@@ -196,7 +196,78 @@ module Shipping
       end
     end
 
+    test "the return leaving the customer moves the order to returning" do
+      order, shipment = order_with_return("awaiting_return", :in_transit)
+
+      Shipping::OrderProgress.apply(shipment)
+
+      assert order.reload.returning?
+    end
+
+    test "the return arriving at us closes the order as returned" do
+      order, shipment = order_with_return("returning", :delivered)
+
+      Shipping::OrderProgress.apply(shipment)
+
+      assert order.reload.returned?
+    end
+
+    test "a return that lands in one poll walks both steps and records both" do
+      order, shipment = order_with_return("awaiting_return", :delivered)
+
+      Shipping::OrderProgress.apply(shipment)
+
+      assert order.reload.returned?
+      assert_equal %w[returning returned], order.status_changes.chronological.last(2).map(&:to_status)
+    end
+
+    test "return tracking never drives the outbound leg" do
+      order, shipment = order_with_return("awaiting_return", :in_transit)
+
+      Shipping::OrderProgress.apply(shipment)
+
+      assert_not order.reload.shipped?
+    end
+
+    test "an inbound delivery_issue is logged and left for an operator" do
+      order, shipment = order_with_return("returning", :delivery_issue)
+
+      assert_no_difference -> { order.status_changes.count } do
+        Shipping::OrderProgress.apply(shipment)
+      end
+      assert order.reload.returning?
+    end
+
+    test "a return bouncing back to the customer is logged and left alone" do
+      order, shipment = order_with_return("returning", :returned)
+
+      assert_no_difference -> { order.status_changes.count } do
+        Shipping::OrderProgress.apply(shipment)
+      end
+      assert order.reload.returning?
+    end
+
+    test "applying the same return poll twice is idempotent" do
+      order, shipment = order_with_return("returning", :delivered)
+
+      Shipping::OrderProgress.apply(shipment)
+      assert_no_difference -> { order.status_changes.count } do
+        Shipping::OrderProgress.apply(shipment)
+      end
+    end
+
     private
+
+    def order_with_return(order_status, tracking_state)
+      order, = order_with_shipment("delivered", :delivered)
+      inbound = Shipment.create!(order: order, direction: :inbound, service: "pac")
+      Shipping::RETURN_WALK.each do |step|
+        order.transition_to!(step)
+        break if step == order_status
+      end
+      inbound.update!(tracking_state: tracking_state)
+      [ order.reload, inbound ]
+    end
 
     def order_with_shipment(order_status, tracking_state)
       order = Order.create!(user: users(:confirmed), subtotal_cents: 32_000, total_cents: 34_990)

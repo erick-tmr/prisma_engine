@@ -9,7 +9,7 @@ class ShipmentTrackingEventTest < ActiveSupport::TestCase
   end
 
   test "links to a shipment" do
-    shipment = Shipment.create!(tracking_code: "AA1", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "AA1", order: bare_order)
     event = ShipmentTrackingEvent.create!(shipment: shipment, position: 0)
 
     assert_equal shipment, event.shipment

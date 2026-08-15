@@ -29,7 +29,6 @@ export function bindCopy(root) {
 
 /* v8 ignore start */
 if (typeof document !== "undefined") {
-  const root = document.querySelector("[data-order-tracking]");
-  if (root) bindCopy(root);
+  document.querySelectorAll("[data-order-tracking]").forEach(bindCopy);
 }
 /* v8 ignore stop */

@@ -227,4 +227,136 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     get account_order_path(orders(:awaiting))
     assert_response :not_found
   end
+  test "an authorized return shows the instructions and a label download" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-btn[href=?]", return_label_account_order_path(order)
+  end
+
+  test "the return card explains the packaging limits it is asking the customer to respect" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf")
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-package-warn"
+    assert_select ".order-detail__return-figure figcaption", text: /#{Regexp.escape(Shipping.mini_envios_weight)}/
+    assert_select ".order-detail__return-figure figcaption", text: /#{Regexp.escape(Shipping.mini_envios_dimensions)}/
+    assert_select ".order-detail__return-figure img[src=?]", "/images/mini-envios-dimensoes.png"
+    assert_select ".order-detail__return-figure figcaption", text: /#{Regexp.escape(Shipping.mini_envios_min_dimensions)}/
+  end
+
+  test "a return whose label is still building says so instead of offering a download" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-btn", false
+    assert_select ".order-detail__info-body", text: /#{Regexp.escape(I18n.t("account.orders.show.return_pending"))}/
+  end
+
+  test "a posted return stops instructing, even if its label outlived the postagem" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf")
+    order.return_shipment.update!(tracking_code: "PR999888777BR")
+    order.transition_to!("returning", automatic: true)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-steps", false
+    assert_select ".order-detail__return-package", false
+    assert_select ".order-detail__return-btn", false
+    assert_select ".order-detail__info-body", text: /PR999888777BR/
+  end
+
+  test "a posted return shows the tracking code, since the label is gone by then" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    order.reload.return_shipment.update!(tracking_code: "PR123456789BR")
+    order.transition_to!("returning", automatic: true)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__info-body", text: /PR123456789BR/
+  end
+
+  test "the return label downloads both documents as one PDF, and 404s for anyone else" do
+    order = orders(:delivered)
+    Shipping::StartReturn.call(order: order)
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf")
+
+    sign_in order.user
+    get return_label_account_order_path(order)
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert_equal "devolucao-#{order.number}.pdf", response.headers["Content-Disposition"][/filename="([^"]+)"/, 1]
+    assert_equal 2, CombinePDF.parse(response.body).pages.size
+
+    sign_in users(:orderless)
+    get return_label_account_order_path(order)
+    assert_response :not_found
+  end
+
+  test "the return label 404s while it is not ready yet" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+
+    get return_label_account_order_path(order)
+
+    assert_response :not_found
+  end
+  test "the return label 404s for an order that has no return at all" do
+    order = orders(:delivered)
+    sign_in order.user
+
+    get return_label_account_order_path(order)
+
+    assert_response :not_found
+  end
+  test "the delivery and the return each get their own tracking section" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    inbound = order.reload.return_shipment
+    inbound.update!(tracking_code: "PR123456789BR")
+    inbound.tracking_events.create!(position: 0, tracking_code: inbound.tracking_code, event_code: "PO",
+                                    event_type: "01", description: "Objeto postado", occurred_at: 1.hour.ago)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__subcard-head", text: /#{I18n.t("account.orders.show.tracking")}/
+    assert_select ".order-detail__subcard-head", text: /#{I18n.t("account.orders.show.return_tracking")}/
+    assert_select "[data-order-tracking]", 2
+    assert_select "[data-tracking-code]", text: order.shipment.tracking_code
+    assert_select "[data-tracking-code]", text: "PR123456789BR"
+  end
+
+  test "an order with no return shows only the delivery tracking" do
+    order = orders(:delivered)
+    sign_in order.user
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__subcard-head", text: /#{I18n.t("account.orders.show.return_tracking")}/, count: 0
+  end
 end

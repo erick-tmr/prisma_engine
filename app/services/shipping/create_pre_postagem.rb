@@ -1,21 +1,5 @@
 module Shipping
   class CreatePrePostagem
-    SENDER = {
-      nome: "Prisma Games",
-      dddCelular: "35",
-      celular: "920001100",
-      email: "vininess@hotmail.com",
-      cpfCnpj: "43773766000111",
-      endereco: {
-        cep:        Shipping::ORIGIN_CEP,
-        logradouro: "Rua José Cláudio Venturelli",
-        numero:     "156",
-        bairro:     "Vila Mariana",
-        cidade:     "Cambuí",
-        uf:         "MG"
-      }
-    }.freeze
-
     OBJECT_FORMAT_PACKAGE = "2".freeze
 
     def self.call(request, shipment:)
@@ -54,7 +38,7 @@ module Shipping
 
     def request_body
       {
-        remetente: SENDER,
+        remetente: request.sender,
         destinatario: request.recipient,
         codigoServico: Shipping::SERVICES.fetch(request.service),
         numeroCartaoPostagem: Shipping::POSTAGE_CARD_NUMBER,

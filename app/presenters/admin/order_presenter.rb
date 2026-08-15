@@ -6,6 +6,8 @@ module Admin
       "awaiting_components" => "payment_confirmed",
       "production_issue"    => "in_production",
       "delivery_issue"      => "shipped",
+      "awaiting_return"     => "delivered",
+      "returning"           => "delivered",
       "returned"            => "shipped",
       "cancelled"           => "awaiting_payment",
       "merged"              => "payment_confirmed"
@@ -17,7 +19,7 @@ module Admin
       "delivered"         => "correios"
     }.freeze
 
-    AUTO_NEXT_STATUSES = %w[label_issued shipped delivered cancelled].freeze
+    AUTO_NEXT_STATUSES = %w[label_issued shipped delivered awaiting_return returning cancelled].freeze
 
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
     PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze
@@ -108,6 +110,25 @@ module Admin
 
     def label_feedback
       @label_feedback ||= LabelFeedback.new(order)
+    end
+
+    def return_startable?
+      Shipping::StartReturn::SOURCES.include?(status) && order.shipment.present? && order.return_shipment.nil?
+    end
+
+    def return_abortable?
+      return false unless Shipping::CancelReturn::SOURCES.include?(status)
+
+      shipment = order.return_shipment
+      shipment.present? && shipment.posted_at.nil?
+    end
+
+    def return_reason
+      order.return_reason
+    end
+
+    def return_label_printable?
+      !!order.return_shipping_label&.ready?
     end
 
     def label_in_flight?

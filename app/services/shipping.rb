@@ -21,7 +21,47 @@ module Shipping
     comprimento_cm: 24
   }.freeze
 
+  MINI_ENVIOS_MAX = { comprimento_cm: 24, largura_cm: 16, altura_cm: 4, grams: 300 }.freeze
+  MINI_ENVIOS_MIN = { comprimento_cm: 11, largura_cm: 6, altura_cm: 0.4 }.freeze
+
+  def self.mini_envios_dimensions
+    format_dimensions(MINI_ENVIOS_MAX)
+  end
+
+  def self.mini_envios_min_dimensions
+    format_dimensions(MINI_ENVIOS_MIN)
+  end
+
+  def self.format_dimensions(dims)
+    measures = dims.values_at(:comprimento_cm, :largura_cm, :altura_cm)
+    "#{measures.map { |value| value.to_s.sub('.', ',') }.join(' × ')} cm"
+  end
+
+  def self.mini_envios_weight
+    "#{MINI_ENVIOS_MAX[:grams]} g"
+  end
+
   ORIGIN_CEP = "37600000".freeze
+
+  RETURN_WALK = %w[awaiting_return returning returned].freeze
+
+  DEFAULT_RETURN_SERVICE = "mini_envios".freeze
+
+  STORE = {
+    nome: "Prisma Games",
+    dddCelular: "35",
+    celular: "920001100",
+    email: "vininess@hotmail.com",
+    cpfCnpj: "43773766000111",
+    endereco: {
+      cep:        ORIGIN_CEP,
+      logradouro: "Rua José Cláudio Venturelli",
+      numero:     "156",
+      bairro:     "Vila Mariana",
+      cidade:     "Cambuí",
+      uf:         "MG"
+    }
+  }.freeze
 
   CORREIOS_CONTACT_URL = "https://www.correios.com.br/falecomoscorreios/central-de-atendimento".freeze
 

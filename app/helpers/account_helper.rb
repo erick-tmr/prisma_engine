@@ -62,6 +62,17 @@ module AccountHelper
     ORDER_PAYMENT_STATUS_ICONS.fetch(status.to_sym, "bi-hourglass-split")
   end
 
+  def order_return_label_ready?(order)
+    !!order.return_shipping_label&.ready?
+  end
+
+  def order_state_description(order)
+    return t("account.orders.states.awaiting_return.description_pending") if
+      order.awaiting_return? && !order_return_label_ready?(order)
+
+    t("account.orders.states.#{order.status}.description")
+  end
+
   def order_support_url(order)
     NavHelper.whatsapp_url(t("account.orders.show.support_message", number: order.number))
   end
