@@ -11,7 +11,7 @@
       <%= t("order_mailer.returning.intro") %>
     </td>
   </tr>
-  <%= render "summary" %>
+  <%= render "summary", shipping_service: @order.shipment.service_label %>
   <%= render "shared/email_tracking_chip", code: @order.return_shipment.tracking_code %>
   <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.returning.cta") %>
 <% end %>

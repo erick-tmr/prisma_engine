@@ -6,7 +6,7 @@
 
 <%= t("order_mailer.awaiting_return.page_note") %>
 
-<%= render "summary" %>
+<%= render "summary", shipping_service: @order.shipment.service_label %>
 
 <%= t("order_mailer.awaiting_return.cta") %>: <%= account_order_url(@order) %>
 
