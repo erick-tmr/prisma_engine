@@ -6,7 +6,7 @@ module Admin
 
     def initialize(order)
       @order = order
-      @label = order.shipment&.shipping_label
+      @label = order.tracked_shipment&.shipping_label
     end
 
     attr_reader :order, :label
@@ -30,8 +30,12 @@ module Admin
       done? || failed?
     end
 
+    # A return label is finished the moment it is ready: unlike the outbound one
+    # it does not announce itself on the order, which entered the leg on the click.
     def done?
-      !!label&.ready? && order.label_issued?
+      return false unless label&.ready?
+
+      order.return_leg? || order.label_issued?
     end
 
     def failed?

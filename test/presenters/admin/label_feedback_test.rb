@@ -95,5 +95,32 @@ module Admin
       assert_nil feedback.since
       assert_equal "", feedback.error_message
     end
+    test "the column follows the return label once the order enters the leg" do
+      order = orders(:delivered)
+      Shipping::AuthorizeReturn.call(order: order)
+      order.reload
+
+      feedback = Admin::LabelFeedback.new(order)
+      assert_equal "queued", feedback.state
+
+      order.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: "x")
+      assert_equal "done", Admin::LabelFeedback.new(order.reload).state
+    end
+
+    test "a ready return label is done even though the order stays in awaiting_return" do
+      order = orders(:delivered)
+      Shipping::AuthorizeReturn.call(order: order)
+      order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: "x")
+
+      assert order.reload.awaiting_return?
+      assert Admin::LabelFeedback.new(order).done?
+    end
+
+    test "an outbound label still needs the order on label_issued to count as done" do
+      order = orders(:producing)
+      order.shipment.create_shipping_label!(state: :ready, filename: "e.pdf", pdf_base64: "x")
+
+      assert_not Admin::LabelFeedback.new(order.reload).done?
+    end
   end
 end

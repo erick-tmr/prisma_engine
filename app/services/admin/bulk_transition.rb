@@ -11,7 +11,11 @@ module Admin
     end
 
     def call
-      results = @event == "issue_label" ? issue_labels : transition_all
+      results = case @event
+      when "issue_label"      then issue_labels
+      when "authorize_return" then authorize_returns
+      else transition_all
+      end
       summarize(results)
     end
 
@@ -25,6 +29,15 @@ module Admin
       eligible = orders.select(&:in_production?)
       Shipping::EmitLabelsJob.perform_later(eligible.map(&:id)) if eligible.any?
       orders.map { |order| order.in_production? ? result_for(order, "queued") : result_for(order, "skipped", "not_available") }
+    end
+
+    def authorize_returns
+      orders.map do |order|
+        result = Shipping::AuthorizeReturn.call(order: order, actor: @actor)
+        next result_for(order, "skipped", result.error.to_s) unless result.success?
+
+        result_for(order.reload, "queued")
+      end
     end
 
     def transition_all

@@ -94,5 +94,34 @@ module Admin
       assert_empty result["results"]
       assert_equal 0, result["done"]
     end
+    test "authorize_return opens the inbound leg and queues each label" do
+      order = orders(:delivered)
+
+      result = Admin::BulkTransition.call(order_numbers: [ order.number ], event: "authorize_return", actor: users(:admin))
+
+      assert_equal 1, result["queued"]
+      assert_equal "awaiting_return", result["results"].sole["status"]
+      assert order.reload.awaiting_return?
+      assert order.return_shipment.inbound?
+    end
+
+    test "authorize_return skips an order that cannot be returned, naming the reason" do
+      result = Admin::BulkTransition.call(order_numbers: [ orders(:producing).number ], event: "authorize_return", actor: users(:admin))
+
+      assert_equal 1, result["skipped"]
+      assert_equal "not_returnable", result["results"].sole["reason"]
+      assert orders(:producing).reload.in_production?
+    end
+
+    test "authorize_return is a no-op the second time, because the order left the eligible statuses" do
+      order = orders(:delivered)
+      Shipping::AuthorizeReturn.call(order: order)
+      shipment_id = order.reload.return_shipment.id
+
+      result = Admin::BulkTransition.call(order_numbers: [ order.number ], event: "authorize_return", actor: users(:admin))
+
+      assert_equal "not_returnable", result["results"].sole["reason"]
+      assert_equal shipment_id, order.reload.return_shipment.id
+    end
   end
 end

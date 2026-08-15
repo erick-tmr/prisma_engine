@@ -12,16 +12,20 @@ export const CANCELLABLE_STATUSES = [
 export const ACTIONS = [
   { id: "to_components", icon: "bi-box-seam", from: [ "payment_confirmed" ] },
   { id: "issue_label", icon: "bi-upc-scan", from: [ "in_production" ] },
+  { id: "authorize_return", icon: "bi-arrow-counterclockwise", from: [ "delivered", "delivery_issue" ] },
   { id: "flag_issue", icon: "bi-exclamation-triangle", from: [ "in_production" ] },
   { id: "cancel", icon: "bi-x-circle", danger: true, from: CANCELLABLE_STATUSES }
 ];
 
 export const ACTION_LABELS = {
   to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
-  flag_issue: "Marcar problema", cancel: "Cancelar"
+  authorize_return: "Autorizar devolução", flag_issue: "Marcar problema", cancel: "Cancelar"
 };
 
 export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);
+
+// Both of these hand work to the Correios label saga, so both get the batch spinner.
+export const LABEL_EMITTING_ACTIONS = new Set([ "issue_label", "authorize_return" ]);
 
 export const BULK_THROTTLE_MS = 60_000;
 
@@ -101,7 +105,7 @@ export function availableActions(statuses) {
 export function bulkChipsHtml(available, busy = null) {
   if (available.length === 0) return `<span class="bulk-none">Nenhuma ação disponível para esta seleção</span>`;
   return available.map(({ action, count }) => {
-    if (action.id === "issue_label" && busy) {
+    if (LABEL_EMITTING_ACTIONS.has(action.id) && busy) {
       return `<button type="button" class="bulk-chip" data-act="${action.id}" disabled><span class="spin"></span> ${escapeHtml(busy.label)} <span class="cnt">${busy.settled}/${busy.total}</span></button>`;
     }
     return `<button type="button" class="bulk-chip ${action.danger ? "danger" : ""}" data-act="${action.id}"><i class="bi ${action.icon}"></i> ${escapeHtml(ACTION_LABELS[action.id])} <span class="cnt">${count}</span></button>`;

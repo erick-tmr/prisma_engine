@@ -694,6 +694,7 @@ pt-BR:
       bulk_actions:
         to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
+        authorize_return: "Autorizar devolução"
         flag_issue: "Marcar problema"
         cancel: "Cancelar"
         mark_returned: "Recebido de volta"

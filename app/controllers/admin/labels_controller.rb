@@ -1,10 +1,12 @@
 module Admin
   class LabelsController < BaseController
+    RESTARTABLE_STATUSES = ([ "in_production" ] + Shipping::RETURN_WALK).freeze
+
     def create
-      order = Order.in_production.find_by(number: params[:number])
+      order = Order.where(status: RESTARTABLE_STATUSES).find_by(number: params[:number])
       return head :not_found unless order
 
-      Shipping::EmitLabel.restart(order.shipment)
+      Shipping::EmitLabel.restart(order.tracked_shipment)
       head :accepted
     end
 

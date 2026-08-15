@@ -134,6 +134,16 @@ class Order < ApplicationRecord
     !cancelled?
   end
 
+  def return_leg?
+    Shipping::RETURN_WALK.include?(status)
+  end
+
+  # The shipment the backoffice is watching right now: once a return is open it
+  # is the inbound one, because that is the label an operator is waiting on.
+  def tracked_shipment
+    return_leg? ? return_shipment : shipment
+  end
+
   def cancel!(**opts)
     transition_to!("cancelled", **opts)
   end

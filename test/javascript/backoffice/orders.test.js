@@ -132,16 +132,41 @@ describe("pure helpers", () => {
     expect(plural(2, "pedido", "pedidos")).toBe("pedidos");
   });
 
+  const act = (id) => ACTIONS.find((a) => a.id === id);
+
   it("offers only the actions the selection can actually take", () => {
     expect(availableActions([ "payment_confirmed", "payment_confirmed", "delivered" ]))
-      .toEqual([ { action: ACTIONS[0], count: 2 }, { action: ACTIONS[3], count: 2 } ]);
-    expect(availableActions([ "delivered" ])).toEqual([]);
+      .toEqual([
+        { action: act("to_components"), count: 2 },
+        { action: act("authorize_return"), count: 1 },
+        { action: act("cancel"), count: 2 }
+      ]);
+  });
+
+  it("offers a return on the two statuses where the customer holds the item", () => {
+    expect(availableActions([ "delivered" ])).toEqual([ { action: act("authorize_return"), count: 1 } ]);
+    expect(availableActions([ "delivery_issue" ])).toEqual([ { action: act("authorize_return"), count: 1 } ]);
+    expect(availableActions([ "shipped" ])).toEqual([]);
+    expect(availableActions([ "awaiting_return" ])).toEqual([]);
+  });
+
+  it("shows the batch spinner for either action that hands work to the label saga", () => {
+    const busy = { settled: 1, total: 3, label: "Emitindo" };
+
+    [ "issue_label", "authorize_return" ].forEach((id) => {
+      const html = bulkChipsHtml([ { action: act(id), count: 3 } ], busy);
+      expect(html).toContain("spin");
+      expect(html).toContain("1/3");
+      expect(html).toContain("disabled");
+    });
+
+    const plain = bulkChipsHtml([ { action: act("cancel"), count: 3 } ], busy);
+    expect(plain).not.toContain("spin");
   });
 
   it("withholds bulk cancel once the package is out, until it comes back to us", () => {
     expect(availableActions([ "shipped" ])).toEqual([]);
-    expect(availableActions([ "delivery_issue" ])).toEqual([]);
-    expect(availableActions([ "returned" ])).toEqual([ { action: ACTIONS[3], count: 1 } ]);
+    expect(availableActions([ "returned" ])).toEqual([ { action: act("cancel"), count: 1 } ]);
   });
 
   it("renders chips, or says there is nothing to do", () => {
