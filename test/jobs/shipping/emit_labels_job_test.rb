@@ -17,7 +17,7 @@ module Shipping
     test "an order that blows up cannot rob the rest of the batch" do
       first, second = orders(:producing), orders(:awaiting)
 
-      Shipping::EmitLabel.stub(:resume, ->(_order) { raise "boom" }) do
+      Shipping::EmitLabel.stub(:resume, ->(_shipment) { raise "boom" }) do
         assert_nothing_raised { Shipping::EmitLabelsJob.perform_now([ first.id, second.id ]) }
       end
 

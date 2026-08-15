@@ -20,7 +20,7 @@ module Shipping
         headers: { "Content-Type" => "application/json" }
       )
 
-      Shipping::DownloadLabelJob.perform_now(@order.id)
+      Shipping::DownloadLabelJob.perform_now(shipment_id: @order.shipment.id)
 
       assert @label.reload.ready?
       assert_equal "etiqueta.pdf", @label.filename
@@ -35,8 +35,8 @@ module Shipping
         headers: { "Content-Type" => "application/json" }
       )
 
-      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
-        Shipping::DownloadLabelJob.perform_now(@order.id)
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ { shipment_id: @order.shipment.id } ]) do
+        Shipping::DownloadLabelJob.perform_now(shipment_id: @order.shipment.id)
       end
 
       assert @label.reload.prepost_confirmed?
@@ -54,7 +54,7 @@ module Shipping
       )
 
       assert_no_enqueued_jobs do
-        assert_raises(Correios::Api::LabelGenerationFailedError) { Shipping::DownloadLabelJob.perform_now(@order.id) }
+        assert_raises(Correios::Api::LabelGenerationFailedError) { Shipping::DownloadLabelJob.perform_now(shipment_id: @order.shipment.id) }
       end
 
       assert @label.reload.requested?

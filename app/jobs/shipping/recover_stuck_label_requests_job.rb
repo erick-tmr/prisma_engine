@@ -4,7 +4,7 @@ module Shipping
 
     def perform
       ShippingLabel.requesting.where(requesting_at: ..STALE_AFTER.ago).find_each do |label|
-        Shipping::EmitLabel.recover(label.shipment.order)
+        Shipping::EmitLabel.recover(label.shipment)
       end
     end
   end

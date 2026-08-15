@@ -41,7 +41,7 @@ module Admin
     test "schedules the per-order saga directly, without the orchestrator" do
       sign_in users(:admin)
 
-      assert_enqueued_with(job: Shipping::CreatePrePostagemJob, args: [ orders(:producing).id ]) do
+      assert_enqueued_with(job: Shipping::CreatePrePostagemJob, args: [ { shipment_id: orders(:producing).shipment.id } ]) do
         post admin_label_path(orders(:producing).number)
       end
 

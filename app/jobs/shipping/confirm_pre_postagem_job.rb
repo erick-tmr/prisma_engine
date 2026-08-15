@@ -7,12 +7,11 @@ module Shipping
 
     limits_concurrency to: 5, key: "correios_cartao"
 
-    def perform(order_id, attempt = 1)
-      @order = Order.find_by(id: order_id)
-      return unless @order
+    def perform(shipment_id:, attempt: 1)
+      @shipment = Shipment.find_by(id: shipment_id)
+      return unless @shipment
 
-      @shipment = @order.shipment
-      @label = @shipment&.shipping_label
+      @label = @shipment.shipping_label
       return unless @label&.prepost_created?
 
       execute(attempt)
@@ -34,12 +33,12 @@ module Shipping
     def confirm
       Shipping::ConfirmPrePostagem.call(@shipment)
       @label.mark_prepost_confirmed!
-      Shipping::EmitLabel.resume(@order)
+      Shipping::EmitLabel.resume(@shipment)
     end
 
     def reschedule_or_fail(attempt, error)
       if attempt < Shipping::PREPOSTAGEM_MAX_POLL_ATTEMPTS
-        self.class.set(wait: poll_delay(attempt)).perform_later(@order.id, attempt + 1)
+        self.class.set(wait: poll_delay(attempt)).perform_later(shipment_id: @shipment.id, attempt: attempt + 1)
       else
         @label.record_error!(error.message)
       end

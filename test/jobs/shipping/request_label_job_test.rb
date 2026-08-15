@@ -20,8 +20,8 @@ module Shipping
         headers: { "Content-Type" => "application/json" }
       )
 
-      assert_enqueued_with(job: Shipping::DownloadLabelJob, args: [ @order.id ]) do
-        Shipping::RequestLabelJob.perform_now(@order.id)
+      assert_enqueued_with(job: Shipping::DownloadLabelJob, args: [ { shipment_id: @shipment.id } ]) do
+        Shipping::RequestLabelJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert @label.reload.requested?
@@ -29,7 +29,7 @@ module Shipping
     end
 
     test "skips the request entirely when the cycle is already claimed (single-flight)" do
-      job = Shipping::RequestLabelJob.new(@order.id)
+      job = Shipping::RequestLabelJob.new(shipment_id: @shipment.id)
       steal_claim = lambda do |_label|
         @label.update!(state: :requesting)
         true
@@ -47,7 +47,7 @@ module Shipping
       stub_request(:post, URL).to_return(status: 503, body: "down")
 
       assert_enqueued_jobs 1, only: Shipping::RequestLabelJob do
-        Shipping::RequestLabelJob.perform_now(@order.id)
+        Shipping::RequestLabelJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert @label.reload.prepost_confirmed?
@@ -56,7 +56,7 @@ module Shipping
     test "a permanent failure rolls the claim back and records the error" do
       stub_request(:post, URL).to_return(status: 400, body: "bad")
 
-      assert_raises(Correios::Api::Error) { Shipping::RequestLabelJob.perform_now(@order.id) }
+      assert_raises(Correios::Api::Error) { Shipping::RequestLabelJob.perform_now(shipment_id: @shipment.id) }
 
       @label.reload
       assert @label.prepost_confirmed?
