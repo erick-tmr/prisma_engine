@@ -480,8 +480,8 @@ pt-BR:
           description: "Houve um problema na entrega do seu pedido."
         awaiting_return:
           label: "Aguardando devolução"
-          description: "Sua devolução já está encaminhada. Imprima a etiqueta e a declaração de conteúdo abaixo, cole a etiqueta na parte de cima do pacote e a declaração na parte de baixo, e leve em qualquer agência. Você não paga nada."
-          description_pending: "Sua devolução já está encaminhada. Estamos gerando a etiqueta dos Correios e ela aparece aqui em alguns minutos."
+          description: "Siga as instruções abaixo e poste o pacote em qualquer agência dos Correios."
+          description_pending: "Estamos preparando sua devolução. As instruções aparecem aqui em alguns minutos."
         returning:
           label: "Devolução a caminho"
           description: "Os Correios registraram a postagem da sua devolução. Avisamos assim que o pacote chegar até nós."
