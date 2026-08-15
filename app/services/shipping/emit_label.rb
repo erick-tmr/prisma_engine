@@ -1,26 +1,25 @@
 module Shipping
   class EmitLabel
-    def self.resume(order)
-      shipment = order.shipment
-      return unless shipment && order.shippable?
+    def self.resume(shipment)
+      return unless shipment && shipment.order.shippable?
 
       case label_for(shipment).state
-      when "pending"           then Shipping::CreatePrePostagemJob.perform_later(order.id)
-      when "prepost_created"   then Shipping::ConfirmPrePostagemJob.set(wait: Shipping::PREPOSTAGEM_INITIAL_DELAY).perform_later(order.id)
-      when "prepost_confirmed" then Shipping::RequestLabelJob.perform_later(order.id)
-      when "requested"         then Shipping::DownloadLabelJob.perform_later(order.id)
+      when "pending"           then Shipping::CreatePrePostagemJob.perform_later(shipment_id: shipment.id)
+      when "prepost_created"   then Shipping::ConfirmPrePostagemJob.set(wait: Shipping::PREPOSTAGEM_INITIAL_DELAY).perform_later(shipment_id: shipment.id)
+      when "prepost_confirmed" then Shipping::RequestLabelJob.perform_later(shipment_id: shipment.id)
+      when "requested"         then Shipping::DownloadLabelJob.perform_later(shipment_id: shipment.id)
       end
     end
 
-    def self.recover(order)
-      label = order.shipment&.shipping_label
+    def self.recover(shipment)
+      label = shipment&.shipping_label
       label.unclaim_requesting! if label&.requesting?
-      resume(order)
+      resume(shipment)
     end
 
-    def self.restart(order)
-      order.shipment&.shipping_label&.ready_for_retry!
-      recover(order)
+    def self.restart(shipment)
+      shipment&.shipping_label&.ready_for_retry!
+      recover(shipment)
     end
 
     def self.label_for(shipment)

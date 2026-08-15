@@ -10,7 +10,7 @@ module Shipping
       label = @order.shipment.create_shipping_label!(state: :requesting)
       label.update_columns(requesting_at: 11.minutes.ago)
 
-      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ { shipment_id: @order.shipment.id } ]) do
         Shipping::RecoverStuckLabelRequestsJob.perform_now
       end
       assert label.reload.prepost_confirmed?

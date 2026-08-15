@@ -16,8 +16,8 @@ module Shipping
       label = @shipment.create_shipping_label!
       stub_create
 
-      assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ @order.id ]) do
-        Shipping::CreatePrePostagemJob.perform_now(@order.id)
+      assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ { shipment_id: @shipment.id } ]) do
+        Shipping::CreatePrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert label.reload.prepost_created?
@@ -29,7 +29,7 @@ module Shipping
       stub_create(codigo_objeto: nil)
 
       assert_raises(Correios::Api::InvalidObjectError) do
-        Shipping::CreatePrePostagemJob.perform_now(@order.id)
+        Shipping::CreatePrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
       assert_no_enqueued_jobs only: Shipping::ConfirmPrePostagemJob
 
@@ -40,25 +40,19 @@ module Shipping
       assert_equal "PR-1", @shipment.reload.pre_post_id
     end
 
-    test "no-ops when the order does not exist" do
-      assert_nothing_raised { Shipping::CreatePrePostagemJob.perform_now(-1) }
-    end
-
-    test "no-ops when the order has no shipment" do
-      order = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000)
-
-      assert_no_enqueued_jobs { Shipping::CreatePrePostagemJob.perform_now(order.id) }
+    test "no-ops when the shipment does not exist" do
+      assert_nothing_raised { Shipping::CreatePrePostagemJob.perform_now(shipment_id: -1) }
     end
 
     test "no-ops when the shipment has no label yet" do
-      assert_no_enqueued_jobs { Shipping::CreatePrePostagemJob.perform_now(@order.id) }
+      assert_no_enqueued_jobs { Shipping::CreatePrePostagemJob.perform_now(shipment_id: @shipment.id) }
       assert_nil @shipment.reload.shipping_label
     end
 
     test "no-ops when the label is already past this step" do
       @shipment.create_shipping_label!(state: :prepost_created)
 
-      assert_no_enqueued_jobs { Shipping::CreatePrePostagemJob.perform_now(@order.id) }
+      assert_no_enqueued_jobs { Shipping::CreatePrePostagemJob.perform_now(shipment_id: @shipment.id) }
     end
 
     test "a transient error reschedules the job and leaves the label untouched" do
@@ -66,7 +60,7 @@ module Shipping
       stub_request(:post, URL).to_return(status: 503, body: "unavailable")
 
       assert_enqueued_jobs 1, only: Shipping::CreatePrePostagemJob do
-        Shipping::CreatePrePostagemJob.perform_now(@order.id)
+        Shipping::CreatePrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert label.reload.pending?
@@ -78,7 +72,7 @@ module Shipping
       stub_request(:post, URL).to_return(status: 400, body: "bad request")
 
       assert_raises(Correios::Api::Error) do
-        Shipping::CreatePrePostagemJob.perform_now(@order.id)
+        Shipping::CreatePrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert label.reload.pending?

@@ -4,7 +4,7 @@ module Shipping
       order = Order.find_by(id: order_id)
       return if order.nil?
 
-      Shipping::EmitLabel.resume(order)
+      Shipping::EmitLabel.resume(order.shipment)
     end
   end
 end

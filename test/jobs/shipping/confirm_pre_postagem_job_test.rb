@@ -18,8 +18,8 @@ module Shipping
     test "confirms the label and enqueues the rótulo request once Pré-postado" do
       stub_status(item(2, "Pré-postado"))
 
-      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ @order.id ]) do
-        Shipping::ConfirmPrePostagemJob.perform_now(@order.id)
+      assert_enqueued_with(job: Shipping::RequestLabelJob, args: [ { shipment_id: @shipment.id } ]) do
+        Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert @label.reload.prepost_confirmed?
@@ -29,8 +29,8 @@ module Shipping
     test "reschedules the next poll while still Pendente" do
       stub_status(item(7, "Pendente"))
 
-      assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ @order.id, 2 ]) do
-        Shipping::ConfirmPrePostagemJob.perform_now(@order.id)
+      assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ { shipment_id: @shipment.id, attempt: 2 } ]) do
+        Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert @label.reload.prepost_created?
@@ -43,8 +43,8 @@ module Shipping
 
       freeze_time do
         expected.each do |attempt, delay|
-          assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ @order.id, attempt + 1 ], at: delay.from_now) do
-            Shipping::ConfirmPrePostagemJob.perform_now(@order.id, attempt)
+          assert_enqueued_with(job: Shipping::ConfirmPrePostagemJob, args: [ { shipment_id: @shipment.id, attempt: attempt + 1 } ], at: delay.from_now) do
+            Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id, attempt: attempt)
           end
         end
       end
@@ -62,7 +62,7 @@ module Shipping
       stub_status(item(7, "Pendente"))
 
       assert_no_enqueued_jobs do
-        Shipping::ConfirmPrePostagemJob.perform_now(@order.id, Shipping::PREPOSTAGEM_MAX_POLL_ATTEMPTS)
+        Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id, attempt: Shipping::PREPOSTAGEM_MAX_POLL_ATTEMPTS)
       end
 
       assert @label.reload.prepost_created?
@@ -74,7 +74,7 @@ module Shipping
       stub_request(:get, URL).to_return(status: 503, body: "unavailable")
 
       assert_enqueued_jobs 1, only: Shipping::ConfirmPrePostagemJob do
-        Shipping::ConfirmPrePostagemJob.perform_now(@order.id)
+        Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert @label.reload.prepost_created?
@@ -85,27 +85,27 @@ module Shipping
       stub_request(:get, URL).to_return(status: 400, body: "bad request")
 
       assert_raises(Correios::Api::Error) do
-        Shipping::ConfirmPrePostagemJob.perform_now(@order.id)
+        Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id)
       end
 
       assert @label.reload.prepost_created?
       assert_equal "correios returned 400: bad request", @label.error
     end
 
-    test "no-ops when the order does not exist" do
-      assert_nothing_raised { Shipping::ConfirmPrePostagemJob.perform_now(-1) }
+    test "no-ops when the shipment does not exist" do
+      assert_nothing_raised { Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: -1) }
     end
 
-    test "no-ops when the order has no shipment" do
-      order = Order.create!(user: users(:confirmed), subtotal_cents: 1_000, total_cents: 1_000)
+    test "no-ops when the shipment has no label yet" do
+      @label.destroy!
 
-      assert_no_enqueued_jobs { Shipping::ConfirmPrePostagemJob.perform_now(order.id) }
+      assert_no_enqueued_jobs { Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id) }
     end
 
     test "no-ops when the label is not awaiting confirmation" do
       @label.update!(state: :prepost_confirmed)
 
-      assert_no_enqueued_jobs { Shipping::ConfirmPrePostagemJob.perform_now(@order.id) }
+      assert_no_enqueued_jobs { Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @shipment.id) }
     end
 
     private

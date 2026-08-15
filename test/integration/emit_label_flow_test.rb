@@ -20,7 +20,7 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
     stub_rotulo
     stub_download
 
-    perform_enqueued_jobs { Shipping::EmitLabel.resume(@order) }
+    perform_enqueued_jobs { Shipping::EmitLabel.resume(@order.shipment) }
 
     @order.reload
     label = @order.shipment.shipping_label
@@ -38,19 +38,19 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
     stub_request(:post, ROTULO).to_return(status: 400, body: "bad request")
 
     @order.shipment.create_shipping_label!
-    Shipping::CreatePrePostagemJob.perform_now(@order.id)
-    Shipping::ConfirmPrePostagemJob.perform_now(@order.id)
+    Shipping::CreatePrePostagemJob.perform_now(shipment_id: @order.shipment.id)
+    Shipping::ConfirmPrePostagemJob.perform_now(shipment_id: @order.shipment.id)
     label = @order.shipment.shipping_label
     assert label.reload.prepost_confirmed?
 
-    assert_raises(Correios::Api::Error) { Shipping::RequestLabelJob.perform_now(@order.id) }
+    assert_raises(Correios::Api::Error) { Shipping::RequestLabelJob.perform_now(shipment_id: @order.shipment.id) }
     assert label.reload.error.present?
     assert_requested :post, PREPOST, times: 1
     clear_enqueued_jobs
 
     stub_rotulo
     stub_download
-    perform_enqueued_jobs { Shipping::EmitLabel.resume(@order) }
+    perform_enqueued_jobs { Shipping::EmitLabel.resume(@order.shipment) }
 
     assert @order.reload.label_issued?
     assert @order.shipment.shipping_label.ready?

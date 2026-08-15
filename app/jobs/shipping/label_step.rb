@@ -9,39 +9,38 @@ module Shipping
 
     limits_concurrency to: 5, key: "correios_cartao"
 
-    def perform(order_id)
-      order = Order.find_by(id: order_id)
-      return unless order
+    def perform(shipment_id:)
+      shipment = Shipment.find_by(id: shipment_id)
+      return unless shipment
 
-      shipment = order.shipment
-      label = shipment&.shipping_label
+      label = shipment.shipping_label
       return unless label && applicable?(label)
 
-      execute(order, shipment, label)
+      execute(shipment, label)
     end
 
     private
 
-    def execute(order, shipment, label)
+    def execute(shipment, label)
       run(shipment, label)
-      Shipping::EmitLabel.resume(order)
+      Shipping::EmitLabel.resume(shipment)
     rescue Correios::Api::TransientError
       raise
     rescue Correios::Api::LabelGenerationFailedError => error
-      relabel(order, label, error)
+      relabel(shipment, label, error)
     rescue Correios::Api::Error => error
       label.record_error!(error.message)
       raise
     end
 
-    def relabel(order, label, error)
+    def relabel(shipment, label, error)
       if label.relabel_attempts >= MAX_RELABEL_ATTEMPTS
         label.record_error!(error.message)
         raise error
       end
 
       label.reset_for_relabel!
-      Shipping::EmitLabel.resume(order)
+      Shipping::EmitLabel.resume(shipment)
     end
   end
 end
