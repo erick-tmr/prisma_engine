@@ -326,15 +326,28 @@ the live database), then the final command drops the throwaway.
 
 Some changes need production rows moved before the code that stops understanding them
 ships. These live in `deploy/`, open an SSH tunnel to the VPS's localhost Postgres and run
-`bin/rails runner` against it, exactly like `deploy/seed-prod-catalog.sh`. They read
-`PRODUCTION_LOG_HOST/USER/SSH_PORT` and `PRISMA_ENGINE_DATABASE_PASSWORD` from `.env`.
+`bin/rails runner` against it. They read `PRODUCTION_LOG_HOST/USER/SSH_PORT` and
+`PRISMA_ENGINE_DATABASE_PASSWORD` from `.env`.
 
-- `deploy/seed-prod-catalog.sh`: bootstrap the initial catalog + hero banner images into
-  the prod R2 bucket. Runbook: `docs/seeding-images.md`.
 - `deploy/retire-awaiting-refund.sh`: move every order still parked in the retired
   `awaiting_refund` status to `cancelled`, writing the matching `order_status_changes` row.
   **Run it before deploying the backoffice-only-cancellation change**, so no order sits in
   a status the running code has no label for. Idempotent: a second run matches zero rows.
+
+**Delete a one-off once it has run.** A script that only ever needed to run against
+production once, and has, is a loaded gun sitting in the repo: the next person to find it
+has no way to know it is spent. `deploy/seed-prod-catalog.sh` was removed on exactly that
+basis after bootstrapping the catalog; its recipe survives as documentation in
+`docs/seeding-images.md`, which is where a genuinely rare rebuild should start.
+
+**Every one of these must guard its tunnel**, and `retire-awaiting-refund.sh` is the
+worked example. `ssh -L` binds a port on *your* machine, so a local port collision (a
+second project's Postgres is enough) means the forward never opens. Plain `ssh -N` does
+not exit on that failure, so the script sails on and Rails connects to whatever else holds
+the port, using production credentials. Three guards prevent it: `-o
+ExitOnForwardFailure=yes`, an explicit check that the local port is free before opening
+the tunnel, and a `SELECT current_database()` assertion that refuses to write anywhere but
+the expected production database. Copy all three into any new script here.
 
 ## Production logs
 

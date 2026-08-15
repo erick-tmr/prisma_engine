@@ -46,34 +46,39 @@ bin/rails db:seed
 
 Idempotent: Active Storage's checksum compare skips images that are already uploaded.
 
-## Production (one-off bootstrap)
+## Production
 
-Active Storage couples the R2 blob and its `ProductPhoto` / `active_storage_*` DB rows,
-so both are created in one run. We run the seed locally with `RAILS_ENV=production` so
-Active Storage routes uploads to `prisma-games-prod`, pointed at the production database
-through an SSH tunnel. Run it **once** to bootstrap the catalog; afterwards manage the
-catalog from the backoffice.
+**Already done, and not something to repeat.** Production was bootstrapped once from
+these files; since then the catalog is managed entirely from the backoffice, which writes
+images straight to R2. There is no script for this any more: `deploy/seed-prod-catalog.sh`
+was deleted once it had served its purpose, because a spent one-off that still runs is a
+liability rather than a convenience.
 
-`config/credentials/production.key` must be present locally (it decrypts the prod R2
-keys), and `PRISMA_ENGINE_DATABASE_PASSWORD` + the prod VPS host must be set in `.env`
-(`PRODUCTION_LOG_HOST` is reused as the host). Then:
+If a future production database ever needs seeding from scratch (a rebuild, a second
+environment), the recipe is below. Read the warnings first; this points a local Rails at a
+remote database.
 
-```sh
-deploy/seed-prod-catalog.sh
-```
-
-The script opens the tunnel, runs **only** `catalog.rb` + `hero_banner.rb` (never full
-`db:seed`, which would also load the dev-only `backoffice_demo.rb` into production), and
-tears the tunnel down on exit.
-
-To run it by hand instead of via the script:
+Active Storage couples the R2 blob and its `ProductPhoto` / `active_storage_*` DB rows, so
+both are created in one run. Run the seed locally with `RAILS_ENV=production` so uploads
+route to `prisma-games-prod`, pointed at the production database through an SSH tunnel.
+`config/credentials/production.key` must be present locally (it decrypts the prod R2 keys).
 
 ```sh
-ssh -N -L 5433:127.0.0.1:5432 root@<vps> &
-RAILS_ENV=production DATABASE_HOST=127.0.0.1 DATABASE_PORT=5433 \
+# Pick a local port nothing else uses. Another project's Postgres on the same port
+# is the failure this guards against: without ExitOnForwardFailure, ssh survives a
+# failed bind and Rails quietly talks to that other database instead.
+ssh -N -o ExitOnForwardFailure=yes -L 5455:127.0.0.1:5432 root@<vps> &
+
+RAILS_ENV=production DATABASE_HOST=127.0.0.1 DATABASE_PORT=5455 \
   PRISMA_ENGINE_DATABASE_PASSWORD=<prod-db-password> \
-  bin/rails runner 'load Rails.root.join("db/seeds/catalog.rb"); load Rails.root.join("db/seeds/hero_banner.rb")'
+  bin/rails runner '
+    raise "wrong database" unless ActiveRecord::Base.connection.select_value("SELECT current_database()") == "prisma_engine_production"
+    load Rails.root.join("db/seeds/catalog.rb")
+    load Rails.root.join("db/seeds/hero_banner.rb")
+  '
 ```
 
-Verify: open a production product page and confirm the image loads from the prod R2 host.
-Re-running is a no-op (checksum skip).
+Load **only** `catalog.rb` + `hero_banner.rb`, never full `db:seed`: that would also load
+the dev-only `backoffice_demo.rb` into production. Verify by opening a production product
+page and confirming the image loads from the prod R2 host. Re-running is a no-op (checksum
+skip).
