@@ -1,22 +1,17 @@
 module Admin
   class BulkTransition
-    def self.call(order_numbers:, event:, actor:, service: nil)
-      new(order_numbers: order_numbers, event: event, actor: actor, service: service).call
+    def self.call(order_numbers:, event:, actor:)
+      new(order_numbers: order_numbers, event: event, actor: actor).call
     end
 
-    def initialize(order_numbers:, event:, actor:, service: nil)
+    def initialize(order_numbers:, event:, actor:)
       @numbers = Array(order_numbers)
       @event = event.to_s
       @actor = actor
-      @service = service
     end
 
     def call
-      results = case @event
-      when "issue_label"      then issue_labels
-      when "start_return" then start_returns
-      else transition_all
-      end
+      results = @event == "issue_label" ? issue_labels : transition_all
       summarize(results)
     end
 
@@ -32,14 +27,6 @@ module Admin
       orders.map { |order| order.in_production? ? result_for(order, "queued") : result_for(order, "skipped", "not_available") }
     end
 
-    def start_returns
-      orders.map do |order|
-        result = Shipping::StartReturn.call(order: order, actor: @actor, service: @service)
-        next result_for(order, "skipped", result.error.to_s) unless result.success?
-
-        result_for(order.reload, "queued")
-      end
-    end
 
     def transition_all
       action = OrderActions.lookup(@event)

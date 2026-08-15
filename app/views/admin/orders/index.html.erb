@@ -69,10 +69,7 @@
             <span class="bulk-count"><b id="bulk-n">0</b> <%= t("admin.dashboard.bulk.selected") %></span>
             <button class="bulk-clear" id="bulk-clear" type="button"><i class="bi bi-x-lg"></i> <%= t("admin.dashboard.bulk.clear") %></button>
           </div>
-          <div class="bulk-actions" id="bulk-actions" data-issuing-label="<%= t("admin.dashboard.bulk.issuing") %>"
-               data-return-services="<%= Shipping::SERVICES.keys.map { |key| "#{key}:#{Shipping.service_label(key)}" }.join("|") %>"
-               data-return-service-default="<%= Shipping::DEFAULT_RETURN_SERVICE %>"
-               data-return-service-label="<%= t("admin.dashboard.bulk.return_service") %>"></div>
+          <div class="bulk-actions" id="bulk-actions" data-issuing-label="<%= t("admin.dashboard.bulk.issuing") %>"></div>
           <button class="bulk-chip bulk-print" id="bulk-print" type="button" hidden>
             <i class="bi bi-printer"></i> <%= t("admin.dashboard.bulk.print_labels") %>
           </button>

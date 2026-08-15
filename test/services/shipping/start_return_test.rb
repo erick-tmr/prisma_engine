@@ -30,7 +30,7 @@ module Shipping
       assert_equal outbound.receiver_name, inbound.receiver_name
       assert_equal outbound.receiver_cpf, inbound.receiver_cpf
       assert_equal outbound.weight_grams, inbound.weight_grams
-      assert_equal outbound.service, inbound.service
+      assert_equal Shipping::DEFAULT_RETURN_SERVICE, inbound.service
       assert_nil inbound.tracking_code
       assert_nil inbound.posted_at
       assert_nil inbound.shipping_cents
@@ -83,13 +83,13 @@ module Shipping
 
       assert @order.reload.delivered?
     end
-    test "defaults to PAC, the cheapest service that carries a cartridge" do
+    test "defaults to Mini Envios, whatever the parcel went out as" do
       @order.shipment.update!(service: "sedex")
 
       inbound = Shipping::StartReturn.call(order: @order).return_shipment
 
       assert_equal Shipping::DEFAULT_RETURN_SERVICE, inbound.service
-      assert_equal "pac", inbound.service
+      assert_equal "mini_envios", inbound.service
     end
 
     test "takes the service the operator picked, whatever the outbound one was" do
@@ -112,6 +112,24 @@ module Shipping
       assert_equal :invalid_service, result.error
       assert @order.reload.delivered?
       assert_nil @order.return_shipment
+    end
+    test "records the operator's reason on the order" do
+      Shipping::StartReturn.call(order: @order, reason: "  Cartucho não liga  ")
+
+      assert_equal "Cartucho não liga", @order.reload.return_reason
+    end
+
+    test "a return with no reason given leaves the column empty rather than blank" do
+      Shipping::StartReturn.call(order: @order, reason: "   ")
+
+      assert_nil @order.reload.return_reason
+    end
+
+    test "a refused return records no reason" do
+      result = Shipping::StartReturn.call(order: orders(:producing), reason: "não deveria salvar")
+
+      assert_not result.success?
+      assert_nil orders(:producing).reload.return_reason
     end
   end
 end

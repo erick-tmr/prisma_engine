@@ -25,7 +25,7 @@ module Shipping
 
   RETURN_WALK = %w[awaiting_return returning returned].freeze
 
-  DEFAULT_RETURN_SERVICE = "pac".freeze
+  DEFAULT_RETURN_SERVICE = "mini_envios".freeze
 
   STORE = {
     nome: "Prisma Games",

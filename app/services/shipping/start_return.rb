@@ -13,14 +13,15 @@ module Shipping
       end
     end
 
-    def self.call(order:, actor: nil, service: nil)
-      new(order: order, actor: actor, service: service).call
+    def self.call(order:, actor: nil, service: nil, reason: nil)
+      new(order: order, actor: actor, service: service, reason: reason).call
     end
 
-    def initialize(order:, actor: nil, service: nil)
+    def initialize(order:, actor: nil, service: nil, reason: nil)
       @order = order
       @actor = actor
       @service = service.presence || Shipping::DEFAULT_RETURN_SERVICE
+      @reason = reason
     end
 
     def call
@@ -36,12 +37,13 @@ module Shipping
 
     private
 
-    attr_reader :order, :actor, :service
+    attr_reader :order, :actor, :service, :reason
 
     def authorize
       shipment = nil
       Order.transaction do
         shipment = Shipment.create!(order: order, direction: :inbound, service: service, **snapshot)
+        order.update!(return_reason: reason)
         order.transition_to!("awaiting_return", actor: actor)
         Shipping::EmitLabel.resume(shipment)
       end

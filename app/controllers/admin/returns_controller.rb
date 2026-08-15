@@ -2,7 +2,8 @@ module Admin
   class ReturnsController < BaseController
     def create
       order = find_order
-      result = Shipping::StartReturn.call(order: order, actor: current_user, service: params[:service])
+      result = Shipping::StartReturn.call(order: order, actor: current_user,
+                                 service: params[:service], reason: params[:reason])
       respond_with(order, result, "started")
     end
 

@@ -25,16 +25,21 @@ module Shipping
       return failure(:no_return) unless shipment
       return failure(:already_posted) if shipment.posted_at
 
-      Order.transaction do
-        shipment.destroy!
-        order.transition_to!("delivered", actor: actor)
-      end
-      Result.new(error: nil)
+      withdraw(shipment)
     end
 
     private
 
     attr_reader :order, :actor
+
+    def withdraw(shipment)
+      Order.transaction do
+        shipment.destroy!
+        order.update!(return_reason: nil)
+        order.transition_to!("delivered", actor: actor)
+      end
+      Result.new(error: nil)
+    end
 
     def failure(reason)
       Result.new(error: reason)

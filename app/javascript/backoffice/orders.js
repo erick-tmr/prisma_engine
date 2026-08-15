@@ -12,19 +12,16 @@ export const CANCELLABLE_STATUSES = [
 export const ACTIONS = [
   { id: "to_components", icon: "bi-box-seam", from: [ "payment_confirmed" ] },
   { id: "issue_label", icon: "bi-upc-scan", from: [ "in_production" ] },
-  { id: "start_return", icon: "bi-arrow-counterclockwise", from: [ "delivered", "delivery_issue" ] },
   { id: "flag_issue", icon: "bi-exclamation-triangle", from: [ "in_production" ] },
   { id: "cancel", icon: "bi-x-circle", danger: true, from: CANCELLABLE_STATUSES }
 ];
 
 export const ACTION_LABELS = {
   to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
-  start_return: "Iniciar devolução", flag_issue: "Marcar problema", cancel: "Cancelar"
+  flag_issue: "Marcar problema", cancel: "Cancelar"
 };
 
 export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);
-
-export const LABEL_EMITTING_ACTIONS = new Set([ "issue_label", "start_return" ]);
 
 export const BULK_THROTTLE_MS = 60_000;
 
@@ -101,28 +98,13 @@ export function availableActions(statuses) {
     .filter((entry) => entry.count > 0);
 }
 
-export function parseServices(spec) {
-  return String(spec ?? "").split("|").filter(Boolean).map((pair) => {
-    const [ key, ...rest ] = pair.split(":");
-    return { key, label: rest.join(":") };
-  });
-}
-
-export function returnServiceHtml(services, selected, label) {
-  if (services.length === 0) return "";
-  const options = services.map(({ key, label: name }) =>
-    `<option value="${escapeHtml(key)}"${key === selected ? " selected" : ""}>${escapeHtml(name)}</option>`).join("");
-  return `<label class="bulk-service"><span>${escapeHtml(label)}</span><select data-return-service>${options}</select></label>`;
-}
-
-export function bulkChipsHtml(available, busy = null, returnService = "") {
+export function bulkChipsHtml(available, busy = null) {
   if (available.length === 0) return `<span class="bulk-none">Nenhuma ação disponível para esta seleção</span>`;
   return available.map(({ action, count }) => {
-    if (LABEL_EMITTING_ACTIONS.has(action.id) && busy) {
+    if (action.id === "issue_label" && busy) {
       return `<button type="button" class="bulk-chip" data-act="${action.id}" disabled><span class="spin"></span> ${escapeHtml(busy.label)} <span class="cnt">${busy.settled}/${busy.total}</span></button>`;
     }
-    const chip = `<button type="button" class="bulk-chip ${action.danger ? "danger" : ""}" data-act="${action.id}"><i class="bi ${action.icon}"></i> ${escapeHtml(ACTION_LABELS[action.id])} <span class="cnt">${count}</span></button>`;
-    return action.id === "start_return" ? returnService + chip : chip;
+    return `<button type="button" class="bulk-chip ${action.danger ? "danger" : ""}" data-act="${action.id}"><i class="bi ${action.icon}"></i> ${escapeHtml(ACTION_LABELS[action.id])} <span class="cnt">${count}</span></button>`;
   }).join("");
 }
 
@@ -130,11 +112,10 @@ export function confirmText(count) {
   return `Cancelar ${count} ${plural(count, "pedido", "pedidos")}? Esta ação não pode ser desfeita.`;
 }
 
-export function bulkFormBody(event, numbers, extra = {}) {
+export function bulkFormBody(event, numbers) {
   const body = new URLSearchParams();
   body.set("event", event);
   numbers.forEach((n) => body.append("order_numbers[]", n));
-  Object.entries(extra).forEach(([ key, value ]) => { if (value) body.set(key, value); });
   return body;
 }
 
@@ -194,7 +175,6 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
   const sentAt = new Map();
   const batch = readBatch(storage);
   let holdTimer = null;
-  let returnService = "";
   let batchFlying = batchInFlight(root);
   const feedback = createLabelFeedback(root, {
     path: root.dataset.feedbackUrl,
@@ -246,12 +226,9 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
     $("#bulk-n").textContent = selected.size;
     const wrap = $("#bulk-actions");
     const progress = batchProgress(root);
-    const services = parseServices(wrap.dataset.returnServices);
-    const chosen = returnService || wrap.dataset.returnServiceDefault;
     wrap.innerHTML = bulkChipsHtml(
       availableActions(selectedStatuses()),
-      progress && { ...progress, label: wrap.dataset.issuingLabel },
-      returnServiceHtml(services, chosen, wrap.dataset.returnServiceLabel)
+      progress && { ...progress, label: wrap.dataset.issuingLabel }
     );
     bulkPrint.hidden = !selectedStatuses().some((s) => PRINTABLE_LABEL_STATUSES.has(s));
   }
@@ -365,7 +342,7 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
       const res = await fetch(root.dataset.bulkUrl, {
         method: "POST",
         headers: { ...csrfHeader(document), "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
-        body: bulkFormBody(actionId, fresh, { service: actionId === "start_return" ? returnService : null })
+        body: bulkFormBody(actionId, fresh)
       });
       const data = await res.json();
       if (!batchInFlight(root)) batch.clear();
@@ -465,9 +442,6 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
   $("#bulk-actions").addEventListener("click", (event) => {
     const chip = event.target.closest("[data-act]");
     if (chip) applyBulk(chip.dataset.act);
-  });
-  $("#bulk-actions").addEventListener("change", (event) => {
-    if (event.target.matches("[data-return-service]")) returnService = event.target.value;
   });
   bulkPrint.addEventListener("click", printLabels);
 

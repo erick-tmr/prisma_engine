@@ -47,12 +47,24 @@
             <%= form.select :service, Shipping::SERVICES.keys.map { |key| [ Shipping.service_label(key), key ] },
                   { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "return-service-select" %>
           </label>
+          <label class="return-reason">
+            <span><%= t("admin.orders.detail.return_reason") %></span>
+            <%= form.text_area :reason, rows: 3, maxlength: Order::RETURN_REASON_LIMIT,
+                  class: "return-reason-input", placeholder: t("admin.orders.detail.return_reason_placeholder") %>
+          </label>
           <button type="submit" class="act-btn">
             <i class="bi bi-arrow-counterclockwise"></i>
             <span><%= t("admin.orders.detail.start_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
             <i class="bi bi-arrow-right act-arrow"></i>
           </button>
         <% end %>
+      <% end %>
+
+      <% if presenter.return_reason.present? %>
+        <div class="return-recorded">
+          <div class="return-recorded-head"><i class="bi bi-chat-left-text"></i> <%= t("admin.orders.detail.return_reason") %></div>
+          <p><%= presenter.return_reason %></p>
+        </div>
       <% end %>
 
       <% if presenter.return_label_printable? %>

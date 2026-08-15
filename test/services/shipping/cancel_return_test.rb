@@ -63,5 +63,12 @@ module Shipping
 
       assert_equal :no_return, result.error
     end
+    test "clears the reason, so none outlives the return it explained" do
+      @order.update!(return_reason: "Cliente desistiu")
+
+      Shipping::CancelReturn.call(order: @order)
+
+      assert_nil @order.reload.return_reason
+    end
   end
 end

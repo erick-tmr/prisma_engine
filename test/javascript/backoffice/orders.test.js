@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ACTIONS, BATCH_HOLD_MS, BATCH_KEY, BULK_THROTTLE_MS, availableActions, batchProgress, bulkChipsHtml,
-  bulkFormBody, bulkToastMessage, confirmText, csrfHeader, escapeHtml, initOrders, parseServices,
-  partitionThrottled, returnServiceHtml,
+  bulkFormBody, bulkToastMessage, confirmText, csrfHeader, escapeHtml, initOrders, partitionThrottled,
   plural, readBatch, readSettledAt, skippedLabelsMessage, stampSettled, tallyOutcomes, throttleKey,
   throttledMessage, writeBatch, BATCH_TTL_MS
 } from "../../../app/javascript/backoffice/orders.js";
@@ -56,9 +55,7 @@ const markup = (rows, bar = procbar()) => `
     <div class="bulkbar" id="bulkbar" hidden>
       <b id="bulk-n">0</b>
       <button id="bulk-clear" type="button"></button>
-      <div id="bulk-actions" data-issuing-label="Emitindo etiquetas…"
-           data-return-services="pac:PAC|sedex:SEDEX|mini_envios:Mini Envios"
-           data-return-service-default="pac" data-return-service-label="Serviço da devolução"></div>
+      <div id="bulk-actions" data-issuing-label="Emitindo etiquetas…"></div>
       <button id="bulk-print" type="button" hidden></button>
     </div>
     ${bar}
@@ -139,69 +136,15 @@ describe("pure helpers", () => {
 
   it("offers only the actions the selection can actually take", () => {
     expect(availableActions([ "payment_confirmed", "payment_confirmed", "delivered" ]))
-      .toEqual([
-        { action: act("to_components"), count: 2 },
-        { action: act("start_return"), count: 1 },
-        { action: act("cancel"), count: 2 }
-      ]);
+      .toEqual([ { action: act("to_components"), count: 2 }, { action: act("cancel"), count: 2 } ]);
+    expect(availableActions([ "delivered" ])).toEqual([]);
   });
 
-  it("offers a return on the two statuses where the customer holds the item", () => {
-    expect(availableActions([ "delivered" ])).toEqual([ { action: act("start_return"), count: 1 } ]);
-    expect(availableActions([ "delivery_issue" ])).toEqual([ { action: act("start_return"), count: 1 } ]);
-    expect(availableActions([ "shipped" ])).toEqual([]);
-    expect(availableActions([ "awaiting_return" ])).toEqual([]);
-  });
 
-  it("shows the batch spinner for either action that hands work to the label saga", () => {
-    const busy = { settled: 1, total: 3, label: "Emitindo" };
 
-    [ "issue_label", "start_return" ].forEach((id) => {
-      const html = bulkChipsHtml([ { action: act(id), count: 3 } ], busy);
-      expect(html).toContain("spin");
-      expect(html).toContain("1/3");
-      expect(html).toContain("disabled");
-    });
 
-    const plain = bulkChipsHtml([ { action: act("cancel"), count: 3 } ], busy);
-    expect(plain).not.toContain("spin");
-  });
 
-  it("parses the service list the server hands to the bulk bar", () => {
-    expect(parseServices("pac:PAC|sedex:SEDEX|mini_envios:Mini Envios")).toEqual([
-      { key: "pac", label: "PAC" },
-      { key: "sedex", label: "SEDEX" },
-      { key: "mini_envios", label: "Mini Envios" }
-    ]);
-    expect(parseServices("")).toEqual([]);
-    expect(parseServices(undefined)).toEqual([]);
-  });
 
-  it("renders the return service picker with the chosen option selected", () => {
-    const html = returnServiceHtml(parseServices("pac:PAC|sedex:SEDEX"), "sedex", "Serviço");
-
-    expect(html).toContain('data-return-service');
-    expect(html).toContain('<option value="sedex" selected>SEDEX</option>');
-    expect(html).toContain('<option value="pac">PAC</option>');
-    expect(returnServiceHtml([], "pac", "Serviço")).toBe("");
-  });
-
-  it("attaches the picker to the return chip and nowhere else", () => {
-    const picker = returnServiceHtml(parseServices("pac:PAC"), "pac", "Serviço");
-
-    const withReturn = bulkChipsHtml([ { action: act("start_return"), count: 2 } ], null, picker);
-    expect(withReturn).toContain("data-return-service");
-
-    const withoutReturn = bulkChipsHtml([ { action: act("cancel"), count: 2 } ], null, picker);
-    expect(withoutReturn).not.toContain("data-return-service");
-  });
-
-  it("carries extra params in the bulk body, dropping blank ones", () => {
-    expect(bulkFormBody("start_return", [ "PG-1" ], { service: "sedex" }).toString())
-      .toBe("event=start_return&order_numbers%5B%5D=PG-1&service=sedex");
-    expect(bulkFormBody("start_return", [ "PG-1" ], { service: null }).toString())
-      .toBe("event=start_return&order_numbers%5B%5D=PG-1");
-  });
 
   it("withholds bulk cancel once the package is out, until it comes back to us", () => {
     expect(availableActions([ "shipped" ])).toEqual([]);
@@ -678,49 +621,7 @@ describe("Correios feedback", () => {
     await vi.waitFor(() => expect(readBatch(window.sessionStorage)).toEqual(new Set([ "PG-OLD", "PG-1" ])));
   });
 
-  it("sends the picked service with the batch, and remembers it across re-renders", async () => {
-    window.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ results: [ { number: "PG-1", outcome: "queued", status: "awaiting_return" } ] }),
-      text: async () => `<div data-part="table"><tbody id="orders-body"></tbody></div>`
-    });
 
-    start(row("PG-1", "delivered") + row("PG-2", "delivered"));
-    click(document.querySelector('[data-check="PG-1"]'));
-
-    const select = document.querySelector("[data-return-service]");
-    expect(select.value).toBe("pac");
-    select.value = "sedex";
-    select.dispatchEvent(new window.Event("change", { bubbles: true }));
-
-    click(document.querySelector('[data-check="PG-2"]'));
-    expect(document.querySelector("[data-return-service]").value).toBe("sedex");
-
-    click(document.querySelector('[data-act="start_return"]'));
-
-    await vi.waitFor(() => {
-      const body = window.fetch.mock.calls.find(([ , init ]) => init && init.method === "POST")[1].body.toString();
-      expect(body).toContain("service=sedex");
-      expect(body).toContain("event=start_return");
-    });
-  });
-
-  it("sends no service for an action that is not a return", async () => {
-    window.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ results: [ { number: "PG-1", outcome: "done", status: "awaiting_components" } ] }),
-      text: async () => `<div data-part="table"><tbody id="orders-body"></tbody></div>`
-    });
-
-    start(row("PG-1", "payment_confirmed"));
-    click(document.querySelector('[data-check="PG-1"]'));
-    click(document.querySelector('[data-act="to_components"]'));
-
-    await vi.waitFor(() => {
-      const body = window.fetch.mock.calls.find(([ , init ]) => init && init.method === "POST")[1].body.toString();
-      expect(body).not.toContain("service=");
-    });
-  });
 
   it("resumes polling on load when the server already rendered a busy row", () => {
     start(row("PG-1", "in_production", "running"));

@@ -123,6 +123,10 @@ module Admin
       shipment.present? && shipment.posted_at.nil?
     end
 
+    def return_reason
+      order.return_reason
+    end
+
     def return_label_printable?
       !!order.return_shipping_label&.ready?
     end

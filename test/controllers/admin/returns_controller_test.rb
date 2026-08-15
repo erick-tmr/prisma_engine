@@ -49,6 +49,14 @@ module Admin
       assert @order.reload.delivered?
     end
 
+    test "the operator's reason is recorded on the order" do
+      sign_in users(:admin)
+
+      post admin_order_return_path(@order.number), params: { reason: "Cartucho chegou riscado" }
+
+      assert_equal "Cartucho chegou riscado", @order.reload.return_reason
+    end
+
     test "a refused authorization says why and changes nothing" do
       sign_in users(:admin)
       order = orders(:producing)

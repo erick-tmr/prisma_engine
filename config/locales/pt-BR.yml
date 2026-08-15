@@ -611,7 +611,6 @@ pt-BR:
         selected: "selecionados"
         clear: "Limpar seleção"
         print_labels: "Imprimir etiquetas"
-        return_service: "Serviço da devolução"
         issuing: "Emitindo etiquetas…"
       views:
         orders:
@@ -705,7 +704,6 @@ pt-BR:
       bulk_actions:
         to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
-        start_return: "Iniciar devolução"
         flag_issue: "Marcar problema"
         cancel: "Cancelar"
         mark_returned: "Recebido de volta"
@@ -957,6 +955,8 @@ pt-BR:
         print_label: "Imprimir etiqueta Correios"
         start_return: "Iniciar devolução"
         return_service: "Serviço"
+        return_reason: "Motivo da devolução"
+        return_reason_placeholder: "Por que este pedido está voltando?"
         cancel_return: "Cancelar devolução"
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."

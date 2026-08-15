@@ -8,6 +8,8 @@ class Order < ApplicationRecord
   OBSERVATION_LIMIT = 280
   OBSERVATION_STORAGE_LIMIT = OBSERVATION_LIMIT * 5
 
+  RETURN_REASON_LIMIT = 500
+
   belongs_to :user
   belongs_to :production_batch, optional: true
   belongs_to :merged_into, class_name: "Order", optional: true
@@ -75,8 +77,9 @@ class Order < ApplicationRecord
   validates :subtotal_cents, :total_cents,
             numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :observation, length: { maximum: OBSERVATION_LIMIT }, on: :create
+  validates :return_reason, length: { maximum: RETURN_REASON_LIMIT }, allow_blank: true
 
-  normalizes :observation, with: ->(value) { value.strip.presence }
+  normalizes :observation, :return_reason, with: ->(value) { value.strip.presence }
 
   before_validation :assign_number, on: :create
   after_create :record_initial_status
