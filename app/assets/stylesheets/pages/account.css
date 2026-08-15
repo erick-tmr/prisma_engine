@@ -560,6 +560,27 @@
 .order-detail__return-package p:last-child { margin-bottom: 0; }
 .order-detail__return-package-warn { color: #a65a12; font-weight: 600; }
 
+.order-detail__return-figure {
+  margin: 14px 0 0;
+  border: 1px solid var(--pg-border);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.order-detail__return-figure img { display: block; width: 100%; height: auto; }
+.order-detail__return-figure figcaption {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 11px 14px;
+  border-top: 1px solid var(--pg-border);
+  background: #fbfbfc;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--pg-muted);
+}
+.order-detail__return-figure figcaption i { font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+
 .order-detail__return-steps {
   margin: 10px 0 0;
   padding-left: 18px;

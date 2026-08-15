@@ -251,6 +251,8 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_select ".order-detail__return-package", text: /#{Regexp.escape(Shipping.mini_envios_weight)}/
     assert_select ".order-detail__return-package", text: /#{Regexp.escape(Shipping.mini_envios_dimensions)}/
     assert_select ".order-detail__return-package-warn"
+    assert_select ".order-detail__return-figure img[src=?]", "/images/mini-envios-dimensoes.png"
+    assert_select ".order-detail__return-figure figcaption", text: /#{Regexp.escape(Shipping.mini_envios_min_dimensions)}/
   end
 
   test "a return whose label is still building says so instead of offering a download" do

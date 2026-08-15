@@ -25,7 +25,16 @@ module Shipping
   MINI_ENVIOS_MIN = { comprimento_cm: 11, largura_cm: 6, altura_cm: 0.4 }.freeze
 
   def self.mini_envios_dimensions
-    "#{MINI_ENVIOS_MAX[:comprimento_cm]} × #{MINI_ENVIOS_MAX[:largura_cm]} × #{MINI_ENVIOS_MAX[:altura_cm]} cm"
+    format_dimensions(MINI_ENVIOS_MAX)
+  end
+
+  def self.mini_envios_min_dimensions
+    format_dimensions(MINI_ENVIOS_MIN)
+  end
+
+  def self.format_dimensions(dims)
+    measures = dims.values_at(:comprimento_cm, :largura_cm, :altura_cm)
+    "#{measures.map { |value| value.to_s.sub('.', ',') }.join(' × ')} cm"
   end
 
   def self.mini_envios_weight

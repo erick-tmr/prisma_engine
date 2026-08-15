@@ -140,6 +140,18 @@
                        weight: Shipping.mini_envios_weight, dimensions: Shipping.mini_envios_dimensions) %></p>
               <p class="order-detail__return-package-warn"><%= t("account.orders.show.return_package_over") %></p>
             </div>
+            <figure class="order-detail__return-figure">
+              <%= image_tag "/images/mini-envios-dimensoes.png", loading: "lazy",
+                    alt: t("account.orders.show.return_package_figure_alt",
+                           max: Shipping.mini_envios_dimensions, min: Shipping.mini_envios_min_dimensions,
+                           weight: Shipping.mini_envios_weight) %>
+              <figcaption>
+                <i class="bi bi-rulers" aria-hidden="true"></i>
+                <span><%= t("account.orders.show.return_package_figure_caption",
+                            max: Shipping.mini_envios_dimensions, min: Shipping.mini_envios_min_dimensions,
+                            weight: Shipping.mini_envios_weight) %></span>
+              </figcaption>
+            </figure>
             <ol class="order-detail__return-steps">
               <li><%= t("account.orders.show.return_step_print") %></li>
               <li><%= t("account.orders.show.return_step_label") %></li>
