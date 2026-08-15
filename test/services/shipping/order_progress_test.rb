@@ -12,7 +12,6 @@ module Shipping
       "production_issue" => %w[payment_confirmed in_production production_issue],
       "delivery_issue"   => %w[payment_confirmed in_production label_issued shipped delivery_issue],
       "returned"         => %w[payment_confirmed in_production label_issued shipped returned],
-      "awaiting_refund"  => %w[payment_confirmed awaiting_refund],
       "cancelled"        => %w[cancelled]
     }.freeze
 
@@ -158,7 +157,7 @@ module Shipping
     end
 
     test "never drags an off-leg order onto the shipping leg" do
-      %w[cancelled awaiting_refund production_issue].each do |status|
+      %w[cancelled production_issue].each do |status|
         order, shipment = order_with_shipment(status, :delivered)
 
         assert_no_difference -> { order.status_changes.count }, status do

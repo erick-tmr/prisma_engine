@@ -94,7 +94,7 @@ orders = [
   [ 2,  "production_issue",  35,  62_400, 2 ],
   [ 6,  "cancelled",         40,  38_900, 1 ],
   [ 0,  "delivered",         48, 112_900, 3 ],
-  [ 11, "awaiting_refund",   54,  47_900, 1 ],
+  [ 11, "returned",         54,  47_900, 1 ],
   [ 7,  "delivered",         61, 184_500, 4 ],
   [ 3,  "cancelled",         77,  33_900, 1 ],
   [ 4,  "delivered",         89,  78_600, 2 ],

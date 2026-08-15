@@ -4,6 +4,10 @@ module NavHelper
     instagram: "https://instagram.com/prisma.games"
   }.freeze
 
+  def self.whatsapp_url(message)
+    "#{SOCIAL_LINKS.fetch(:whatsapp)}?text=#{CGI.escape(message)}"
+  end
+
   def social_links
     SOCIAL_LINKS
   end

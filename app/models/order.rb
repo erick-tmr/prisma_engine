@@ -33,7 +33,6 @@ class Order < ApplicationRecord
     delivered
     delivery_issue
     returned
-    awaiting_refund
     cancelled
     merged
   ].freeze
@@ -42,21 +41,20 @@ class Order < ApplicationRecord
 
   TRANSITIONS = {
     "awaiting_payment"    => %w[payment_confirmed cancelled],
-    "payment_confirmed"   => %w[awaiting_components in_production awaiting_refund merged],
-    "awaiting_components" => %w[in_production awaiting_refund merged],
-    "in_production"       => %w[label_issued production_issue],
-    "production_issue"    => %w[in_production merged],
-    "label_issued"        => %w[shipped],
+    "payment_confirmed"   => %w[awaiting_components in_production merged cancelled],
+    "awaiting_components" => %w[in_production merged cancelled],
+    "in_production"       => %w[label_issued production_issue cancelled],
+    "production_issue"    => %w[in_production merged cancelled],
+    "label_issued"        => %w[shipped cancelled],
     "shipped"             => %w[delivered delivery_issue returned],
-    "delivered"           => [],
-    "delivery_issue"      => %w[delivered returned awaiting_refund shipped cancelled],
-    "returned"            => %w[awaiting_refund shipped cancelled],
-    "awaiting_refund"     => %w[cancelled],
+    "delivered"           => %w[returned],
+    "delivery_issue"      => %w[delivered returned shipped],
+    "returned"            => %w[shipped cancelled],
     "cancelled"           => %w[payment_confirmed],
     "merged"              => []
   }.freeze
 
-  CANCELLABLE_STATUSES = %w[awaiting_payment payment_confirmed awaiting_components].freeze
+  CANCELLABLE_STATUSES = TRANSITIONS.select { |_, targets| targets.include?("cancelled") }.keys.freeze
   MERGEABLE_STATUSES = Production::EligibleOrders::STATUSES
   PAID_STATUSES = (STATUSES - %w[awaiting_payment cancelled merged]).freeze
 
@@ -85,7 +83,11 @@ class Order < ApplicationRecord
   end
 
   def payment_status
-    awaiting_payment? || cancelled? ? :pending : :paid
+    unpaid? ? :pending : :paid
+  end
+
+  def unpaid?
+    awaiting_payment? || (cancelled? && !ever_confirmed?)
   end
 
   def tracking_events
@@ -117,19 +119,15 @@ class Order < ApplicationRecord
   end
 
   def advance_to_label_issued!(**opts)
-    transition_to!("label_issued", **opts) unless label_issued?
+    transition_to!("label_issued", **opts) if shippable? && !label_issued?
+  end
+
+  def shippable?
+    !cancelled?
   end
 
   def cancel!(**opts)
     transition_to!("cancelled", **opts)
-  end
-
-  def request_refund!(**opts)
-    transition_to!("awaiting_refund", **opts)
-  end
-
-  def cancel_by_customer!(**opts)
-    awaiting_payment? ? cancel!(**opts) : request_refund!(**opts)
   end
 
   def payment_deadline
@@ -147,6 +145,10 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def ever_confirmed?
+    status_changes.exists?(to_status: "payment_confirmed")
+  end
 
   def claim_status(previous, target)
     claimed = self.class.where(id: id, status: previous).update_all(status: target, updated_at: Time.current)

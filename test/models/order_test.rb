@@ -108,10 +108,28 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal :pending, order.payment_status
     order.confirm_payment!
     assert_equal :paid, order.payment_status
-    order.request_refund!
+    order.transition_to!("in_production")
     assert_equal :paid, order.payment_status
-    order.transition_to!("cancelled")
+  end
+
+  test "payment_status stays paid after an operator cancels an order the customer already paid" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.transition_to!("in_production")
+    order.cancel!
+
+    assert_equal :paid, order.payment_status
+    assert_not order.unpaid?
+  end
+
+  test "payment_status is pending for an order cancelled before any payment landed" do
+    order = build_order
+    order.save!
+    order.cancel!
+
     assert_equal :pending, order.payment_status
+    assert order.unpaid?
   end
 
   test "advance_to_label_issued! moves an in-production order to label_issued" do
@@ -143,41 +161,7 @@ class OrderTest < ActiveSupport::TestCase
     assert order.shipping_visible?
   end
 
-  test "cancel_by_customer! cancels an unpaid order outright" do
-    order = build_order
-    order.save!
-    order.cancel_by_customer!
-    assert order.cancelled?
-  end
-
-  test "cancel_by_customer! parks a paid order in awaiting_refund" do
-    order = build_order
-    order.save!
-    order.confirm_payment!
-    order.cancel_by_customer!
-    assert order.awaiting_refund?
-  end
-
-  test "cancel_by_customer! parks an awaiting_components order in awaiting_refund" do
-    order = build_order
-    order.save!
-    order.confirm_payment!
-    order.transition_to!("awaiting_components")
-    order.cancel_by_customer!
-    assert order.awaiting_refund?
-  end
-
-  test "awaiting_refund advances to cancelled but is no longer cancellable" do
-    order = build_order
-    order.save!
-    order.confirm_payment!
-    order.request_refund!
-    assert_not order.cancellable?
-    order.transition_to!("cancelled")
-    assert order.cancelled?
-  end
-
-  test "cancellable? while awaiting, confirmed or awaiting components, not once in production" do
+  test "cancellable? everywhere we still hold the item, up to and including a label" do
     order = build_order
     order.save!
     assert order.cancellable?
@@ -186,7 +170,49 @@ class OrderTest < ActiveSupport::TestCase
     order.transition_to!("awaiting_components")
     assert order.cancellable?
     order.transition_to!("in_production")
+    assert order.cancellable?
+    order.advance_to_label_issued!
+    assert order.cancellable?
+  end
+
+  test "cancellable? only once a posted package is back with us" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.transition_to!("in_production")
+    order.advance_to_label_issued!
+    order.transition_to!("shipped")
     assert_not order.cancellable?
+    order.transition_to!("delivered")
+    assert_not order.cancellable?
+    order.transition_to!("returned")
+    assert order.cancellable?
+  end
+
+  test "a delivered order that comes back to us can be received and then cancelled" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.transition_to!("in_production")
+    order.advance_to_label_issued!
+    order.transition_to!("shipped")
+    order.transition_to!("delivered")
+
+    order.transition_to!("returned")
+    order.cancel!
+    assert order.cancelled?
+  end
+
+  test "advance_to_label_issued! no-ops on a cancelled order instead of raising" do
+    order = build_order
+    order.save!
+    order.confirm_payment!
+    order.transition_to!("in_production")
+    order.cancel!
+
+    assert_nothing_raised { order.advance_to_label_issued!(automatic: true) }
+    assert order.reload.cancelled?
+    assert_not order.shippable?
   end
 
   test "confirm_payment! advances to payment_confirmed" do
@@ -232,8 +258,8 @@ class OrderTest < ActiveSupport::TestCase
     assert order.delivery_issue?
   end
 
-  test "delivery_issue resolves to refund, reship, delivery or cancel" do
-    %w[awaiting_refund shipped delivered cancelled].each do |target|
+  test "delivery_issue resolves to reship, delivery or a return to us" do
+    %w[shipped delivered returned].each do |target|
       order = order_in_delivery_issue
       order.transition_to!(target)
       assert_equal target, order.status
@@ -243,6 +269,11 @@ class OrderTest < ActiveSupport::TestCase
   test "delivery_issue refuses a non-resolution edge" do
     order = order_in_delivery_issue
     assert_raises(Order::InvalidTransition) { order.transition_to!("in_production") }
+  end
+
+  test "delivery_issue cannot be cancelled while Correios still holds the object" do
+    order = order_in_delivery_issue
+    assert_raises(Order::InvalidTransition) { order.cancel! }
   end
 
   test "creating an order records an initial automatic status change" do

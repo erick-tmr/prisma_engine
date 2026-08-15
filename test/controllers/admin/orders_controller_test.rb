@@ -148,13 +148,24 @@ module Admin
       assert_select ".od-track-link[href=?][target=?][rel=?]", shipment.tracking_url, "_blank", "noopener"
     end
 
-    test "show renders the printable label and the auto-next note for a label_issued order" do
+    test "show renders the printable label and a cancel action for a label_issued order" do
       sign_in users(:admin)
       order = orders(:labeled)
       get admin_order_path(order)
 
       assert_response :success
       assert_select "a[href=?]", admin_order_label_path(order)
+      assert_select "form[data-confirm] .act-btn.danger"
+    end
+
+    test "show offers no action at all on a merged order" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      order.update!(merged_into: orders(:producing))
+      order.transition_to!("merged")
+
+      get admin_order_path(order)
+      assert_response :success
       assert_select ".act-none"
     end
 
@@ -193,7 +204,7 @@ module Admin
       assert_select ".od-flash--ok"
     end
 
-    test "show renders the delivery problem branch and resolution actions" do
+    test "show renders the delivery problem branch and resolution actions, but no cancel" do
       sign_in users(:admin)
       order = orders(:shipped_order)
       order.transition_to!("delivery_issue")
@@ -201,7 +212,8 @@ module Admin
       get admin_order_path(order)
       assert_response :success
       assert_select ".lc-step.branch.current"
-      assert_select "form[data-confirm] .act-btn.danger"
+      assert_select ".act-btn", text: /Recebido de volta/
+      assert_select "form[data-confirm] .act-btn.danger", false
     end
 
     test "an operator can re-ship a delivery_issue order" do

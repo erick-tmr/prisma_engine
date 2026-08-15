@@ -110,7 +110,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(%r{23/06 09:42}, response.body)
   end
 
-  test "show on an in-production order omits tracking and the cancel button" do
+  test "show on an in-production order omits tracking and any cancel affordance" do
     sign_in users(:confirmed)
     get account_order_path(orders(:producing))
     assert_response :success
@@ -123,12 +123,12 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Cartão de crédito/, body)
   end
 
-  test "show on an awaiting-payment order renders the cancel button and a pending payment line" do
+  test "show on an awaiting-payment order renders a pending payment line and no cancel button" do
     sign_in users(:confirmed)
     get account_order_path(orders(:awaiting))
     assert_response :success
     body = response.body
-    assert_match(/Cancelar pedido/, body)
+    assert_no_match(/Cancelar pedido/, body)
     assert_match(/Pagamento pendente/, body)
     assert_match(/Aguardando pagamento/, body)
   end
@@ -139,45 +139,87 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "cancelling an unpaid order moves it straight to cancelled" do
-    sign_in users(:confirmed)
-    order = orders(:awaiting)
-    post cancelar_account_order_path(order)
-    assert_redirected_to account_order_path(order)
-    follow_redirect!
-    assert_match(/Pedido cancelado/, response.body)
-    assert order.reload.cancelled?
-  end
-
-  test "cancelling a paid order parks it in awaiting_refund for a manual refund" do
-    sign_in users(:confirmed)
-    order = orders(:confirmed_paid)
-    post cancelar_account_order_path(order)
-    assert_redirected_to account_order_path(order)
-    follow_redirect!
-    assert_match(/reembolso será processado manualmente/, response.body)
-    assert order.reload.awaiting_refund?
-  end
-
-  test "cancelling an awaiting-components order parks it in awaiting_refund" do
-    sign_in users(:confirmed)
-    order = orders(:confirmed_paid)
-    order.transition_to!("awaiting_components")
-    post cancelar_account_order_path(order)
-    assert_redirected_to account_order_path(order)
-    follow_redirect!
-    assert_match(/reembolso será processado manualmente/, response.body)
-    assert order.reload.awaiting_refund?
-  end
-
-  test "cancelling an order past the window is rejected without changing state" do
+  test "the customer-facing cancel endpoint no longer exists" do
     sign_in users(:confirmed)
     order = orders(:producing)
-    post cancelar_account_order_path(order)
-    assert_redirected_to account_order_path(order)
-    follow_redirect!
-    assert_match(/não pode mais ser cancelado/, response.body)
+
+    post "/minha-conta/pedidos/#{order.number}/cancelar"
+
+    assert_response :not_found
     assert order.reload.in_production?
+  end
+
+  test "every order detail page offers WhatsApp support prefilled with the order number" do
+    sign_in users(:confirmed)
+
+    [ orders(:awaiting), orders(:producing), orders(:delivered) ].each do |order|
+      get account_order_path(order)
+      assert_response :success
+      assert_select ".order-detail__support-text",
+                    text: /Precisa de ajuda sobre seu pedido\?/
+      assert_select ".order-detail__support-btn[href=?][target=?][rel=?]",
+                    NavHelper.whatsapp_url("Olá tenho uma dúvida com relação ao pedido número #{order.number}"),
+                    "_blank", "noopener"
+    end
+  end
+
+  test "a merged order still offers support even though its detail is folded away" do
+    sign_in users(:confirmed)
+    master = orders(:confirmed_paid)
+    order = orders(:awaiting)
+    order.update!(merged_into: master)
+    order.transition_to!("payment_confirmed")
+    order.transition_to!("merged")
+
+    get account_order_path(order)
+    assert_response :success
+    assert_select ".order-detail__support-btn[href=?]",
+                  NavHelper.whatsapp_url("Olá tenho uma dúvida com relação ao pedido número #{order.number}")
+  end
+
+  test "show echoes the customer's own order observation back to them" do
+    sign_in users(:confirmed)
+    order = orders(:producing)
+    order.update!(observation: "Por favor caprichem na etiqueta JP")
+
+    get account_order_path(order)
+    assert_response :success
+    assert_select ".order-detail__subcard-head", text: /Sua observação/
+    assert_select ".order-detail__obs", text: "Por favor caprichem na etiqueta JP"
+  end
+
+  test "show omits the observation card when the order carries none" do
+    sign_in users(:confirmed)
+    get account_order_path(orders(:producing))
+
+    assert_response :success
+    assert_select ".order-detail__obs", false
+  end
+
+  test "show renders the made-to-order request the customer submitted, notes and all" do
+    sign_in users(:confirmed)
+    order = orders(:producing)
+    order.order_items.create!(product: products(:pedido_game), name: "Pedido de jogo",
+                              unit_price_cents: 19_900, quantity: 1,
+                              requested_game: "Pokémon Crystal", request_notes: "Etiqueta JP se possível")
+
+    get account_order_path(order)
+    assert_response :success
+    assert_select ".order-detail__pedido-head", text: /Sob encomenda/
+    assert_select ".order-detail__pedido-field .v", text: "Pokémon Crystal"
+    assert_select ".order-detail__pedido-field .v", text: "Etiqueta JP se possível"
+  end
+
+  test "show marks a made-to-order request with no notes as empty" do
+    sign_in users(:confirmed)
+    order = orders(:producing)
+    order.order_items.create!(product: products(:pedido_game), name: "Pedido de jogo",
+                              unit_price_cents: 19_900, quantity: 1,
+                              requested_game: "Mother 3")
+
+    get account_order_path(order)
+    assert_response :success
+    assert_select ".order-detail__pedido-field .v.is-empty", text: "Sem observações"
   end
 
   test "a customer cannot see another customer's order" do
