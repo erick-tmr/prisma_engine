@@ -130,6 +130,13 @@
         <div class="order-detail__info-body">
           <% if order_return_label_ready?(@order) %>
             <div class="strong"><%= t("account.orders.show.return_instructions_lead") %></div>
+            <div class="order-detail__return-package">
+              <div class="order-detail__return-package-head"><%= t("account.orders.show.return_package_title") %></div>
+              <p><%= t("account.orders.show.return_package_reuse") %></p>
+              <p><%= t("account.orders.show.return_package_specs",
+                       weight: Shipping.mini_envios_weight, dimensions: Shipping.mini_envios_dimensions) %></p>
+              <p class="order-detail__return-package-warn"><%= t("account.orders.show.return_package_over") %></p>
+            </div>
             <ol class="order-detail__return-steps">
               <li><%= t("account.orders.show.return_step_print") %></li>
               <li><%= t("account.orders.show.return_step_label") %></li>

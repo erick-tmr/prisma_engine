@@ -239,6 +239,20 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_select ".order-detail__return-btn[href=?]", return_label_account_order_path(order)
   end
 
+  test "the return card explains the packaging limits it is asking the customer to respect" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf")
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-package", text: /#{Regexp.escape(Shipping.mini_envios_weight)}/
+    assert_select ".order-detail__return-package", text: /#{Regexp.escape(Shipping.mini_envios_dimensions)}/
+    assert_select ".order-detail__return-package-warn"
+  end
+
   test "a return whose label is still building says so instead of offering a download" do
     order = orders(:delivered)
     sign_in order.user

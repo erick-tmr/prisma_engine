@@ -21,6 +21,17 @@ module Shipping
     comprimento_cm: 24
   }.freeze
 
+  MINI_ENVIOS_MAX = { comprimento_cm: 24, largura_cm: 16, altura_cm: 4, grams: 300 }.freeze
+  MINI_ENVIOS_MIN = { comprimento_cm: 11, largura_cm: 6, altura_cm: 0.4 }.freeze
+
+  def self.mini_envios_dimensions
+    "#{MINI_ENVIOS_MAX[:comprimento_cm]} × #{MINI_ENVIOS_MAX[:largura_cm]} × #{MINI_ENVIOS_MAX[:altura_cm]} cm"
+  end
+
+  def self.mini_envios_weight
+    "#{MINI_ENVIOS_MAX[:grams]} g"
+  end
+
   ORIGIN_CEP = "37600000".freeze
 
   RETURN_WALK = %w[awaiting_return returning returned].freeze

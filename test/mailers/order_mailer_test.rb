@@ -195,7 +195,7 @@ class OrderMailerTest < ActionMailer::TestCase
 
     assert_equal [ order.user.email ], mail.to
     assert_equal I18n.t("order_mailer.awaiting_return.subject", number: order.number), mail.subject
-    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.awaiting_return.pending_note")
+    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.awaiting_return.page_note")
     assert_includes mail.html_part.body.to_s, order.number
   end
 

@@ -543,6 +543,25 @@
 .order-detail__track-body .meta { font-size: 12px; color: var(--pg-muted); }
 .order-detail__track-body .time { font-size: 12px; color: var(--pg-muted); white-space: nowrap; text-align: right; }
 
+.order-detail__return-package {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--pg-border);
+  border-radius: 10px;
+  background: #f8f9fb;
+}
+.order-detail__return-package-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pg-muted);
+  margin-bottom: 6px;
+}
+.order-detail__return-package p { margin: 0 0 6px; font-size: 13px; line-height: 1.5; }
+.order-detail__return-package p:last-child { margin-bottom: 0; }
+.order-detail__return-package-warn { color: #a65a12; font-weight: 600; }
+
 .order-detail__return-steps {
   margin: 10px 0 0;
   padding-left: 18px;
