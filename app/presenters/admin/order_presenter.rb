@@ -112,8 +112,8 @@ module Admin
       @label_feedback ||= LabelFeedback.new(order)
     end
 
-    def return_authorizable?
-      Shipping::AuthorizeReturn::SOURCES.include?(status) && order.shipment.present? && order.return_shipment.nil?
+    def return_startable?
+      Shipping::StartReturn::SOURCES.include?(status) && order.shipment.present? && order.return_shipment.nil?
     end
 
     def return_abortable?

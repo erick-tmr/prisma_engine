@@ -77,7 +77,7 @@ class AccountHelperTest < ActionView::TestCase
     order = orders(:delivered)
     assert_not order_return_label_ready?(order)
 
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
     assert_not order_return_label_ready?(order.reload)
 
     order.return_shipping_label.mark_ready!(filename: "d.pdf", pdf: "x")
@@ -86,7 +86,7 @@ class AccountHelperTest < ActionView::TestCase
 
   test "an authorized return explains itself differently while its label is building" do
     order = orders(:delivered)
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
     assert_equal I18n.t("account.orders.states.awaiting_return.description_pending"),
                  order_state_description(order.reload)
 

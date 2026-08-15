@@ -37,7 +37,7 @@ module Admin
 
     test "an admin cancels the return and the order goes back to delivered" do
       sign_in users(:admin)
-      Shipping::AuthorizeReturn.call(order: @order)
+      Shipping::StartReturn.call(order: @order)
 
       delete admin_order_return_path(@order.number)
 
@@ -48,7 +48,7 @@ module Admin
 
     test "a return already in the post cannot be cancelled" do
       sign_in users(:admin)
-      Shipping::AuthorizeReturn.call(order: @order)
+      Shipping::StartReturn.call(order: @order)
       @order.reload.return_shipment.update!(posted_at: Time.current)
 
       delete admin_order_return_path(@order.number)

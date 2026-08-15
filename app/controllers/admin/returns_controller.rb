@@ -2,8 +2,8 @@ module Admin
   class ReturnsController < BaseController
     def create
       order = find_order
-      result = Shipping::AuthorizeReturn.call(order: order, actor: current_user)
-      respond_with(order, result, "authorized")
+      result = Shipping::StartReturn.call(order: order, actor: current_user)
+      respond_with(order, result, "started")
     end
 
     def destroy

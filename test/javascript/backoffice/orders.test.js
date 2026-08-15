@@ -138,14 +138,14 @@ describe("pure helpers", () => {
     expect(availableActions([ "payment_confirmed", "payment_confirmed", "delivered" ]))
       .toEqual([
         { action: act("to_components"), count: 2 },
-        { action: act("authorize_return"), count: 1 },
+        { action: act("start_return"), count: 1 },
         { action: act("cancel"), count: 2 }
       ]);
   });
 
   it("offers a return on the two statuses where the customer holds the item", () => {
-    expect(availableActions([ "delivered" ])).toEqual([ { action: act("authorize_return"), count: 1 } ]);
-    expect(availableActions([ "delivery_issue" ])).toEqual([ { action: act("authorize_return"), count: 1 } ]);
+    expect(availableActions([ "delivered" ])).toEqual([ { action: act("start_return"), count: 1 } ]);
+    expect(availableActions([ "delivery_issue" ])).toEqual([ { action: act("start_return"), count: 1 } ]);
     expect(availableActions([ "shipped" ])).toEqual([]);
     expect(availableActions([ "awaiting_return" ])).toEqual([]);
   });
@@ -153,7 +153,7 @@ describe("pure helpers", () => {
   it("shows the batch spinner for either action that hands work to the label saga", () => {
     const busy = { settled: 1, total: 3, label: "Emitindo" };
 
-    [ "issue_label", "authorize_return" ].forEach((id) => {
+    [ "issue_label", "start_return" ].forEach((id) => {
       const html = bulkChipsHtml([ { action: act(id), count: 3 } ], busy);
       expect(html).toContain("spin");
       expect(html).toContain("1/3");

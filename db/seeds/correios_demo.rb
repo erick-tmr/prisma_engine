@@ -183,7 +183,7 @@ def ensure_return_demo(user, index)
   outbound = order.shipment
   shipment = order.return_shipment ||
              Shipment.create!(order: order, direction: :inbound,
-                              **outbound.slice(*Shipping::AuthorizeReturn::CLONED).symbolize_keys)
+                              **outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
   shipment.update!(tracking_code: "PR#{format('%09d', order.id)}BR", tracking_state: :unavailable)
   label = shipment.shipping_label || shipment.create_shipping_label!
   label.update!(state: :ready, filename: "devolucao-#{order.number}.pdf", pdf_base64: sample_label_pdf)

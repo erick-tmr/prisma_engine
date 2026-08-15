@@ -13,7 +13,7 @@ module Admin
     def call
       results = case @event
       when "issue_label"      then issue_labels
-      when "authorize_return" then authorize_returns
+      when "start_return" then start_returns
       else transition_all
       end
       summarize(results)
@@ -31,9 +31,9 @@ module Admin
       orders.map { |order| order.in_production? ? result_for(order, "queued") : result_for(order, "skipped", "not_available") }
     end
 
-    def authorize_returns
+    def start_returns
       orders.map do |order|
-        result = Shipping::AuthorizeReturn.call(order: order, actor: @actor)
+        result = Shipping::StartReturn.call(order: order, actor: @actor)
         next result_for(order, "skipped", result.error.to_s) unless result.success?
 
         result_for(order.reload, "queued")

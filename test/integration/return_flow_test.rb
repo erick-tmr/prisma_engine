@@ -16,7 +16,7 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
   test "the customer is the remetente and the store the destinatario" do
     stub_all
 
-    perform_enqueued_jobs { Shipping::AuthorizeReturn.call(order: @order) }
+    perform_enqueued_jobs { Shipping::StartReturn.call(order: @order) }
 
     body = nil
     assert_requested(:post, PREPOST, times: 1) { |request| body = JSON.parse(request.body) }
@@ -34,7 +34,7 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
     stub_all
     outbound_code = @order.shipment.tracking_code
 
-    perform_enqueued_jobs { Shipping::AuthorizeReturn.call(order: @order) }
+    perform_enqueued_jobs { Shipping::StartReturn.call(order: @order) }
 
     @order.reload
     assert @order.awaiting_return?, "the label being ready must not move the return leg on its own"
@@ -46,7 +46,7 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
 
   test "correios tracking walks the order from awaiting_return to returned" do
     stub_all
-    perform_enqueued_jobs { Shipping::AuthorizeReturn.call(order: @order) }
+    perform_enqueued_jobs { Shipping::StartReturn.call(order: @order) }
     inbound = @order.reload.return_shipment
 
     Shipping::TrackingUpdate.apply(inbound, [ event("PO", "01", "Objeto postado") ])
@@ -61,7 +61,7 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
 
   test "each step of the return leg mails the customer once" do
     stub_all
-    perform_enqueued_jobs { Shipping::AuthorizeReturn.call(order: @order) }
+    perform_enqueued_jobs { Shipping::StartReturn.call(order: @order) }
     inbound = @order.reload.return_shipment
 
     assert_enqueued_email_with OrderMailer, :returning, args: [ @order ] do

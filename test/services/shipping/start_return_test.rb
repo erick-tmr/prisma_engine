@@ -1,7 +1,7 @@
 require "test_helper"
 
 module Shipping
-  class AuthorizeReturnTest < ActiveSupport::TestCase
+  class StartReturnTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
 
     setup { @order = orders(:delivered) }
@@ -10,7 +10,7 @@ module Shipping
       result = nil
 
       assert_enqueued_with(job: Shipping::CreatePrePostagemJob) do
-        result = Shipping::AuthorizeReturn.call(order: @order, actor: users(:admin))
+        result = Shipping::StartReturn.call(order: @order, actor: users(:admin))
       end
 
       assert result.success?
@@ -23,7 +23,7 @@ module Shipping
       outbound = @order.shipment
       outbound.update!(tracking_code: "AA000000000BR", posted_at: Time.current, receiver_obs: "portaria")
 
-      inbound = Shipping::AuthorizeReturn.call(order: @order).return_shipment
+      inbound = Shipping::StartReturn.call(order: @order).return_shipment
 
       assert_equal outbound.zip, inbound.zip
       assert_equal outbound.street, inbound.street
@@ -43,12 +43,12 @@ module Shipping
       order.transition_to!("shipped", automatic: true)
       order.transition_to!("delivery_issue", automatic: true)
 
-      assert Shipping::AuthorizeReturn.call(order: order).success?
+      assert Shipping::StartReturn.call(order: order).success?
       assert order.reload.awaiting_return?
     end
 
     test "refuses an order that is not delivered" do
-      result = Shipping::AuthorizeReturn.call(order: orders(:producing))
+      result = Shipping::StartReturn.call(order: orders(:producing))
 
       assert_not result.success?
       assert_equal :not_returnable, result.error
@@ -59,16 +59,16 @@ module Shipping
       order = bare_order
       order.update_column(:status, "delivered")
 
-      result = Shipping::AuthorizeReturn.call(order: order)
+      result = Shipping::StartReturn.call(order: order)
 
       assert_equal :no_shipment, result.error
     end
 
     test "refuses a second return while one is open" do
-      Shipping::AuthorizeReturn.call(order: @order)
+      Shipping::StartReturn.call(order: @order)
       @order.reload.transition_to!("delivered", automatic: true)
 
-      result = Shipping::AuthorizeReturn.call(order: @order)
+      result = Shipping::StartReturn.call(order: @order)
 
       assert_equal :already_open, result.error
     end
@@ -77,7 +77,7 @@ module Shipping
       Shipment.create!(order: @order, direction: :inbound, service: "pac")
       @order.association(:return_shipment).reset
       @order.stub(:return_shipment, nil) do
-        result = Shipping::AuthorizeReturn.call(order: @order)
+        result = Shipping::StartReturn.call(order: @order)
         assert_equal :already_open, result.error
       end
 

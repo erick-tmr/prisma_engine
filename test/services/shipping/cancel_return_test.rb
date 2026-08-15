@@ -6,7 +6,7 @@ module Shipping
 
     setup do
       @order = orders(:delivered)
-      Shipping::AuthorizeReturn.call(order: @order)
+      Shipping::StartReturn.call(order: @order)
       @order.reload
     end
 
@@ -31,7 +31,7 @@ module Shipping
     test "frees the unique index so a fresh return can be authorized" do
       Shipping::CancelReturn.call(order: @order)
 
-      assert Shipping::AuthorizeReturn.call(order: @order.reload).success?
+      assert Shipping::StartReturn.call(order: @order.reload).success?
     end
 
     test "refuses once the customer has posted the package" do

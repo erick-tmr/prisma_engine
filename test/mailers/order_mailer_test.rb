@@ -189,7 +189,7 @@ class OrderMailerTest < ActionMailer::TestCase
   end
   test "awaiting_return points the customer at their order page for the label" do
     order = orders(:delivered)
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
 
     mail = OrderMailer.awaiting_return(order.reload)
 
@@ -201,7 +201,7 @@ class OrderMailerTest < ActionMailer::TestCase
 
   test "returning carries the return tracking code" do
     order = orders(:delivered)
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
     order.reload.return_shipment.update!(tracking_code: "PR123456789BR")
 
     mail = OrderMailer.returning(order)
@@ -219,11 +219,11 @@ class OrderMailerTest < ActionMailer::TestCase
 
   test "returned thanks the customer when they asked for the return" do
     order = orders(:delivered)
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
 
     mail = OrderMailer.returned(order.reload)
 
-    assert_equal I18n.t("order_mailer.returned.authorized.subject", number: order.number), mail.subject
-    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.returned.authorized.intro")
+    assert_equal I18n.t("order_mailer.returned.expected.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.returned.expected.intro")
   end
 end

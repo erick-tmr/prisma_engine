@@ -252,26 +252,26 @@ module Admin
 
     test "a return is offered on a delivered order and withdrawn once one is open" do
       order = orders(:delivered)
-      assert Admin::OrderPresenter.new(order).return_authorizable?
+      assert Admin::OrderPresenter.new(order).return_startable?
 
-      Shipping::AuthorizeReturn.call(order: order)
+      Shipping::StartReturn.call(order: order)
       presenter = Admin::OrderPresenter.new(order.reload)
-      assert_not presenter.return_authorizable?
+      assert_not presenter.return_startable?
       assert presenter.return_abortable?
       assert_not presenter.return_label_printable?
     end
 
     test "a return in production is never authorizable, and one with no shipment neither" do
-      assert_not Admin::OrderPresenter.new(orders(:producing)).return_authorizable?
+      assert_not Admin::OrderPresenter.new(orders(:producing)).return_startable?
 
       order = bare_order
       order.update_column(:status, "delivered")
-      assert_not Admin::OrderPresenter.new(order).return_authorizable?
+      assert_not Admin::OrderPresenter.new(order).return_startable?
     end
 
     test "a posted return can no longer be aborted, and a ready label can be printed" do
       order = orders(:delivered)
-      Shipping::AuthorizeReturn.call(order: order)
+      Shipping::StartReturn.call(order: order)
       order.reload.return_shipping_label.mark_ready!(filename: "d.pdf", pdf: "x")
       order.return_shipment.update!(posted_at: Time.current)
 

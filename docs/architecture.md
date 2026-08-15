@@ -405,7 +405,7 @@ saga:
 
 | # | State | Description shown to the customer | Trigger |
 |---|---|---|---|
-| 7 | `aguardando_devolucao` | "Sua devolução foi autorizada. Imprima a etiqueta, cole no pacote e leve em qualquer agência." | Manual (operator), via `Shipping::AuthorizeReturn` |
+| 7 | `aguardando_devolucao` | "Sua devolução já está encaminhada. Imprima a etiqueta, cole no pacote e leve em qualquer agência." | Manual (operator), via `Shipping::StartReturn` |
 | 8 | `devolucao_a_caminho` | "Os Correios registraram a postagem da sua devolução." | Correios rastro first transit event on the inbound object |
 | 9 | `devolvido` | "O pedido voltou para a gente." | Correios rastro delivery event on the inbound object |
 

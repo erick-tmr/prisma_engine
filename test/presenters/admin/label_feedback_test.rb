@@ -97,7 +97,7 @@ module Admin
     end
     test "the column follows the return label once the order enters the leg" do
       order = orders(:delivered)
-      Shipping::AuthorizeReturn.call(order: order)
+      Shipping::StartReturn.call(order: order)
       order.reload
 
       feedback = Admin::LabelFeedback.new(order)
@@ -109,7 +109,7 @@ module Admin
 
     test "a ready return label is done even though the order stays in awaiting_return" do
       order = orders(:delivered)
-      Shipping::AuthorizeReturn.call(order: order)
+      Shipping::StartReturn.call(order: order)
       order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: "x")
 
       assert order.reload.awaiting_return?

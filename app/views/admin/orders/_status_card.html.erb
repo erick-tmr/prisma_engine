@@ -40,11 +40,11 @@
         <% end %>
       <% end %>
 
-      <% if presenter.return_authorizable? %>
+      <% if presenter.return_startable? %>
         <%= button_to admin_order_return_path(presenter.number), method: :post,
               class: "act-btn", form: { class: "act-form" } do %>
           <i class="bi bi-arrow-counterclockwise"></i>
-          <span><%= t("admin.orders.detail.authorize_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
+          <span><%= t("admin.orders.detail.start_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
           <i class="bi bi-arrow-right act-arrow"></i>
         <% end %>
       <% end %>

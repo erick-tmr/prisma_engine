@@ -291,7 +291,7 @@ module Admin
     test "the return label endpoint serves the inbound PDF" do
       sign_in users(:admin)
       order = orders(:delivered)
-      Shipping::AuthorizeReturn.call(order: order)
+      Shipping::StartReturn.call(order: order)
       order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
 
       get admin_order_return_label_path(order)
@@ -304,7 +304,7 @@ module Admin
     test "the return label endpoint 404s while the return label is not ready" do
       sign_in users(:admin)
       order = orders(:delivered)
-      Shipping::AuthorizeReturn.call(order: order)
+      Shipping::StartReturn.call(order: order)
 
       get admin_order_return_label_path(order)
 

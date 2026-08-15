@@ -152,9 +152,9 @@ pt-BR:
       intro: "Seu pedido foi entregue pelos Correios. Esperamos que você aproveite muito cada partida. Qualquer coisa, é só chamar a gente."
       cta: "Ver meus pedidos"
     awaiting_return:
-      subject: "Devolução autorizada do pedido %{number}"
-      badge_label: "Devolução autorizada"
-      heading: "Sua devolução está autorizada."
+      subject: "Como devolver o pedido %{number}"
+      badge_label: "Devolução iniciada"
+      heading: "Vamos cuidar da sua devolução."
       intro: "Preparamos uma etiqueta de devolução pré-paga dos Correios para o seu pedido. Imprima a etiqueta, cole no pacote bem fechado e leve em qualquer agência dos Correios. Você não paga nada pelo envio."
       pending_note: "A etiqueta pode levar alguns minutos para ficar pronta. Assim que estiver disponível, ela aparece na página do seu pedido."
       cta: "Ver etiqueta de devolução"
@@ -173,7 +173,7 @@ pt-BR:
         heading: "Seu pedido voltou para a nossa casa."
         intro: "Os Correios não conseguiram concluir a entrega e devolveram o pacote para o nosso endereço. Ele já está de volta com a gente, em segurança."
         next_step: "Vamos analisar o motivo da devolução. Chame a gente no WhatsApp para combinarmos os próximos passos."
-      authorized:
+      expected:
         subject: "Recebemos a devolução do pedido %{number}"
         heading: "Sua devolução chegou até nós."
         intro: "O pacote da sua devolução chegou ao nosso endereço. Vamos conferir o produto com cuidado e retornamos com os próximos passos."
@@ -477,9 +477,9 @@ pt-BR:
           label: "Problema na entrega"
           description: "Houve um problema na entrega do seu pedido."
         awaiting_return:
-          label: "Devolução autorizada"
-          description: "Sua devolução foi autorizada. Imprima a etiqueta dos Correios abaixo, cole no pacote e leve em qualquer agência. Você não paga nada."
-          description_pending: "Sua devolução foi autorizada. Estamos gerando a etiqueta dos Correios e ela aparece aqui em alguns minutos."
+          label: "Aguardando devolução"
+          description: "Sua devolução já está encaminhada. Imprima a etiqueta dos Correios abaixo, cole no pacote e leve em qualquer agência. Você não paga nada."
+          description_pending: "Sua devolução já está encaminhada. Estamos gerando a etiqueta dos Correios e ela aparece aqui em alguns minutos."
         returning:
           label: "Devolução a caminho"
           description: "Os Correios registraram a postagem da sua devolução. Avisamos assim que o pacote chegar até nós."
@@ -694,7 +694,7 @@ pt-BR:
       bulk_actions:
         to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
-        authorize_return: "Autorizar devolução"
+        start_return: "Iniciar devolução"
         flag_issue: "Marcar problema"
         cancel: "Cancelar"
         mark_returned: "Recebido de volta"
@@ -944,7 +944,7 @@ pt-BR:
         actions: "Ações"
         action_target: "→ %{status}"
         print_label: "Imprimir etiqueta Correios"
-        authorize_return: "Autorizar devolução"
+        start_return: "Iniciar devolução"
         cancel_return: "Cancelar devolução"
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
@@ -952,7 +952,7 @@ pt-BR:
         automatic: "Automático"
         by: "por %{name}"
         returns:
-          authorized: "Devolução autorizada. Estamos gerando a etiqueta dos Correios."
+          started: "Devolução iniciada. Estamos gerando a etiqueta dos Correios."
           cancelled: "Devolução cancelada. O pedido voltou para Entregue."
           errors:
             not_returnable: "Só é possível autorizar devolução de um pedido entregue ou com problema na entrega."
@@ -1002,7 +1002,7 @@ pt-BR:
         delivery_issue:
           description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se voltar para nós, marque como Recebido de volta para poder cancelar."
         awaiting_return:
-          description: "Devolução autorizada. O cliente recebe a etiqueta pré-paga e posta o pacote. O status avança sozinho quando os Correios registrarem a postagem."
+          description: "Devolução iniciada. O cliente recebe a etiqueta pré-paga e posta o pacote. O status avança sozinho quando os Correios registrarem a postagem."
         returning:
           description: "A devolução está em trânsito para o nosso endereço. O rastreio conclui sozinho quando o pacote chegar."
         returned:

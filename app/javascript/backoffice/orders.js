@@ -12,20 +12,20 @@ export const CANCELLABLE_STATUSES = [
 export const ACTIONS = [
   { id: "to_components", icon: "bi-box-seam", from: [ "payment_confirmed" ] },
   { id: "issue_label", icon: "bi-upc-scan", from: [ "in_production" ] },
-  { id: "authorize_return", icon: "bi-arrow-counterclockwise", from: [ "delivered", "delivery_issue" ] },
+  { id: "start_return", icon: "bi-arrow-counterclockwise", from: [ "delivered", "delivery_issue" ] },
   { id: "flag_issue", icon: "bi-exclamation-triangle", from: [ "in_production" ] },
   { id: "cancel", icon: "bi-x-circle", danger: true, from: CANCELLABLE_STATUSES }
 ];
 
 export const ACTION_LABELS = {
   to_components: "Aguardar componentes", issue_label: "Emitir etiqueta Correios",
-  authorize_return: "Autorizar devolução", flag_issue: "Marcar problema", cancel: "Cancelar"
+  start_return: "Iniciar devolução", flag_issue: "Marcar problema", cancel: "Cancelar"
 };
 
 export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);
 
 // Both of these hand work to the Correios label saga, so both get the batch spinner.
-export const LABEL_EMITTING_ACTIONS = new Set([ "issue_label", "authorize_return" ]);
+export const LABEL_EMITTING_ACTIONS = new Set([ "issue_label", "start_return" ]);
 
 export const BULK_THROTTLE_MS = 60_000;
 

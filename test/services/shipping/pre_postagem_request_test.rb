@@ -77,7 +77,7 @@ module Shipping
       order = orders(:delivered)
       outbound = order.shipment
       inbound = Shipment.create!(order: order, direction: :inbound,
-                                 **outbound.slice(*Shipping::AuthorizeReturn::CLONED).symbolize_keys)
+                                 **outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
 
       request = Shipping::PrePostagemRequest.from_shipment(inbound)
 
@@ -90,7 +90,7 @@ module Shipping
     test "a return declares the same items as the outbound trip" do
       order = orders(:delivered)
       inbound = Shipment.create!(order: order, direction: :inbound,
-                                 **order.shipment.slice(*Shipping::AuthorizeReturn::CLONED).symbolize_keys)
+                                 **order.shipment.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
 
       outbound_items = Shipping::PrePostagemRequest.from_shipment(order.shipment).items
 

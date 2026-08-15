@@ -230,7 +230,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   test "an authorized return shows the instructions and a label download" do
     order = orders(:delivered)
     sign_in order.user
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
     order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
 
     get account_order_path(order)
@@ -242,7 +242,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   test "a return whose label is still building says so instead of offering a download" do
     order = orders(:delivered)
     sign_in order.user
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
 
     get account_order_path(order)
 
@@ -254,7 +254,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   test "a posted return shows the tracking code, since the label is gone by then" do
     order = orders(:delivered)
     sign_in order.user
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
     order.reload.return_shipment.update!(tracking_code: "PR123456789BR")
     order.transition_to!("returning", automatic: true)
 
@@ -266,7 +266,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
 
   test "the return label downloads as a PDF for its owner and 404s for anyone else" do
     order = orders(:delivered)
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
     order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
 
     sign_in order.user
@@ -282,7 +282,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   test "the return label 404s while it is not ready yet" do
     order = orders(:delivered)
     sign_in order.user
-    Shipping::AuthorizeReturn.call(order: order)
+    Shipping::StartReturn.call(order: order)
 
     get return_label_account_order_path(order)
 

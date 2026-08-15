@@ -33,7 +33,7 @@ class OrderMailer < ApplicationMailer
 
   def returned(order)
     @order = order
-    @kind = order.return_shipment ? "authorized" : "bounced"
+    @kind = order.return_shipment ? "expected" : "bounced"
     @whatsapp_url = whatsapp_url(order)
     mail(to: order.user.email, subject: t("order_mailer.returned.#{@kind}.subject", number: order.number))
   end

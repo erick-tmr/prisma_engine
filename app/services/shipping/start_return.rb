@@ -1,5 +1,5 @@
 module Shipping
-  class AuthorizeReturn
+  class StartReturn
     SOURCES = Order::TRANSITIONS.select { |_, targets| targets.include?("awaiting_return") }.keys.freeze
 
     CLONED = %i[
