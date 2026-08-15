@@ -1,0 +1,48 @@
+<%# locals: (shipment:, title:, icon:) %>
+<% events = shipment.tracking_events.sort_by(&:occurred_at).reverse %>
+<% if shipment.tracking_code.present? || events.any? %>
+  <div class="order-detail__subcard order-detail__subcard--flush">
+    <div class="order-detail__subcard-head order-detail__subcard-head--row">
+      <span><i class="bi <%= icon %>"></i> <%= title %></span>
+      <% if shipment.tracking_code.present? %>
+        <div class="order-detail__track-code" data-order-tracking>
+          <span class="order-detail__track-code-label"><%= t("account.orders.show.tracking_code") %></span>
+          <span class="order-detail__track-code-value" data-tracking-code><%= shipment.tracking_code %></span>
+          <button type="button" class="order-detail__track-code-btn" data-tracking-copy
+                  title="<%= t("account.orders.show.tracking_copy") %>" aria-label="<%= t("account.orders.show.tracking_copy") %>">
+            <i class="bi bi-clipboard"></i>
+          </button>
+          <a class="order-detail__track-code-btn" href="<%= shipment.tracking_url %>"
+             target="_blank" rel="noopener"
+             title="<%= t("account.orders.show.tracking_external") %>" aria-label="<%= t("account.orders.show.tracking_external") %>">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+      <% end %>
+    </div>
+    <% if events.any? %>
+      <div class="order-detail__track">
+        <% events.each_with_index do |event, index| %>
+          <div class="order-detail__track-item<%= ' is-current' if index.zero? %>">
+            <span class="order-detail__track-dot"></span>
+            <div class="order-detail__track-body">
+              <div>
+                <div class="desc"><%= event.summary %></div>
+                <% if event.detail %>
+                  <div class="meta"><%= event.detail %></div>
+                <% end %>
+                <% if event.posting_unit %>
+                  <div class="meta"><%= event.posting_unit %></div>
+                <% end %>
+                <% if event.destination %>
+                  <div class="meta"><%= t("account.orders.show.destination") %>: <%= event.destination %></div>
+                <% end %>
+              </div>
+              <div class="time"><%= l(event.occurred_at, format: :short) %></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

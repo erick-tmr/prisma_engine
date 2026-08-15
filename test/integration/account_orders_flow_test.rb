@@ -248,7 +248,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".order-detail__return-btn", false
-    assert_select ".order-detail__return-text", text: I18n.t("account.orders.show.return_pending")
+    assert_select ".order-detail__info-body", text: /#{Regexp.escape(I18n.t("account.orders.show.return_pending"))}/
   end
 
   test "a posted return shows the tracking code, since the label is gone by then" do
@@ -261,7 +261,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     get account_order_path(order)
 
     assert_response :success
-    assert_select ".order-detail__return-text", text: /PR123456789BR/
+    assert_select ".order-detail__info-body", text: /PR123456789BR/
   end
 
   test "the return label downloads as a PDF for its owner and 404s for anyone else" do
@@ -295,5 +295,33 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     get return_label_account_order_path(order)
 
     assert_response :not_found
+  end
+  test "the delivery and the return each get their own tracking section" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::StartReturn.call(order: order)
+    inbound = order.reload.return_shipment
+    inbound.update!(tracking_code: "PR123456789BR")
+    inbound.tracking_events.create!(position: 0, tracking_code: inbound.tracking_code, event_code: "PO",
+                                    event_type: "01", description: "Objeto postado", occurred_at: 1.hour.ago)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__subcard-head", text: /#{I18n.t("account.orders.show.tracking")}/
+    assert_select ".order-detail__subcard-head", text: /#{I18n.t("account.orders.show.return_tracking")}/
+    assert_select "[data-order-tracking]", 2
+    assert_select "[data-tracking-code]", text: order.shipment.tracking_code
+    assert_select "[data-tracking-code]", text: "PR123456789BR"
+  end
+
+  test "an order with no return shows only the delivery tracking" do
+    order = orders(:delivered)
+    sign_in order.user
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__subcard-head", text: /#{I18n.t("account.orders.show.return_tracking")}/, count: 0
   end
 end
