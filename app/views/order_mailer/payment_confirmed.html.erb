@@ -12,6 +12,6 @@
     </td>
   </tr>
   <%= render "shared/email_steps", current: 0 %>
-  <%= render "summary" %>
+  <%= render "summary", shipping_service: @order.shipment.service_label %>
   <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.payment_confirmed.cta") %>
 <% end %>

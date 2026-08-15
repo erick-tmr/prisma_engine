@@ -106,7 +106,6 @@ pt-BR:
     summary_heading: "Resumo do pedido"
     order_label: "Pedido Nº"
     subtotal: "Subtotal"
-    shipping: "Frete"
     shipping_with_service: "Frete · %{service}"
     total: "Total"
     tracking_code: "Código de rastreio: %{code}"

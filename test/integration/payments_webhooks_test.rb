@@ -10,6 +10,8 @@ class PaymentsWebhooksTest < ActionDispatch::IntegrationTest
       user: users(:confirmed),
       subtotal_cents: 18_000, total_cents: 19_984,
     )
+    @order.create_shipment!(shipments(:awaiting).attributes.except("id", "order_id")
+                                                .merge(shipping_cents: 1_984))
     stub_payment_check
   end
 

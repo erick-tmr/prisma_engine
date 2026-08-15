@@ -1,4 +1,5 @@
-<% shipping_label = local_assigns[:shipping_service] ? t("order_mailer.shipping_with_service", service: shipping_service) : t("order_mailer.shipping") %>
+<%# locals: (shipping_service:) %>
+<% shipping_label = t("order_mailer.shipping_with_service", service: shipping_service) %>
 <tr>
   <td class="px" style="padding:22px 40px 0;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb;border-radius:12px;">

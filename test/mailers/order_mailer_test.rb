@@ -17,6 +17,7 @@ class OrderMailerTest < ActionMailer::TestCase
       assert_includes body, "R$ 349,90"
       assert_includes body, "Seu pedido acaba de decolar!"
       assert_includes body, "Acompanhar pedido"
+      assert_includes body, "Frete · #{order.shipment.service_label}"
     end
 
     html_body = email.html_part.body.to_s
@@ -97,6 +98,8 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_equal "Seu pedido #{order.number} foi entregue", email.subject
     assert_includes email.html_part.body.to_s, order.shipment.tracking_code
     assert_includes email.text_part.body.to_s, order.shipment.tracking_code
+    assert_includes email.html_part.body.to_s, "Frete · #{order.shipment.service_label}"
+    assert_includes email.text_part.body.to_s, "Frete · #{order.shipment.service_label}"
 
     html_body = email.html_part.body.to_s
     assert_includes html_body, "Ver meus pedidos"

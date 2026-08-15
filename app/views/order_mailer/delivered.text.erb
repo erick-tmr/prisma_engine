@@ -4,7 +4,7 @@
 
 <%= t("order_mailer.delivered.intro") %>
 
-<%= render "summary" %>
+<%= render "summary", shipping_service: @order.shipment.service_label %>
 
 <%= t("order_mailer.tracking_code", code: @order.shipment.tracking_code) %>
 

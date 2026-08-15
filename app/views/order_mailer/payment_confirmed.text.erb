@@ -4,7 +4,7 @@
 
 <%= t("order_mailer.payment_confirmed.intro") %>
 
-<%= render "summary" %>
+<%= render "summary", shipping_service: @order.shipment.service_label %>
 
 <%= t("order_mailer.payment_confirmed.cta") %>: <%= account_order_url(@order) %>
 
