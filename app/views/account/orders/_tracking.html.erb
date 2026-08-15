@@ -1,7 +1,7 @@
 <%# locals: (shipment:, title:, icon:) %>
 <% events = shipment.tracking_events.sort_by(&:occurred_at).reverse %>
 <% if shipment.tracking_code.present? || events.any? %>
-  <div class="order-detail__subcard order-detail__subcard--flush">
+  <div class="order-detail__subcard">
     <div class="order-detail__subcard-head order-detail__subcard-head--row">
       <span><i class="bi <%= icon %>"></i> <%= title %></span>
       <% if shipment.tracking_code.present? %>

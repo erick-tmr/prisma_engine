@@ -350,7 +350,6 @@
   overflow: hidden;
   margin-bottom: 16px;
 }
-.order-detail__subcard--flush { margin-bottom: 0; }
 .order-detail__subcard-head {
   padding: 14px 18px;
   border-bottom: 1px solid var(--pg-border);
