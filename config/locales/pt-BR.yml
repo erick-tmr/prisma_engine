@@ -157,6 +157,7 @@ pt-BR:
       heading: "Vamos cuidar da sua devolução."
       intro: "Preparamos uma etiqueta de devolução pré-paga dos Correios para o seu pedido. Na página do pedido você baixa duas páginas: a etiqueta e a declaração de conteúdo. Imprima as duas."
       assembly: "Com o pacote bem fechado, cole a etiqueta na parte de cima e a declaração de conteúdo na parte de baixo. Depois é só levar em qualquer agência dos Correios, sem pagar nada."
+      tip: "Não passe fita adesiva por cima do código de barras nem do QR Code. A fita atrapalha a leitura na agência e o pacote pode ser recusado."
       pending_note: "A etiqueta pode levar alguns minutos para ficar pronta. Assim que estiver disponível, ela aparece na página do seu pedido."
       cta: "Ver etiqueta de devolução"
     returning:
@@ -527,6 +528,7 @@ pt-BR:
         return_step_label: "Cole a etiqueta na parte de cima do pacote bem fechado."
         return_step_declaration: "Cole a declaração de conteúdo na parte de baixo do pacote."
         return_step_post: "Leve em qualquer agência dos Correios. O envio já está pago."
+        return_tip: "Não passe fita adesiva por cima do código de barras nem do QR Code. A fita atrapalha a leitura na agência e o pacote pode ser recusado."
         return_label_cta: "Baixar etiqueta"
         return_pending_lead: "Estamos gerando sua etiqueta."
         return_pending: "Ela aparece aqui em alguns minutos e avisamos você por e-mail."

@@ -136,6 +136,10 @@
               <li><%= t("account.orders.show.return_step_declaration") %></li>
               <li><%= t("account.orders.show.return_step_post") %></li>
             </ol>
+            <p class="order-detail__return-tip">
+              <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+              <span><%= t("account.orders.show.return_tip") %></span>
+            </p>
             <a class="order-detail__return-btn" href="<%= return_label_account_order_path(@order) %>" target="_blank" rel="noopener">
               <i class="bi bi-download" aria-hidden="true"></i> <%= t("account.orders.show.return_label_cta") %>
             </a>

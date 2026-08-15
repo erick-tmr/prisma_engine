@@ -551,6 +551,21 @@
   gap: 4px;
 }
 .order-detail__return-steps li { padding-left: 2px; }
+.order-detail__return-tip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #f0d9b8;
+  border-radius: 10px;
+  background: #fdf8f0;
+  color: #7a4a12;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.order-detail__return-tip i { font-size: 14px; line-height: 1.4; flex-shrink: 0; }
+
 .order-detail__return-btn {
   display: inline-flex;
   align-items: center;
