@@ -65,5 +65,36 @@ module Shipping
 
       assert_equal "Pokemon - Yellow Version Inglês - Sem Caixa", request.items.sole[:conteudo]
     end
+
+    test "an outbound shipment sends from the store to the customer" do
+      request = Shipping::PrePostagemRequest.from_shipment(orders(:delivered).shipment)
+
+      assert_equal Shipping::STORE, request.sender
+      assert_equal orders(:delivered).shipment.receiver_name, request.recipient[:nome]
+    end
+
+    test "a return sends from the customer back to the store" do
+      order = orders(:delivered)
+      outbound = order.shipment
+      inbound = Shipment.create!(order: order, direction: :inbound,
+                                 **outbound.slice(*Shipping::AuthorizeReturn::CLONED).symbolize_keys)
+
+      request = Shipping::PrePostagemRequest.from_shipment(inbound)
+
+      assert_equal Shipping::STORE, request.recipient
+      assert_equal outbound.receiver_name, request.sender[:nome]
+      assert_equal outbound.zip, request.sender[:endereco][:cep]
+      assert_equal Shipping::ORIGIN_CEP, request.recipient[:endereco][:cep]
+    end
+
+    test "a return declares the same items as the outbound trip" do
+      order = orders(:delivered)
+      inbound = Shipment.create!(order: order, direction: :inbound,
+                                 **order.shipment.slice(*Shipping::AuthorizeReturn::CLONED).symbolize_keys)
+
+      outbound_items = Shipping::PrePostagemRequest.from_shipment(order.shipment).items
+
+      assert_equal outbound_items, Shipping::PrePostagemRequest.from_shipment(inbound).items
+    end
   end
 end

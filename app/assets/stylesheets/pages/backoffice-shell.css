@@ -239,6 +239,8 @@ body {
 .st-shipped              { background: #e6f0fb; color: #2f7fd1; }
 .st-delivered            { background: #e4f4ec; color: #1f8a5b; }
 .st-delivery_issue       { background: #fdece8; color: #c2410c; }
+.st-awaiting_return      { background: #fdeede; color: #a65a12; }
+.st-returning            { background: #fdeede; color: #b9650a; }
 .st-returned             { background: #fdeede; color: #b9650a; }
 .st-cancelled            { background: #f3f4f6; color: #9aa0a8; }
 .st-merged               { background: #eef2fb; color: #34495e; }
@@ -252,6 +254,8 @@ body {
 .dotc-shipped { background: #2f7fd1; }
 .dotc-delivered { background: #1f8a5b; }
 .dotc-delivery_issue { background: #c2410c; }
+.dotc-awaiting_return { background: #a65a12; }
+.dotc-returning { background: #b9650a; }
 .dotc-returned { background: #b9650a; }
 .dotc-cancelled { background: #9aa0a8; }
 .dotc-merged { background: #64748b; }

@@ -23,6 +23,24 @@ module Shipping
 
   ORIGIN_CEP = "37600000".freeze
 
+  RETURN_WALK = %w[awaiting_return returning returned].freeze
+
+  STORE = {
+    nome: "Prisma Games",
+    dddCelular: "35",
+    celular: "920001100",
+    email: "vininess@hotmail.com",
+    cpfCnpj: "43773766000111",
+    endereco: {
+      cep:        ORIGIN_CEP,
+      logradouro: "Rua José Cláudio Venturelli",
+      numero:     "156",
+      bairro:     "Vila Mariana",
+      cidade:     "Cambuí",
+      uf:         "MG"
+    }
+  }.freeze
+
   CORREIOS_CONTACT_URL = "https://www.correios.com.br/falecomoscorreios/central-de-atendimento".freeze
 
   POSTAGE_CARD_NUMBER = "0076738043".freeze

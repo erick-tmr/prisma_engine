@@ -1,17 +1,18 @@
 module Shipping
-  PrePostagemRequest = Data.define(:service, :recipient, :items, :dimensions, :observacao) do
+  PrePostagemRequest = Data.define(:service, :sender, :recipient, :items, :dimensions, :observacao) do
     def self.from_shipment(shipment)
       order = shipment.order
+      leg = Shipping::Leg.for(shipment)
       new(
         service: shipment.service.to_sym,
-        recipient: recipient_for(shipment),
+        **leg.parties(store: Shipping::STORE, customer: customer_for(shipment)),
         items: items_for(order),
         dimensions: dimensions_for(shipment),
-        observacao: order.number
+        observacao: leg.observacao_for(order)
       )
     end
 
-    def self.recipient_for(shipment)
+    def self.customer_for(shipment)
       user = shipment.order.user
       digits = user.phone.to_s.gsub(/\D/, "")
       {
@@ -60,6 +61,6 @@ module Shipping
       }
     end
 
-    private_class_method :recipient_for, :items_for, :dimensions_for, :sanitize_content
+    private_class_method :customer_for, :items_for, :dimensions_for, :sanitize_content
   end
 end

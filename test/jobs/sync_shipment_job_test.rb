@@ -4,7 +4,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   BASE = Correios::Api::BASE_URL
 
   test "records events oldest-first and marks the shipment delivered" do
-    shipment = Shipment.create!(tracking_code: "AD483393343BR", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "AD483393343BR", order: bare_order)
     stub_rastro(shipment.tracking_code, [ delivered, posted, label ])
 
     SyncShipmentJob.perform_now(shipment.id)
@@ -55,7 +55,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "is idempotent: a re-run updates in place without duplicating rows" do
-    shipment = Shipment.create!(tracking_code: "AD483393343BR", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "AD483393343BR", order: bare_order)
     stub_rastro(shipment.tracking_code, [ delivered, posted, label ])
 
     2.times { SyncShipmentJob.perform_now(shipment.id) }
@@ -64,7 +64,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "marks in_transit when posted but not yet delivered" do
-    shipment = Shipment.create!(tracking_code: "X1", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X1", order: bare_order)
     stub_rastro(shipment.tracking_code, [ posted, label ])
 
     SyncShipmentJob.perform_now(shipment.id)
@@ -75,7 +75,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "stays pending when only the label was issued" do
-    shipment = Shipment.create!(tracking_code: "X2", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X2", order: bare_order)
     stub_rastro(shipment.tracking_code, [ label ])
 
     SyncShipmentJob.perform_now(shipment.id)
@@ -84,7 +84,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "logs and persists an unmapped event, treating it as in-transit" do
-    shipment = Shipment.create!(tracking_code: "X4", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X4", order: bare_order)
     unknown = evento("ZZ", "99", "2026-05-24T10:00:00", "Some uncatalogued event")
     stub_rastro(shipment.tracking_code, [ unknown, posted ])
 
@@ -97,7 +97,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "treats a failed delivery attempt (BDE/20) as transient in-transit, not delivered or unmapped" do
-    shipment = Shipment.create!(tracking_code: "X7", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X7", order: bare_order)
     attempt = evento("BDE", "20", "2026-05-24T10:00:00", "Objeto não entregue - carteiro não atendido")
     stub_rastro(shipment.tracking_code, [ attempt, posted ])
 
@@ -110,7 +110,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "delivered_at stays the delivery event's time even when a later event follows" do
-    shipment = Shipment.create!(tracking_code: "X5", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X5", order: bare_order)
     receipt = evento("PMT", "01", "2026-05-24T08:00:00", "Comprovante de entrega disponível")
     stub_rastro(shipment.tracking_code, [ receipt, delivered, posted, label ])
 
@@ -122,7 +122,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "flags the shipment unavailable and records the error on an invalid object" do
-    shipment = Shipment.create!(tracking_code: "X6", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X6", order: bare_order)
     stub_request(:get, "#{BASE}/srorastro/v1/objetos/#{shipment.tracking_code}?resultado=T")
       .to_return(
         status: 200,
@@ -141,7 +141,7 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
   end
 
   test "does nothing when the object has no events" do
-    shipment = Shipment.create!(tracking_code: "X3", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "X3", order: bare_order)
     stub_rastro(shipment.tracking_code, [])
 
     SyncShipmentJob.perform_now(shipment.id)

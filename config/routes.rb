@@ -30,7 +30,9 @@ Rails.application.routes.draw do
       member { patch :default }
       collection { get "cep/:cep", action: :lookup_cep, as: :lookup_cep, constraints: { cep: /[\d-]{8,9}/ } }
     end
-    resources :pedidos, controller: "orders", as: :orders, only: %i[index show]
+    resources :pedidos, controller: "orders", as: :orders, only: %i[index show] do
+      member { get "etiqueta-devolucao", action: :return_label, as: :return_label }
+    end
   end
 
   scope path: "admin", module: "admin", as: :admin do
@@ -63,6 +65,9 @@ Rails.application.routes.draw do
     post   "pedidos/lote",              to: "bulk_transitions#create", as: :bulk_transitions
     post   "pedidos/:number/transicao", to: "orders#transition", as: :order_transition, constraints: { number: /PG-\d+/ }
     get    "pedidos/:number/etiqueta",  to: "orders#label",      as: :order_label,      constraints: { number: /PG-\d+/ }
+    post   "pedidos/:number/devolucao", to: "returns#create",    as: :order_return,     constraints: { number: /PG-\d+/ }
+    delete "pedidos/:number/devolucao", to: "returns#destroy",   constraints: { number: /PG-\d+/ }
+    get    "pedidos/:number/etiqueta-devolucao", to: "orders#return_label", as: :order_return_label, constraints: { number: /PG-\d+/ }
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

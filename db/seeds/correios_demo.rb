@@ -174,6 +174,22 @@ def ready_tracking(shipment, order, state)
   shipment.update!(tracking_code: demo_tracking_code(order), tracking_state: :unavailable)
 end
 
+# One order mid-return, so the awaiting_return / returning / returned e-mail
+# previews resolve and the backoffice renders the inbound leg. The inbound
+# shipment is marked tracking_unavailable for the same reason as the outbound
+# ones above: SyncPendingShipmentsJob would otherwise reach the real Correios.
+def ensure_return_demo(user, index)
+  order = ensure_order("returning", "returning", index, user)
+  outbound = order.shipment
+  shipment = order.return_shipment ||
+             Shipment.create!(order: order, direction: :inbound,
+                              **outbound.slice(*Shipping::AuthorizeReturn::CLONED).symbolize_keys)
+  shipment.update!(tracking_code: "PR#{format('%09d', order.id)}BR", tracking_state: :unavailable)
+  label = shipment.shipping_label || shipment.create_shipping_label!
+  label.update!(state: :ready, filename: "devolucao-#{order.number}.pdf", pdf_base64: sample_label_pdf)
+  order
+end
+
 if ENV["MODE"] == "step"
   step_demo!
 else
@@ -187,6 +203,9 @@ else
     note = skipped ? "  (left alone: live pré-postagem #{order.shipment.pre_post_id})" : ""
     "#{order.number}  #{status.ljust(14)} #{Admin::LabelFeedback.new(order).state}#{note}"
   end
+
+  returning = ensure_return_demo(clients.first, DEMO_ORDERS.size + 1)
+  rows << "#{returning.number}  #{'returning'.ljust(14)} devolução pronta para baixar"
 
   puts "Correios demo orders (newest first in /admin):"
   puts rows.map { |line| "  #{line}" }

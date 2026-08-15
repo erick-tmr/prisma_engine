@@ -151,14 +151,33 @@ pt-BR:
       heading: "Chegou! Agora é só aproveitar."
       intro: "Seu pedido foi entregue pelos Correios. Esperamos que você aproveite muito cada partida. Qualquer coisa, é só chamar a gente."
       cta: "Ver meus pedidos"
+    awaiting_return:
+      subject: "Devolução autorizada do pedido %{number}"
+      badge_label: "Devolução autorizada"
+      heading: "Sua devolução está autorizada."
+      intro: "Preparamos uma etiqueta de devolução pré-paga dos Correios para o seu pedido. Imprima a etiqueta, cole no pacote bem fechado e leve em qualquer agência dos Correios. Você não paga nada pelo envio."
+      pending_note: "A etiqueta pode levar alguns minutos para ficar pronta. Assim que estiver disponível, ela aparece na página do seu pedido."
+      cta: "Ver etiqueta de devolução"
+    returning:
+      subject: "Recebemos a postagem da devolução do pedido %{number}"
+      badge_label: "Devolução a caminho"
+      heading: "Sua devolução está a caminho."
+      intro: "Os Correios registraram a postagem da sua devolução. Agora é só aguardar: avisamos você assim que o pacote chegar até nós."
+      cta: "Acompanhar devolução"
     returned:
-      subject: "Seu pedido %{number} voltou para a gente"
       badge_label: "Devolvido"
-      heading: "Seu pedido voltou para a nossa casa."
-      intro: "Os Correios não conseguiram concluir a entrega e devolveram o pacote para o nosso endereço. Ele já está de volta com a gente, em segurança."
-      next_step: "Vamos analisar o motivo da devolução. Chame a gente no WhatsApp para combinarmos os próximos passos."
       cta: "Falar no WhatsApp"
       whatsapp_message: "Olá! Meu pedido %{number} voltou pelos Correios e gostaria de combinar o que fazer."
+      bounced:
+        subject: "Seu pedido %{number} voltou para a gente"
+        heading: "Seu pedido voltou para a nossa casa."
+        intro: "Os Correios não conseguiram concluir a entrega e devolveram o pacote para o nosso endereço. Ele já está de volta com a gente, em segurança."
+        next_step: "Vamos analisar o motivo da devolução. Chame a gente no WhatsApp para combinarmos os próximos passos."
+      authorized:
+        subject: "Recebemos a devolução do pedido %{number}"
+        heading: "Sua devolução chegou até nós."
+        intro: "O pacote da sua devolução chegou ao nosso endereço. Vamos conferir o produto com cuidado e retornamos com os próximos passos."
+        next_step: "Chame a gente no WhatsApp para combinarmos o reembolso ou a troca."
     delivery_issue:
       correios_says: "O que os Correios informaram:"
       support_note: "Estamos à disposição caso necessite do nosso apoio, conte conosco."
@@ -457,9 +476,16 @@ pt-BR:
         delivery_issue:
           label: "Problema na entrega"
           description: "Houve um problema na entrega do seu pedido."
+        awaiting_return:
+          label: "Devolução autorizada"
+          description: "Sua devolução foi autorizada. Imprima a etiqueta dos Correios abaixo, cole no pacote e leve em qualquer agência. Você não paga nada."
+          description_pending: "Sua devolução foi autorizada. Estamos gerando a etiqueta dos Correios e ela aparece aqui em alguns minutos."
+        returning:
+          label: "Devolução a caminho"
+          description: "Os Correios registraram a postagem da sua devolução. Avisamos assim que o pacote chegar até nós."
         returned:
           label: "Devolvido"
-          description: "Os Correios devolveram o pedido para a gente. Vamos combinar com você um novo envio ou o reembolso."
+          description: "O pedido voltou para a gente. Vamos combinar com você um novo envio ou o reembolso."
         cancelled:
           label: "Cancelado"
           description: "Seu pedido foi cancelado."
@@ -493,6 +519,11 @@ pt-BR:
         requested_game: "Jogo solicitado"
         request_notes: "Observações"
         request_notes_blank: "Sem observações"
+        return_title: "Devolução"
+        return_instructions: "Imprima a etiqueta abaixo, cole no pacote bem fechado e leve em qualquer agência dos Correios. O envio já está pago, você não paga nada."
+        return_label_cta: "Baixar etiqueta de devolução"
+        return_pending: "Estamos gerando sua etiqueta de devolução. Ela aparece aqui em alguns minutos e avisamos você por e-mail."
+        return_posted: "Sua devolução já foi postada e está a caminho. Código de rastreio: %{code}."
         support_text: "Precisa de ajuda sobre seu pedido? Entre em contato que estaremos felizes em lhe atender."
         support_cta: "Falar no WhatsApp"
         support_message: "Olá tenho uma dúvida com relação ao pedido número %{number}"
@@ -912,9 +943,23 @@ pt-BR:
         actions: "Ações"
         action_target: "→ %{status}"
         print_label: "Imprimir etiqueta Correios"
+        authorize_return: "Autorizar devolução"
+        cancel_return: "Cancelar devolução"
+        print_return_label: "Imprimir etiqueta de devolução"
+        return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
         customer_since: "Cliente desde %{date}"
         automatic: "Automático"
         by: "por %{name}"
+        returns:
+          authorized: "Devolução autorizada. Estamos gerando a etiqueta dos Correios."
+          cancelled: "Devolução cancelada. O pedido voltou para Entregue."
+          errors:
+            not_returnable: "Só é possível autorizar devolução de um pedido entregue ou com problema na entrega."
+            no_shipment: "Este pedido não tem envio registrado, então não há endereço para a devolução."
+            already_open: "Este pedido já tem uma devolução em andamento."
+            not_cancellable: "Este pedido não tem devolução em andamento para cancelar."
+            no_return: "Este pedido não tem devolução em andamento para cancelar."
+            already_posted: "O cliente já postou a devolução, então ela não pode mais ser cancelada."
         transition_done: "Status atualizado para %{status}."
         transition_invalid: "Esta ação não está disponível para o status atual do pedido."
         cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."
@@ -955,6 +1000,10 @@ pt-BR:
           description: "Pedido entregue ao cliente. Se o pacote voltar para nós, marque como Recebido de volta."
         delivery_issue:
           description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se voltar para nós, marque como Recebido de volta para poder cancelar."
+        awaiting_return:
+          description: "Devolução autorizada. O cliente recebe a etiqueta pré-paga e posta o pacote. O status avança sozinho quando os Correios registrarem a postagem."
+        returning:
+          description: "A devolução está em trânsito para o nosso endereço. O rastreio conclui sozinho quando o pacote chegar."
         returned:
           description: "O pacote voltou para o nosso endereço. Reenvie ou cancele o pedido."
         cancelled:
@@ -965,6 +1014,8 @@ pt-BR:
         label_issued: "O status avança para Enviado automaticamente quando os Correios registram a postagem."
         shipped: "O status avança para Entregue automaticamente pelo rastreio dos Correios."
         delivered: "Este pedido está concluído. Só volta a se mover se o pacote retornar para nós."
+        awaiting_return: "O status avança para Devolução a caminho automaticamente quando o cliente postar o pacote."
+        returning: "O status avança para Devolvido automaticamente quando a devolução chegar até nós."
         cancelled: "Este pedido foi cancelado. Não há mais transições disponíveis."
       lifecycle:
         awaiting_payment: "Pagamento"

@@ -40,6 +40,29 @@
         <% end %>
       <% end %>
 
+      <% if presenter.return_authorizable? %>
+        <%= button_to admin_order_return_path(presenter.number), method: :post,
+              class: "act-btn", form: { class: "act-form" } do %>
+          <i class="bi bi-arrow-counterclockwise"></i>
+          <span><%= t("admin.orders.detail.authorize_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
+          <i class="bi bi-arrow-right act-arrow"></i>
+        <% end %>
+      <% end %>
+
+      <% if presenter.return_label_printable? %>
+        <%= link_to admin_order_return_label_path(presenter.number), class: "act-btn", target: "_blank", rel: "noopener" do %>
+          <i class="bi bi-printer"></i><span><%= t("admin.orders.detail.print_return_label") %></span>
+        <% end %>
+      <% end %>
+
+      <% if presenter.return_abortable? %>
+        <%= button_to admin_order_return_path(presenter.number), method: :delete,
+              class: "act-btn danger", form: { class: "act-form",
+              data: { confirm: t("admin.orders.detail.return_confirm", number: presenter.number) } } do %>
+          <i class="bi bi-x-circle"></i><span><%= t("admin.orders.detail.cancel_return") %></span>
+        <% end %>
+      <% end %>
+
       <% if presenter.available_actions.empty? && !presenter.label_in_flight? && !presenter.label_retryable? %>
         <div class="act-none"><i class="bi bi-info-circle"></i><div><%= presenter.auto_next_note %></div></div>
       <% end %>

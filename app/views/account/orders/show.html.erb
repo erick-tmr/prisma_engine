@@ -21,7 +21,7 @@
         <span class="status-pill status-pill--<%= @order.status %>">
           <%= t("account.orders.states.#{@order.status}.label") %>
         </span>
-        <p><%= t("account.orders.states.#{@order.status}.description") %></p>
+        <p><%= order_state_description(@order) %></p>
       </div>
     </div>
 
@@ -166,6 +166,22 @@
       <% end %>
     <% end %>
 
+    <% end %>
+
+    <% if @order.awaiting_return? || @order.returning? %>
+      <div class="order-detail__return">
+        <h2 class="order-detail__return-title"><%= t("account.orders.show.return_title") %></h2>
+        <% if order_return_label_ready?(@order) %>
+          <p class="order-detail__return-text"><%= t("account.orders.show.return_instructions") %></p>
+          <a class="order-detail__return-btn" href="<%= return_label_account_order_path(@order) %>" target="_blank" rel="noopener">
+            <i class="bi bi-download" aria-hidden="true"></i> <%= t("account.orders.show.return_label_cta") %>
+          </a>
+        <% elsif @order.returning? %>
+          <p class="order-detail__return-text"><%= t("account.orders.show.return_posted", code: @order.return_shipment.tracking_code) %></p>
+        <% else %>
+          <p class="order-detail__return-text"><%= t("account.orders.show.return_pending") %></p>
+        <% end %>
+      </div>
     <% end %>
 
     <div class="order-detail__support">

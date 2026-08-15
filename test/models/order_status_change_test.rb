@@ -66,4 +66,15 @@ class OrderStatusChangeTest < ActiveSupport::TestCase
     statuses = orders(:delivered).status_changes.chronological.pluck(:to_status)
     assert_equal %w[awaiting_payment payment_confirmed in_production label_issued shipped delivered], statuses
   end
+  test "the return leg notifies the customer at both steps" do
+    order = orders(:delivered)
+
+    assert_enqueued_email_with OrderMailer, :awaiting_return, args: [ order ] do
+      order.transition_to!("awaiting_return")
+    end
+
+    assert_enqueued_email_with OrderMailer, :returning, args: [ order ] do
+      order.transition_to!("returning")
+    end
+  end
 end

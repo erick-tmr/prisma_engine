@@ -25,18 +25,26 @@ module Admin
     end
 
     def label
-      label = find_order.shipping_label
+      send_label(find_order.shipping_label)
+    end
+
+    def return_label
+      send_label(find_order.return_shipping_label)
+    end
+
+    private
+
+    def send_label(label)
       return head :not_found unless label&.ready?
 
       send_data label.pdf_bytes,
                 type: "application/pdf", disposition: "inline", filename: label.filename
     end
 
-    private
-
     def find_order
       Order.includes(:user, { order_items: OrderItem::PHOTO_INCLUDES },
-                     { status_changes: :actor }, { shipment: :tracking_events })
+                     { status_changes: :actor }, { shipment: :tracking_events },
+                     { return_shipment: :tracking_events })
            .find_by!(number: params[:number])
     end
 

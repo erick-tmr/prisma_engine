@@ -187,4 +187,43 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_equal heroes.uniq, heroes
     assert_includes heroes, OrderMailer::DEFAULT_ISSUE_HERO
   end
+  test "awaiting_return points the customer at their order page for the label" do
+    order = orders(:delivered)
+    Shipping::AuthorizeReturn.call(order: order)
+
+    mail = OrderMailer.awaiting_return(order.reload)
+
+    assert_equal [ order.user.email ], mail.to
+    assert_equal I18n.t("order_mailer.awaiting_return.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.awaiting_return.pending_note")
+    assert_includes mail.html_part.body.to_s, order.number
+  end
+
+  test "returning carries the return tracking code" do
+    order = orders(:delivered)
+    Shipping::AuthorizeReturn.call(order: order)
+    order.reload.return_shipment.update!(tracking_code: "PR123456789BR")
+
+    mail = OrderMailer.returning(order)
+
+    assert_equal I18n.t("order_mailer.returning.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, "PR123456789BR"
+  end
+
+  test "returned blames Correios only when the package bounced back on its own" do
+    bounced = OrderMailer.returned(orders(:delivered))
+
+    assert_equal I18n.t("order_mailer.returned.bounced.subject", number: orders(:delivered).number), bounced.subject
+    assert_includes bounced.html_part.body.to_s, I18n.t("order_mailer.returned.bounced.intro")
+  end
+
+  test "returned thanks the customer when they asked for the return" do
+    order = orders(:delivered)
+    Shipping::AuthorizeReturn.call(order: order)
+
+    mail = OrderMailer.returned(order.reload)
+
+    assert_equal I18n.t("order_mailer.returned.authorized.subject", number: order.number), mail.subject
+    assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.returned.authorized.intro")
+  end
 end

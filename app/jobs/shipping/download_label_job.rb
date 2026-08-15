@@ -10,7 +10,7 @@ module Shipping
       result = Shipping::DownloadLabel.call(label.recibo_id)
       Order.transaction do
         label.mark_ready!(filename: result.filename, pdf: result.pdf_base64)
-        shipment.order.advance_to_label_issued!(automatic: true)
+        Shipping::Leg.for(shipment).announce_label(shipment.order)
       end
     end
   end

@@ -287,5 +287,28 @@ module Admin
       assert_response :success
       assert_select "aside.sidebar a.sb-link[href=?]", admin_reports_path
     end
+
+    test "the return label endpoint serves the inbound PDF" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipping::AuthorizeReturn.call(order: order)
+      order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+
+      get admin_order_return_label_path(order)
+
+      assert_response :success
+      assert_equal "application/pdf", response.media_type
+      assert_match(/\A%PDF/, response.body)
+    end
+
+    test "the return label endpoint 404s while the return label is not ready" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipping::AuthorizeReturn.call(order: order)
+
+      get admin_order_return_label_path(order)
+
+      assert_response :not_found
+    end
   end
 end

@@ -33,7 +33,7 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "normalizes a blank receiver_obs to nil" do
-    shipment = Shipment.create!(order: orders(:awaiting), receiver_obs: "  entregar na portaria  ")
+    shipment = Shipment.create!(order: bare_order, receiver_obs: "  entregar na portaria  ")
     assert_equal "entregar na portaria", shipment.receiver_obs
 
     shipment.update!(receiver_obs: "   ")
@@ -70,7 +70,7 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "requires a unique tracking code" do
-    Shipment.create!(tracking_code: "AA1", order: orders(:awaiting))
+    Shipment.create!(tracking_code: "AA1", order: bare_order)
     dup = Shipment.new(tracking_code: "AA1", order: orders(:awaiting))
 
     assert_not dup.valid?
@@ -78,11 +78,11 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "requires a unique pre_post_id but allows many without one" do
-    Shipment.create!(tracking_code: "AA1", pre_post_id: "PR1", order: orders(:awaiting))
+    Shipment.create!(tracking_code: "AA1", pre_post_id: "PR1", order: bare_order)
     dup = Shipment.new(tracking_code: "AA2", pre_post_id: "PR1", order: orders(:awaiting))
     assert_not dup.valid?
 
-    Shipment.create!(tracking_code: "AA3", order: orders(:awaiting)) # pre_post_id nil
+    Shipment.create!(tracking_code: "AA3", order: bare_order) # pre_post_id nil
     assert Shipment.new(tracking_code: "AA4", order: orders(:awaiting)).valid? # a second nil pre_post_id is fine
   end
 
@@ -91,7 +91,7 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "mark_tracking_unavailable! stops polling and records the error" do
-    shipment = Shipment.create!(tracking_code: "A9", order: orders(:awaiting))
+    shipment = Shipment.create!(tracking_code: "A9", order: bare_order)
 
     shipment.mark_tracking_unavailable!("SRO-019: Objeto inválido")
 
@@ -103,12 +103,26 @@ class ShipmentTest < ActiveSupport::TestCase
   end
 
   test "awaiting_tracking keeps live shipments and drops finished or dead ones" do
-    poll_me = Shipment.create!(tracking_code: "A1", order: orders(:awaiting))
-    in_transit = Shipment.create!(tracking_code: "A2", tracking_state: :in_transit, order: orders(:awaiting))
-    Shipment.create!(tracking_code: "A3", tracking_state: :delivered, order: orders(:awaiting))
-    Shipment.create!(tracking_code: "A4", tracking_state: :returned, order: orders(:awaiting))
-    Shipment.create!(tracking_code: "A5", correios_status: 5, order: orders(:awaiting)) # cancelado
+    poll_me = Shipment.create!(tracking_code: "A1", order: bare_order)
+    in_transit = Shipment.create!(tracking_code: "A2", tracking_state: :in_transit, order: bare_order)
+    Shipment.create!(tracking_code: "A3", tracking_state: :delivered, order: bare_order)
+    Shipment.create!(tracking_code: "A4", tracking_state: :returned, order: bare_order)
+    Shipment.create!(tracking_code: "A5", correios_status: 5, order: bare_order) # cancelado
 
     assert_equal [ poll_me.id, in_transit.id ].sort, Shipment.awaiting_tracking.pluck(:id).sort
+  end
+
+  test "shipments default to the outbound direction" do
+    assert Shipment.create!(order: bare_order).outbound?
+  end
+
+  test "an order carries one shipment per direction and no more" do
+    order = bare_order
+    outbound = Shipment.create!(order: order, direction: :outbound)
+    inbound = Shipment.create!(order: order, direction: :inbound)
+
+    assert_equal outbound, order.reload.shipment
+    assert_equal inbound, order.return_shipment
+    assert_raises(ActiveRecord::RecordNotUnique) { Shipment.create!(order: order, direction: :inbound) }
   end
 end

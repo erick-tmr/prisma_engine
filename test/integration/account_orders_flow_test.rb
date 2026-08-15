@@ -227,4 +227,73 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     get account_order_path(orders(:awaiting))
     assert_response :not_found
   end
+  test "an authorized return shows the instructions and a label download" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::AuthorizeReturn.call(order: order)
+    order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-btn[href=?]", return_label_account_order_path(order)
+  end
+
+  test "a return whose label is still building says so instead of offering a download" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::AuthorizeReturn.call(order: order)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-btn", false
+    assert_select ".order-detail__return-text", text: I18n.t("account.orders.show.return_pending")
+  end
+
+  test "a posted return shows the tracking code, since the label is gone by then" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::AuthorizeReturn.call(order: order)
+    order.reload.return_shipment.update!(tracking_code: "PR123456789BR")
+    order.transition_to!("returning", automatic: true)
+
+    get account_order_path(order)
+
+    assert_response :success
+    assert_select ".order-detail__return-text", text: /PR123456789BR/
+  end
+
+  test "the return label downloads as a PDF for its owner and 404s for anyone else" do
+    order = orders(:delivered)
+    Shipping::AuthorizeReturn.call(order: order)
+    order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+
+    sign_in order.user
+    get return_label_account_order_path(order)
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+
+    sign_in users(:orderless)
+    get return_label_account_order_path(order)
+    assert_response :not_found
+  end
+
+  test "the return label 404s while it is not ready yet" do
+    order = orders(:delivered)
+    sign_in order.user
+    Shipping::AuthorizeReturn.call(order: order)
+
+    get return_label_account_order_path(order)
+
+    assert_response :not_found
+  end
+  test "the return label 404s for an order that has no return at all" do
+    order = orders(:delivered)
+    sign_in order.user
+
+    get return_label_account_order_path(order)
+
+    assert_response :not_found
+  end
 end

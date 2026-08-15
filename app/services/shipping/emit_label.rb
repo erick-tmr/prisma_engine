@@ -1,7 +1,7 @@
 module Shipping
   class EmitLabel
     def self.resume(shipment)
-      return unless shipment && shipment.order.shippable?
+      return unless shipment && Shipping::Leg.for(shipment).emittable?(shipment.order)
 
       case label_for(shipment).state
       when "pending"           then Shipping::CreatePrePostagemJob.perform_later(shipment_id: shipment.id)

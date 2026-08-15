@@ -1,0 +1,17 @@
+<%= render layout: "shared/email_card", locals: {
+      badge_label: t("order_mailer.returning.badge_label"),
+      badge_color: "#b9650a",
+      hero_image: "dragon-fly.png",
+      hero_height: 180,
+      heading: t("order_mailer.returning.heading"),
+      first_name: @order.user.first_name
+    } do %>
+  <tr>
+    <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("order_mailer.returning.intro") %>
+    </td>
+  </tr>
+  <%= render "summary" %>
+  <%= render "shared/email_tracking_chip", code: @order.return_shipment.tracking_code %>
+  <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.returning.cta") %>
+<% end %>
