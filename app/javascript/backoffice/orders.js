@@ -52,10 +52,35 @@ export function writeBatch(storage, batch, now = Date.now()) {
   }
 }
 
-export function batchProgress(root) {
-  const procbar = root.querySelector('[data-part="procbar"]');
-  if (!procbar || Number(procbar.dataset.inFlight) === 0) return null;
+export function readSettledAt(storage) {
+  try {
+    return JSON.parse(storage.getItem(BATCH_KEY))?.settledAt ?? null;
+  } catch (e) {
+    return null;
+  }
+}
 
+export function stampSettled(storage, at) {
+  try {
+    const stored = JSON.parse(storage.getItem(BATCH_KEY));
+    if (stored && stored.settledAt !== at) {
+      storage.setItem(BATCH_KEY, JSON.stringify({ ...stored, settledAt: at }));
+    }
+  } catch (e) {
+    /* a full or unavailable sessionStorage only costs the batch strip */
+  }
+  return at;
+}
+
+export function batchInFlight(root) {
+  const procbar = root.querySelector('[data-part="procbar"]');
+  return Number(procbar?.dataset.inFlight) > 0;
+}
+
+export function batchProgress(root) {
+  if (!batchInFlight(root)) return null;
+
+  const procbar = root.querySelector('[data-part="procbar"]');
   return { settled: Number(procbar.dataset.settled), total: Number(procbar.dataset.total) };
 }
 
@@ -150,10 +175,11 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
   const sentAt = new Map();
   const batch = readBatch(storage);
   let holdTimer = null;
+  let batchFlying = batchInFlight(root);
   const feedback = createLabelFeedback(root, {
     path: root.dataset.feedbackUrl,
     params: () => ({ ...table.params, lote: [ ...batch ] }),
-    onSwap: () => { syncSelection(); holdBatch(); }
+    onSwap: () => { syncSelection(); reloadOnBatchSettled(); holdBatch(); }
   });
   const bulkbar = $("#bulkbar");
   const bulkPrint = $("#bulk-print");
@@ -215,17 +241,33 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
     if (inFlight(root)) feedback.start();
   }
 
-  function holdBatch() {
-    clearTimeout(holdTimer);
-    if (batch.size === 0 || inFlight(root)) return;
+  function reloadOnBatchSettled() {
+    const flying = batchInFlight(root);
+    if (batchFlying && !flying) {
+      batch.forEach((number) => selected.delete(number));
+      table.reload({ push: false });
+    }
+    batchFlying = flying;
+  }
 
+  function holdBatch() {
+    if (batch.size === 0 || batchInFlight(root)) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+      stampSettled(storage, null);
+      return;
+    }
+    if (holdTimer !== null) return;
+
+    const settledAt = readSettledAt(storage) ?? stampSettled(storage, Date.now());
     holdTimer = setTimeout(() => {
+      holdTimer = null;
       batch.clear();
       writeBatch(storage, batch);
       const procbar = root.querySelector('[data-part="procbar"]');
       if (procbar) procbar.hidden = true;
       renderBulk();
-    }, BATCH_HOLD_MS);
+    }, Math.max(0, BATCH_HOLD_MS - (Date.now() - settledAt)));
   }
 
   function syncSelection() {
@@ -303,6 +345,7 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
         body: bulkFormBody(actionId, fresh)
       });
       const data = await res.json();
+      if (!batchInFlight(root)) batch.clear();
       data.results.forEach((result) => {
         if (selected.has(result.number)) selected.set(result.number, result.status);
         if (result.outcome === "queued") batch.add(result.number);
