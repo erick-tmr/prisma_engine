@@ -693,7 +693,6 @@ describe("Correios feedback", () => {
     select.value = "sedex";
     select.dispatchEvent(new window.Event("change", { bubbles: true }));
 
-    // a second selection rewrites the chips; the operator's pick must survive it
     click(document.querySelector('[data-check="PG-2"]'));
     expect(document.querySelector("[data-return-service]").value).toBe("sedex");
 
@@ -833,14 +832,12 @@ describe("Correios feedback", () => {
     writeBatch(window.sessionStorage, new Set([ "PG-1" ]));
     start(row("PG-1", "in_production", "running") + row("PG-9", "in_production", "running"),
       procbar({ total: 1, inFlight: 1 }));
-    // once the batch is forgotten the poller stops sending lote, and the server renders the strip hidden
     window.fetch.mockImplementation(async (url) => ({
       ok: true,
       text: async () => `<div data-part="correios-PG-1" data-cor-state="done"></div>` +
         procbar(String(url).includes("lote") ? { total: 1, settled: 1 } : { hidden: true })
     }));
 
-    // PG-9 never settles, so the poller keeps ticking long after our batch is done
     await vi.advanceTimersByTimeAsync(POLL_STEPS[0]);
     await vi.advanceTimersByTimeAsync(BATCH_HOLD_MS + 1_000);
 

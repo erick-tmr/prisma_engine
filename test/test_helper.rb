@@ -41,8 +41,6 @@ module ActiveSupport
 
     SPARE_CPFS = %w[52987411340 61829374591 70345182626 81572639482].freeze
 
-    # shipments are unique per (order, direction), so a test wanting several of
-    # them needs an order apiece rather than reusing one fixture.
     def bare_order(user: users(:confirmed))
       Order.create!(user: user, subtotal_cents: 1_000, total_cents: 1_000)
     end

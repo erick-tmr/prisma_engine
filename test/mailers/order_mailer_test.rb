@@ -124,7 +124,7 @@ class OrderMailerTest < ActionMailer::TestCase
     end
 
     assert_includes email.html_part.body.to_s, "Devolvido"
-    assert_includes email.html_part.body.to_s, "dragon-fly.png"
+    assert_includes email.html_part.body.to_s, "dragon-face.png"
   end
 
   test "returned opens WhatsApp with the order number already written out" do

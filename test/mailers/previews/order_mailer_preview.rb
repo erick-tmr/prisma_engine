@@ -24,10 +24,10 @@ class OrderMailerPreview < ActionMailer::Preview
   end
 
   def returned
-    OrderMailer.returned(shipped_order)
+    OrderMailer.returned(bounced_order || shipped_order)
   end
 
-  def returned_authorized
+  def returned_expected
     OrderMailer.returned(returning_order || shipped_order)
   end
 
@@ -46,6 +46,11 @@ class OrderMailerPreview < ActionMailer::Preview
       unknown = Shipping::DeliveryIssue.for(order.shipment).kind == Shipping::DeliveryIssue::UNKNOWN
       unknown == (wanted == :unknown)
     end
+  end
+
+  def bounced_order
+    Order.joins(:shipment).where.not(shipments: { tracking_code: nil })
+         .recent_first.find { |order| order.return_shipment.nil? }
   end
 
   def returning_order

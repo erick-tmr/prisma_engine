@@ -2,8 +2,6 @@ module Shipping
   class StartReturn
     SOURCES = Order::TRANSITIONS.select { |_, targets| targets.include?("awaiting_return") }.keys.freeze
 
-    # The box and the customer's end come from the outbound trip. The service does
-    # not: a SEDEX delivery does not imply we want to pay for a SEDEX return.
     CLONED = %i[
       weight_grams height_cm width_cm length_cm
       receiver_name receiver_cpf zip street number complement neighborhood city state

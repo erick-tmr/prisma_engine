@@ -25,8 +25,6 @@ module Shipping
 
   RETURN_WALK = %w[awaiting_return returning returned].freeze
 
-  # The cheapest service that carries a cartridge, and the one we pay for on a
-  # return. The operator can pick another per order or per batch.
   DEFAULT_RETURN_SERVICE = "pac".freeze
 
   STORE = {

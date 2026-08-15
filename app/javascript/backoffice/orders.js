@@ -24,7 +24,6 @@ export const ACTION_LABELS = {
 
 export const PRINTABLE_LABEL_STATUSES = new Set([ "label_issued" ]);
 
-// Both of these hand work to the Correios label saga, so both get the batch spinner.
 export const LABEL_EMITTING_ACTIONS = new Set([ "issue_label", "start_return" ]);
 
 export const BULK_THROTTLE_MS = 60_000;

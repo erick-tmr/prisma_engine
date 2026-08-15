@@ -30,8 +30,6 @@ module Admin
       done? || failed?
     end
 
-    # A return label is finished the moment it is ready: unlike the outbound one
-    # it does not announce itself on the order, which entered the leg on the click.
     def done?
       return false unless label&.ready?
 

@@ -174,10 +174,6 @@ def ready_tracking(shipment, order, state)
   shipment.update!(tracking_code: demo_tracking_code(order), tracking_state: :unavailable)
 end
 
-# One order mid-return, so the awaiting_return / returning / returned e-mail
-# previews resolve and the backoffice renders the inbound leg. The inbound
-# shipment is marked tracking_unavailable for the same reason as the outbound
-# ones above: SyncPendingShipmentsJob would otherwise reach the real Correios.
 def ensure_return_demo(user, index)
   order = ensure_order("returning", "returning", index, user)
   outbound = order.shipment
