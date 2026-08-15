@@ -34,7 +34,7 @@ class AdminOrderDetailTest < ApplicationSystemTestCase
     assert_selector ".lc-step.pending .lc-doing", text: I18n.t("admin.orders.lifecycle.doing_running")
     assert_selector ".act-btn[disabled]"
 
-    label.mark_ready!(filename: "etiqueta.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
+    ready_label!(label, filename: "etiqueta.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
     order.advance_to_label_issued!
 
     assert_selector ".pill.pill-lg", text: I18n.t("account.orders.states.label_issued.label"), wait: 8

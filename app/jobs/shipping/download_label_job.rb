@@ -6,12 +6,9 @@ module Shipping
       label.requested?
     end
 
-    def run(shipment, label)
+    def run(_shipment, label)
       result = Shipping::DownloadLabel.call(label.recibo_id)
-      Order.transaction do
-        label.mark_ready!(filename: result.filename, pdf: result.pdf_base64)
-        Shipping::Leg.for(shipment).announce_label(shipment.order)
-      end
+      label.store_label!(filename: result.filename, pdf: result.pdf_base64)
     end
   end
 end

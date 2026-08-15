@@ -529,7 +529,7 @@ pt-BR:
         return_step_declaration: "Cole a declaração de conteúdo na parte de baixo do pacote."
         return_step_post: "Leve em qualquer agência dos Correios. O envio já está pago."
         return_tip: "Não passe fita adesiva por cima do código de barras nem do QR Code. A fita atrapalha a leitura na agência e o pacote pode ser recusado."
-        return_label_cta: "Baixar etiqueta"
+        return_label_cta: "Baixar etiqueta e declaração"
         return_pending_lead: "Estamos gerando sua etiqueta."
         return_pending: "Ela aparece aqui em alguns minutos e avisamos você por e-mail."
         return_posted_lead: "Sua devolução está a caminho."

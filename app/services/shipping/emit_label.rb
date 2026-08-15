@@ -8,6 +8,7 @@ module Shipping
       when "prepost_created"   then Shipping::ConfirmPrePostagemJob.set(wait: Shipping::PREPOSTAGEM_INITIAL_DELAY).perform_later(shipment_id: shipment.id)
       when "prepost_confirmed" then Shipping::RequestLabelJob.perform_later(shipment_id: shipment.id)
       when "requested"         then Shipping::DownloadLabelJob.perform_later(shipment_id: shipment.id)
+      when "label_downloaded"  then Shipping::DownloadDceJob.perform_later(shipment_id: shipment.id)
       end
     end
 

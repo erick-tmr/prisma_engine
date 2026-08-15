@@ -1,7 +1,8 @@
 class ShippingLabel < ApplicationRecord
   belongs_to :shipment
 
-  enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3, prepost_confirmed: 4, requesting: 5 }
+  enum :state, { pending: 0, prepost_created: 1, requested: 2, ready: 3, prepost_confirmed: 4,
+                 requesting: 5, label_downloaded: 6 }
 
   def mark_prepost_created!
     update!(state: :prepost_created, error: nil, errored_at: nil)
@@ -27,8 +28,12 @@ class ShippingLabel < ApplicationRecord
     update!(state: :requested, recibo_id: recibo_id, error: nil, errored_at: nil)
   end
 
-  def mark_ready!(filename:, pdf:)
-    update!(state: :ready, filename: filename, pdf_base64: pdf, error: nil, errored_at: nil)
+  def store_label!(filename:, pdf:)
+    update!(state: :label_downloaded, filename: filename, pdf_base64: pdf, error: nil, errored_at: nil)
+  end
+
+  def store_dce!(filename:, pdf:)
+    update!(state: :ready, dce_filename: filename, dce_base64: pdf, error: nil, errored_at: nil)
   end
 
   def reset_for_relabel!
@@ -48,5 +53,9 @@ class ShippingLabel < ApplicationRecord
 
   def pdf_bytes
     Base64.decode64(pdf_base64) if pdf_base64
+  end
+
+  def dce_bytes
+    Base64.decode64(dce_base64) if dce_base64
   end
 end

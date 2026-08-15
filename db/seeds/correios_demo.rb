@@ -30,6 +30,7 @@ DEMO_ORDERS = [
   [ "created",   "in_production", :prepost_created,   nil ],
   [ "confirmed", "in_production", :prepost_confirmed, nil ],
   [ "requested", "in_production", :requested,         nil ],
+  [ "etiqueta",  "in_production", :label_downloaded,  nil ],
   [ "failed",    "in_production", :prepost_confirmed, "PPN-320 CEP de destino inválido para o serviço contratado" ],
   [ "done",      "label_issued",  :ready,             nil ]
 ].freeze
@@ -38,7 +39,8 @@ NEXT_STATE = {
   "pending" => :prepost_created,
   "prepost_created" => :prepost_confirmed,
   "prepost_confirmed" => :requested,
-  "requested" => :ready
+  "requested" => :label_downloaded,
+  "label_downloaded" => :ready
 }.freeze
 
 def demo_orders
@@ -102,9 +104,10 @@ def advance_label(order, label, target)
   case target
   when :requested
     label.update!(state: :requested, recibo_id: "demo-recibo-#{order.number}", error: nil, errored_at: nil)
+  when :label_downloaded
+    label.store_label!(filename: "etiqueta-#{order.number}.pdf", pdf: sample_label_pdf)
   when :ready
-    label.update!(state: :ready, filename: "etiqueta-#{order.number}.pdf", pdf_base64: sample_label_pdf,
-                  error: nil, errored_at: nil)
+    label.store_dce!(filename: "declaracao-#{order.number}.pdf", pdf: sample_label_pdf)
     order.shipment.update!(tracking_code: demo_tracking_code(order), tracking_state: :unavailable)
     # The real transition, so the status-change row and the customer e-mail fire
     # exactly as in production. Dev captures mail in letter_opener_web.
@@ -162,8 +165,11 @@ def park_label(order, state, error)
   return shipment.update!(tracking_code: nil, tracking_state: :pending) if state.nil?
 
   label = shipment.create_shipping_label!(state: state)
-  label.update!(recibo_id: "demo-recibo-#{order.number}") if %i[requested ready].include?(state)
-  label.update!(filename: "etiqueta-#{order.number}.pdf", pdf_base64: sample_label_pdf) if state == :ready
+  label.update!(recibo_id: "demo-recibo-#{order.number}") if %i[requested label_downloaded ready].include?(state)
+  if %i[label_downloaded ready].include?(state)
+    label.update!(filename: "etiqueta-#{order.number}.pdf", pdf_base64: sample_label_pdf)
+  end
+  label.update!(dce_filename: "declaracao-#{order.number}.pdf", dce_base64: sample_label_pdf) if state == :ready
   label.record_error!(error) if error
   ready_tracking(shipment, order, state)
 end
@@ -182,7 +188,8 @@ def ensure_return_demo(user, index)
                               **outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
   shipment.update!(tracking_code: "PR#{format('%09d', order.id)}BR", tracking_state: :unavailable)
   label = shipment.shipping_label || shipment.create_shipping_label!
-  label.update!(state: :ready, filename: "devolucao-#{order.number}.pdf", pdf_base64: sample_label_pdf)
+  label.update!(state: :ready, filename: "devolucao-#{order.number}.pdf", pdf_base64: sample_label_pdf,
+                dce_filename: "declaracao-#{order.number}.pdf", dce_base64: sample_label_pdf)
   order
 end
 

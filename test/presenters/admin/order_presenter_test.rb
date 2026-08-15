@@ -272,7 +272,7 @@ module Admin
     test "a posted return can no longer be aborted, and a ready label can be printed" do
       order = orders(:delivered)
       Shipping::StartReturn.call(order: order)
-      order.reload.return_shipping_label.mark_ready!(filename: "d.pdf", pdf: "x")
+      ready_label!(order.reload.return_shipping_label, filename: "d.pdf", pdf: "x")
       order.return_shipment.update!(posted_at: Time.current)
 
       presenter = Admin::OrderPresenter.new(order.reload)

@@ -9,6 +9,7 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
   ROTULO = "#{BASE}/prepostagem/v1/prepostagens/rotulo/assincrono/pdf".freeze
   RECIBO = "recibo-devolucao".freeze
   DOWNLOAD = "#{BASE}/prepostagem/v1/prepostagens/rotulo/download/assincrono/#{RECIBO}".freeze
+  DACE = "#{BASE}/prepostagem/v1/prepostagens/dce/dace/impressao".freeze
   JSON_HEADERS = { "Content-Type" => "application/json" }.freeze
 
   setup { @order = orders(:delivered) }
@@ -97,6 +98,11 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
     stub_request(:get, DOWNLOAD).to_return(
       status: 200,
       body: { "nome" => "devolucao.pdf", "dados" => Base64.strict_encode64("%PDF-1.4 devolucao") }.to_json,
+      headers: JSON_HEADERS
+    )
+    stub_request(:post, DACE).to_return(
+      status: 200,
+      body: { "objetos" => [ "PR-devolucao" ], "dados" => Base64.strict_encode64("%PDF-1.4 dace") }.to_json,
       headers: JSON_HEADERS
     )
   end

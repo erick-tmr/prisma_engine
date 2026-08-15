@@ -231,7 +231,7 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     order = orders(:delivered)
     sign_in order.user
     Shipping::StartReturn.call(order: order)
-    order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
 
     get account_order_path(order)
 
@@ -264,15 +264,17 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_select ".order-detail__info-body", text: /PR123456789BR/
   end
 
-  test "the return label downloads as a PDF for its owner and 404s for anyone else" do
+  test "the return label downloads both documents as one PDF, and 404s for anyone else" do
     order = orders(:delivered)
     Shipping::StartReturn.call(order: order)
-    order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+    ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf")
 
     sign_in order.user
     get return_label_account_order_path(order)
     assert_response :success
     assert_equal "application/pdf", response.media_type
+    assert_equal "devolucao-#{order.number}.pdf", response.headers["Content-Disposition"][/filename="([^"]+)"/, 1]
+    assert_equal 2, CombinePDF.parse(response.body).pages.size
 
     sign_in users(:orderless)
     get return_label_account_order_path(order)

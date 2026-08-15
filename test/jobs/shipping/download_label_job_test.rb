@@ -13,19 +13,21 @@ module Shipping
       @label = @order.shipment.create_shipping_label!(state: :requested, recibo_id: RECIBO)
     end
 
-    test "downloads the PDF, marks the label ready and moves the order to label_issued" do
+    test "stores the PDF and hands over to the declaração step, leaving the order alone" do
       stub_request(:get, URL).to_return(
         status: 200,
         body: { "nome" => "etiqueta.pdf", "dados" => Base64.strict_encode64("%PDF-1.4") }.to_json,
         headers: { "Content-Type" => "application/json" }
       )
 
-      Shipping::DownloadLabelJob.perform_now(shipment_id: @order.shipment.id)
+      assert_enqueued_with(job: Shipping::DownloadDceJob, args: [ { shipment_id: @order.shipment.id } ]) do
+        Shipping::DownloadLabelJob.perform_now(shipment_id: @order.shipment.id)
+      end
 
-      assert @label.reload.ready?
+      assert @label.reload.label_downloaded?
       assert_equal "etiqueta.pdf", @label.filename
       assert_equal "%PDF-1.4", @label.pdf_bytes
-      assert @order.reload.label_issued?
+      assert @order.reload.in_production?, "the order waits for the declaração before label_issued"
     end
 
     test "on PPN-295 it rewinds the label and re-requests a fresh recibo" do

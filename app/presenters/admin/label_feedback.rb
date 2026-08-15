@@ -1,6 +1,6 @@
 module Admin
   class LabelFeedback
-    RUNNING_STATES = %w[prepost_created prepost_confirmed requesting requested].freeze
+    RUNNING_STATES = %w[prepost_created prepost_confirmed requesting requested label_downloaded].freeze
     IN_FLIGHT = %w[queued running].freeze
     ERROR_LIMIT = 120
 

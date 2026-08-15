@@ -292,7 +292,7 @@ module Admin
       sign_in users(:admin)
       order = orders(:delivered)
       Shipping::StartReturn.call(order: order)
-      order.reload.return_shipping_label.mark_ready!(filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
+      ready_label!(order.reload.return_shipping_label, filename: "devolucao.pdf", pdf: Base64.strict_encode64("%PDF-1.4 devolucao"))
 
       get admin_order_return_label_path(order)
 

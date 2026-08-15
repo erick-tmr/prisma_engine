@@ -8,6 +8,7 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
   ROTULO = "#{BASE}/prepostagem/v1/prepostagens/rotulo/assincrono/pdf".freeze
   RECIBO = "recibo-123".freeze
   DOWNLOAD = "#{BASE}/prepostagem/v1/prepostagens/rotulo/download/assincrono/#{RECIBO}".freeze
+  DACE = "#{BASE}/prepostagem/v1/prepostagens/dce/dace/impressao".freeze
   JSON_HEADERS = { "Content-Type" => "application/json" }.freeze
 
   setup do
@@ -19,6 +20,7 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
     stub_status(2)
     stub_rotulo
     stub_download
+    stub_dace
 
     perform_enqueued_jobs { Shipping::EmitLabel.resume(@order.shipment) }
 
@@ -28,6 +30,8 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
     assert_equal RECIBO, label.recibo_id
     assert_equal "etiqueta.pdf", label.filename
     assert_equal "%PDF-1.4 fake", label.pdf_bytes
+    assert_equal "%PDF-1.4 dace", label.dce_bytes
+    assert_equal "declaracao-#{@order.number}.pdf", label.dce_filename
     assert @order.label_issued?
     assert_equal "AD999999999BR", @order.shipment.tracking_code
   end
@@ -50,6 +54,7 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
 
     stub_rotulo
     stub_download
+    stub_dace
     perform_enqueued_jobs { Shipping::EmitLabel.resume(@order.shipment) }
 
     assert @order.reload.label_issued?
@@ -76,6 +81,14 @@ class EmitLabelFlowTest < ActiveSupport::TestCase
   def stub_rotulo
     stub_request(:post, ROTULO).to_return(
       status: 200, body: { "idRecibo" => RECIBO }.to_json, headers: JSON_HEADERS
+    )
+  end
+
+  def stub_dace(pre_post_id = "PR-abc")
+    stub_request(:post, DACE).to_return(
+      status: 200,
+      body: { "objetos" => [ pre_post_id ], "dados" => Base64.strict_encode64("%PDF-1.4 dace") }.to_json,
+      headers: JSON_HEADERS
     )
   end
 

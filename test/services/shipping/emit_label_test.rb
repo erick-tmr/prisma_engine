@@ -38,6 +38,14 @@ module Shipping
       end
     end
 
+    test "resumes into the declaração fetch from label_downloaded" do
+      @order.shipment.create_shipping_label!(state: :label_downloaded)
+
+      assert_enqueued_with(job: Shipping::DownloadDceJob, args: [ { shipment_id: @order.shipment.id } ]) do
+        Shipping::EmitLabel.resume(@order.shipment)
+      end
+    end
+
     test "does nothing once the label is ready" do
       @order.shipment.create_shipping_label!(state: :ready)
 

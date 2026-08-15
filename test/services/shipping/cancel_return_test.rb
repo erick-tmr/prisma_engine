@@ -21,7 +21,7 @@ module Shipping
 
     test "takes the return label with it" do
       label = @order.return_shipment.shipping_label
-      label.mark_ready!(filename: "devolucao.pdf", pdf: "x")
+      ready_label!(label, filename: "devolucao.pdf", pdf: "x")
 
       Shipping::CancelReturn.call(order: @order)
 

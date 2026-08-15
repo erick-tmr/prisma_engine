@@ -80,7 +80,7 @@ class AccountHelperTest < ActionView::TestCase
     Shipping::StartReturn.call(order: order)
     assert_not order_return_label_ready?(order.reload)
 
-    order.return_shipping_label.mark_ready!(filename: "d.pdf", pdf: "x")
+    ready_label!(order.return_shipping_label, filename: "d.pdf", pdf: "x")
     assert order_return_label_ready?(order.reload)
   end
 
@@ -90,7 +90,7 @@ class AccountHelperTest < ActionView::TestCase
     assert_equal I18n.t("account.orders.states.awaiting_return.description_pending"),
                  order_state_description(order.reload)
 
-    order.return_shipping_label.mark_ready!(filename: "d.pdf", pdf: "x")
+    ready_label!(order.return_shipping_label, filename: "d.pdf", pdf: "x")
     assert_equal I18n.t("account.orders.states.awaiting_return.description"),
                  order_state_description(order.reload)
   end

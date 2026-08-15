@@ -126,7 +126,7 @@ class AdminOrdersListTest < ApplicationSystemTestCase
     row = "tr[data-order='#{order.number}']"
     assert_selector "#{row} .pill", text: I18n.t("account.orders.states.in_production.label")
 
-    label.mark_ready!(filename: "etiqueta.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
+    ready_label!(label, filename: "etiqueta.pdf", pdf: Base64.strict_encode64("%PDF-1.4"))
     order.advance_to_label_issued!
 
     assert_selector "#{row} [data-cor-state='done']", wait: 8

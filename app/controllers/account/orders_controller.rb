@@ -9,11 +9,13 @@ module Account
     end
 
     def return_label
-      label = current_user.orders.find_by!(number: params[:id]).return_shipping_label
+      order = current_user.orders.find_by!(number: params[:id])
+      label = order.return_shipping_label
       return head :not_found unless label&.ready?
 
-      send_data label.pdf_bytes,
-                type: "application/pdf", disposition: "inline", filename: label.filename
+      send_data Shipping::LabelDocuments.call(label),
+                type: "application/pdf", disposition: "inline",
+                filename: "devolucao-#{order.number}.pdf"
     end
 
     private
