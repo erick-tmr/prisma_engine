@@ -7,7 +7,8 @@ class OrderStatusChange < ApplicationRecord
     "delivery_issue"    => :delivery_issue,
     "awaiting_return"   => :awaiting_return,
     "returning"         => :returning,
-    "returned"          => :returned
+    "returned"          => :returned,
+    "cancelled"         => :cancelled
   }.freeze
 
   belongs_to :order

@@ -31,6 +31,10 @@ class OrderMailerPreview < ActionMailer::Preview
     OrderMailer.returned(returning_order || shipped_order)
   end
 
+  def cancelled
+    OrderMailer.cancelled(Order.where(status: :cancelled).recent_first.first || Order.joins(:shipment).recent_first.first)
+  end
+
   def delivery_issue
     OrderMailer.delivery_issue(order_matching_issue(:catalogued) || shipped_order)
   end

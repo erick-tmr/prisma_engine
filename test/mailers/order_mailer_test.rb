@@ -230,4 +230,32 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_equal I18n.t("order_mailer.returned.expected.subject", number: order.number), mail.subject
     assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.returned.expected.intro")
   end
+
+  test "cancelled regrets the order and invites the customer back, listing what was cancelled" do
+    order = orders(:confirmed_paid)
+    email = OrderMailer.cancelled(order)
+
+    assert_equal [ order.user.email ], email.to
+    assert_equal "Seu pedido #{order.number} foi cancelado", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, order.user.first_name
+      assert_includes body, order.number
+      assert_includes body, order.order_items.first.name
+      assert_includes body, I18n.t("order_mailer.cancelled.intro")
+      assert_includes body, "Ver a loja"
+      assert_includes body, "Frete · #{order.shipment.service_label}"
+    end
+
+    assert_includes email.html_part.body.to_s, "Cancelado"
+  end
+
+  test "cancelled never promises a refund, because the money went back before the status moved" do
+    email = OrderMailer.cancelled(orders(:confirmed_paid))
+
+    [ email.html_part, email.text_part ].each do |part|
+      assert_no_match(/reembols|devolver o valor|estorn/i, part.body.to_s)
+    end
+  end
 end

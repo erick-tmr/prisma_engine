@@ -1,0 +1,11 @@
+<%= t("mailer.greeting", name: @order.user.first_name) %>
+
+<%= t("order_mailer.cancelled.heading") %>
+
+<%= t("order_mailer.cancelled.intro") %>
+
+<%= render "summary", shipping_service: @order.shipment.service_label %>
+
+<%= t("order_mailer.cancelled.cta") %>: <%= products_url %>
+
+<%= t("mailer.signature") %>

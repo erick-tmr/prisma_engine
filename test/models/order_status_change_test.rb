@@ -32,6 +32,18 @@ class OrderStatusChangeTest < ActiveSupport::TestCase
     end
   end
 
+  test "cancelling notifies the customer, whoever cancelled and whether or not they paid" do
+    paid = orders(:confirmed_paid)
+    assert_enqueued_email_with OrderMailer, :cancelled, args: [ paid ] do
+      paid.cancel!(actor: users(:admin))
+    end
+
+    unpaid = orders(:awaiting)
+    assert_enqueued_email_with OrderMailer, :cancelled, args: [ unpaid ] do
+      unpaid.cancel!(automatic: true)
+    end
+  end
+
   test "a non-notifiable status change enqueues nothing" do
     order = orders(:confirmed_paid)
 
