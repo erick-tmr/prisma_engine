@@ -150,6 +150,12 @@ pt-BR:
       heading: "Chegou! Agora é só aproveitar."
       intro: "Seu pedido foi entregue pelos Correios. Esperamos que você aproveite muito cada partida. Qualquer coisa, é só chamar a gente."
       cta: "Ver meus pedidos"
+    cancelled:
+      subject: "Seu pedido %{number} foi cancelado"
+      badge_label: "Cancelado"
+      heading: "Seu pedido foi cancelado."
+      intro: "Sentimos muito que este pedido tenha precisado ser cancelado. Esperamos ver você de volta em breve, e vai ser um prazer lhe atender novamente."
+      cta: "Ver a loja"
     awaiting_return:
       subject: "Como devolver o pedido %{number}"
       badge_label: "Devolução iniciada"

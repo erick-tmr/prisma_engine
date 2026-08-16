@@ -31,6 +31,10 @@ class OrderMailer < ApplicationMailer
     deliver_for(order)
   end
 
+  def cancelled(order)
+    deliver_for(order)
+  end
+
   def returned(order)
     @order = order
     @kind = order.return_shipment ? "expected" : "bounced"
