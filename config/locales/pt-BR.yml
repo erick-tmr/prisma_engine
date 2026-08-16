@@ -154,7 +154,7 @@ pt-BR:
       subject: "Seu pedido %{number} foi cancelado"
       badge_label: "Cancelado"
       heading: "Seu pedido foi cancelado."
-      intro: "Sentimos muito que este pedido tenha precisado ser cancelado. Esperamos ver você de volta em breve, e vai ser um prazer montar o próximo com você."
+      intro: "Sentimos muito que este pedido tenha precisado ser cancelado. Esperamos ver você de volta em breve, e vai ser um prazer lhe atender novamente."
       cta: "Ver a loja"
     awaiting_return:
       subject: "Como devolver o pedido %{number}"
