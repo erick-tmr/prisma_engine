@@ -325,16 +325,61 @@ the live database), then the final command drops the throwaway.
 ## One-off data scripts
 
 Some changes need production rows moved before the code that stops understanding them
-ships. These live in `deploy/`, open an SSH tunnel to the VPS's localhost Postgres and run
-`bin/rails runner` against it, exactly like `deploy/seed-prod-catalog.sh`. They read
+ships: a status is retired, a column changes meaning, a backfill has to land ahead of a
+deploy. Those get a throwaway script under `deploy/` that opens an SSH tunnel to the VPS's
+localhost Postgres and runs `bin/rails runner` against it, reading
 `PRODUCTION_LOG_HOST/USER/SSH_PORT` and `PRISMA_ENGINE_DATABASE_PASSWORD` from `.env`.
 
-- `deploy/seed-prod-catalog.sh`: bootstrap the initial catalog + hero banner images into
-  the prod R2 bucket. Runbook: `docs/seeding-images.md`.
-- `deploy/retire-awaiting-refund.sh`: move every order still parked in the retired
-  `awaiting_refund` status to `cancelled`, writing the matching `order_status_changes` row.
-  **Run it before deploying the backoffice-only-cancellation change**, so no order sits in
-  a status the running code has no label for. Idempotent: a second run matches zero rows.
+**There are none right now, and that is the intended resting state.** Two have existed:
+`seed-prod-catalog.sh` bootstrapped the catalog into R2, and `retire-awaiting-refund.sh`
+emptied the retired `awaiting_refund` status. Both ran, and both were deleted the moment
+they had. A script that only ever needed to run once, and has, is a loaded gun in the
+repo: nothing about it tells the next reader it is spent, and the obvious thing to do with
+a script is run it. `git log` keeps them if anyone ever needs to read one back.
+
+When you write the next one, these are not optional.
+
+**Guard the tunnel.** `ssh -L` binds a port on *your* machine, and the tunnel is the only
+thing that makes that port mean production. A local collision (a second project's Postgres
+is enough) means the forward never opens, and plain `ssh -N` does not exit on that
+failure: it stays alive looking healthy while Rails connects to whatever else holds the
+port, using production credentials. That nearly turned a status migration into an `UPDATE`
+against an unrelated database; only a password mismatch stopped it.
+
+```sh
+LOCAL_PORT="${TUNNEL_LOCAL_PORT:-5455}"   # not 5433, the conventional second-Postgres port
+
+# 1. refuse to start if something already holds the port
+if (exec 3<>"/dev/tcp/127.0.0.1/${LOCAL_PORT}") 2>/dev/null; then
+  exec 3>&- 3<&-
+  echo "127.0.0.1:${LOCAL_PORT} is in use; the tunnel would not bind. Set TUNNEL_LOCAL_PORT." >&2
+  exit 1
+fi
+
+# 2. make ssh die on a failed forward instead of pretending, and check it stays alive
+ssh -N -o ExitOnForwardFailure=yes -L "${LOCAL_PORT}:127.0.0.1:5432" root@"${SSH_HOST}" &
+TUNNEL_PID=$!
+trap 'kill "${TUNNEL_PID}" 2>/dev/null || true' EXIT
+```
+
+```ruby
+# 3. and never write until the database has told you its own name
+expected = "prisma_engine_production"
+actual = ActiveRecord::Base.connection.select_value("SELECT current_database()")
+abort "refusing to write: connected to #{actual.inspect}" unless actual == expected
+```
+
+**Say what the rows will become, not just which rows.** Run a read-only pass first, from
+the same script and the same tunnel, with `SELECT` in place of the write. That is what
+turns "two orders, I think" into a list you can check. State the target value out loud
+before writing it: naming the affected rows is not the same as naming what they turn into,
+and the difference between those two is how the wrong status reaches real orders.
+
+**Make it idempotent.** Print what was found before touching anything, and make a second
+run a no-op rather than a double-apply. Prefer raw SQL over model callbacks: the script has
+to behave the same whether the checkout it runs from still understands the old data or
+not, which is exactly the situation it exists for, and raw SQL will not fire an
+`after_create_commit` that e-mails every affected customer.
 
 ## Production logs
 
