@@ -32,7 +32,8 @@ Rails.application.configure do
   # Store uploaded files on Cloudflare R2 (dev bucket, see config/storage.yml).
   config.active_storage.service = :r2
   config.x.r2_bucket = "prisma-games-dev"
-  config.x.r2_public_host = "https://pub-6fee6d1065884c79a5604e01ec06142c.r2.dev"
+  config.x.r2_endpoint = "https://61c3cb00c5c14e2bbbc5a63af36e904d.r2.cloudflarestorage.com"
+  config.x.r2_public_host = "https://pub-0091a86174474268ae5e5d4c32e2f76e.r2.dev"
 
   # Run Active Job through Solid Queue locally (mirrors production) so the
   # recurring scheduler in config/recurring.yml fires the Correios tracking poll
