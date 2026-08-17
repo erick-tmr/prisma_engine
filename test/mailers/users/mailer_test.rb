@@ -78,5 +78,15 @@ module Users
       assert_includes html_body, "Sua senha foi alterada com sucesso."
       assert_includes text_body, "Sua senha foi alterada com sucesso."
     end
+
+    test "devise mail carries the brand name, not a bare address, in the inbox list" do
+      ActionMailer::Base.deliveries.clear
+      users(:unconfirmed).send_confirmation_instructions
+
+      email = ActionMailer::Base.deliveries.last
+
+      assert_equal "Prisma Games <no-reply@prismagames.com.br>", email[:from].value
+      assert_equal ApplicationMailer.default[:from], email[:from].value
+    end
   end
 end

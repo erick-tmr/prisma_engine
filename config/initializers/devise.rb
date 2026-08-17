@@ -24,7 +24,7 @@ Devise.setup do |config|
   # with default "from" parameter.
   # Transactional address customers should not reply to. Replies are funnelled
   # to a real inbox via the help footer rendered by the mailer layout.
-  config.mailer_sender = "no-reply@prismagames.com.br"
+  config.mailer_sender = "Prisma Games <no-reply@prismagames.com.br>"
 
   # Subclass applies our `mailer.html.erb` layout so every Devise email carries
   # the help-footer (support address) without overriding the gem's message bodies.

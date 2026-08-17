@@ -2,9 +2,12 @@ module Middleware
   class Maintenance
     RETRY_AFTER = "600".freeze
 
-    def initialize(app, page_path:, allowed_ips: [], passthrough: [])
+    IMAGE_HOST_PLACEHOLDER = "{{IMAGE_HOST}}".freeze
+
+    def initialize(app, page_path:, image_host:, allowed_ips: [], passthrough: [])
       @app = app
       @page_path = page_path
+      @image_host = image_host.to_s.chomp("/")
       @allowed_ips = allowed_ips
       @passthrough = passthrough
     end
@@ -40,7 +43,7 @@ module Middleware
     end
 
     def page
-      @page ||= File.read(@page_path)
+      @page ||= File.read(@page_path).gsub(IMAGE_HOST_PLACEHOLDER, @image_host)
     end
   end
 end
