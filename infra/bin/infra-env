@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/../.." && pwd)"
 bw_item="${BW_ITEM:-prisma-engine-prod}"
 
 for dep in bw jq; do
@@ -26,7 +25,7 @@ PRISMA_ENGINE_DATABASE_PASSWORD="$(bw_field PRISMA_ENGINE_DATABASE_PASSWORD)"
 HC_PING_URL="$(bw_field HC_PING_URL)"
 R2_BACKUP_ACCESS_KEY_ID="$(bw_field R2_BACKUP_ACCESS_KEY_ID)"
 R2_BACKUP_SECRET_ACCESS_KEY="$(bw_field R2_BACKUP_SECRET_ACCESS_KEY)"
-R2_ENDPOINT="$(awk -F'endpoint:[[:space:]]*' '/^[[:space:]]*endpoint:/{print $2; exit}' "$repo_root/config/storage.yml")"
+R2_ENDPOINT="$(bw_field R2_ENDPOINT)"
 export PRISMA_ENGINE_DATABASE_PASSWORD HC_PING_URL \
   R2_BACKUP_ACCESS_KEY_ID R2_BACKUP_SECRET_ACCESS_KEY R2_ENDPOINT
 

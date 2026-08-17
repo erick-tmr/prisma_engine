@@ -24,10 +24,15 @@ module Emails
       assert(requests.all? { |req| req[:params][:body] == "png-bytes" })
     end
 
-    test "r2_client builds an S3 client pointed at the R2 endpoint" do
-      client = AssetUploader.r2_client(access_key_id: "ak", secret_access_key: "sk")
+    test "r2_client builds an S3 client pointed at the given R2 endpoint" do
+      client = AssetUploader.r2_client(
+        access_key_id: "ak",
+        secret_access_key: "sk",
+        endpoint: "https://acct.r2.cloudflarestorage.com"
+      )
 
       assert_kind_of Aws::S3::Client, client
+      assert_equal "https://acct.r2.cloudflarestorage.com", client.config.endpoint.to_s
     end
   end
 end

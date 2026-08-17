@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Manutenção | Prisma Games</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<meta name="theme-color" content="#111214">
+<style>
+:root{--pg-ink:#1a1d21;--pg-muted:#6b7280;--pg-faint:#9aa0a6;--pg-border:#e5e7eb;--pg-bg:#f6f7f8;--pg-primary:#007bff;--pg-green:#0f9d58;--pg-whatsapp:#25D366;--rainbow:linear-gradient(90deg,#b80a41 0%,#daac06 33%,#00938a 66%,#4e4ba8 100%);--rainbow-v:linear-gradient(180deg,#b80a41 0%,#daac06 34%,#00938a 67%,#4e4ba8 100%);--card-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{min-height:100vh;background:var(--pg-bg);color:var(--pg-ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+a{color:var(--pg-primary)}
+a:hover{color:#0062cc}
+.strip{height:4px;background:var(--rainbow);flex-shrink:0}
+.wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 20px 40px}
+.card{width:100%;max-width:620px;background:#fff;border:1px solid var(--pg-border);border-radius:18px;box-shadow:var(--card-shadow);overflow:hidden;position:relative}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--rainbow-v)}
+.body{padding:40px 44px 34px;text-align:center}
+.logo{display:block;height:44px;width:auto;margin:0 auto 30px}
+.art{width:112px;height:112px;margin:0 auto 24px;position:relative;display:flex;align-items:center;justify-content:center}
+.art img{width:100%;height:100%;image-rendering:pixelated;display:block;position:relative;z-index:1}
+.art::after{content:"";position:absolute;width:86px;height:86px;border-radius:50%;background:#fdecea;z-index:0}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-muted);margin-bottom:14px}
+.eyebrow svg{width:13px;height:13px}
+h1{margin:0 0 12px;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.025em}
+.lead{margin:0 auto 26px;font-size:15.5px;line-height:1.62;color:var(--pg-muted);max-width:440px;text-wrap:pretty}
+.lead b{color:var(--pg-ink);font-weight:600}
+.bar{height:10px;border-radius:999px;background:#eef0f2;border:1px solid var(--pg-border);overflow:hidden;max-width:300px;margin:0 auto 26px}
+.bar span{display:block;height:100%;width:38%;background:var(--rainbow);background-size:220% 100%;border-radius:999px;animation:slide 1.9s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(300%)}}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 22px;border:0;border-radius:11px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:filter .16s,background .16s}
+.btn:hover{filter:brightness(.95)}
+.btn-primary{background:var(--pg-ink);color:#fff}
+.btn-wa{background:var(--pg-whatsapp);color:#0b2e18}
+.btn svg{width:17px;height:17px;flex-shrink:0}
+.safe{display:flex;align-items:flex-start;gap:11px;text-align:left;background:#f4fbf6;border:1px solid #cfe9d9;border-radius:12px;padding:13px 15px;font-size:13.5px;line-height:1.55;color:#2c5c43}
+.safe svg{width:17px;height:17px;color:var(--pg-green);flex-shrink:0;margin-top:2px}
+.safe b{font-weight:700}
+.foot{border-top:1px solid var(--pg-border);background:#fafbfc;padding:15px 44px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--pg-faint)}
+.foot .auto{display:inline-flex;align-items:center;gap:7px}
+.foot .dot{width:7px;height:7px;border-radius:50%;background:var(--pg-green);position:relative}
+.foot .dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--pg-green);animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.6);opacity:0}}
+.foot .tnum{font-variant-numeric:tabular-nums;font-weight:600;color:var(--pg-muted)}
+@media (max-width:575.98px){.body{padding:32px 24px 28px}.foot{padding:14px 24px}h1{font-size:27px}.lead{font-size:14.5px}.btn{width:100%}}
+@media (prefers-reduced-motion:reduce){.bar span,.foot .dot::after{animation:none}}
+</style>
+</head>
+<body>
+<div class="strip"></div>
+<div class="wrap">
+  <main class="card">
+    <div class="body">
+      <img class="logo" src="/images/prisma-games-logo.png" alt="Prisma Games" width="120" height="44">
+      <div class="art"><img src="/images/maintenance-guard.png" alt="" width="112" height="112"></div>
+
+      <div class="eyebrow">
+        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <defs><linearGradient id="pg-rainbow" x1="0" y1="0" x2="16" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#b80a41"/><stop offset=".33" stop-color="#daac06"/>
+            <stop offset=".66" stop-color="#00938a"/><stop offset="1" stop-color="#4e4ba8"/>
+          </linearGradient></defs>
+          <path fill="url(#pg-rainbow)" d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3q0-.405-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814zm9.646 10.646a.5.5 0 0 1 .708 0l2.914 2.915a.5.5 0 0 1-.707.707l-2.915-2.914a.5.5 0 0 1 0-.708M3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>
+        </svg>
+        Manutenção em andamento
+      </div>
+
+      <h1>Voltamos já!</h1>
+      <p class="lead">A loja está temporariamente fora do ar enquanto fazemos uma <b>manutenção nos nossos sistemas</b>. Tente novamente mais tarde.</p>
+      <div class="bar"><span></span></div>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="button" id="retry">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+          </svg>
+          Tentar novamente
+        </button>
+        <a class="btn btn-wa" href="https://wa.me/5535920001100" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+            <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+          </svg>
+          Falar no WhatsApp
+        </a>
+      </div>
+
+      <div class="safe">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533q.18.085.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025q.114-.034.294-.118c.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
+          <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+        </svg>
+        <div><b>Seus pedidos e seus dados estão seguros.</b> Nada foi perdido: tudo continua exatamente como estava quando a loja voltar.</div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="auto"><span class="dot"></span> Esta página se atualiza sozinha em <span class="tnum" id="cd">05:00</span></span>
+      <span>Prisma Games · Cartuchos de Game Boy feitos no Brasil</span>
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  var left = 300, el = document.getElementById("cd");
+  function draw() {
+    var m = Math.floor(left / 60), s = left % 60;
+    el.textContent = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  }
+  draw();
+  setInterval(function () {
+    left--;
+    if (left <= 0) { location.reload(); return; }
+    draw();
+  }, 1000);
+  document.getElementById("retry").addEventListener("click", function () { location.reload(); });
+})();
+</script>
+</body>
+</html>

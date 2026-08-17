@@ -51,7 +51,9 @@ environment (all custom fields on that item, except the R2 endpoint):
 - `R2_BACKUP_ACCESS_KEY_ID` / `R2_BACKUP_SECRET_ACCESS_KEY` → the **dedicated** R2 API
   token scoped to the backup bucket (kept separate from the app's Active Storage
   token) → `/root/.config/rclone/rclone.conf`.
-- `R2_ENDPOINT` is read from `config/storage.yml` (same account, not a secret).
+- `R2_ENDPOINT` → the S3 endpoint of the Cloudflare account holding the backup bucket.
+  A field on the same item (not a secret, but it carries the account id, and backups can
+  live in a different account from the app's Active Storage buckets).
 
 ```bash
 source infra/bin/infra-env      # for real runs only

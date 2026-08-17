@@ -9,7 +9,9 @@ set -Eeuo pipefail
 #
 # Runs entirely locally over the S3 API (no SSH). Reads a Cloudflare R2 API token
 # from .env: PROD_R2_ACCESS_KEY_ID + PROD_R2_SECRET_ACCESS_KEY (scoped to the prod
-# bucket, Object Read & Write). The dragon art under public/images/emails/ is
+# bucket, Object Read & Write) plus PROD_R2_ENDPOINT, which carries the Cloudflare
+# account id of whichever account holds prisma-games-prod. The dragon art under
+# public/images/emails/ is
 # gitignored (served from R2, never from the repo), so it must be present in THIS
 # local checkout for the upload to read. dotenv loads .env at boot, so
 # `rails runner` sees the vars; the prod bucket + creds are passed explicitly, so
@@ -21,7 +23,8 @@ cd "$(dirname "$0")/.."
 exec bin/rails runner '
   client = Emails::AssetUploader.r2_client(
     access_key_id: ENV.fetch("PROD_R2_ACCESS_KEY_ID"),
-    secret_access_key: ENV.fetch("PROD_R2_SECRET_ACCESS_KEY")
+    secret_access_key: ENV.fetch("PROD_R2_SECRET_ACCESS_KEY"),
+    endpoint: ENV.fetch("PROD_R2_ENDPOINT")
   )
   keys = Emails::AssetUploader.new(client: client, bucket: "prisma-games-prod").call
   puts "uploaded #{keys.join(%q(, ))} -> prisma-games-prod"

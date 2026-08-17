@@ -29,6 +29,7 @@ Rails.application.configure do
   # audit) can fall back to the local Disk service.
   config.active_storage.service = (ENV["ACTIVE_STORAGE_SERVICE"].presence || "r2").to_sym
   config.x.r2_bucket = "prisma-games-prod"
+  config.x.r2_endpoint = "https://ebd6066b8c5c56f2942edd6b4267b706.r2.cloudflarestorage.com"
   config.x.r2_public_host = "https://cdn.prismagames.com.br"
   config.x.cdn_image_transforms = true
 

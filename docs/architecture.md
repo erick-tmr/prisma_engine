@@ -273,21 +273,24 @@ and the Cloudflare CDN in front of a public bucket is the cost shield.
 - The CSP `img_src` adds the configured public host only when set
   (`config.x.r2_public_host`, read in `content_security_policy.rb`).
 - Bucket, endpoint, and public host are committed per environment
-  (`config/environments/{development,production}.rb` + `config/storage.yml`, which hardcodes
-  the shared account endpoint). The API token is read from credentials
+  (`config/environments/{development,production}.rb`; `config/storage.yml` reads all three
+  from `config.x`). The endpoint carries the Cloudflare account id, so development and
+  production can sit in different accounts. The API token is read from credentials
   (`r2.access_key_id` / `r2.secret_access_key`): the dev token lives in the default vault,
   the production token in `config/credentials/production.yml.enc`.
 
-**On Cloudflare (dashboard/Terraform, once per environment):**
+**On Cloudflare (dashboard, once per environment):** create the bucket (Location Hint
+ENAM), then for production bind the custom domain (`cdn.prismagames.com.br`) and leave
+the `r2.dev` URL disabled so all traffic flows through the cache and WAF; development
+uses the `r2.dev` URL instead. The live configuration of every bucket and of the zone is
+recorded in `docs/cloudflare/inventory.md`, captured from the API by
+`deploy/cf-inventory.sh`; read that rather than inferring it from here.
 
-- Create the bucket (set a Location Hint), enable public access, bind the custom domain
-  (`cdn.prismagames.com.br`), and disable the `r2.dev` URL so all traffic flows through
-  the cache and WAF.
-- Set a CORS policy (allowed origin = the storefront domain).
-- Cache Rule: long edge TTL and **ignore the query string** in the cache key (kills
-  `?x=random` cache-busting).
-- Rate Limiting Rule (per IP) on the `cdn.` host, Hotlink protection (Referer), Bot Fight
-  Mode, brief caching of 404s, and a billing/usage alert.
+No CORS policy is set on any bucket and none is needed: there are no Active Storage
+direct uploads, images load through plain `<img>`, and fonts are self-hosted. Edge rules
+in front of `cdn.` are a separate matter from this section: do not infer them from prose
+here or anywhere else in this repository, which is public. Run `deploy/cf-inventory.sh`
+and read the capture.
 
 **Cutover (greenfield, no live data):** point production at `:r2`, then copy the existing
 blobs to the bucket with:
@@ -574,7 +577,7 @@ The PSP's native antifraud handles 95% of cases (InfinitePay). Add:
 
 Small niche stores get press features, influencer mentions, holiday sales, and with them sudden 100x traffic spikes. The same edge that absorbs them also absorbs DDoS / scraper / credential-stuffing waves, so configure it for both at once.
 
-- **Cloudflare configured to absorb the spike, not just route it.** Bot Fight Mode + Managed Challenge on traffic anomalies; edge rate-limit rules on `/carrinho`, the checkout endpoints, and every webhook URL; the free-tier WAF Managed Rules (OWASP basics) on; a geo rule scoping traffic to **BR** (the audience is Brazil-only, so foreign-IP storms are abuse by default; allowlist any partner CIDR explicitly). L3/L4/L7 DDoS protection is always-on on the free plan; **Under Attack Mode** is a one-toggle escalation when a real wave hits. Treat Cloudflare config as code: keep a snapshot in the repo (`docs/cloudflare/`) so a rebuild is reproducible.
+- **Cloudflare configured to absorb the spike, not just route it.** The toolkit is Bot Fight Mode, the free-tier WAF Managed Rules (OWASP basics), always-on L3/L4/L7 DDoS protection, Managed Challenge on traffic anomalies, edge rate limits on the cart, checkout and webhook paths, and a geo rule scoping traffic to **BR** (the audience is Brazil-only, so foreign-IP storms are abuse by default; allowlist any partner CIDR explicitly). **Under Attack Mode** is a one-toggle escalation when a real wave hits. Which of these are currently switched on is **not recorded in this repository**, which is public: `deploy/cf-inventory.sh` captures the account read-only and writes to gitignored output. Read that, and treat any prose here as intent rather than state.
 - Page caching for product pages (Rails fragment caching + CDN)
 - Background jobs for non-critical work
 - Tuned database connection pooling
