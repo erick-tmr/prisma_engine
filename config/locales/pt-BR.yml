@@ -850,6 +850,9 @@ pt-BR:
         cpf: "CPF %{value}"
         since: "Cliente desde %{date}"
         account_created: "Conta criada em %{date}"
+        whatsapp:
+          label: "WhatsApp"
+          title: "Abrir a conversa com %{name} no WhatsApp"
         badge:
           clear: "Perguntas liberadas"
           served:

@@ -8,6 +8,12 @@ module Admin
       assert_equal "active", ClientPresenter.new(users(:confirmed)).situation
     end
 
+    test "the whatsapp link carries the client mobile, and is absent without one" do
+      assert_equal "https://web.whatsapp.com/send?phone=5511991112222",
+                   ClientPresenter.new(users(:buyer)).whatsapp_url
+      assert_nil ClientPresenter.new(users(:unconfirmed)).whatsapp_url
+    end
+
     test "the reference pads the id to four digits" do
       client = users(:buyer)
       assert_equal format("%04d", client.id), ClientPresenter.new(client).reference

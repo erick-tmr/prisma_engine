@@ -14,6 +14,21 @@ class PhonesTest < ActiveSupport::TestCase
     assert_nil Phones.e164(nil)
   end
 
+  test "whatsapp_url points the click-to-chat link at the number with its country code" do
+    assert_equal "https://web.whatsapp.com/send?phone=5511968188483",
+                 Phones.whatsapp_url("(11) 96818-8483")
+  end
+
+  test "whatsapp_url refuses a landline, which can hold no WhatsApp account" do
+    assert_nil Phones.whatsapp_url("(11) 3333-4444")
+  end
+
+  test "whatsapp_url refuses a phone it cannot read as Brazilian" do
+    assert_nil Phones.whatsapp_url("99942-4875")
+    assert_nil Phones.whatsapp_url("")
+    assert_nil Phones.whatsapp_url(nil)
+  end
+
   test "e164 accepts a landline" do
     assert_equal "+551133334444", Phones.e164("(11) 3333-4444")
   end

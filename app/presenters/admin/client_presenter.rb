@@ -17,6 +17,10 @@ module Admin
       "active"
     end
 
+    def whatsapp_url
+      Phones.whatsapp_url(phone)
+    end
+
     def avatar_tint_index
       AvatarTint.index_for(full_name)
     end
