@@ -120,7 +120,6 @@ orders.each_with_index do |(customer_index, status, days_ago, total_cents, quant
   shipping_cents = 2990
   order.assign_attributes(
     user: user,
-    number: "PG-#{placed_at.strftime('%Y%m%d')}#{format('%04d', index + 1)}",
     status: status,
     subtotal_cents: total_cents - shipping_cents,
     total_cents: total_cents,
@@ -242,6 +241,73 @@ if File.exist?(sample_label_path)
     )
   end
 end
+
+expired_specs = [
+  [ 3,  "sedex",       1, 64_900 ],
+  [ 5,  "pac",         2, 88_400 ],
+  [ 10, "mini_envios", 1, 39_900 ]
+]
+
+expired_numbers = expired_specs.each_with_index.map do |(customer_index, service, quantity, total_cents), index|
+  sequence = index + 1
+  expired_order = Order.find_or_initialize_by(external_id: "demo-order-expired-label-#{sequence}")
+  next expired_order.number unless expired_order.new_record?
+
+  user, city, address = customer_records[customer_index]
+  placed_at = Time.current - (20 + index).days
+  emitted_at = placed_at + 1.day
+  expiry_at = emitted_at + 14.days
+  shipping_cents = 2990
+
+  expired_order.assign_attributes(
+    user: user, status: "label_issued",
+    subtotal_cents: total_cents - shipping_cents, total_cents: total_cents,
+    payment_method: "pix", created_at: placed_at, updated_at: placed_at
+  )
+  expired_order.order_items.build(
+    name: "Cartucho reproduzido Prisma, etiqueta expirada #{sequence}",
+    unit_price_cents: (total_cents - shipping_cents) / quantity, quantity: quantity
+  )
+  expired_order.build_shipment(
+    service: service, shipping_cents: shipping_cents,
+    weight_grams: quantity * cartridge_weight_grams + Shipping::PACKAGE_OVERHEAD_GRAMS,
+    height_cm: Shipping::PACKAGE_DIMENSIONS.fetch(:altura_cm),
+    width_cm: Shipping::PACKAGE_DIMENSIONS.fetch(:largura_cm),
+    length_cm: Shipping::PACKAGE_DIMENSIONS.fetch(:comprimento_cm),
+    receiver_name: user.full_name, receiver_cpf: user.cpf,
+    zip: address.fetch(:zip), street: address.fetch(:street), number: format("%03d", 900 + sequence),
+    neighborhood: address.fetch(:neighborhood), city: city, state: address.fetch(:state),
+    tracking_code: format("OU9000009%02dBR", sequence),
+    pre_post_id: "PRdemoExpiredLabel000#{sequence}",
+    requested_at: emitted_at, posting_deadline: expiry_at,
+    created_at: placed_at, updated_at: placed_at
+  )
+  expired_order.save!
+
+  expired_shipment = expired_order.shipment
+  expired_shipment.expire_prepost(label: "Etiqueta expirada", at: expiry_at)
+  expired_shipment.update!(last_tracking_status: "Etiqueta expirada", last_tracked_at: expiry_at)
+
+  [
+    [ emitted_at, "FC", "82", "Etiqueta emitida", "Aguardando postagem pelo remetente" ],
+    [ expiry_at,  "FC", "83", "Etiqueta expirada", "Prazo para postagem encerrado" ]
+  ].each_with_index do |(occurred_at, code, type, description, detalhe), position|
+    expired_shipment.tracking_events.create!(
+      position: position, tracking_code: expired_shipment.tracking_code,
+      event_code: code, event_type: type, description: description, occurred_at: occurred_at,
+      payload: { "codigo" => code, "tipo" => type, "descricao" => description, "detalhe" => detalhe }.compact
+    )
+  end
+
+  expired_shipment.create_shipping_label!(
+    state: :ready, recibo_id: "demo-recibo-#{expired_order.number}",
+    filename: "etiqueta-#{expired_order.number}.pdf", pdf_base64: sample_label
+  )
+
+  expired_order.number
+end
+
+puts "Expired label demo: #{expired_numbers.join(', ')} on label_issued, pré-postagem expirada."
 
 # Dev-only backoffice operator so /admin is reachable locally.
 # Sign in at /admin/entrar with backoffice@prismagames.dev / backoffice123.
