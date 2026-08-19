@@ -49,6 +49,54 @@ class AdminOrdersListTest < ApplicationSystemTestCase
     assert_selector "tr[data-order]", minimum: 2
   end
 
+  test "an operator filters the list down to the labels that expired" do
+    expired = orders(:labeled)
+    expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+    expired.shipment.save!
+    healthy = orders(:shipped_order)
+    healthy.update_column(:status, "label_issued")
+
+    visit admin_root_path
+    assert_selector "tr[data-order]", minimum: 2
+
+    find("#status-trigger").click
+    find(%([data-st="label_expired"])).click
+
+    assert_current_path(/status(%5B%5D|\[\])=label_expired/)
+    assert_selector "#orders-count", text: "1 pedido"
+    assert_selector %(tr[data-order="#{expired.number}"][data-label-expired="true"])
+    assert_no_selector %(tr[data-order="#{healthy.number}"])
+  end
+
+  test "the expired filter names itself on the trigger and survives a fresh load" do
+    expired = orders(:labeled)
+    expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+    expired.shipment.save!
+
+    visit "#{admin_root_path}?status%5B%5D=label_expired"
+
+    assert_selector "#status-trigger .val", text: "Etiqueta expirada"
+    assert_selector %(tr[data-order="#{expired.number}"])
+
+    find("#status-trigger").click
+    assert_selector %([data-st="label_expired"].sel)
+  end
+
+  test "expired labels filtered out of the list can be batched into a new emission" do
+    expired = orders(:labeled)
+    expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+    expired.shipment.save!
+
+    visit "#{admin_root_path}?status%5B%5D=label_expired"
+    assert_selector %(tr[data-order="#{expired.number}"])
+
+    find(%([data-check="#{expired.number}"])).click
+
+    assert_selector "#bulkbar", visible: true
+    assert_selector "#bulk-n", text: "1"
+    assert_selector %([data-act="issue_label"] .cnt), text: "1"
+  end
+
   test "selecting rows drives the bulk bar" do
     visit admin_root_path
 

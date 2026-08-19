@@ -22,11 +22,15 @@ module Admin
     end
 
     def issue_labels
-      eligible = orders.select(&:in_production?)
-      Shipping::EmitLabelsJob.perform_later(eligible.map(&:id)) if eligible.any?
-      orders.map { |order| order.in_production? ? result_for(order, "queued") : result_for(order, "skipped", "not_available") }
+      emitting = orders.in_production.ids
+      reissuing = orders.label_reissuable.ids
+      Shipping::EmitLabelsJob.perform_later(emitting) if emitting.any?
+      Shipping::ReissueLabelsJob.perform_later(reissuing) if reissuing.any?
+      queued = (emitting + reissuing).to_set
+      orders.map do |order|
+        queued.include?(order.id) ? result_for(order, "queued") : result_for(order, "skipped", "not_available")
+      end
     end
-
 
     def transition_all
       action = OrderActions.lookup(@event)

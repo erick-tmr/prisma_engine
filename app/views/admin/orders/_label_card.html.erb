@@ -21,6 +21,9 @@
       <i class="bi bi-clock-history"></i> <%= t("admin.orders.detail.label.expired_title") %>
     </div>
     <div class="ap-sub"><%= t("admin.orders.detail.label.expired_sub") %></div>
+    <button type="button" class="ap-retry" data-retry-url="<%= admin_reissue_label_path(feedback.number) %>">
+      <i class="bi bi-arrow-clockwise"></i> <%= t("admin.orders.detail.label.reissue") %>
+    </button>
   </div>
 <% when "failed" %>
   <div class="act-proc is-err">

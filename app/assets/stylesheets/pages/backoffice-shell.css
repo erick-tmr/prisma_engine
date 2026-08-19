@@ -259,6 +259,7 @@ body {
 .dotc-returned { background: #b9650a; }
 .dotc-cancelled { background: #9aa0a8; }
 .dotc-merged { background: #64748b; }
+.dotc-label_expired { background: #7c2d12; }
 
 /* mobile sidebar */
 #menu-toggle { display: none; }

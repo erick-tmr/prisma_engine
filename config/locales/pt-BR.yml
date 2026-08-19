@@ -648,6 +648,7 @@ pt-BR:
           period_clear: "Limpar período"
           status: "Status"
           status_all: "Todos os status"
+          label_expired: "Etiqueta expirada"
           status_clear: "Limpar"
           status_apply: "Aplicar"
           clear: "Limpar filtros"
@@ -1007,6 +1008,7 @@ pt-BR:
           failed_sub_html: "%{error}. O pedido continua em <b>Em produção</b>, nada foi cobrado nem duplicado."
           expired_title: "A etiqueta expirou nos Correios"
           expired_sub: "A pré-postagem venceu sem que o pacote fosse postado, e este código de rastreio não vale mais. Emita uma nova etiqueta para despachar: os Correios cobram um novo rótulo."
+          reissue: "Emitir nova etiqueta"
           retry: "Tentar novamente"
       states:
         awaiting_payment:

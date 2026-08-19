@@ -1,6 +1,7 @@
 <%# locals: (order:) %>
 <% feedback = Admin::LabelFeedback.new(order) %>
-<tr data-order="<%= order.number %>" data-status="<%= order.status %>"<%= " class=\"is-busy\"".html_safe if feedback.in_flight? %>>
+<tr data-order="<%= order.number %>" data-status="<%= order.status %>"
+    <%= 'data-label-expired="true"'.html_safe if feedback.expired? %><%= " class=\"is-busy\"".html_safe if feedback.in_flight? %>>
   <% if order.merged? %>
     <td class="checkcol"></td>
   <% else %>

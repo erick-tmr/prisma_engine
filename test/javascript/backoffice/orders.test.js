@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ACTIONS, BATCH_HOLD_MS, BATCH_KEY, BULK_THROTTLE_MS, availableActions, batchProgress, bulkChipsHtml,
   bulkFormBody, bulkToastMessage, confirmText, csrfHeader, escapeHtml, initOrders, partitionThrottled,
-  plural, readBatch, readSettledAt, skippedLabelsMessage, stampSettled, tallyOutcomes, throttleKey,
+  plural, printableSelected, bulkTargets, readBatch, readSettledAt, skippedLabelsMessage, stampSettled,
+  tallyOutcomes, throttleKey,
   throttledMessage, writeBatch, BATCH_TTL_MS
 } from "../../../app/javascript/backoffice/orders.js";
 import { POLL_STEPS } from "../../../app/javascript/backoffice/label_feedback.js";
@@ -14,8 +15,8 @@ const type = (el, value) => {
   el.dispatchEvent(new window.Event("input", { bubbles: true }));
 };
 
-const row = (number, status, corState = "idle") => `
-  <tr data-order="${number}" data-status="${status}"${corState === "queued" || corState === "running" ? ' class="is-busy"' : ""}>
+const row = (number, status, corState = "idle", expired = false) => `
+  <tr data-order="${number}" data-status="${status}"${expired ? ' data-label-expired="true"' : ""}${corState === "queued" || corState === "running" ? ' class="is-busy"' : ""}>
     ${status === "merged" ? '<td class="checkcol"></td>'
       : `<td class="checkcol"><span class="rowcheck" data-check="${number}" role="checkbox"></span></td>`}
     <td><a class="cell-link" href="/admin/pedidos/${number}">${number}</a></td>
@@ -140,6 +141,15 @@ describe("pure helpers", () => {
     expect(availableActions([ "delivered" ])).toEqual([]);
   });
 
+  it("counts expired labels into the emission chip on top of the in-production ones", () => {
+    const act = (id) => ACTIONS.find((a) => a.id === id);
+
+    expect(availableActions([ "in_production" ], { issue_label: 2 }))
+      .toEqual(expect.arrayContaining([ { action: act("issue_label"), count: 3 } ]));
+    expect(availableActions([ "label_issued" ], { issue_label: 1 }))
+      .toEqual(expect.arrayContaining([ { action: act("issue_label"), count: 1 } ]));
+  });
+
 
 
 
@@ -229,6 +239,29 @@ describe("selection", () => {
     click(document.querySelector('[data-check="PG-1"]'));
 
     expect(document.querySelector("#o-checkall").classList.contains("ind")).toBe(true);
+  });
+
+  it("offers emission for a selected expired label, and none for a healthy one", () => {
+    start(row("PG-EXP", "label_issued", "idle", true) + row("PG-OK", "label_issued"));
+
+    click(document.querySelector('[data-check="PG-EXP"]'));
+    const chips = document.querySelector("#bulk-actions").innerHTML;
+    expect(chips).toContain('data-act="issue_label"');
+    expect(chips).toContain('<span class="cnt">1</span>');
+
+    click(document.querySelector('[data-check="PG-EXP"]'));
+    click(document.querySelector('[data-check="PG-OK"]'));
+    expect(document.querySelector("#bulk-actions").innerHTML).not.toContain('data-act="issue_label"');
+  });
+
+  it("hides bulk print when the only selected label is a void one", () => {
+    start(row("PG-EXP", "label_issued", "idle", true) + row("PG-OK", "label_issued"));
+
+    click(document.querySelector('[data-check="PG-EXP"]'));
+    expect(document.querySelector("#bulk-print").hidden).toBe(true);
+
+    click(document.querySelector('[data-check="PG-OK"]'));
+    expect(document.querySelector("#bulk-print").hidden).toBe(false);
   });
 
   it("remembers a selection whose row has left the page", async () => {
@@ -929,5 +962,37 @@ describe("Correios feedback across a table reload", () => {
 
     expect(readBatch(window.sessionStorage).size).toBe(1);
     expect(document.querySelector('[data-part="procbar"]').hidden).toBe(false);
+  });
+});
+
+describe("bulkTargets", () => {
+  const issue = ACTIONS.find((a) => a.id === "issue_label");
+  const cancel = ACTIONS.find((a) => a.id === "cancel");
+
+  it("takes in-production orders and expired ones together", () => {
+    const entries = [ [ "PG-1", "in_production" ], [ "PG-2", "label_issued" ], [ "PG-3", "label_issued" ] ];
+
+    expect(bulkTargets(issue, entries, new Set([ "PG-2" ]))).toEqual([ "PG-1", "PG-2" ]);
+  });
+
+  it("leaves a healthy label_issued order out, so no rotulo is bought twice", () => {
+    const entries = [ [ "PG-9", "label_issued" ] ];
+
+    expect(bulkTargets(issue, entries, new Set())).toEqual([]);
+  });
+
+  it("does not let expiry widen any action other than emission", () => {
+    const entries = [ [ "PG-4", "label_issued" ] ];
+
+    expect(bulkTargets(cancel, entries, new Set([ "PG-4" ]))).toEqual([ "PG-4" ]);
+    expect(bulkTargets({ id: "flag_issue", from: [ "in_production" ] }, entries, new Set([ "PG-4" ]))).toEqual([]);
+  });
+});
+
+describe("printableSelected", () => {
+  it("keeps label_issued orders but drops the ones whose rotulo is void", () => {
+    const entries = [ [ "PG-1", "label_issued" ], [ "PG-2", "label_issued" ], [ "PG-3", "in_production" ] ];
+
+    expect(printableSelected(entries, new Set([ "PG-2" ]))).toEqual([ [ "PG-1", "label_issued" ] ]);
   });
 });

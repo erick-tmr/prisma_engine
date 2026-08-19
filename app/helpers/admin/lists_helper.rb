@@ -54,9 +54,15 @@ module Admin
     def status_trigger_label(statuses)
       case statuses.size
       when 0 then t("admin.dashboard.orders.filters.status_all")
-      when 1 then t("account.orders.states.#{statuses.first}.label")
+      when 1 then status_option_label(statuses.first)
       else t("admin.lists.statuses_selected")
       end
+    end
+
+    def status_option_label(status)
+      return t("admin.dashboard.orders.filters.label_expired") if status == Admin::OrderSearch::LABEL_EXPIRED
+
+      t("account.orders.states.#{status}.label")
     end
 
     def list_path(base_params, overrides = {})

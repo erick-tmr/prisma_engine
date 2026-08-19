@@ -39,6 +39,8 @@ class Shipment < ApplicationRecord
 
   normalizes :receiver_obs, with: ->(value) { value.strip.presence }
 
+  scope :label_expired, -> { where(correios_status: CORREIOS_STATUSES.key(:expirado)) }
+
   scope :awaiting_tracking, -> {
     where.not(tracking_state: FINAL_TRACKING_STATES)
          .where.not(tracking_code: nil)
@@ -79,6 +81,16 @@ class Shipment < ApplicationRecord
     self.correios_status = CORREIOS_STATUSES.key(:expirado)
     self.correios_status_label = label
     self.correios_status_at = at
+  end
+
+  def reset_for_reissue
+    assign_attributes(
+      tracking_code: nil, pre_post_id: nil, service_code: nil, pre_post_payload: {},
+      correios_status: nil, correios_status_label: nil, correios_status_at: nil,
+      posting_deadline: nil, requested_at: nil,
+      tracking_state: :pending, last_tracking_status: nil, last_tracked_at: nil,
+      posted_at: nil, delivered_at: nil, tracking_error: nil, tracking_errored_at: nil
+    )
   end
 
   def mark_tracking_unavailable!(error_message)

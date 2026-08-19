@@ -59,6 +59,7 @@ Rails.application.routes.draw do
     post   "etiquetas",         to: "labels#create_batch", as: :labels
     post   "etiquetas/:number", to: "labels#create",       as: :label, constraints: { number: /PG-\d+/ }
     post   "etiquetas/impressao", to: "labels#print_sheet", as: :print_labels
+    post   "etiquetas/:number/reemitir", to: "labels#reissue", as: :reissue_label, constraints: { number: /PG-\d+/ }
     get    "pedidos/correios",          to: "label_feedback#index", as: :label_feedback
     get    "pedidos/:number/correios",  to: "label_feedback#show",  as: :order_label_feedback, constraints: { number: /PG-\d+/ }
     get    "pedidos/:number",           to: "orders#show",       as: :order,            constraints: { number: /PG-\d+/ }
