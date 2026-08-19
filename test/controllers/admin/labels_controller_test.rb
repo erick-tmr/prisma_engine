@@ -5,6 +5,13 @@ module Admin
     include Devise::Test::IntegrationHelpers
     include ActiveJob::TestHelper
 
+    def expired_shipment
+      shipment = orders(:labeled).shipment
+      shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      shipment.update!(pre_post_id: "DEAD-ID", tracking_code: "AD000000009BR")
+      shipment
+    end
+
     test "non-admins are sent to the backoffice login" do
       post admin_labels_path, params: { order_numbers: [ orders(:producing).number ] }
       assert_redirected_to admin_login_path
@@ -58,6 +65,55 @@ module Admin
       end
 
       assert_response :not_found
+    end
+
+    test "non-admins cannot reissue an expired label" do
+      post admin_reissue_label_path(orders(:labeled).number)
+      assert_redirected_to admin_login_path
+    end
+
+    test "reissues an expired label and restarts the saga" do
+      sign_in users(:admin)
+      shipment = expired_shipment
+
+      assert_enqueued_with(job: Shipping::CreatePrePostagemJob, args: [ { shipment_id: shipment.id } ]) do
+        post admin_reissue_label_path(shipment.order.number)
+      end
+
+      assert_response :accepted
+      assert_nil shipment.reload.pre_post_id
+    end
+
+    test "404s when the order's label has not expired" do
+      sign_in users(:admin)
+
+      assert_no_enqueued_jobs do
+        post admin_reissue_label_path(orders(:labeled).number)
+      end
+
+      assert_response :not_found
+    end
+
+    test "404s for an order number that does not exist" do
+      sign_in users(:admin)
+
+      post admin_reissue_label_path("PG-00000")
+
+      assert_response :not_found
+    end
+
+    test "create_batch takes expired orders alongside in-production ones" do
+      sign_in users(:admin)
+      producing = orders(:producing)
+      expired = orders(:labeled)
+      expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      expired.shipment.save!
+
+      assert_enqueued_with(job: Shipping::ReissueLabelsJob, args: [ [ expired.id ] ]) do
+        post admin_labels_path, params: { order_numbers: [ producing.number, expired.number ] }
+      end
+
+      assert_equal 2, response.parsed_body["enqueued"]
     end
 
     test "non-admins cannot print a label sheet" do

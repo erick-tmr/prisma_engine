@@ -27,6 +27,36 @@ module Admin
       assert_not_includes numbers({ status: [ "shipped" ] }), merged.number
     end
 
+    test "label_expired filters to orders whose pré-postagem expired, not every label_issued one" do
+      expired = orders(:labeled)
+      expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      expired.shipment.save!
+      healthy = orders(:shipped_order)
+      healthy.update_column(:status, "label_issued")
+
+      result = numbers({ status: [ "label_expired" ] })
+
+      assert_includes result, expired.number
+      assert_not_includes result, healthy.number
+    end
+
+    test "label_expired combines with a real status instead of replacing it" do
+      expired = orders(:labeled)
+      expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      expired.shipment.save!
+      producing = orders(:producing)
+
+      result = numbers({ status: [ "label_expired", "in_production" ] })
+
+      assert_includes result, expired.number
+      assert_includes result, producing.number
+    end
+
+    test "label_expired is accepted as a filter even though it is not an Order status" do
+      assert_not_includes Order::STATUSES, "label_expired"
+      assert_equal [ "label_expired" ], OrderSearch.new({ status: [ "label_expired" ] }).statuses
+    end
+
     test "an unknown status is discarded rather than filtering everything away" do
       search = OrderSearch.new({ status: [ "not_a_status", "shipped" ] })
       assert_equal [ "shipped" ], search.statuses

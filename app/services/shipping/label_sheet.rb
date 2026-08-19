@@ -20,7 +20,7 @@ module Shipping
     end
 
     def call
-      ready = @orders.select { |order| order.shipping_label&.ready? }
+      ready = @orders.select { |order| order.shipping_label&.ready? && !order.shipment.label_expired? }
       Result.new(pdf: compose(ready).to_pdf, composed: ready.size, skipped: @orders.size - ready.size)
     end
 

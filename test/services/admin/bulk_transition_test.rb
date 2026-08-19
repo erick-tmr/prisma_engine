@@ -54,6 +54,38 @@ module Admin
       assert producing.reload.production_issue?
     end
 
+    test "issue_label takes expired labels alongside in-production orders, in one batch" do
+      producing = orders(:producing)
+      expired = orders(:labeled)
+      expired.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      expired.shipment.save!
+
+      result = nil
+      assert_enqueued_with(job: Shipping::EmitLabelsJob, args: [ [ producing.id ] ]) do
+        assert_enqueued_with(job: Shipping::ReissueLabelsJob, args: [ [ expired.id ] ]) do
+          result = BulkTransition.call(order_numbers: [ producing.number, expired.number ],
+                                       event: "issue_label", actor: users(:admin))
+        end
+      end
+
+      assert_equal 2, result["queued"]
+      assert_equal 0, result["skipped"]
+    end
+
+    test "issue_label leaves a healthy label_issued order alone, so no rotulo is bought twice" do
+      healthy = orders(:labeled)
+      assert_not healthy.shipment.label_expired?
+
+      result = nil
+      assert_no_enqueued_jobs only: Shipping::ReissueLabelsJob do
+        result = BulkTransition.call(order_numbers: [ healthy.number ],
+                                     event: "issue_label", actor: users(:admin))
+      end
+
+      assert_equal 1, result["skipped"]
+      assert_equal "not_available", row_for(result, healthy)["reason"]
+    end
+
     test "issue_label queues the label job for in-production orders and skips the rest" do
       producing = orders(:producing)
       paid = orders(:confirmed_paid)

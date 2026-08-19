@@ -1,8 +1,6 @@
 class ShipmentTrackingEvent < ApplicationRecord
   belongs_to :shipment
 
-  POSTED = %w[PO 01].freeze
-
   def summary
     description.presence || "#{event_code}/#{event_type}"
   end
@@ -15,8 +13,12 @@ class ShipmentTrackingEvent < ApplicationRecord
     unit_location(payload["unidadeDestino"])
   end
 
+  def posted?
+    Shipping::TrackingUpdate.signal_for(event_code, event_type) == :posted
+  end
+
   def posting_unit
-    return unless [ event_code, event_type ] == POSTED
+    return unless posted?
 
     unit_location(payload["unidade"])
   end

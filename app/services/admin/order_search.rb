@@ -1,5 +1,8 @@
 module Admin
   class OrderSearch
+    LABEL_EXPIRED = "label_expired".freeze
+    FILTERS = (Order::STATUSES + [ LABEL_EXPIRED ]).freeze
+
     SORT_KEYS = %w[client date total status].freeze
     DEFAULT_SORT = "date".freeze
     ASCENDING_BY_DEFAULT = %w[client].freeze
@@ -8,7 +11,7 @@ module Admin
 
     def initialize(params)
       @query     = params[:q].to_s.strip
-      @statuses  = Array(params[:status]).map(&:to_s) & Order::STATUSES
+      @statuses  = Array(params[:status]).map(&:to_s) & FILTERS
       @from      = parse_date(params[:de])
       @to        = parse_date(params[:ate])
       @sort      = SORT_KEYS.include?(params[:sort].to_s) ? params[:sort].to_s : DEFAULT_SORT
@@ -61,8 +64,18 @@ module Admin
 
     def by_status(scope)
       return scope.where.not(status: "merged") if statuses.empty?
+      return scope.label_reissuable if plain_statuses.empty?
+      return scope.where(status: plain_statuses) unless expired_wanted?
 
-      scope.where(status: statuses)
+      scope.where(status: plain_statuses).or(scope.label_reissuable)
+    end
+
+    def plain_statuses
+      statuses - [ LABEL_EXPIRED ]
+    end
+
+    def expired_wanted?
+      statuses.include?(LABEL_EXPIRED)
     end
 
     def by_period(scope)

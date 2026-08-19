@@ -6,14 +6,16 @@ module Admin
 
     def initialize(order)
       @order = order
-      @label = order.tracked_shipment&.shipping_label
+      @shipment = order.tracked_shipment
+      @label = @shipment&.shipping_label
     end
 
-    attr_reader :order, :label
+    attr_reader :order, :shipment, :label
 
     delegate :number, to: :order
 
     def state
+      return "expired" if expired?
       return "done" if done?
       return "failed" if failed?
       return "queued" if label&.pending?
@@ -27,7 +29,11 @@ module Admin
     end
 
     def settled?
-      done? || failed?
+      done? || failed? || expired?
+    end
+
+    def expired?
+      shipment&.label_expired? || false
     end
 
     def done?

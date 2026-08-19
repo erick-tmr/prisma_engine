@@ -43,6 +43,14 @@ class ShippingLabel < ApplicationRecord
     )
   end
 
+  def reset_for_reissue!
+    update!(
+      state: :pending, recibo_id: nil, filename: nil, pdf_base64: nil,
+      dce_filename: nil, dce_base64: nil, error: nil, errored_at: nil,
+      relabel_attempts: 0, requesting_at: nil
+    )
+  end
+
   def record_error!(message)
     update!(error: message, errored_at: Time.current)
   end

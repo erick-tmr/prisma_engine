@@ -60,6 +60,17 @@ module Shipping
       assert_match(/\A%PDF/, result.pdf)
     end
 
+    test "a void rotulo from an expired pre-postagem is skipped, never composed" do
+      order = orders(:labeled)
+      order.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      order.shipment.save!
+
+      sheet = Shipping::LabelSheet.call(orders: [ order ])
+
+      assert_equal 0, sheet.composed
+      assert_equal 1, sheet.skipped
+    end
+
     test "skips an order that has no label at all" do
       bare = Order.create!(user: users(:confirmed), subtotal_cents: 32_000, total_cents: 34_990)
       result = LabelSheet.call(orders: [ bare ])

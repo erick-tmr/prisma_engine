@@ -10,10 +10,20 @@ module Admin
       head :accepted
     end
 
+    def reissue
+      shipment = Order.find_by(number: params[:number])&.tracked_shipment
+      return head :not_found unless Shipping::ReissueLabel.call(shipment)
+
+      head :accepted
+    end
+
     def create_batch
-      ids = Order.in_production.where(number: Array(params[:order_numbers])).pluck(:id)
-      Shipping::EmitLabelsJob.perform_later(ids) if ids.any?
-      render json: { enqueued: ids.size }, status: :accepted
+      scope = Order.where(number: Array(params[:order_numbers]))
+      emitting = scope.in_production.ids
+      reissuing = scope.label_reissuable.ids
+      Shipping::EmitLabelsJob.perform_later(emitting) if emitting.any?
+      Shipping::ReissueLabelsJob.perform_later(reissuing) if reissuing.any?
+      render json: { enqueued: emitting.size + reissuing.size }, status: :accepted
     end
 
     def print_sheet

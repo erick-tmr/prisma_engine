@@ -59,4 +59,12 @@ class ShipmentTrackingEventTest < ActiveSupport::TestCase
     })
     assert_nil event.posting_unit
   end
+
+  test "posting_unit also reads a posting made after the unit's cut-off time" do
+    event = ShipmentTrackingEvent.new(event_code: "PO", event_type: "09", payload: {
+      "unidade" => { "tipo" => "Agência dos Correios", "endereco" => { "cidade" => "CAMBUI", "uf" => "MG" } }
+    })
+    assert event.posted?
+    assert_equal "Agência dos Correios - CAMBUI - MG", event.posting_unit
+  end
 end

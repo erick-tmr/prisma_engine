@@ -15,6 +15,16 @@
     </div>
     <div class="ap-bar"><span></span></div>
   </div>
+<% when "expired" %>
+  <div class="act-proc is-err">
+    <div class="ap-head">
+      <i class="bi bi-clock-history"></i> <%= t("admin.orders.detail.label.expired_title") %>
+    </div>
+    <div class="ap-sub"><%= t("admin.orders.detail.label.expired_sub") %></div>
+    <button type="button" class="ap-retry" data-retry-url="<%= admin_reissue_label_path(feedback.number) %>">
+      <i class="bi bi-arrow-clockwise"></i> <%= t("admin.orders.detail.label.reissue") %>
+    </button>
+  </div>
 <% when "failed" %>
   <div class="act-proc is-err">
     <div class="ap-head">

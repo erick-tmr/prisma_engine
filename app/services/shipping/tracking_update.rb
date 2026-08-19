@@ -1,15 +1,22 @@
 module Shipping
   class TrackingUpdate
     EVENT_SIGNALS = {
-      %w[FC 82] => :label_issued,
-      %w[PO 01] => :in_transit,
-      %w[RO 01] => :in_transit,
-      %w[DO 01] => :in_transit,
+      %w[FC 82]  => :label_issued,
+      %w[FC 83]  => :label_expired,
+      %w[FC 07]  => :attempt_failed,
+      %w[PO 01]  => :posted,
+      %w[PO 09]  => :posted,
+      %w[RO 01]  => :in_transit,
+      %w[DO 01]  => :in_transit,
       %w[OEC 01] => :in_transit,
       %w[BDE 01] => :delivered,
       %w[BDE 20] => :in_transit,
-      %w[BDE 98] => :awaiting_pickup
+      %w[BDE 98] => :awaiting_pickup,
+      %w[BDI 01] => :delivered,
+      %w[LDI 01] => :held_for_pickup
     }.freeze
+
+    MOVEMENT_SIGNALS = %i[posted in_transit delivered awaiting_pickup].freeze
 
     UNIQUE_BY = %i[shipment_id position].freeze
     UPDATE_ONLY = %i[tracking_code event_code event_type description occurred_at payload].freeze
@@ -66,7 +73,7 @@ module Shipping
     def log_unmapped_events
       known = shipment.tracking_events.where(position: 0...events.size).pluck(:position).to_set
       events.each_with_index do |event, position|
-        next if known.include?(position) || EVENT_SIGNALS.key?(key(event))
+        next if known.include?(position) || signal(event)
 
         Rails.logger.warn(
           "[correios-rastro] unmapped event code=#{event[:code]} type=#{event[:type]} " \
@@ -82,7 +89,15 @@ module Shipping
       shipment.last_tracked_at = latest[:occurred_at] || Time.current
       shipment.posted_at ||= first_movement_at
       shipment.delivered_at = delivered_at if shipment.tracking_delivered?
+      expire_dead_prepost
       shipment.save!
+    end
+
+    def expire_dead_prepost
+      return unless any_signal?(:label_expired) && events.none? { |event| moved?(event) }
+
+      expiry = events.reverse.find { |event| signal(event) == :label_expired }
+      shipment.expire_prepost(label: expiry[:description], at: expiry[:occurred_at])
     end
 
     def first_movement_at
@@ -113,16 +128,12 @@ module Shipping
       self.class.signal_for(event[:code], event[:type])
     end
 
-    def key(event)
-      [ event[:code], event[:type] ]
-    end
-
     def moved?(event)
-      signal(event) != :label_issued
+      MOVEMENT_SIGNALS.include?(signal(event))
     end
 
     def posted?
-      events.any? { |event| key(event) == ShipmentTrackingEvent::POSTED }
+      any_signal?(:posted)
     end
 
     def discard_label

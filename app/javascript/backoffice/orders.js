@@ -92,10 +92,24 @@ export function plural(n, one, many) {
   return n === 1 ? one : many;
 }
 
-export function availableActions(statuses) {
+export function availableActions(statuses, extras = {}) {
   return ACTIONS
-    .map((action) => ({ action, count: statuses.filter((s) => action.from.includes(s)).length }))
+    .map((action) => ({
+      action,
+      count: statuses.filter((s) => action.from.includes(s)).length + (extras[action.id] ?? 0)
+    }))
     .filter((entry) => entry.count > 0);
+}
+
+export function bulkTargets(action, entries, expired) {
+  return entries
+    .filter(([ number, status ]) =>
+      action.from.includes(status) || (action.id === "issue_label" && expired.has(number)))
+    .map(([ number ]) => number);
+}
+
+export function printableSelected(entries, expired) {
+  return entries.filter(([ number, status ]) => PRINTABLE_LABEL_STATUSES.has(status) && !expired.has(number));
 }
 
 export function bulkChipsHtml(available, busy = null) {
@@ -172,6 +186,7 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
   bindFilters(root, table);
 
   const selected = new Map();
+  const expiredSelected = new Set();
   const sentAt = new Map();
   const batch = readBatch(storage);
   let holdTimer = null;
@@ -227,10 +242,10 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
     const wrap = $("#bulk-actions");
     const progress = batchProgress(root);
     wrap.innerHTML = bulkChipsHtml(
-      availableActions(selectedStatuses()),
+      availableActions(selectedStatuses(), { issue_label: expiredSelected.size }),
       progress && { ...progress, label: wrap.dataset.issuingLabel }
     );
-    bulkPrint.hidden = !selectedStatuses().some((s) => PRINTABLE_LABEL_STATUSES.has(s));
+    bulkPrint.hidden = printableSelected([ ...selected.entries() ], expiredSelected).length === 0;
   }
 
   function afterRender() {
@@ -272,9 +287,13 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
 
   function syncSelection() {
     const rows = Array.from(root.querySelectorAll("#orders-body tr[data-order]"));
+    expiredSelected.clear();
     rows.forEach((row) => {
       const on = selected.has(row.dataset.order);
-      if (on) selected.set(row.dataset.order, row.dataset.status);
+      if (on) {
+        selected.set(row.dataset.order, row.dataset.status);
+        if (row.dataset.labelExpired === "true") expiredSelected.add(row.dataset.order);
+      }
       row.classList.toggle("sel-row", on);
       const box = row.querySelector("[data-check]");
       if (box) {
@@ -328,7 +347,7 @@ export function initOrders(root, today = new Date(), storage = window.sessionSto
 
   async function applyBulk(actionId) {
     const action = ACTIONS.find((a) => a.id === actionId);
-    const numbers = [ ...selected.entries() ].filter(([ , status ]) => action.from.includes(status)).map(([ n ]) => n);
+    const numbers = bulkTargets(action, [ ...selected.entries() ], expiredSelected);
     if (action.id === "cancel" && !window.confirm(confirmText(numbers.length))) return;
 
     const { fresh, throttled } = partitionThrottled(numbers, actionId, sentAt, Date.now());

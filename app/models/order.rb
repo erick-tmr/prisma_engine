@@ -72,6 +72,9 @@ class Order < ApplicationRecord
   scope :recent_first, -> { order(created_at: :desc) }
   scope :mergeable, -> { where(status: MERGEABLE_STATUSES).order(created_at: :asc) }
   scope :paid, -> { where(status: PAID_STATUSES) }
+  scope :label_reissuable, -> {
+    where(status: "label_issued").where(id: Shipment.outbound.label_expired.select(:order_id))
+  }
 
   validates :number, presence: true, uniqueness: true
   validates :subtotal_cents, :total_cents,

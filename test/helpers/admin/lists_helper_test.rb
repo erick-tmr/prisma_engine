@@ -86,6 +86,14 @@ module Admin
       assert_equal I18n.t("admin.lists.statuses_selected"), status_trigger_label(%w[shipped delivered])
     end
 
+    test "the expired-label filter names itself, since it is not an Order status" do
+      expected = I18n.t("admin.dashboard.orders.filters.label_expired")
+
+      assert_equal expected, status_option_label("label_expired")
+      assert_equal expected, status_trigger_label([ "label_expired" ])
+      assert_equal I18n.t("account.orders.states.shipped.label"), status_option_label("shipped")
+    end
+
     test "batch_period covers an open, half-open and closed range" do
       batch = ProductionBatch.new
       assert_equal I18n.t("admin.production_report.report.all_periods"), batch_period(batch)
