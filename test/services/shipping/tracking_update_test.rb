@@ -134,6 +134,95 @@ module Shipping
       assert shipment.reload.tracking_delivered?
     end
 
+    test "an expired label is not movement, so the order is left where it is" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, expired_event ])
+
+      shipment.reload
+      assert shipment.tracking_pending?
+      assert_nil shipment.posted_at
+    end
+
+    test "an expired label marks the pre-postagem terminal so polling stops" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, expired_event ])
+
+      shipment.reload
+      assert shipment.label_expired?
+      assert_equal "Etiqueta expirada", shipment.correios_status_label
+      assert_equal expired_event[:occurred_at], shipment.correios_status_at
+      assert_not_includes Shipment.awaiting_tracking, shipment
+    end
+
+    test "an expiry alongside real movement leaves the pre-postagem alone" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, expired_event, posted_event ])
+
+      shipment.reload
+      assert_not shipment.label_expired?
+      assert shipment.tracking_in_transit?
+    end
+
+    test "an uncatalogued code is not read as movement" do
+      shipment = shipments(:labeled)
+      mystery = event("ZZ", "99", "Evento misterioso", Time.utc(2026, 5, 22, 15, 0, 0))
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, mystery ])
+
+      shipment.reload
+      assert shipment.tracking_pending?
+      assert_nil shipment.posted_at
+    end
+
+    test "a late posting counts as posting and discards the label" do
+      shipment = shipments(:labeled)
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, late_posted_event ])
+
+      shipment.reload
+      assert_nil shipment.shipping_label
+      assert shipment.tracking_in_transit?
+      assert_equal late_posted_event[:occurred_at], shipment.posted_at
+    end
+
+    test "a delivery reported as BDI still marks the shipment delivered" do
+      shipment = shipments(:labeled)
+      handover = event("BDI", "01", "Objeto entregue ao destinatário", Time.utc(2026, 5, 26, 11, 3, 0))
+
+      Shipping::TrackingUpdate.apply(shipment, [ posted_event, failed_delivery_event, handover ])
+
+      shipment.reload
+      assert shipment.tracking_delivered?
+      assert_equal handover[:occurred_at], shipment.delivered_at
+    end
+
+    test "codes catalogued as carrying no signal neither move nor flag the shipment" do
+      shipment = shipments(:labeled)
+      held = event("LDI", "01", "Objeto aguardando retirada no endereço indicado", Time.utc(2026, 5, 26, 12, 0, 0))
+      attempt = event("FC", "07", "Objeto não entregue - carteiro não atendido", Time.utc(2026, 5, 26, 13, 0, 0))
+
+      Shipping::TrackingUpdate.apply(shipment, [ label_event, held, attempt ])
+
+      shipment.reload
+      assert shipment.tracking_pending?
+      assert_nil shipment.posted_at
+    end
+
+    test "codes catalogued as carrying no signal stop being reported as unmapped" do
+      shipment = shipments(:labeled)
+      held = event("LDI", "01", "Objeto aguardando retirada no endereço indicado", Time.utc(2026, 5, 26, 12, 0, 0))
+      logged = 0
+
+      Rails.logger.stub(:warn, ->(_message) { logged += 1 }) do
+        Shipping::TrackingUpdate.apply(shipment, [ held ])
+      end
+
+      assert_equal 0, logged
+    end
+
     test "an unmapped code is logged only the first time that position is seen" do
       shipment = shipments(:labeled)
       mystery = event("ZZ", "99", "Evento misterioso", Time.utc(2026, 5, 22, 15, 0, 0))
@@ -164,6 +253,14 @@ module Shipping
 
     def failed_delivery_event
       event("BDE", "98", "Objeto não entregue - Endereço insuficiente", Time.utc(2026, 5, 26, 18, 47, 30))
+    end
+
+    def expired_event
+      event("FC", "83", "Etiqueta expirada", Time.utc(2026, 6, 5, 3, 11, 39))
+    end
+
+    def late_posted_event
+      event("PO", "09", "Objeto postado após o horário limite da unidade", Time.utc(2026, 5, 22, 20, 4, 0))
     end
 
     def event(code, type, description, occurred_at)

@@ -119,6 +119,16 @@ module Admin
       assert_not OrderPresenter.new(orders(:shipped_order)).label_printable?
     end
 
+    test "an expired pre-postagem withdraws the print link, since the rotulo is void" do
+      order = orders(:labeled)
+      assert OrderPresenter.new(order).label_printable?
+
+      order.shipment.expire_prepost(label: "Etiqueta expirada", at: 1.day.ago)
+      order.shipment.save!
+
+      assert_not OrderPresenter.new(order.reload).label_printable?
+    end
+
     test "lifecycle on the happy path marks done/current/upcoming without a branch" do
       steps = order_in("in_production").lifecycle
       assert_equal 6, steps.size

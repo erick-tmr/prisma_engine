@@ -8,6 +8,9 @@
     <span class="proc proc-run"><span class="spin"></span> <%= t("admin.dashboard.orders.correios.running") %></span>
     <span class="proc-sub"><%= t("admin.dashboard.orders.correios.step.#{feedback.step}") %></span>
     <div class="proc-bar"><span></span></div>
+  <% when "expired" %>
+    <span class="proc proc-err"><i class="bi bi-clock-history"></i> <%= t("admin.dashboard.orders.correios.expired") %></span>
+    <span class="proc-sub"><%= t("admin.dashboard.orders.correios.expired_sub") %></span>
   <% when "failed" %>
     <span class="proc proc-err"><i class="bi bi-exclamation-triangle-fill"></i> <%= t("admin.dashboard.orders.correios.failed") %></span>
     <span class="proc-sub"><%= feedback.error_message %></span>

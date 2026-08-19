@@ -667,6 +667,8 @@ pt-BR:
           queued_sub: "Aguardando o processamento da fila"
           running: "Emitindo etiqueta…"
           failed: "Falha na emissão"
+          expired: "Etiqueta expirada"
+          expired_sub: "A pré-postagem venceu sem postagem"
           retry: "Tentar de novo"
           done: "Etiqueta emitida"
           none: "–"
@@ -1003,6 +1005,8 @@ pt-BR:
           running_sub_html: "Aguardando a resposta do SIGEP · %{elapsed} decorridos. Não repita a ação: o status muda sozinho quando a etiqueta sai."
           failed_title: "Os Correios recusaram a emissão"
           failed_sub_html: "%{error}. O pedido continua em <b>Em produção</b>, nada foi cobrado nem duplicado."
+          expired_title: "A etiqueta expirou nos Correios"
+          expired_sub: "A pré-postagem venceu sem que o pacote fosse postado, e este código de rastreio não vale mais. Emita uma nova etiqueta para despachar: os Correios cobram um novo rótulo."
           retry: "Tentar novamente"
       states:
         awaiting_payment:

@@ -105,7 +105,7 @@ module Admin
     end
 
     def label_printable?
-      order.label_issued? && !!order.shipping_label&.ready?
+      order.label_issued? && !!order.shipping_label&.ready? && !label_feedback.expired?
     end
 
     def label_feedback

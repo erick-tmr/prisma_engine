@@ -71,6 +71,16 @@ class Shipment < ApplicationRecord
     CORREIOS_STATUSES[correios_status]
   end
 
+  def label_expired?
+    correios_status_name == :expirado
+  end
+
+  def expire_prepost(label:, at:)
+    self.correios_status = CORREIOS_STATUSES.key(:expirado)
+    self.correios_status_label = label
+    self.correios_status_at = at
+  end
+
   def mark_tracking_unavailable!(error_message)
     update!(
       tracking_state: :unavailable,

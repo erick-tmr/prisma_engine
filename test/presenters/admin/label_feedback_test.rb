@@ -8,6 +8,24 @@ module Admin
       Admin::LabelFeedback.new(order.reload)
     end
 
+    test "an expired pre-postagem outranks every other reading of the label" do
+      @order.shipment.create_shipping_label!(state: :ready)
+      @order.shipment.update!(correios_status: Shipment::CORREIOS_STATUSES.key(:expirado))
+
+      feedback = feedback_for(@order)
+      assert_equal "expired", feedback.state
+      assert feedback.expired?
+      assert feedback.settled?
+      assert_not feedback.in_flight?
+    end
+
+    test "an order whose shipment is gone is not reported as expired" do
+      order = orders(:awaiting)
+      order.shipment.destroy!
+
+      assert_not feedback_for(order).expired?
+    end
+
     test "an order without a label yet is idle and shows no code" do
       assert_equal "idle", feedback_for(@order).state
       assert_nil feedback_for(@order).code
