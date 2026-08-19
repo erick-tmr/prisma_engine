@@ -29,6 +29,36 @@ module Shipping
       assert_equal "24", dimensions[:comprimentoInformado]
     end
 
+    test "a phone still carrying +55 sends the area code, not the country code" do
+      shipment = shipments(:awaiting)
+      shipment.order.user.update_column(:phone, "+55 35 92001-7170")
+
+      recipient = Shipping::PrePostagemRequest.from_shipment(shipment.reload).recipient
+
+      assert_equal "35", recipient[:dddCelular]
+      assert_equal "920017170", recipient[:celular]
+    end
+
+    test "a landline without a country code is split unchanged" do
+      shipment = shipments(:awaiting)
+      shipment.order.user.update_column(:phone, "(11) 3255-4433")
+
+      recipient = Shipping::PrePostagemRequest.from_shipment(shipment.reload).recipient
+
+      assert_equal "11", recipient[:dddCelular]
+      assert_equal "32554433", recipient[:celular]
+    end
+
+    test "an unparseable phone still yields a payload rather than raising" do
+      shipment = shipments(:awaiting)
+      shipment.order.user.update_column(:phone, "12345")
+
+      recipient = Shipping::PrePostagemRequest.from_shipment(shipment.reload).recipient
+
+      assert_equal "12", recipient[:dddCelular]
+      assert_equal "345", recipient[:celular]
+    end
+
     test "omits a blank complemento from the recipient address" do
       request = Shipping::PrePostagemRequest.from_shipment(shipments(:confirmed_paid))
 

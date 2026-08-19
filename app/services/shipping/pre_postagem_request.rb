@@ -14,7 +14,7 @@ module Shipping
 
     def self.customer_for(shipment)
       user = shipment.order.user
-      digits = user.phone.to_s.gsub(/\D/, "")
+      digits = phone_digits(user.phone)
       {
         nome: shipment.receiver_name,
         dddCelular: digits[0, 2],
@@ -32,6 +32,10 @@ module Shipping
           uf: shipment.state
         }.compact
       }.compact
+    end
+
+    def self.phone_digits(raw)
+      Phones.national(raw) || Phones.drop_country_code(raw.to_s.gsub(/\D/, ""))
     end
 
     def self.items_for(order)
@@ -61,6 +65,6 @@ module Shipping
       }
     end
 
-    private_class_method :customer_for, :items_for, :dimensions_for, :sanitize_content
+    private_class_method :customer_for, :phone_digits, :items_for, :dimensions_for, :sanitize_content
   end
 end
