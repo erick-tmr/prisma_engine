@@ -18,6 +18,7 @@ class CheckoutMergeTest < ApplicationSystemTestCase
   test "customer merges their open order into a new checkout" do
     visit product_path(slug: products(:yellow).slug)
     click_button "Adicionar ao carrinho"
+    assert_selector "[data-cart-count]", text: "1"
 
     visit checkout_path
     assert_selector "[data-merge]"
