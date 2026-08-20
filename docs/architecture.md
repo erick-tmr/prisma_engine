@@ -451,10 +451,10 @@ conversation, not a button. An admin can cancel from any status where **we** sti
 the item (`Order::CANCELLABLE_STATUSES`, derived from the graph rather than hand-listed,
 so the two cannot drift): everything from `aguardando_pagamento` through
 `etiqueta_emitida`, plus `returned`. Once the package is posted the edge disappears. A
-`shipped`, `delivered` or `delivery_issue` order is cancellable only after the operator
-marks it **Recebido de volta** (`returned`), which is exactly the claim "the box is back
-on our shelf". `delivery_issue` in particular is not cancellable: the object is sitting
-with Correios, not with us. The two return-leg states follow the same rule and for the
+`shipped`, `delivered` or `delivery_issue` order is cancellable only once tracking reports
+it **Recebido de volta** (`returned`), which is exactly the claim "the box is back on our
+shelf". `delivery_issue` in particular is not cancellable: the object is sitting with
+Correios, not with us. The two return-leg states follow the same rule and for the
 same reason: in `aguardando_devolucao` the customer still holds the item and in
 `devolucao_a_caminho` it is in the post, so neither carries a `cancelled` edge. The
 operator cancels once it lands, from `devolvido`.
@@ -474,10 +474,9 @@ Our Correios contract has **no webhooks**, so tracking is **polled**.
 
 **Event interpretation:** `Shipping::TrackingUpdate` maps confirmed `(code, type)`
 pairs to a signal via its `EVENT_SIGNALS` hash (delivered / postado / label / failed
-delivery); anything else that isn't the label counts as in-transit. We **don't know
-the `returned` code yet**: uncatalogued `(code, type)` pairs are persisted as events
-*and* logged (`unmapped event …`) so we can identify them from real data and extend
-the map.
+delivery / devolvido). Uncatalogued `(code, type)` pairs are persisted as events *and*
+logged (`unmapped event …`) so we can identify them from real data and extend the map;
+`bin/rails shipping:uncatalogued` is the sweep that surfaces them.
 
 **`delivery_issue` is never an endpoint.** `BDE/98` ("Objeto não entregue, Endereço
 insuficiente", seen on PG-95039) derives `tracking_state: delivery_issue`, which
@@ -493,12 +492,34 @@ resolves exactly two ways, both single edges so neither replays an earlier e-mai
 
 Those are different facts and get different order statuses, because "the object is
 sitting at a Correios unit" and "the box is back on our shelf" call for different
-work and different customer copy. **`returned` is operator-driven for now.** We have
-never seen a Correios return code in production data, so nothing derives
-`tracking_state: returned` yet; the backoffice "Recebido de volta" action is how an
-order reaches it, since the operator is the one who sees the package arrive. The
-`OrderProgress` mapping for that tracking state already points at the right status,
-so cataloguing the code later is a one-line change rather than a redesign.
+work and different customer copy.
+
+**`returned` is derived from tracking, never from an operator button.** There used to
+be a backoffice **Recebido de volta** action for it. It was removed because the
+operator's click and the Correios event assert the same fact, and the event is the one
+that also carries the date, the receiving unit and the signature. `OrderMailer#returned`
+already tells the two roads apart, sending `bounced` copy when there is no
+`return_shipment` and `expected` copy when the customer posted it back.
+
+`derive_state` answers `returned` for a `:returned` signal, ahead of `delivered`, and
+`OrderProgress` already maps that tracking state onto the right order status from
+`label_issued`, `shipped` or `delivery_issue`. **No `(code, type)` pair is catalogued as
+`:returned` yet**, because we have never observed a bounce in our own data and the
+catalogue is an allowlist built from what Correios actually sends *us*, not from the SRO
+spec. Until then a handback lands as `unmapped event …` and stalls the order where an
+operator can see it. `bin/rails shipping:uncatalogued` is the tripwire: when the first
+real bounce appears there, mapping its pair to `:returned` is a one-line change and the
+whole chain closes.
+
+Whatever that pair turns out to be, it must mean *the package arrived back with us*, not
+that it is on its way: a "será devolvido ao remetente" event is a promise, and reading a
+promise as an arrival is the same mistake that walked two orders to `shipped` off
+`FC/83`.
+
+`:returned` is kept out of `MOVEMENT_SIGNALS` on purpose. `first_movement_at` feeds
+`shipment.posted_at ||=`, and a handback is not a posting; `derive_state` answers
+`returned` before the movement fallback is reached, so membership would buy nothing and
+risk stamping a posting time from a package coming home.
 
 **Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
 issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`

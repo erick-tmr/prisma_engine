@@ -718,7 +718,6 @@ pt-BR:
         issue_label: "Emitir etiqueta Correios"
         flag_issue: "Marcar problema"
         cancel: "Cancelar"
-        mark_returned: "Recebido de volta"
         reship: "Reenviar"
       situations:
         active: "Ativo"
@@ -1029,9 +1028,9 @@ pt-BR:
         shipped:
           description: "Em trânsito. A entrega é confirmada automaticamente pelo rastreio dos Correios."
         delivered:
-          description: "Pedido entregue ao cliente. Se o pacote voltar para nós, marque como Recebido de volta."
+          description: "Pedido entregue ao cliente. Se o cliente pedir devolução, autorize a devolução: o status avança sozinho quando o pacote chegar até nós."
         delivery_issue:
-          description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se voltar para nós, marque como Recebido de volta para poder cancelar."
+          description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se não, reenvie o pedido."
         awaiting_return:
           description: "Devolução iniciada. O cliente recebe a etiqueta pré-paga e posta o pacote. O status avança sozinho quando os Correios registrarem a postagem."
         returning:

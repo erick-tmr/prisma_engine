@@ -105,6 +105,7 @@ module Shipping
     end
 
     def derive_state
+      return "returned" if any_signal?(:returned)
       return "delivered" if any_signal?(:delivered)
 
       issue = issue_state

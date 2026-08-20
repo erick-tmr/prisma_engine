@@ -212,7 +212,7 @@ module Admin
       get admin_order_path(order)
       assert_response :success
       assert_select ".lc-step.branch.current"
-      assert_select ".act-btn", text: /Recebido de volta/
+      assert_select ".act-btn", text: /Reenviar/
       assert_select "form[data-confirm] .act-btn.danger", false
     end
 

@@ -86,13 +86,13 @@ module Admin
     end
 
     def available_actions
-      OrderActions.available_for(status).each_with_index.map do |action, index|
+      OrderActions.available_for(status).map do |action|
         {
           id: action.id,
           icon: action.icon,
           label: I18n.t("admin.dashboard.bulk_actions.#{action.id}"),
           target_label: status_label(action.to),
-          button_class: button_class(action, index),
+          button_class: button_class(action),
           form_data: action.danger ? { confirm: I18n.t("admin.orders.detail.cancel_confirm", number: number) } : {}
         }
       end
@@ -190,11 +190,8 @@ module Admin
       )
     end
 
-    def button_class(action, index)
-      return "act-btn danger" if action.danger
-      return "act-btn primary" if index.zero?
-
-      "act-btn"
+    def button_class(action)
+      action.danger ? "act-btn danger" : "act-btn primary"
     end
 
     def with_branch_step(steps, current)
