@@ -718,7 +718,6 @@ pt-BR:
         issue_label: "Emitir etiqueta Correios"
         flag_issue: "Marcar problema"
         cancel: "Cancelar"
-        reship: "Reenviar"
       situations:
         active: "Ativo"
         pending: "Pendente"
@@ -1030,13 +1029,13 @@ pt-BR:
         delivered:
           description: "Pedido entregue ao cliente. Se o cliente pedir devolução, autorize a devolução: o status avança sozinho quando o pacote chegar até nós."
         delivery_issue:
-          description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho; se não, reenvie o pedido."
+          description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho. Combine o reenvio com o cliente pelo WhatsApp: a nova postagem ainda não é feita por aqui."
         awaiting_return:
           description: "Devolução iniciada. O cliente recebe a etiqueta pré-paga e posta o pacote. O status avança sozinho quando os Correios registrarem a postagem."
         returning:
           description: "A devolução está em trânsito para o nosso endereço. O rastreio conclui sozinho quando o pacote chegar."
         returned:
-          description: "O pacote voltou para o nosso endereço. Reenvie ou cancele o pedido."
+          description: "O pacote voltou para o nosso endereço. Cancele o pedido, ou combine o reenvio com o cliente pelo WhatsApp: a nova postagem ainda não é feita por aqui."
         cancelled:
           description: "Pedido cancelado. Nenhuma ação adicional."
         merged:
@@ -1045,6 +1044,7 @@ pt-BR:
         label_issued: "O status avança para Enviado automaticamente quando os Correios registram a postagem."
         shipped: "O status avança para Entregue automaticamente pelo rastreio dos Correios."
         delivered: "Este pedido está concluído. Só volta a se mover se o pacote retornar para nós."
+        delivery_issue: "Aguardando os Correios. Se o cliente retirar o objeto, o status volta para Entregue automaticamente."
         awaiting_return: "O status avança para Devolução a caminho automaticamente quando o cliente postar o pacote."
         returning: "O status avança para Devolvido automaticamente quando a devolução chegar até nós."
         cancelled: "Este pedido foi cancelado. Não há mais transições disponíveis."

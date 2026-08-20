@@ -19,7 +19,8 @@ module Admin
       "delivered"         => "correios"
     }.freeze
 
-    AUTO_NEXT_STATUSES = %w[label_issued shipped delivered awaiting_return returning cancelled].freeze
+    AUTO_NEXT_STATUSES = %w[label_issued shipped delivered delivery_issue
+                            awaiting_return returning cancelled].freeze
 
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
     PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze

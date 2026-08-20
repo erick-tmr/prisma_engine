@@ -212,25 +212,19 @@ module Admin
       get admin_order_path(order)
       assert_response :success
       assert_select ".lc-step.branch.current"
-      assert_select ".act-btn", text: /Reenviar/
+      assert_select ".act-none", text: /Aguardando os Correios/
       assert_select "form[data-confirm] .act-btn.danger", false
     end
 
-    test "an operator can re-ship a delivery_issue order" do
+    test "reship is refused now that it is withdrawn, leaving the order where it was" do
       sign_in users(:admin)
       order = orders(:shipped_order)
       order.transition_to!("delivery_issue")
 
       post admin_order_transition_path(order, event: "reship")
-      assert_redirected_to admin_order_path(order)
-      assert order.reload.shipped?
 
-      change = order.status_changes.chronological.last
-      assert_equal "shipped", change.to_status
-      assert_equal users(:admin), change.actor
-
-      follow_redirect!
-      assert_select ".od-flash--ok"
+      assert order.reload.delivery_issue?
+      assert_equal "delivery_issue", order.status_changes.chronological.last.to_status
     end
 
     test "an action not available for the current state is rejected" do

@@ -487,8 +487,8 @@ resolves exactly two ways, both single edges so neither replays an earlier e-mai
 - the customer collects it at the unit, a `delivered` signal outranks the issue, and
   the order goes `delivery_issue → delivered`;
 - Correios gives up and the package physically returns to us, and the order goes
-  `delivery_issue → returned` ("Devolvido"), from which an operator reships, refunds
-  or cancels.
+  `delivery_issue → returned` ("Devolvido"), from which an operator refunds or
+  cancels.
 
 Those are different facts and get different order statuses, because "the object is
 sitting at a Correios unit" and "the box is back on our shelf" call for different
@@ -520,6 +520,22 @@ promise as an arrival is the same mistake that walked two orders to `shipped` of
 `shipment.posted_at ||=`, and a handback is not a posting; `derive_state` answers
 `returned` before the movement fallback is reached, so membership would buy nothing and
 risk stamping a posting time from a package coming home.
+
+**Re-shipping is not a status flip, so the button is withdrawn.** `returned → shipped`
+and `delivery_issue → shipped` stay in `Order::TRANSITIONS` because the domain does
+permit a second despatch, but no operator action drives them any more. The old
+"Reenviar" moved the status and nothing else: it left the order claiming `shipped`
+against the dead outbound tracking code of the parcel that had just come back, with no
+new pré-postagem, no new rótulo and no way for the customer's tracking page to say
+anything true.
+
+Doing it properly needs a **second outbound shipment**, and `shipments` is unique on
+`[order_id, direction]` precisely to stop two live pré-postagens fighting over one
+order. So re-shipping is blocked on modelling repeat despatches (a sequence per
+direction, with `Shipment#current` semantics for the address, service and price
+snapshot, and a tracking read-model that knows which leg it is reading), not on a
+button. Until then the operator arranges it with the customer over WhatsApp, which is
+what they were doing anyway, and the order stays in a status that matches reality.
 
 **Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
 issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`
