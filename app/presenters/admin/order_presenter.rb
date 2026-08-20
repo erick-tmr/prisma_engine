@@ -19,7 +19,8 @@ module Admin
       "delivered"         => "correios"
     }.freeze
 
-    AUTO_NEXT_STATUSES = %w[label_issued shipped delivered awaiting_return returning cancelled].freeze
+    AUTO_NEXT_STATUSES = %w[label_issued shipped delivered delivery_issue
+                            awaiting_return returning cancelled].freeze
 
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
     PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze
@@ -86,13 +87,13 @@ module Admin
     end
 
     def available_actions
-      OrderActions.available_for(status).each_with_index.map do |action, index|
+      OrderActions.available_for(status).map do |action|
         {
           id: action.id,
           icon: action.icon,
           label: I18n.t("admin.dashboard.bulk_actions.#{action.id}"),
           target_label: status_label(action.to),
-          button_class: button_class(action, index),
+          button_class: button_class(action),
           form_data: action.danger ? { confirm: I18n.t("admin.orders.detail.cancel_confirm", number: number) } : {}
         }
       end
@@ -190,11 +191,8 @@ module Admin
       )
     end
 
-    def button_class(action, index)
-      return "act-btn danger" if action.danger
-      return "act-btn primary" if index.zero?
-
-      "act-btn"
+    def button_class(action)
+      action.danger ? "act-btn danger" : "act-btn primary"
     end
 
     def with_branch_step(steps, current)

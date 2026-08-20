@@ -13,6 +13,7 @@ class CatalogToCartTest < ApplicationSystemTestCase
 
     assert_selector "[data-price]"
     click_button "Adicionar ao carrinho"
+    assert_selector "[data-cart-count]", text: "1"
 
     visit cart_path
     assert_selector "[data-head-count]", text: "1 item"

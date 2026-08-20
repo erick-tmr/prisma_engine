@@ -18,6 +18,7 @@ class CheckoutPaymentTest < ApplicationSystemTestCase
   test "confirming payment creates the order and lands on the local return page" do
     visit product_path(slug: products(:yellow).slug)
     click_button "Adicionar ao carrinho"
+    assert_selector "[data-cart-count]", text: "1"
 
     visit checkout_path
     assert_selector "[data-ship-opts] [data-ship-opt]", minimum: 1

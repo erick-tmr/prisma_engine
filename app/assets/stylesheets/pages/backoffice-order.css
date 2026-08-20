@@ -254,6 +254,16 @@
 .cust-row { display: flex; align-items: center; gap: 11px; padding: 9px 12px; font-size: 13px; color: #4b5563; border-radius: 9px; }
 .cust-row i { font-size: 14px; color: #98a0aa; width: 16px; text-align: center; flex-shrink: 0; }
 .cust-row .v { color: var(--pg-ink); font-weight: 500; word-break: break-word; }
+.cust-wa {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  padding: 4px 9px; border-radius: 999px; border: 1px solid #b7e4c6; background: #eaf8ef;
+  color: #12894a; font-size: 11.5px; font-weight: 700; text-decoration: none; line-height: 1.4;
+  transition: background .15s ease, border-color .15s ease;
+}
+.cust-wa i { font-size: 13px; color: #25d366; width: auto; }
+.cust-wa:hover { background: #d8f2e2; border-color: #8fd6a9; color: #0e6f3c; }
+.cust-wa:hover i { color: #1eb457; }
+.cust-wa:focus-visible { outline: 2px solid #12894a; outline-offset: 2px; }
 
 /* customer avatar tints (mirror the dashboard list's who-av--N palette) */
 .cust-av--0 { background: #e4322b; }

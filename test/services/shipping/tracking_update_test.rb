@@ -237,7 +237,46 @@ module Shipping
       assert_equal 1, logged
     end
 
+    test "a returned signal marks the shipment returned, not delivered" do
+      shipment = shipments(:labeled)
+
+      with_returned_signal("BDE", "23") do
+        Shipping::TrackingUpdate.apply(shipment, [ posted_event, failed_delivery_event, handback_event ])
+      end
+
+      shipment.reload
+      assert shipment.tracking_returned?
+      assert_nil shipment.delivered_at, "the customer never received it"
+      assert_equal posted_event[:occurred_at], shipment.posted_at,
+                   "the handback is not a posting and must not restamp posted_at"
+    end
+
+    test "no code is catalogued as returned yet, so a handback only logs as unmapped" do
+      shipment = shipments(:labeled)
+      messages = []
+
+      Rails.logger.stub(:warn, ->(message) { messages << message }) do
+        Shipping::TrackingUpdate.apply(shipment, [ posted_event, handback_event ])
+      end
+
+      assert_not shipment.reload.tracking_returned?
+      assert_match(/unmapped event code=BDE type=23/, messages.join)
+    end
+
     private
+
+    def handback_event
+      event("BDE", "23", "Objeto devolvido ao remetente", Time.utc(2026, 6, 2, 9, 14, 0))
+    end
+
+    def with_returned_signal(code, type)
+      catalogue = Shipping::TrackingUpdate::EVENT_SIGNALS
+      resolver = ->(event_code, event_type) do
+        [ event_code, event_type ] == [ code, type ] ? :returned : catalogue[[ event_code, event_type ]]
+      end
+
+      Shipping::TrackingUpdate.stub(:signal_for, resolver) { yield }
+    end
 
     def posted_event
       event("PO", "01", "Objeto postado", Time.utc(2026, 5, 22, 14, 51, 2))

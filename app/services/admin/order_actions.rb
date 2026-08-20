@@ -11,10 +11,6 @@ module Admin
                  to: "awaiting_components", icon: "bi-box-seam", danger: false),
       Action.new(id: "flag_issue", from: %w[in_production],
                  to: "production_issue", icon: "bi-exclamation-triangle", danger: false),
-      Action.new(id: "mark_returned", from: %w[shipped delivered delivery_issue awaiting_return returning],
-                 to: "returned", icon: "bi-box-arrow-in-left", danger: false),
-      Action.new(id: "reship", from: %w[delivery_issue returned],
-                 to: "shipped", icon: "bi-truck", danger: false),
       Action.new(id: "cancel", from: Order::CANCELLABLE_STATUSES,
                  to: "cancelled", icon: "bi-x-circle", danger: true)
     ].freeze

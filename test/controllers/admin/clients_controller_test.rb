@@ -28,6 +28,23 @@ module Admin
       assert_select ".od-back[href=?]", admin_clients_path
     end
 
+    test "the phone row opens the client WhatsApp chat in a new tab" do
+      sign_in users(:admin)
+      get admin_client_path(users(:buyer))
+
+      assert_select ".cust-row a.cust-wa[href=?][target=?][rel=?]",
+                    "https://web.whatsapp.com/send?phone=5511991112222", "_blank", "noopener"
+    end
+
+    test "a landline gets no WhatsApp button, since no account can answer it" do
+      sign_in users(:admin)
+      users(:buyer).update_column(:phone, "1133334444")
+      get admin_client_path(users(:buyer))
+
+      assert_select ".cust-row .v", text: "(11) 3333-4444"
+      assert_select "a.cust-wa", false
+    end
+
     test "an admin account is not reachable as a client" do
       sign_in users(:admin)
       get admin_client_path(users(:admin))

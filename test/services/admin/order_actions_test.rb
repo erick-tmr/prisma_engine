@@ -2,24 +2,29 @@ require "test_helper"
 
 module Admin
   class OrderActionsTest < ActiveSupport::TestCase
-    test "delivery_issue offers returned and reship, but no cancel while Correios holds the object" do
-      actions = OrderActions.available_for("delivery_issue")
-
-      assert_equal %w[mark_returned reship], actions.map(&:id)
-      assert_equal %w[returned shipped], actions.map(&:to)
-      assert_equal [ false, false ], actions.map(&:danger)
+    test "delivery_issue offers nothing: the object is with Correios, not with us" do
+      assert_empty OrderActions.available_for("delivery_issue")
     end
 
-    test "a returned order can be reshipped or cancelled, but not returned again" do
+    test "a returned order can only be cancelled" do
       actions = OrderActions.available_for("returned")
 
-      assert_equal %w[reship cancel], actions.map(&:id)
-      assert_equal [ false, true ], actions.map(&:danger)
+      assert_equal %w[cancel], actions.map(&:id)
+      assert_equal [ true ], actions.map(&:danger)
     end
 
     test "lookup finds an action by id and returns nil for an unknown one" do
-      assert_equal "shipped", OrderActions.lookup("reship").to
+      assert_equal "cancelled", OrderActions.lookup("cancel").to
       assert_nil OrderActions.lookup("nope")
+    end
+
+    test "reship is withheld until a second outbound shipment can be minted" do
+      assert_nil OrderActions.lookup("reship")
+
+      %w[delivery_issue returned].each do |status|
+        assert_empty OrderActions.available_for(status).select { |action| action.to == "shipped" },
+                     "expected #{status} to offer no route back to shipped"
+      end
     end
 
     test "issue_label is not an operator action; labels are issued in batch" do
@@ -38,7 +43,15 @@ module Admin
       %w[shipped delivered delivery_issue].each do |status|
         assert_not_includes OrderActions.available_for(status).map(&:id), "cancel",
                             "expected #{status} not to offer cancel"
-        assert_includes OrderActions.available_for(status).map(&:id), "mark_returned"
+      end
+    end
+
+    test "the package coming back is a Correios event, never an operator button" do
+      assert_nil OrderActions.lookup("mark_returned")
+
+      %w[shipped delivered delivery_issue awaiting_return returning].each do |status|
+        assert_empty OrderActions.available_for(status).select { |action| action.to == "returned" },
+                     "expected #{status} to offer no manual route to returned"
       end
     end
 

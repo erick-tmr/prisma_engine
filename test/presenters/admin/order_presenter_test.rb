@@ -101,9 +101,9 @@ module Admin
       assert_empty order_in("cancelled").available_actions
     end
 
-    test "available_actions for a posted order offers only the return, never a direct cancel" do
+    test "available_actions for a posted order is empty: it moves on Correios events alone" do
       %w[shipped delivered].each do |status|
-        assert_equal %w[mark_returned], order_in(status).available_actions.map { |a| a[:id] }, status
+        assert_empty order_in(status).available_actions, status
       end
     end
 
@@ -144,14 +144,16 @@ module Admin
       assert_equal "Problema na produção", branch.label
     end
 
-    test "available_actions for delivery_issue offers returned and reship, but no cancel" do
-      actions = order_in("delivery_issue").available_actions
-      assert_equal %w[mark_returned reship], actions.map { |a| a[:id] }
+    test "available_actions for delivery_issue is empty, and the card explains why" do
+      presenter = order_in("delivery_issue")
+
+      assert_empty presenter.available_actions
+      assert_equal I18n.t("admin.orders.auto_next.delivery_issue"), presenter.auto_next_note
     end
 
-    test "available_actions for a returned order offers reship and a danger cancel" do
+    test "available_actions for a returned order offers only a danger cancel" do
       actions = order_in("returned").available_actions
-      assert_equal %w[reship cancel], actions.map { |a| a[:id] }
+      assert_equal %w[cancel], actions.map { |a| a[:id] }
       cancel = actions.find { |a| a[:id] == "cancel" }
       assert_equal "act-btn danger", cancel[:button_class]
       assert_includes cancel[:form_data][:confirm], "Cancelar o pedido"

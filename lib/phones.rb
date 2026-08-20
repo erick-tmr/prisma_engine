@@ -3,6 +3,7 @@ module Phones
   AREA_CODE = /\A[1-9][1-9]\z/
   LANDLINE_DIGITS = 10
   MOBILE_DIGITS = 11
+  WHATSAPP_CHAT_URL = "https://web.whatsapp.com/send".freeze
 
   module_function
 
@@ -14,6 +15,11 @@ module Phones
   def e164(raw)
     digits = national(raw)
     "+#{COUNTRY_CODE}#{digits}" if digits
+  end
+
+  def whatsapp_url(raw)
+    digits = national(raw)
+    "#{WHATSAPP_CHAT_URL}?phone=#{COUNTRY_CODE}#{digits}" if digits&.length == MOBILE_DIGITS
   end
 
   def drop_country_code(digits)
