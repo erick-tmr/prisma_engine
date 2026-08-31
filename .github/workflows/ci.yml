@@ -406,7 +406,7 @@ jobs:
         run: bin/brakeman -f sarif -o brakeman.sarif.json --no-pager || true
 
       - name: Upload Brakeman SARIF
-        uses: github/codeql-action/upload-sarif@v4.37.8
+        uses: github/codeql-action/upload-sarif@v4.37.9
         with:
           sarif_file: brakeman.sarif.json
           category: brakeman
@@ -480,7 +480,7 @@ jobs:
 
       - name: Upload Semgrep SARIF
         if: ${{ !cancelled() && hashFiles('semgrep.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@v4.37.8
+        uses: github/codeql-action/upload-sarif@v4.37.9
         with:
           sarif_file: semgrep.sarif
           category: semgrep
