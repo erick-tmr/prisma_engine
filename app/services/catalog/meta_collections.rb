@@ -13,6 +13,7 @@ module Catalog
       specs.each do |name, filter|
         publish(name, filter, existing[name])
       rescue Meta::Api::EmptyProductSetError
+        log_skipped(name)
         next
       end
     end
@@ -41,10 +42,33 @@ module Catalog
 
     def publish(name, filter, id)
       if id
-        Meta::Api::ProductSets.update(id, filter: filter)
+        log_published(name, "update", id, update_set(id, filter))
       else
-        Meta::Api::ProductSets.create(name: name, filter: filter, shop_id: Meta::Api.shop_id)
+        log_published(name, "create", nil, create_set(name, filter))
       end
+    end
+
+    def update_set(id, filter)
+      Meta::Api::ProductSets.update(id, filter: filter, shop_id: shop_id)
+    end
+
+    def create_set(name, filter)
+      Meta::Api::ProductSets.create(name: name, filter: filter, shop_id: shop_id)
+    end
+
+    def shop_id
+      Meta::Api.shop_id
+    end
+
+    def log_published(name, action, id, response)
+      Rails.logger.info(
+        "[Catalog::MetaCollections] set=#{name.inspect} action=#{action} " \
+        "set_id=#{id.inspect} shop=#{shop_id} response=#{response.inspect}"
+      )
+    end
+
+    def log_skipped(name)
+      Rails.logger.info("[Catalog::MetaCollections] set=#{name.inspect} action=skipped_empty")
     end
   end
 end
