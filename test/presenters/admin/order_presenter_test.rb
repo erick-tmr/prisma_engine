@@ -328,6 +328,19 @@ module Admin
       assert presenter.return_label_printable?
     end
 
+    test "the reason box appears with the return and reads as empty when none was typed" do
+      order = orders(:delivered)
+      assert_not Admin::OrderPresenter.new(order).return_recorded?
+
+      Shipping::StartReturn.call(order: order)
+      presenter = Admin::OrderPresenter.new(order.reload)
+      assert presenter.return_recorded?
+      assert_nil presenter.return_reason
+
+      Shipping::CancelReturn.call(order: order.reload)
+      assert_not Admin::OrderPresenter.new(order.reload).return_recorded?
+    end
+
     test "an order outside the return leg is not abortable" do
       assert_not Admin::OrderPresenter.new(orders(:producing)).return_abortable?
     end

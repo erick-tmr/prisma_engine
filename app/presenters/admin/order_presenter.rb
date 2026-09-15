@@ -121,6 +121,10 @@ module Admin
       shipment.present? && shipment.posted_at.nil?
     end
 
+    def return_recorded?
+      order.return_shipment.present?
+    end
+
     def return_reason
       order.return_reason
     end
