@@ -27,6 +27,7 @@ module Admin
 
     LifecycleStep = Data.define(:label, :classes, :auto_note, :doing)
     Payment = Data.define(:method_label, :icon, :status_class, :status_icon, :status_label)
+    Tracking = Data.define(:title, :code, :url, :events)
 
     def initialize(order)
       @order = order
@@ -35,7 +36,7 @@ module Admin
     attr_reader :order
 
     delegate :number, :status, :order_items, :subtotal_cents, :total_cents,
-             :placed_at, :payment_method, :shipping_visible?, :observation,
+             :placed_at, :payment_method, :observation,
              :merged?, :merged_into, to: :order
 
     def status_label(value = status)
@@ -74,16 +75,12 @@ module Admin
       end
     end
 
-    def tracking_events
-      order.tracking_events.sort_by(&:occurred_at).reverse
+    def tracking
+      tracking_for(order.shipment, I18n.t("admin.orders.detail.tracking"))
     end
 
-    def tracking_code
-      order.shipment&.tracking_code
-    end
-
-    def tracking_url
-      order.shipment&.tracking_url
+    def return_tracking
+      tracking_for(order.return_shipment, I18n.t("admin.orders.detail.return_tracking"))
     end
 
     def available_actions
@@ -176,6 +173,15 @@ module Admin
     end
 
     private
+
+    def tracking_for(shipment, title)
+      return if shipment.nil?
+
+      events = shipment.tracking_events.sort_by(&:occurred_at).reverse
+      return if shipment.tracking_code.blank? && events.empty?
+
+      Tracking.new(title: title, code: shipment.tracking_code, url: shipment.tracking_url, events: events)
+    end
 
     def actor_label(change)
       return I18n.t("admin.orders.detail.automatic") if change.automatic || change.actor.nil?
