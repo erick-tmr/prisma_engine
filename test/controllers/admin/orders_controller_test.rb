@@ -148,6 +148,41 @@ module Admin
       assert_select ".od-track-link[href=?][target=?][rel=?]", shipment.tracking_url, "_blank", "noopener"
     end
 
+    test "show renders the return timeline next to the outbound one" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      inbound = Shipment.create!(
+        order: order, direction: :inbound, service: "mini_envios",
+        tracking_code: "PG515656030BR", receiver_name: "Prisma Games", zip: "37500000"
+      )
+      inbound.tracking_events.create!(
+        position: 0, event_code: "PO", event_type: "01", description: "Objeto postado",
+        occurred_at: 2.days.ago, payload: {}
+      )
+
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select "h2", text: /Rastreamento Correios/
+      assert_select "h2", text: /Rastreamento da devolução/
+      assert_select ".od-track-code", text: "PG515656030BR"
+      assert_select ".od-track-link[href=?]", inbound.tracking_url
+    end
+
+    test "show tells the operator when a return label has no Correios event yet" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipment.create!(
+        order: order, direction: :inbound, service: "mini_envios",
+        tracking_code: "PG515656031BR", receiver_name: "Prisma Games", zip: "37500000"
+      )
+
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select ".od-track-empty", text: /Nenhum evento registrado nos Correios/
+    end
+
     test "show renders the printable label and a cancel action for a label_issued order" do
       sign_in users(:admin)
       order = orders(:labeled)
