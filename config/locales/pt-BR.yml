@@ -959,6 +959,8 @@ pt-BR:
         payment_method_unknown: "Forma de pagamento não identificada"
         tracking: "Rastreamento Correios"
         tracking_external: "Rastrear nos Correios"
+        tracking_empty: "Nenhum evento registrado nos Correios até agora."
+        return_tracking: "Rastreamento da devolução"
         destination: "Destino"
         history: "Histórico de status"
         status_section: "Status do pedido"
