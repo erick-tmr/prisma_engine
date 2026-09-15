@@ -52,13 +52,13 @@ module Catalog
       assert_includes created, "Game Boy Color"
     end
 
-    test "updates an existing set by name instead of creating it" do
+    test "updates an existing set by name instead of creating it, reasserting the shop" do
       updated = []
       created = []
 
       with_shops do
         Meta::Api::ProductSets.stub(:list, -> { [ { "name" => "Game Boy Color", "id" => "existing-1" } ] }) do
-          Meta::Api::ProductSets.stub(:update, ->(id, filter:) { updated << id }) do
+          Meta::Api::ProductSets.stub(:update, ->(id, filter:, shop_id:) { updated << [ id, filter, shop_id ] }) do
             Meta::Api::ProductSets.stub(:create, ->(name:, filter:, shop_id:) { created << name }) do
               Catalog::MetaCollections.call
             end
@@ -66,8 +66,59 @@ module Catalog
         end
       end
 
-      assert_includes updated, "existing-1"
+      assert_equal(
+        [ [ "existing-1", { "product_type" => { "eq" => "Game Boy Color" } }, "shop-1" ] ],
+        updated
+      )
       assert_not_includes created, "Game Boy Color"
+    end
+
+    test "logs the shop and the vendor response for every set it publishes" do
+      messages = []
+
+      with_shops do
+        Meta::Api::ProductSets.stub(:list, -> { [ { "name" => "Game Boy Color", "id" => "existing-1" } ] }) do
+          Meta::Api::ProductSets.stub(:update, ->(_id, filter:, shop_id:) { { "success" => true } }) do
+            Meta::Api::ProductSets.stub(:create, ->(name:, filter:, shop_id:) { { "id" => "new-7" } }) do
+              Rails.logger.stub(:info, ->(message) { messages << message }) do
+                Catalog::MetaCollections.call
+              end
+            end
+          end
+        end
+      end
+
+      updated = messages.find { |line| line.include?("set=\"Game Boy Color\"") }
+      assert_includes updated, "action=update"
+      assert_includes updated, "set_id=\"existing-1\""
+      assert_includes updated, "shop=shop-1"
+      assert_includes updated, "response={\"success\" => true}"
+
+      created = messages.find { |line| line.include?("set=\"Jogos do Mês\"") }
+      assert_includes created, "action=create"
+      assert_includes created, "set_id=nil"
+      assert_includes created, "response={\"id\" => \"new-7\"}"
+    end
+
+    test "logs the sets Meta rejects as empty instead of skipping them silently" do
+      messages = []
+      create = lambda do |name:, filter:, shop_id:|
+        raise Meta::Api::EmptyProductSetError, "empty" if name == "Pedidos de Jogos"
+
+        { "id" => "new-7" }
+      end
+
+      with_shops do
+        Meta::Api::ProductSets.stub(:list, -> { [] }) do
+          Meta::Api::ProductSets.stub(:create, create) do
+            Rails.logger.stub(:info, ->(message) { messages << message }) do
+              Catalog::MetaCollections.call
+            end
+          end
+        end
+      end
+
+      assert_includes messages, %([Catalog::MetaCollections] set="Pedidos de Jogos" action=skipped_empty)
     end
 
     test "the Game of the Month set filters on the current edition product ids" do

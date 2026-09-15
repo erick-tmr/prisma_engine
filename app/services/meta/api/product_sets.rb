@@ -15,8 +15,8 @@ module Meta
         new.create(name: name, filter: filter, shop_id: shop_id)
       end
 
-      def self.update(id, filter:)
-        new.update(id, filter: filter)
+      def self.update(id, filter:, shop_id:)
+        new.update(id, filter: filter, shop_id: shop_id)
       end
 
       def list
@@ -28,17 +28,24 @@ module Meta
         response = request(:post, sets_path) do |req|
           req.params["name"] = name
           req.params["filter"] = filter.to_json
-          req.params["publish_to_shops"] = [ { shop_id: shop_id } ].to_json
+          req.params["publish_to_shops"] = shops_param(shop_id)
         end
         parse(response.body)
       end
 
-      def update(id, filter:)
-        response = request(:post, "#{Meta::Api::API_VERSION}/#{id}") { |req| req.params["filter"] = filter.to_json }
+      def update(id, filter:, shop_id:)
+        response = request(:post, "#{Meta::Api::API_VERSION}/#{id}") do |req|
+          req.params["filter"] = filter.to_json
+          req.params["publish_to_shops"] = shops_param(shop_id)
+        end
         parse(response.body)
       end
 
       private
+
+      def shops_param(shop_id)
+        [ { shop_id: shop_id } ].to_json
+      end
 
       def sets_path
         "#{Meta::Api::API_VERSION}/#{Meta::Api.catalog_id}/product_sets"

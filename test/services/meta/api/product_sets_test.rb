@@ -49,16 +49,23 @@ module Meta
         end
       end
 
-      test "update POSTs the filter to the set node" do
+      test "update POSTs the filter and publish_to_shops to the set node" do
         stub_request(:post, NODE_RE).to_return(
           status: 200, body: { "success" => true }.to_json, headers: { "Content-Type" => "application/json" }
         )
 
-        with_credentials { Meta::Api::ProductSets.update("set-9", filter: { "retailer_id" => { "is_any" => [ "8" ] } }) }
+        body = with_credentials do
+          Meta::Api::ProductSets.update(
+            "set-9", filter: { "retailer_id" => { "is_any" => [ "8" ] } }, shop_id: "shop-1"
+          )
+        end
 
+        assert_equal true, body["success"]
         assert_requested(:post, NODE_RE) do |req|
           params = Rack::Utils.parse_query(req.uri.query)
           assert_equal({ "retailer_id" => { "is_any" => [ "8" ] } }, JSON.parse(params["filter"]))
+          assert_equal [ { "shop_id" => "shop-1" } ], JSON.parse(params["publish_to_shops"])
+          assert_equal "Bearer test-token", req.headers["Authorization"]
           true
         end
       end
