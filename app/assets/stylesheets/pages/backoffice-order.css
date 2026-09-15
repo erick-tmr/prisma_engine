@@ -397,3 +397,4 @@
   margin-bottom: 5px;
 }
 .return-recorded p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--bo-ink, #1a1d21); white-space: pre-line; }
+.return-recorded p.return-recorded-empty { color: var(--bo-muted, #6b7280); font-style: italic; }

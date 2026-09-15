@@ -60,10 +60,14 @@
         <% end %>
       <% end %>
 
-      <% if presenter.return_reason.present? %>
+      <% if presenter.return_recorded? %>
         <div class="return-recorded">
           <div class="return-recorded-head"><i class="bi bi-chat-left-text"></i> <%= t("admin.orders.detail.return_reason") %></div>
-          <p><%= presenter.return_reason %></p>
+          <% if presenter.return_reason.present? %>
+            <p><%= presenter.return_reason %></p>
+          <% else %>
+            <p class="return-recorded-empty"><%= t("admin.orders.detail.return_reason_missing") %></p>
+          <% end %>
         </div>
       <% end %>
 

@@ -972,6 +972,7 @@ pt-BR:
         return_service: "Serviço"
         return_reason: "Motivo da devolução"
         return_reason_placeholder: "Por que este pedido está voltando?"
+        return_reason_missing: "Nenhum motivo foi registrado na abertura da devolução."
         cancel_return: "Cancelar devolução"
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
