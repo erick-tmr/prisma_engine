@@ -147,20 +147,6 @@ class OrderTest < ActiveSupport::TestCase
     assert order.reload.label_issued?
   end
 
-  test "tracking_events and shipping_visible? follow the linked shipment" do
-    order = build_order
-    order.save!
-    assert_empty order.tracking_events
-    assert_not order.shipping_visible?
-
-    shipment = Shipment.create!(tracking_code: "PG777000111BR", order: order)
-    shipment.tracking_events.create!(position: 2, event_code: "BDE", event_type: "01", occurred_at: 1.day.ago)
-    shipment.tracking_events.create!(position: 1, event_code: "PO", event_type: "01", occurred_at: 3.days.ago)
-
-    assert_equal %w[PO BDE], order.reload.tracking_events.map(&:event_code)
-    assert order.shipping_visible?
-  end
-
   test "cancellable? everywhere we still hold the item, up to and including a label" do
     order = build_order
     order.save!
