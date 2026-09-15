@@ -104,14 +104,6 @@ class Order < ApplicationRecord
     awaiting_payment? || (cancelled? && !ever_confirmed?)
   end
 
-  def tracking_events
-    shipment ? shipment.tracking_events.order(:position) : []
-  end
-
-  def shipping_visible?
-    tracking_events.any?
-  end
-
   def cancellable?
     CANCELLABLE_STATUSES.include?(status)
   end

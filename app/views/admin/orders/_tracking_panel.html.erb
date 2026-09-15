@@ -1,0 +1,46 @@
+<%# locals: (tracking:) %>
+<div class="panel">
+  <div class="panel-top">
+    <div class="panel-top-main">
+      <h2><span class="rbar" aria-hidden="true"></span> <%= tracking.title %></h2>
+    </div>
+    <% if tracking.code.present? %>
+      <div class="panel-top-right">
+        <span class="od-track-code" data-tracking-code><%= tracking.code %></span>
+        <a class="od-track-link" href="<%= tracking.url %>" target="_blank" rel="noopener">
+          <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+          <span><%= t("admin.orders.detail.tracking_external") %></span>
+        </a>
+      </div>
+    <% end %>
+  </div>
+  <% if tracking.events.any? %>
+    <div class="od-track">
+      <% tracking.events.each_with_index do |event, index| %>
+        <div class="od-track-item<%= " is-current" if index.zero? %>">
+          <span class="od-track-dot"></span>
+          <div class="od-track-body">
+            <div>
+              <div class="desc"><%= event.summary %></div>
+              <% if event.detail %>
+                <div class="meta"><%= event.detail %></div>
+              <% end %>
+              <% if event.posting_unit %>
+                <div class="meta"><%= event.posting_unit %></div>
+              <% end %>
+              <% if event.destination %>
+                <div class="meta"><%= t("admin.orders.detail.destination") %>: <%= event.destination %></div>
+              <% end %>
+            </div>
+            <div class="time"><%= l(event.occurred_at, format: :short) %></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="od-track-empty">
+      <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+      <span><%= t("admin.orders.detail.tracking_empty") %></span>
+    </div>
+  <% end %>
+</div>
