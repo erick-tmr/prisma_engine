@@ -92,8 +92,8 @@ apt-get update
 apt-get install -y postgresql-17 postgresql-client-17
 ```
 
-Create the application role with a strong password. `CREATEDB` lets the container's
-`db:prepare` create the four databases on first boot.
+Create the application role with a strong password. `CREATEDB` lets the `db:prepare`
+run in the `pre-deploy` hook create the four databases on the first deploy.
 
 ```bash
 sudo -u postgres psql -c \
@@ -220,8 +220,8 @@ bin/kamal setup
 
 This installs Docker and kamal-proxy on the host, logs in to ghcr, builds the amd64
 image, pushes it, boots the app container (with the host-gateway mapping), and requests
-the TLS certificate. On boot, `bin/docker-entrypoint` runs `db:prepare`, which creates
-and migrates all four databases.
+the TLS certificate. `.kamal/hooks/pre-deploy` runs `db:prepare`, which creates and
+migrates all four databases.
 
 Routine deploys after that:
 
@@ -240,6 +240,33 @@ lists every action the CLI grows.
 
 Useful aliases (defined in `config/deploy.yml`): `bin/kamal console`,
 `bin/kamal dbconsole`, `bin/kamal logs`.
+
+### Migrations run before the new container boots
+
+`.kamal/hooks/pre-deploy` runs `bin/rails db:prepare` in a throwaway container built from
+the version being deployed:
+
+```bash
+bin/kamal app exec --version="$KAMAL_VERSION" "bin/rails db:prepare"
+```
+
+Kamal fires that hook after the image is pulled onto the host and before any container is
+booted, so a migration that fails aborts the deploy with the old container still serving.
+The container gets the role's full env, the `host.docker.internal` mapping and the `kamal`
+network, so it reaches Postgres exactly as the web container does.
+
+The app image has no `ENTRYPOINT`, and nothing migrates on boot. That keeps migrations out
+of kamal-proxy's health-check window: the proxy cannot tell a running migration apart from
+a crashed app, so a slow one used to eat the `deploy_timeout` budget and could be SIGKILLed
+mid-run when the deploy rolled back. Time to healthy is now one Rails boot rather than two
+in series.
+
+The cost is a second Bitwarden fetch per deploy, because the nested `kamal` re-evaluates
+`.kamal/secrets`. Keep `bw` unlocked and `BW_ACCOUNT` exported for the whole deploy, not
+just its first seconds.
+
+`bin/kamal app boot` on its own no longer migrates. Use `bin/prisma deploy` (or
+`bin/kamal deploy`) so the hook runs.
 
 ## 7. Backups to R2
 
@@ -312,8 +339,8 @@ the live database), then the final command drops the throwaway.
 
 ## 8. Verify end-to-end
 
-- `bin/kamal logs`: `db:prepare` ran, no credential decrypt error, Puma up, solid_queue
-  supervisor started.
+- `bin/kamal logs`: no credential decrypt error, Puma up, solid_queue supervisor
+  started. `db:prepare` reports from the `pre-deploy` hook in the deploy output, not here.
 - `curl -I https://prismagames.com.br/up` returns 200 through Cloudflare (a `cf-ray`
   header is present); `http://` redirects to `https://` with no loop.
 - The storefront loads over HTTPS and product images render from the R2 public host.
