@@ -1,3 +1,11 @@
 #!/bin/bash -e
 
+if [ -z "${BW_SESSION:-}" ]; then
+  echo "pre-deploy: BW_SESSION is unset, so the nested kamal would block on a 'bw unlock'" >&2
+  echo "prompt that this hook's captured output hides. Run:" >&2
+  echo "  export BW_SESSION=\$(bw unlock --raw)" >&2
+  echo "and deploy again." >&2
+  exit 1
+fi
+
 bin/kamal app exec --version="$KAMAL_VERSION" "bin/rails db:prepare"
