@@ -191,12 +191,21 @@ One-time setup:
    `production.yml.enc` (`brevo.smtp_login` / `brevo.smtp_key`, `correios.api_token` /
    `correios.cartao_api_token`), not Bitwarden.
 
-Before deploying, export your Bitwarden account email. Kamal unlocks the vault, prompting
-for your master password if it is locked:
+Before deploying, export your Bitwarden account email, and export a vault session:
 
 ```bash
 export BW_ACCOUNT="you@example.com"
+export BW_SESSION=$(bw unlock --raw)
 ```
+
+`BW_SESSION` matters because the deploy evaluates `.kamal/secrets` twice: once in
+`kamal deploy` itself and once in the `kamal app exec` that `.kamal/hooks/pre-deploy`
+runs. Kamal's Bitwarden adapter checks `bw status` first and only shells out to
+`bw unlock` when the vault reports `locked`, so an exported session skips the prompt in
+both. Without it the second unlock prompt is swallowed by the hook's captured output and
+the deploy hangs with no visible reason. `bin/prisma deploy` sets the session for you when
+it is missing and a terminal is attached, and `.kamal/hooks/pre-deploy` refuses to run
+rather than hang when it is not.
 
 Verify the master key decrypts the production credentials before deploying:
 
@@ -262,8 +271,8 @@ mid-run when the deploy rolled back. Time to healthy is now one Rails boot rathe
 in series.
 
 The cost is a second Bitwarden fetch per deploy, because the nested `kamal` re-evaluates
-`.kamal/secrets`. Keep `bw` unlocked and `BW_ACCOUNT` exported for the whole deploy, not
-just its first seconds.
+`.kamal/secrets`. Export `BW_SESSION` (see section 5) so neither fetch prompts. The hook
+exits non-zero with instructions rather than hanging if it is unset.
 
 `bin/kamal app boot` on its own no longer migrates. Use `bin/prisma deploy` (or
 `bin/kamal deploy`) so the hook runs.
