@@ -1,0 +1,3 @@
+#!/bin/bash -e
+
+bin/kamal app exec --version="$KAMAL_VERSION" "bin/rails db:prepare"
