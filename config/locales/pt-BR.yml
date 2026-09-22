@@ -567,6 +567,7 @@ pt-BR:
       failure: "E-mail ou senha inválidos, ou conta sem acesso ao backoffice."
       logout: "Sair"
     lists:
+      select_all: "Selecionar todos"
       showing: "Mostrando"
       statuses_selected: "status selecionados"
       single_page: "Página 1 de 1"

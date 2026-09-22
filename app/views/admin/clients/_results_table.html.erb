@@ -1,6 +1,6 @@
 <div data-part="table">
   <div class="tbl-wrap">
-    <table class="tbl" id="clients-table"<%= " hidden".html_safe if @page.empty? %>>
+    <table class="tbl tbl--cards" id="clients-table"<%= " hidden".html_safe if @page.empty? %>>
       <thead>
         <tr>
           <%= sort_header(@base_params, key: "name", label: t("admin.dashboard.clients.columns.client"),

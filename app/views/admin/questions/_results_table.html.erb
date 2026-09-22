@@ -1,9 +1,9 @@
 <div data-part="table">
   <div class="tbl-wrap">
-    <table class="tbl" id="questions-table"<%= " hidden".html_safe if @page.empty? %>>
+    <table class="tbl tbl--cards" id="questions-table"<%= " hidden".html_safe if @page.empty? %>>
       <thead>
         <tr>
-          <th class="checkcol">
+          <th class="checkcol" data-caption="<%= t("admin.lists.select_all") %>">
             <span class="rowcheck" id="q-checkall" role="checkbox" aria-label="<%= t("admin.questions.select_all") %>" tabindex="0"></span>
           </th>
           <th><%= t("admin.questions.columns.question") %></th>

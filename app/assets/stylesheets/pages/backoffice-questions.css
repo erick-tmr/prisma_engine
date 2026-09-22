@@ -219,3 +219,16 @@ input.inp { background-image: none; padding-right: 13px; }
   .drawer { width: 100vw; }
   .chips { padding: 14px 16px 0; }
 }
+
+@container tbl (max-width: 940px) {
+  #questions-table tbody tr { grid-template-columns: 18px minmax(0, 1fr) auto; }
+  #questions-table td:nth-child(1) { grid-column: 1; grid-row: 1 / span 3; padding-top: 2px; }
+  #questions-table td:nth-child(2) { grid-column: 2 / 4; grid-row: 1; max-width: none; }
+  #questions-table td:nth-child(3) { grid-column: 2 / 4; grid-row: 2; }
+  #questions-table td:nth-child(4) { grid-column: 2; grid-row: 3; align-self: center; }
+  #questions-table td:nth-child(5) { grid-column: 3; grid-row: 3; justify-self: end; align-self: center; }
+  #questions-table td:nth-child(6) { display: none; }
+  #questions-table .q-prod-meta .nm { max-width: none; }
+  #questions-table .q-from .nm { white-space: nowrap; }
+  #questions-table .q-from > :last-child { min-width: 0; overflow-wrap: anywhere; }
+}

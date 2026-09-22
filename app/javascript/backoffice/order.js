@@ -1,14 +1,12 @@
-import { bindConfirm, bindFlashDismiss } from "backoffice/shell";
+import { bindConfirm, bindFlashDismiss, bindSidebar } from "backoffice/shell";
 import { createLabelFeedback, inFlight } from "backoffice/label_feedback";
 import { bindShipmentNav } from "backoffice/shipment_nav";
 
 export const ELAPSED_TICK_MS = 1_000;
 export const RETRY_FAILED = "Não foi possível reenviar para os Correios. Tente novamente.";
 
-export function bindMenu(root) {
-  const toggle = root.querySelector("[data-menu-toggle]");
-  const sidebar = root.querySelector("[data-sidebar]");
-  toggle.addEventListener("click", () => sidebar.classList.toggle("show"));
+export function bindMenu(root, doc = document) {
+  bindSidebar(root.querySelector("[data-menu-toggle]"), root.querySelector("[data-sidebar]"), doc);
 }
 
 export function elapsedText(seconds) {
@@ -52,7 +50,7 @@ export function initOrder(root, doc = document) {
   });
 
   bindConfirm(root);
-  bindMenu(root);
+  bindMenu(root, doc);
   bindFlashDismiss(root);
   bindShipmentNav(root);
   tickElapsed(root);

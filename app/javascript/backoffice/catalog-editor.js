@@ -1,3 +1,5 @@
+import { bindSidebar } from "backoffice/shell";
+
 export const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
@@ -445,7 +447,7 @@ export function initEditor(root) {
     els.graph.value = JSON.stringify(serialize(state, gotmValues()));
   });
 
-  els.menuToggle?.addEventListener("click", () => els.sidebar?.classList.toggle("show"));
+  bindSidebar(els.menuToggle, els.sidebar);
 
   applyGotmState(els, loadedGotm);
   els.price.value = formatPrice(els.price.value);
