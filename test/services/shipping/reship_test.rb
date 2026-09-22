@@ -29,29 +29,34 @@ module Shipping
       assert_equal [ @outbound ], @order.past_shipments
     end
 
-    test "defaults to Mini Envios, like a return, and drops the old service's delivery estimate" do
-      @outbound.update_columns(service: "sedex")
+    SERVICES = Shipping::SERVICES.keys.map(&:to_s).freeze
+    PICKS = [ nil, "", *SERVICES ].freeze
+    LEGS = %w[bounce customer_return].freeze
 
-      Shipping::Reship.call(order: @order)
+    SERVICES.product(PICKS, LEGS).each do |paid, pick, leg|
+      test "paid #{paid}, operator picks #{pick.inspect}, back by #{leg}" do
+        @outbound.update_columns(service: paid)
+        if leg == "customer_return"
+          return_service = (SERVICES - [ paid ]).first
+          Shipment.create!(order: @order, direction: :inbound, service: return_service, created_at: 2.days.ago,
+                           **@outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
+        end
+        expected = pick.presence || Shipping::DEFAULT_RETURN_SERVICE
 
-      shipment = @order.reload.shipment
-      assert_equal Shipping::DEFAULT_RETURN_SERVICE, shipment.service
-      assert_nil shipment.delivery_business_days
-    end
+        result = Shipping::Reship.call(order: @order, service: pick)
 
-    test "re-ships with the operator's choice, never the service picked for the customer's return" do
-      Shipment.create!(order: @order, direction: :inbound, service: "pac", created_at: 2.days.ago,
-                       **@outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
-
-      Shipping::Reship.call(order: @order, service: "sedex")
-
-      assert_equal "sedex", @order.reload.shipment.service
-    end
-
-    test "keeps the delivery estimate when the service does not change" do
-      Shipping::Reship.call(order: @order, service: @outbound.service)
-
-      assert_equal 6, @order.reload.shipment.delivery_business_days
+        assert result.success?
+        shipment = @order.reload.shipment
+        assert_equal expected, shipment.service
+        if expected == paid
+          assert_equal 6, shipment.delivery_business_days
+        else
+          assert_nil shipment.delivery_business_days
+        end
+        assert_equal @outbound.shipping_cents, shipment.shipping_cents
+        assert_equal @outbound.zip, shipment.zip
+        assert_nil @order.return_shipment
+      end
     end
 
     test "a service Correios does not sell us is refused before anything is touched" do
