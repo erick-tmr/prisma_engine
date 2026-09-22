@@ -938,6 +938,10 @@ pt-BR:
             title: "Bloqueio permanente"
             note_html: "Na terceira ocorrência o bloqueio não tem prazo: a conta não volta a publicar perguntas. O terceiro strike foi aplicado em %{at}. Compras e pedidos seguem liberados."
     orders:
+      reship:
+        started: "Reenvio iniciado. Estamos gerando a nova etiqueta dos Correios."
+        errors:
+          not_reshippable: "Só é possível reenviar um pedido devolvido que ainda não tenha um novo envio em andamento."
       detail:
         page_title: "Pedido %{number} · Backoffice | Prisma Games"
         topbar_title: "Detalhe do pedido"
@@ -974,6 +978,10 @@ pt-BR:
         return_reason_placeholder: "Por que este pedido está voltando?"
         return_reason_missing: "Nenhum motivo foi registrado na abertura da devolução."
         cancel_return: "Cancelar devolução"
+        reship: "Reenviar pedido"
+        reship_confirm: "Reenviar o pedido %{number}? Uma nova etiqueta será comprada nos Correios para o mesmo endereço."
+        past_tracking: "Envio anterior"
+        past_return_tracking: "Devolução anterior"
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
         customer_since: "Cliente desde %{date}"
@@ -1038,7 +1046,7 @@ pt-BR:
         returning:
           description: "A devolução está em trânsito para o nosso endereço. O rastreio conclui sozinho quando o pacote chegar."
         returned:
-          description: "O pacote voltou para o nosso endereço. Cancele o pedido, ou combine o reenvio com o cliente pelo WhatsApp: a nova postagem ainda não é feita por aqui."
+          description: "O pacote voltou para o nosso endereço. Combine com o cliente pelo WhatsApp e reenvie o pedido para o mesmo endereço, ou cancele."
         cancelled:
           description: "Pedido cancelado. Nenhuma ação adicional."
         merged:

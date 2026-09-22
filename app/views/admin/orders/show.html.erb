@@ -152,6 +152,10 @@
             <%= render "admin/orders/tracking_panel", tracking: return_tracking %>
           <% end %>
 
+          <% @presenter.past_trackings.each do |past_tracking| %>
+            <%= render "admin/orders/tracking_panel", tracking: past_tracking %>
+          <% end %>
+
           <div class="panel">
             <div class="panel-top">
               <div class="panel-top-main">

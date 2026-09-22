@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_22_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -378,6 +378,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_120000) do
     t.integer "shipping_cents"
     t.string "state"
     t.string "street"
+    t.datetime "superseded_at"
     t.string "tracking_code"
     t.string "tracking_error"
     t.datetime "tracking_errored_at"
@@ -386,7 +387,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_15_120000) do
     t.integer "weight_grams"
     t.integer "width_cm"
     t.string "zip"
-    t.index ["order_id", "direction"], name: "index_shipments_on_order_id_and_direction", unique: true
+    t.index ["order_id", "direction"], name: "index_shipments_on_order_id_and_direction_current", unique: true, where: "(superseded_at IS NULL)"
     t.index ["pre_post_id"], name: "index_shipments_on_pre_post_id", unique: true
     t.index ["tracking_code"], name: "index_shipments_on_tracking_code", unique: true
     t.index ["tracking_state"], name: "index_shipments_on_tracking_state"

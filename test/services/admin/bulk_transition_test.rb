@@ -112,6 +112,18 @@ module Admin
       end
     end
 
+    test "a re-ship cannot be driven from the bulk bar" do
+      returned = orders(:delivered)
+      returned.update_columns(status: "returned")
+
+      assert_no_difference -> { Shipment.count } do
+        result = BulkTransition.call(order_numbers: [ returned.number ], event: "reship", actor: users(:admin))
+
+        assert_equal "unknown_event", row_for(result, returned)["reason"]
+      end
+      assert returned.reload.returned?
+    end
+
     test "an unknown event skips every order" do
       paid = orders(:confirmed_paid)
       result = BulkTransition.call(order_numbers: [ paid.number ], event: "nope", actor: users(:admin))

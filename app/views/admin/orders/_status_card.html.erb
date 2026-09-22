@@ -60,6 +60,15 @@
         <% end %>
       <% end %>
 
+      <% if presenter.reshippable? %>
+        <%= button_to admin_order_reship_path(presenter.number), method: :post, class: "act-btn",
+              form: { class: "act-form", data: { confirm: t("admin.orders.detail.reship_confirm", number: presenter.number) } } do %>
+          <i class="bi bi-truck"></i>
+          <span><%= t("admin.orders.detail.reship") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("label_issued")) %></span></span>
+          <i class="bi bi-arrow-right act-arrow"></i>
+        <% end %>
+      <% end %>
+
       <% if presenter.return_recorded? %>
         <div class="return-recorded">
           <div class="return-recorded-head"><i class="bi bi-chat-left-text"></i> <%= t("admin.orders.detail.return_reason") %></div>

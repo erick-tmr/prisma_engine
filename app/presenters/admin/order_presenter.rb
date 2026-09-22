@@ -83,6 +83,12 @@ module Admin
       tracking_for(order.return_shipment, I18n.t("admin.orders.detail.return_tracking"))
     end
 
+    def past_trackings
+      order.past_shipments.filter_map do |shipment|
+        tracking_for(shipment, I18n.t("admin.orders.detail.#{shipment.inbound? ? 'past_return_tracking' : 'past_tracking'}"))
+      end
+    end
+
     def available_actions
       OrderActions.available_for(status).map do |action|
         {
@@ -112,6 +118,10 @@ module Admin
 
     def return_startable?
       Shipping::StartReturn::SOURCES.include?(status) && order.shipment.present? && order.return_shipment.nil?
+    end
+
+    def reshippable?
+      Shipping::Reship.reshippable?(order)
     end
 
     def return_abortable?

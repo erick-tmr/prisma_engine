@@ -39,10 +39,13 @@ class Shipment < ApplicationRecord
 
   normalizes :receiver_obs, with: ->(value) { value.strip.presence }
 
+  scope :current, -> { where(superseded_at: nil) }
+  scope :superseded, -> { where.not(superseded_at: nil) }
+
   scope :label_expired, -> { where(correios_status: CORREIOS_STATUSES.key(:expirado)) }
 
   scope :awaiting_tracking, -> {
-    where.not(tracking_state: FINAL_TRACKING_STATES)
+    current.where.not(tracking_state: FINAL_TRACKING_STATES)
          .where.not(tracking_code: nil)
          .where("correios_status IS NULL OR correios_status NOT IN (?)", TERMINAL_PREPOST_STATUSES)
   }
@@ -71,6 +74,10 @@ class Shipment < ApplicationRecord
 
   def correios_status_name
     CORREIOS_STATUSES[correios_status]
+  end
+
+  def superseded?
+    superseded_at.present?
   end
 
   def label_expired?

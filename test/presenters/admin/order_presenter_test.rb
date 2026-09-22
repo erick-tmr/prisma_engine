@@ -250,6 +250,31 @@ module Admin
       assert_equal "PG515656026BR", presenter.tracking.code
     end
 
+    test "past despatches keep their own timelines, titled by direction" do
+      order = orders(:delivered)
+      order.shipment.update!(superseded_at: 2.days.ago)
+      Shipment.create!(order: order, direction: :inbound, tracking_code: "PG515656032BR",
+                       receiver_name: "Prisma Games", zip: "37500000", superseded_at: 1.day.ago)
+      Shipment.create!(order: order, direction: :outbound, superseded_at: 1.hour.ago)
+      Shipment.create!(order: order, direction: :outbound, receiver_name: "Cliente Confirmado", zip: "01310100")
+
+      past = OrderPresenter.new(order.reload).past_trackings
+
+      assert_equal [ "Envio anterior", "Devolução anterior" ], past.map(&:title)
+      assert_equal %w[PG515656026BR PG515656032BR], past.map(&:code)
+    end
+
+    test "only a returned order whose despatch came back offers the re-ship" do
+      order = orders(:delivered)
+      assert_not OrderPresenter.new(order).reshippable?
+
+      order.update_columns(status: "returned")
+      order.status_changes.create!(from_status: "delivered", to_status: "returned", automatic: true)
+      order.shipment.update_columns(created_at: 1.day.ago)
+
+      assert OrderPresenter.new(order.reload).reshippable?
+    end
+
     test "a return label with no movement yet still surfaces its code" do
       presenter = OrderPresenter.new(orders(:delivered))
       Shipment.create!(

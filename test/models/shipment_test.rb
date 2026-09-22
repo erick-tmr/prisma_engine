@@ -125,4 +125,25 @@ class ShipmentTest < ActiveSupport::TestCase
     assert_equal inbound, order.return_shipment
     assert_raises(ActiveRecord::RecordNotUnique) { Shipment.create!(order: order, direction: :inbound) }
   end
+
+  test "a superseded despatch steps aside so the order can carry a new live one" do
+    order = bare_order
+    first = Shipment.create!(order: order, direction: :outbound, superseded_at: 1.day.ago)
+    second = Shipment.create!(order: order, direction: :outbound)
+
+    assert first.superseded?
+    assert_not second.superseded?
+    assert_equal second, order.reload.shipment
+    assert_equal [ first ], order.past_shipments
+    assert_raises(ActiveRecord::RecordNotUnique) { Shipment.create!(order: order, direction: :outbound) }
+  end
+
+  test "a superseded despatch is never polled for tracking" do
+    order = bare_order
+    past = Shipment.create!(order: order, tracking_code: "AD000000010BR", superseded_at: 1.day.ago)
+    live = Shipment.create!(order: order, tracking_code: "AD000000011BR")
+
+    assert_includes Shipment.awaiting_tracking, live
+    assert_not_includes Shipment.awaiting_tracking, past
+  end
 end
