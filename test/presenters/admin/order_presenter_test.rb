@@ -206,62 +206,17 @@ module Admin
       assert_includes 0..7, presenter.avatar_tint_index
     end
 
-    test "tracking events come newest-first from the shipment" do
-      tracking = OrderPresenter.new(orders(:shipped_order)).tracking
-
-      assert_equal "Rastreamento Correios", tracking.title
-      assert_equal %w[DO PO], tracking.events.map(&:event_code)
-    end
-
-    test "tracking code and url come from the shipment" do
-      tracking = OrderPresenter.new(orders(:delivered)).tracking
-
-      assert_equal "PG515656026BR", tracking.code
-      assert_includes tracking.url, "PG515656026BR"
-    end
-
-    test "tracking is nil without a shipment" do
+    test "shipment tracks list the outbound leg before the return leg" do
       presenter = OrderPresenter.new(orders(:delivered))
-      presenter.order.shipment.destroy!
+      Shipment.create!(order: presenter.order, direction: :inbound, tracking_code: "PG515656030BR",
+                       receiver_name: "Prisma Games", zip: "37500000")
       presenter.order.reload
 
-      assert_nil presenter.tracking
-      assert_nil presenter.return_tracking
+      assert_equal %w[outbound inbound], presenter.shipment_tracks.map(&:direction)
     end
 
-    test "tracking is nil while the shipment has neither a code nor an event" do
-      assert_nil order_in("in_production").tracking
-    end
-
-    test "the return leg is its own tracking, titled apart from the outbound one" do
-      presenter = OrderPresenter.new(orders(:delivered))
-      inbound = Shipment.create!(
-        order: presenter.order, direction: :inbound, service: "mini_envios",
-        tracking_code: "PG515656030BR", receiver_name: "Prisma Games", zip: "37500000"
-      )
-      inbound.tracking_events.create!(position: 0, event_code: "PO", event_type: "01", occurred_at: 1.day.ago)
-      presenter.order.reload
-
-      return_tracking = presenter.return_tracking
-      assert_equal "Rastreamento da devolução", return_tracking.title
-      assert_equal "PG515656030BR", return_tracking.code
-      assert_includes return_tracking.url, "PG515656030BR"
-      assert_equal %w[PO], return_tracking.events.map(&:event_code)
-      assert_equal "PG515656026BR", presenter.tracking.code
-    end
-
-    test "past despatches keep their own timelines, titled by direction" do
-      order = orders(:delivered)
-      order.shipment.update!(superseded_at: 2.days.ago)
-      Shipment.create!(order: order, direction: :inbound, tracking_code: "PG515656032BR",
-                       receiver_name: "Prisma Games", zip: "37500000", superseded_at: 1.day.ago)
-      Shipment.create!(order: order, direction: :outbound, superseded_at: 1.hour.ago)
-      Shipment.create!(order: order, direction: :outbound, receiver_name: "Cliente Confirmado", zip: "01310100")
-
-      past = OrderPresenter.new(order.reload).past_trackings
-
-      assert_equal [ "Envio anterior", "Devolução anterior" ], past.map(&:title)
-      assert_equal %w[PG515656026BR PG515656032BR], past.map(&:code)
+    test "an order with nothing to track has no shipment tracks" do
+      assert_empty order_in("in_production").shipment_tracks
     end
 
     test "only a returned order whose despatch came back offers the re-ship" do
@@ -273,19 +228,6 @@ module Admin
       order.shipment.update_columns(created_at: 1.day.ago)
 
       assert OrderPresenter.new(order.reload).reshippable?
-    end
-
-    test "a return label with no movement yet still surfaces its code" do
-      presenter = OrderPresenter.new(orders(:delivered))
-      Shipment.create!(
-        order: presenter.order, direction: :inbound, service: "mini_envios",
-        tracking_code: "PG515656031BR", receiver_name: "Prisma Games", zip: "37500000"
-      )
-      presenter.order.reload
-
-      return_tracking = presenter.return_tracking
-      assert_equal "PG515656031BR", return_tracking.code
-      assert_empty return_tracking.events
     end
 
     test "an order with no label in flight leaves the lifecycle and the actions alone" do

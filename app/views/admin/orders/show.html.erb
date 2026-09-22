@@ -144,16 +144,8 @@
             </div>
           <% end %>
 
-          <% if (tracking = @presenter.tracking) %>
-            <%= render "admin/orders/tracking_panel", tracking: tracking %>
-          <% end %>
-
-          <% if (return_tracking = @presenter.return_tracking) %>
-            <%= render "admin/orders/tracking_panel", tracking: return_tracking %>
-          <% end %>
-
-          <% @presenter.past_trackings.each do |past_tracking| %>
-            <%= render "admin/orders/tracking_panel", tracking: past_tracking %>
+          <% @presenter.shipment_tracks.each do |track| %>
+            <%= render "admin/orders/shipment_track", track: track %>
           <% end %>
 
           <div class="panel">
