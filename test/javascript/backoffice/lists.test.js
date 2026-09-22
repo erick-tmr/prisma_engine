@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { dismissToasts, initShell } from "../../../app/javascript/backoffice/shell.js";
+import { MOBILE_NAV_MAX_WIDTH, dismissToasts, initShell } from "../../../app/javascript/backoffice/shell.js";
 import { initClients } from "../../../app/javascript/backoffice/clients.js";
 import { initReports } from "../../../app/javascript/backoffice/reports.js";
 import { initCatalog, navigate } from "../../../app/javascript/backoffice/catalog.js";
@@ -52,6 +52,53 @@ describe("initShell", () => {
     expect(root.querySelector("[data-sidebar]").classList.contains("show")).toBe(true);
     click(root.querySelector("#menu-toggle"));
     expect(root.querySelector("[data-sidebar]").classList.contains("show")).toBe(false);
+  });
+
+  it("closes the open sidebar on an outside click but not on a click inside it", () => {
+    document.body.innerHTML = shell("clients", `<p id="outside"></p>`);
+    const root = document.querySelector(".app");
+    const sidebar = root.querySelector("[data-sidebar]");
+    initShell(root);
+
+    click(root.querySelector("#outside"));
+    expect(sidebar.classList.contains("show")).toBe(false);
+
+    click(root.querySelector("#menu-toggle"));
+    click(sidebar);
+    expect(sidebar.classList.contains("show")).toBe(true);
+
+    click(root.querySelector("#outside"));
+    expect(sidebar.classList.contains("show")).toBe(false);
+  });
+
+  it("closes the sidebar on Escape and ignores other keys", () => {
+    document.body.innerHTML = shell("clients", "");
+    const root = document.querySelector(".app");
+    const sidebar = root.querySelector("[data-sidebar]");
+    initShell(root);
+    click(root.querySelector("#menu-toggle"));
+
+    document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter" }));
+    expect(sidebar.classList.contains("show")).toBe(true);
+
+    document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
+    expect(sidebar.classList.contains("show")).toBe(false);
+  });
+
+  it("closes the sidebar once the window grows past the mobile breakpoint", () => {
+    document.body.innerHTML = shell("clients", "");
+    const root = document.querySelector(".app");
+    const sidebar = root.querySelector("[data-sidebar]");
+    initShell(root);
+    click(root.querySelector("#menu-toggle"));
+
+    window.innerWidth = MOBILE_NAV_MAX_WIDTH;
+    window.dispatchEvent(new window.Event("resize"));
+    expect(sidebar.classList.contains("show")).toBe(true);
+
+    window.innerWidth = MOBILE_NAV_MAX_WIDTH + 1;
+    window.dispatchEvent(new window.Event("resize"));
+    expect(sidebar.classList.contains("show")).toBe(false);
   });
 
   it("survives a page with no sidebar or toggle", () => {

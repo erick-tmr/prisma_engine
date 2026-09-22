@@ -41,7 +41,7 @@
 .btn-clear {
   height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid transparent;
   background: transparent; color: var(--pg-muted); font-size: 13px; font-weight: 600; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px; transition: color 0.15s ease, background 0.15s ease;
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: color 0.15s ease, background 0.15s ease;
 }
 .btn-clear:hover { color: var(--pg-ink); background: #eef0f3; }
 
@@ -55,7 +55,7 @@
 .btn-ghost {
   height: 40px; padding: 0 15px; border-radius: 10px; border: 1px solid var(--pg-border);
   background: #fff; color: var(--pg-ink); font-size: 13.5px; font-weight: 600; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 7px; transition: border-color 0.15s ease, background 0.15s ease;
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none; transition: border-color 0.15s ease, background 0.15s ease;
 }
 .btn-ghost:hover { border-color: #cfd4da; background: #f7f8fa; }
 
@@ -71,10 +71,16 @@
 #date-pop { left: auto; right: 0; }
 @media (max-width: 720px) {
   .dp { width: 92vw; }
+  .filters { padding: 14px 16px; gap: 10px; }
+  .filters .fgroup { flex: 1 1 100%; min-width: 0; }
+  .filters .fgroup > label:only-child, .filters .fgroup > label:has(+ .btn-clear) { display: none; }
+  .filters .fgroup .inp { width: 100%; }
+  .filters .f-trigger { min-width: 0; }
+  .filters .pop { right: 16px; width: auto; }
   .dp-body { flex-direction: column; }
   .dp-presets { width: auto; border-right: 0; border-bottom: 1px solid var(--pg-border); padding: 0 0 8px; flex-direction: row; flex-wrap: wrap; }
   .dp-cals { flex-direction: column; }
-  #date-pop { left: 0; right: auto; }
+  #date-pop { right: 16px; }
 }
 
 .opt {
@@ -131,7 +137,7 @@
 .dp-readout .ph { color: #98a0aa; font-weight: 400; }
 .dp-foot .sp { margin-left: auto; }
 
-.tbl-wrap { overflow-x: auto; }
+.tbl-wrap { overflow-x: auto; container: tbl / inline-size; }
 table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 table.tbl thead th {
   text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
@@ -381,4 +387,56 @@ table.tbl tbody tr.is-busy .rowcheck { opacity: 0.35; pointer-events: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .proc-bar > span { animation: none; }
+}
+
+@container tbl (max-width: 940px) {
+  table.tbl--cards, table.tbl--cards tbody { display: block; }
+  table.tbl--cards tbody { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; padding: 14px; }
+  table.tbl--cards tbody tr { display: grid; gap: 8px 12px; align-content: start; padding: 14px 16px; border: 1px solid var(--pg-border); border-radius: 12px; background: #fff; min-width: 0; }
+  table.tbl--cards tbody tr:hover { background: #fafbfc; border-color: #d6dade; }
+  table.tbl--cards tbody td, table.tbl--cards tbody td.checkcol, table.tbl--cards tbody td.num { padding: 0; border: 0; min-width: 0; width: auto; text-align: left; }
+  table.tbl--cards tbody tr:last-child td { border-bottom: 0; }
+  table.tbl--cards tbody tr.sel-row { border-color: var(--pg-ink); box-shadow: inset 3px 0 0 var(--pg-ink); background: #f6f7fb; }
+  table.tbl--cards tbody tr.sel-row td.checkcol { box-shadow: none; }
+  table.tbl--cards .who-meta .nm, table.tbl--cards .who-meta .em { overflow: hidden; text-overflow: ellipsis; }
+
+  table.tbl--cards thead { display: none; }
+  table.tbl--cards thead:has(th.checkcol) { display: block; border-bottom: 1px solid var(--pg-border); background: #fcfcfd; }
+  table.tbl--cards thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 10px 16px 10px 17px; }
+  table.tbl--cards thead th { display: none; position: static; padding: 6px 8px; border: 0; background: none; }
+  table.tbl--cards thead th.checkcol { display: flex; align-items: center; gap: 10px; width: auto; padding: 6px 12px 6px 0; margin-right: auto; }
+  table.tbl--cards thead th.checkcol::after { content: attr(data-caption); text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600; color: var(--pg-muted); }
+  table.tbl--cards thead th.sortable { display: inline-flex; align-items: center; border-radius: 8px; }
+  table.tbl--cards thead th.sortable:hover { background: #eef0f3; }
+  table.tbl--cards thead th.sorted { color: var(--pg-ink); background: #eef0f3; }
+
+  #orders-table tbody tr { grid-template-columns: 18px minmax(0, 1fr) auto; }
+  #orders-table td:nth-child(1) { grid-column: 1; grid-row: 1 / span 3; padding-top: 1px; }
+  #orders-table td:nth-child(2) { grid-column: 2; grid-row: 1; align-self: center; }
+  #orders-table td:nth-child(7) { grid-column: 3; grid-row: 1; text-align: right; align-self: center; }
+  #orders-table td:nth-child(3) { grid-column: 2 / 4; grid-row: 2; }
+  #orders-table td:nth-child(4) { grid-column: 2; grid-row: 3; align-self: center; }
+  #orders-table td:nth-child(5) { grid-column: 3; grid-row: 3; justify-self: end; align-self: center; }
+  #orders-table td:nth-child(6) { grid-column: 2 / 4; grid-row: 4; padding-top: 10px; border-top: 1px dashed var(--pg-border); }
+  #orders-table td.corcell:has(> .cor-none) { display: none; }
+  #orders-table td:nth-child(8) { display: none; }
+
+  #clients-table tbody tr { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #clients-table td:nth-child(1) { grid-column: 1; grid-row: 1; padding-bottom: 6px; }
+  #clients-table td:nth-child(7) { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
+  #clients-table td:nth-child(8) { display: none; }
+  #clients-table td:nth-child(n+2):nth-child(-n+6)::before { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pg-muted); margin-bottom: 2px; }
+  #clients-table td:nth-child(2)::before { content: "CPF"; }
+  #clients-table td:nth-child(3)::before { content: "Telefone"; }
+  #clients-table td:nth-child(4)::before { content: "Cidade"; }
+  #clients-table td:nth-child(5)::before { content: "Cadastro"; }
+  #clients-table td:nth-child(6)::before { content: "Pedidos"; }
+}
+
+@media (max-width: 560px) {
+  .bulkbar { padding: 12px 16px; gap: 10px; }
+  .bulk-actions { margin-left: 0; width: 100%; }
+  .procbar { padding: 12px 16px 14px; }
+  .toasts { left: 12px; right: 12px; bottom: 12px; }
+  .toast { min-width: 0; max-width: none; }
 }

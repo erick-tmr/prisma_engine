@@ -4,12 +4,29 @@ export function dismissToasts(root, delay = 3600) {
   });
 }
 
+export const MOBILE_NAV_MAX_WIDTH = 820;
+
+export function bindSidebar(toggle, sidebar, doc = document) {
+  if (!toggle || !sidebar) return;
+
+  const close = () => sidebar.classList.remove("show");
+  toggle.addEventListener("click", () => sidebar.classList.toggle("show"));
+  doc.addEventListener("click", (event) => {
+    if (!sidebar.classList.contains("show")) return;
+    if (sidebar.contains(event.target) || toggle.contains(event.target)) return;
+
+    close();
+  });
+  doc.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") close();
+  });
+  doc.defaultView.addEventListener("resize", () => {
+    if (doc.defaultView.innerWidth > MOBILE_NAV_MAX_WIDTH) close();
+  });
+}
+
 export function initShell(root, doc = document) {
-  const toggle = root.querySelector("#menu-toggle");
-  const sidebar = root.querySelector("[data-sidebar]");
-  if (toggle && sidebar) {
-    toggle.addEventListener("click", () => sidebar.classList.toggle("show"));
-  }
+  bindSidebar(root.querySelector("#menu-toggle"), root.querySelector("[data-sidebar]"), doc);
   dismissToasts(doc);
 }
 
