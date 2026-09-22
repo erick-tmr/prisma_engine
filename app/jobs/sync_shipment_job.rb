@@ -8,7 +8,7 @@ class SyncShipmentJob < ApplicationJob
 
   def perform(shipment_id)
     shipment = Shipment.find_by(id: shipment_id)
-    return if shipment.nil?
+    return if shipment.nil? || shipment.superseded?
 
     events = Correios::Api::Tracking.fetch(shipment.tracking_code)
     Shipping::TrackingUpdate.apply(shipment, events)

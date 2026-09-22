@@ -13,10 +13,12 @@ class Order < ApplicationRecord
   belongs_to :user
   belongs_to :production_batch, optional: true
   belongs_to :merged_into, class_name: "Order", optional: true
-  has_one :shipment, -> { where(direction: :outbound) },
+  has_one :shipment, -> { outbound.current },
           inverse_of: :order, dependent: :nullify
-  has_one :return_shipment, -> { where(direction: :inbound) },
+  has_one :return_shipment, -> { inbound.current },
           class_name: "Shipment", inverse_of: :order, dependent: :destroy
+  has_many :past_shipments, -> { superseded.order(:superseded_at) },
+           class_name: "Shipment", inverse_of: :order, dependent: :destroy
   has_one :shipping_label, through: :shipment
   has_one :return_shipping_label, through: :return_shipment, source: :shipping_label
   has_one :order_merge, foreign_key: :carrier_order_id, inverse_of: :carrier_order, dependent: :destroy
@@ -59,7 +61,7 @@ class Order < ApplicationRecord
     "delivery_issue"      => %w[delivered awaiting_return returned shipped],
     "awaiting_return"     => %w[returning returned delivered],
     "returning"           => %w[returned delivered],
-    "returned"            => %w[shipped cancelled],
+    "returned"            => %w[label_issued shipped cancelled],
     "cancelled"           => %w[payment_confirmed],
     "merged"              => []
   }.freeze
@@ -73,7 +75,7 @@ class Order < ApplicationRecord
   scope :mergeable, -> { where(status: MERGEABLE_STATUSES).order(created_at: :asc) }
   scope :paid, -> { where(status: PAID_STATUSES) }
   scope :label_reissuable, -> {
-    where(status: "label_issued").where(id: Shipment.outbound.label_expired.select(:order_id))
+    where(status: "label_issued").where(id: Shipment.outbound.current.label_expired.select(:order_id))
   }
 
   validates :number, presence: true, uniqueness: true
@@ -137,7 +139,7 @@ class Order < ApplicationRecord
   end
 
   def tracked_shipment
-    return_leg? ? return_shipment : shipment
+    (return_leg? && return_shipment) || shipment
   end
 
   def cancel!(**opts)

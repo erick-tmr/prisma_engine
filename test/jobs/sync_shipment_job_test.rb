@@ -21,6 +21,15 @@ class SyncShipmentJobTest < ActiveSupport::TestCase
     assert_equal 0, events.first.position
   end
 
+  test "a superseded despatch no longer reaches Correios or moves the order" do
+    shipment = Shipment.create!(tracking_code: "AD483393343BR", order: bare_order, superseded_at: 1.minute.ago)
+
+    SyncShipmentJob.perform_now(shipment.id)
+
+    assert_not_requested :get, /#{BASE}/
+    assert shipment.reload.tracking_pending?
+  end
+
   test "advances the order through shipped to delivered when the parcel is delivered" do
     order = orders(:labeled)
     shipment = order.shipment

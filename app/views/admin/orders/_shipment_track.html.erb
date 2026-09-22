@@ -1,0 +1,81 @@
+<%# locals: (track:) %>
+<% copy = "admin.orders.detail.shipments.#{track.direction}" %>
+<div class="panel" data-shipment-nav data-direction="<%= track.direction %>">
+  <div class="panel-top">
+    <div class="panel-top-main">
+      <h2><span class="rbar" aria-hidden="true"></span> <%= t("#{copy}.title") %></h2>
+    </div>
+    <% if track.navigable? %>
+      <div class="panel-top-right">
+        <div class="shn" role="group" aria-label="<%= t("#{copy}.navigate") %>">
+          <button class="shn-btn" type="button" data-shipment-step="-1" aria-label="<%= t("#{copy}.prev") %>" title="<%= t("#{copy}.prev") %>">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span class="shn-pos" aria-live="polite">
+            <%= t("#{copy}.noun") %> <b data-shipment-pos><%= track.entries.size %></b> <%= t("admin.orders.detail.shipments.of", total: track.entries.size) %>
+          </span>
+          <button class="shn-btn" type="button" data-shipment-step="1" disabled aria-label="<%= t("#{copy}.next") %>" title="<%= t("#{copy}.next") %>">
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <% track.entries.each_with_index do |entry, index| %>
+    <div class="shv" data-shipment-view="<%= index %>"<%= " hidden" unless index == track.latest_index %>>
+      <% if entry.past? %>
+        <div class="shp">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span><%= t("#{copy}.past_html", date: l(entry.superseded_at.to_date, format: :short)) %></span>
+          <button class="shp-go" type="button" data-shipment-latest>
+            <%= t("admin.orders.detail.shipments.latest") %> <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      <% end %>
+      <div class="shs">
+        <% if entry.tracking_code.present? %>
+          <span class="od-track-code" data-tracking-code><%= entry.tracking_code %></span>
+        <% end %>
+        <span class="shs-svc"><b><%= entry.service_label %></b> · <%= t("admin.orders.detail.shipments.created", date: l(entry.created_at.to_date, format: :short)) %></span>
+        <div class="shs-right">
+          <span class="shst <%= entry.state_class %>" data-shipment-state="<%= entry.state %>"><%= t("#{copy}.states.#{entry.state}") %></span>
+          <% if entry.tracking_code.present? %>
+            <a class="od-track-link" href="<%= entry.tracking_url %>" target="_blank" rel="noopener">
+              <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+              <span><%= t("admin.orders.detail.shipments.correios") %></span>
+            </a>
+          <% end %>
+        </div>
+      </div>
+      <% if entry.events.any? %>
+        <div class="od-track<%= " is-past" if entry.past? %>">
+          <% entry.events.each_with_index do |event, position| %>
+            <div class="od-track-item<%= " is-current" if position.zero? %>">
+              <span class="od-track-dot"></span>
+              <div class="od-track-body">
+                <div>
+                  <div class="desc"><%= event.summary %></div>
+                  <% if event.detail %>
+                    <div class="meta"><%= event.detail %></div>
+                  <% end %>
+                  <% if event.posting_unit %>
+                    <div class="meta"><%= event.posting_unit %></div>
+                  <% end %>
+                  <% if event.destination %>
+                    <div class="meta"><%= t("admin.orders.detail.destination") %>: <%= event.destination %></div>
+                  <% end %>
+                </div>
+                <div class="time"><%= l(event.occurred_at, format: :short) %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="od-track-empty">
+          <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+          <span><%= t("#{copy}.empty") %></span>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

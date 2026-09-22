@@ -1,5 +1,6 @@
 import { bindConfirm, bindFlashDismiss } from "backoffice/shell";
 import { createLabelFeedback, inFlight } from "backoffice/label_feedback";
+import { bindShipmentNav } from "backoffice/shipment_nav";
 
 export const ELAPSED_TICK_MS = 1_000;
 export const RETRY_FAILED = "Não foi possível reenviar para os Correios. Tente novamente.";
@@ -53,6 +54,7 @@ export function initOrder(root, doc = document) {
   bindConfirm(root);
   bindMenu(root);
   bindFlashDismiss(root);
+  bindShipmentNav(root);
   tickElapsed(root);
   const ticker = setInterval(() => tickElapsed(root), ELAPSED_TICK_MS);
   if (inFlight(root)) feedback.start();

@@ -68,6 +68,7 @@ Rails.application.routes.draw do
     get    "pedidos/:number/etiqueta",  to: "orders#label",      as: :order_label,      constraints: { number: /PG-\d+/ }
     post   "pedidos/:number/devolucao", to: "returns#create",    as: :order_return,     constraints: { number: /PG-\d+/ }
     delete "pedidos/:number/devolucao", to: "returns#destroy",   constraints: { number: /PG-\d+/ }
+    post   "pedidos/:number/reenvio", to: "reships#create", as: :order_reship, constraints: { number: /PG-\d+/ }
     get    "pedidos/:number/etiqueta-devolucao", to: "orders#return_label", as: :order_return_label, constraints: { number: /PG-\d+/ }
   end
 

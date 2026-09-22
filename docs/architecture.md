@@ -521,21 +521,40 @@ promise as an arrival is the same mistake that walked two orders to `shipped` of
 `returned` before the movement fallback is reached, so membership would buy nothing and
 risk stamping a posting time from a package coming home.
 
-**Re-shipping is not a status flip, so the button is withdrawn.** `returned → shipped`
-and `delivery_issue → shipped` stay in `Order::TRANSITIONS` because the domain does
-permit a second despatch, but no operator action drives them any more. The old
-"Reenviar" moved the status and nothing else: it left the order claiming `shipped`
-against the dead outbound tracking code of the parcel that had just come back, with no
-new pré-postagem, no new rótulo and no way for the customer's tracking page to say
-anything true.
+**Re-shipping buys a new despatch; it is never a status flip.** An old "Reenviar" once
+moved the status and nothing else: it left the order claiming `shipped` against the dead
+outbound tracking code of the parcel that had just come back, with no new pré-postagem,
+no new rótulo and no way for the customer's tracking page to say anything true. The
+current **Reenviar pedido** button (order page only, never the bulk bar) runs
+`Shipping::Reship`, which models the second despatch properly:
 
-Doing it properly needs a **second outbound shipment**, and `shipments` is unique on
-`[order_id, direction]` precisely to stop two live pré-postagens fighting over one
-order. So re-shipping is blocked on modelling repeat despatches (a sequence per
-direction, with `Shipment#current` semantics for the address, service and price
-snapshot, and a tracking read-model that knows which leg it is reading), not on a
-button. Until then the operator arranges it with the customer over WhatsApp, which is
-what they were doing anyway, and the order stays in a status that matches reality.
+- A shipment is **live** while `superseded_at` is null. `shipments` is unique on
+  `[order_id, direction]` **among live rows only** (a partial index), so the invariant
+  that mattered, one live pré-postagem per order and direction, still holds, while the
+  despatch that came back stays on the order as history (`Order#past_shipments`, shown
+  as its own timeline in the backoffice). `has_one :shipment` / `:return_shipment` read
+  the live row, so every mailer, presenter and checkout caller keeps meaning "the
+  current despatch".
+- `Reship` locks the order, supersedes the live outbound row and any live inbound one
+  (so a later second return can open a fresh inbound leg), clones the address and price
+  snapshot into a new outbound row with the service the operator picks (default Mini
+  Envios, like a return), and resumes the label saga on it. The customer is not charged
+  again. The original service's delivery estimate is kept only when the service is
+  unchanged, so the "enviado" e-mail never promises a SEDEX window for a Mini Envios
+  parcel.
+- The order **stays `returned` while the label is being bought**. The `returned →
+  label_issued` edge is taken by `Leg::OUTBOUND.announce_label` in `DownloadDceJob`,
+  exactly as for a first despatch, so the label_issued e-mail goes out only once the new
+  tracking code exists. From there `OrderProgress` walks the new row as usual.
+- The guard (`Reship.reshippable?`) is "the order is `returned` and its live outbound row
+  predates the latest handback". A second click while the new label is in flight fails
+  it, so a repeated click cannot buy a second pré-postagem.
+- A superseded row is out of `Shipment.awaiting_tracking`, and `SyncShipmentJob` drops a
+  sync that was already queued for it, so the old parcel's handback can never drag the
+  re-shipped order back to `returned`.
+
+`returned → shipped` and `delivery_issue → shipped` stay in `Order::TRANSITIONS` but no
+operator action drives them.
 
 **Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
 issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`

@@ -27,7 +27,6 @@ module Admin
 
     LifecycleStep = Data.define(:label, :classes, :auto_note, :doing)
     Payment = Data.define(:method_label, :icon, :status_class, :status_icon, :status_label)
-    Tracking = Data.define(:title, :code, :url, :events)
 
     def initialize(order)
       @order = order
@@ -75,12 +74,8 @@ module Admin
       end
     end
 
-    def tracking
-      tracking_for(order.shipment, I18n.t("admin.orders.detail.tracking"))
-    end
-
-    def return_tracking
-      tracking_for(order.return_shipment, I18n.t("admin.orders.detail.return_tracking"))
+    def shipment_tracks
+      %w[outbound inbound].filter_map { |direction| ShipmentTrack.for(order, direction) }
     end
 
     def available_actions
@@ -112,6 +107,10 @@ module Admin
 
     def return_startable?
       Shipping::StartReturn::SOURCES.include?(status) && order.shipment.present? && order.return_shipment.nil?
+    end
+
+    def reshippable?
+      Shipping::Reship.reshippable?(order)
     end
 
     def return_abortable?
@@ -177,15 +176,6 @@ module Admin
     end
 
     private
-
-    def tracking_for(shipment, title)
-      return if shipment.nil?
-
-      events = shipment.tracking_events.sort_by(&:occurred_at).reverse
-      return if shipment.tracking_code.blank? && events.empty?
-
-      Tracking.new(title: title, code: shipment.tracking_code, url: shipment.tracking_url, events: events)
-    end
 
     def actor_label(change)
       return I18n.t("admin.orders.detail.automatic") if change.automatic || change.actor.nil?

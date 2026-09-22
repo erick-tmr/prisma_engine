@@ -499,4 +499,12 @@ class OrderTest < ActiveSupport::TestCase
     assert_equal master, absorbed.reload.merged_into
     assert_includes master.merged_orders, absorbed
   end
+
+  test "a bounced order with no return leg reads its outbound despatch" do
+    order = orders(:delivered)
+    order.update_columns(status: "returned")
+
+    assert_nil order.return_shipment
+    assert_equal order.shipment, order.tracked_shipment
+  end
 end

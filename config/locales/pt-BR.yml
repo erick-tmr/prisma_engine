@@ -938,6 +938,11 @@ pt-BR:
             title: "Bloqueio permanente"
             note_html: "Na terceira ocorrência o bloqueio não tem prazo: a conta não volta a publicar perguntas. O terceiro strike foi aplicado em %{at}. Compras e pedidos seguem liberados."
     orders:
+      reship:
+        started: "Reenvio iniciado. Estamos gerando a nova etiqueta dos Correios."
+        errors:
+          not_reshippable: "Só é possível reenviar um pedido devolvido que ainda não tenha um novo envio em andamento."
+          invalid_service: "Escolha um serviço de envio válido para o reenvio."
       detail:
         page_title: "Pedido %{number} · Backoffice | Prisma Games"
         topbar_title: "Detalhe do pedido"
@@ -957,11 +962,42 @@ pt-BR:
         payment_confirmed: "Pagamento confirmado"
         payment_pending: "Aguardando pagamento"
         payment_method_unknown: "Forma de pagamento não identificada"
-        tracking: "Rastreamento Correios"
-        tracking_external: "Rastrear nos Correios"
-        tracking_empty: "Nenhum evento registrado nos Correios até agora."
-        return_tracking: "Rastreamento da devolução"
         destination: "Destino"
+        shipments:
+          of: "de %{total}"
+          latest: "Ir para o atual"
+          created: "criado em %{date}"
+          correios: "Correios"
+          outbound:
+            title: "Rastreamento do envio"
+            noun: "Envio"
+            prev: "Envio anterior"
+            next: "Próximo envio"
+            navigate: "Navegar entre envios"
+            past_html: "Visualizando envio anterior · substituído em <b>%{date}</b>"
+            empty: "Nenhuma movimentação registrada ainda."
+            states:
+              pending: "Aguardando postagem"
+              in_transit: "Em trânsito"
+              delivered: "Entregue"
+              returned: "Devolvido pelos Correios"
+              delivery_issue: "Problema na entrega"
+              unavailable: "Rastreio indisponível"
+          inbound:
+            title: "Rastreamento da devolução"
+            noun: "Devolução"
+            prev: "Devolução anterior"
+            next: "Próxima devolução"
+            navigate: "Navegar entre devoluções"
+            past_html: "Visualizando devolução anterior · substituída em <b>%{date}</b>"
+            empty: "O cliente ainda não postou a devolução."
+            states:
+              pending: "Aguardando postagem do cliente"
+              in_transit: "A caminho"
+              delivered: "Recebida"
+              returned: "Devolvida ao cliente"
+              delivery_issue: "Problema na entrega"
+              unavailable: "Rastreio indisponível"
         history: "Histórico de status"
         status_section: "Status do pedido"
         current_status: "Status atual"
@@ -974,6 +1010,9 @@ pt-BR:
         return_reason_placeholder: "Por que este pedido está voltando?"
         return_reason_missing: "Nenhum motivo foi registrado na abertura da devolução."
         cancel_return: "Cancelar devolução"
+        reship: "Reenviar pedido"
+        reship_service: "Serviço do reenvio"
+        reship_confirm: "Reenviar o pedido %{number}? Uma nova etiqueta será emitida nos Correios para o mesmo endereço."
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
         customer_since: "Cliente desde %{date}"
@@ -1038,7 +1077,7 @@ pt-BR:
         returning:
           description: "A devolução está em trânsito para o nosso endereço. O rastreio conclui sozinho quando o pacote chegar."
         returned:
-          description: "O pacote voltou para o nosso endereço. Cancele o pedido, ou combine o reenvio com o cliente pelo WhatsApp: a nova postagem ainda não é feita por aqui."
+          description: "O pacote voltou para o nosso endereço. Combine com o cliente pelo WhatsApp e reenvie o pedido para o mesmo endereço, ou cancele."
         cancelled:
           description: "Pedido cancelado. Nenhuma ação adicional."
         merged:

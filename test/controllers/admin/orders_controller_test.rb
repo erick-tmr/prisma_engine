@@ -163,7 +163,7 @@ module Admin
       get admin_order_path(order)
 
       assert_response :success
-      assert_select "h2", text: /Rastreamento Correios/
+      assert_select "h2", text: /Rastreamento do envio/
       assert_select "h2", text: /Rastreamento da devolução/
       assert_select ".od-track-code", text: "PG515656030BR"
       assert_select ".od-track-link[href=?]", inbound.tracking_url
@@ -180,7 +180,7 @@ module Admin
       get admin_order_path(order)
 
       assert_response :success
-      assert_select ".od-track-empty", text: /Nenhum evento registrado nos Correios/
+      assert_select "[data-shipment-nav][data-direction=inbound] .od-track-empty", text: /ainda não postou a devolução/
     end
 
     test "show renders the printable label and a cancel action for a label_issued order" do
@@ -338,6 +338,34 @@ module Admin
       get admin_order_return_label_path(order)
 
       assert_response :not_found
+    end
+
+    test "show opens a re-shipped order on its live despatch, with the old one a step back" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      order.shipment.update!(superseded_at: 1.day.ago, tracking_state: :returned)
+      Shipment.create!(order: order, direction: :outbound, service: "pac", tracking_code: "PG515656050BR",
+                       receiver_name: "Cliente Confirmado", zip: "01310100")
+
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select "[data-shipment-nav][data-direction=outbound]" do
+        assert_select "[data-shipment-pos]", text: "2"
+        assert_select '[data-shipment-step="1"][disabled]'
+        assert_select "[data-shipment-view]", count: 2
+        assert_select '[data-shipment-view="0"][hidden]' do
+          assert_select ".shp b", text: I18n.l(1.day.ago.to_date, format: :short)
+          assert_select "[data-shipment-latest]"
+          assert_select "[data-shipment-state=returned]", text: "Devolvido pelos Correios"
+          assert_select ".od-track-code", text: "PG515656026BR"
+        end
+        assert_select '[data-shipment-view="1"]:not([hidden])' do
+          assert_select ".shp", false
+          assert_select ".od-track-code", text: "PG515656050BR"
+          assert_select ".od-track-empty", text: /Nenhuma movimentação/
+        end
+      end
     end
   end
 end
