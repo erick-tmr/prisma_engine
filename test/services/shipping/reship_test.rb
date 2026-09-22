@@ -29,6 +29,16 @@ module Shipping
       assert_equal [ @outbound ], @order.past_shipments
     end
 
+    test "re-ships with the service the customer paid for, not the one chosen for their return" do
+      @outbound.update_columns(service: "sedex")
+      Shipment.create!(order: @order, direction: :inbound, service: "pac", created_at: 2.days.ago,
+                       **@outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
+
+      Shipping::Reship.call(order: @order)
+
+      assert_equal "sedex", @order.reload.shipment.service
+    end
+
     test "starts the label saga on the new despatch" do
       Shipping::Reship.call(order: @order)
 
