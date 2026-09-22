@@ -41,11 +41,11 @@
       <% end %>
 
       <% if presenter.return_startable? %>
-        <%= form_with url: admin_order_return_path(presenter.number), method: :post, class: "act-form return-form" do |form| %>
-          <label class="return-service">
+        <%= form_with url: admin_order_return_path(presenter.number), method: :post, class: "act-form service-form" do |form| %>
+          <label class="service-pick">
             <span><%= t("admin.orders.detail.return_service") %></span>
             <%= form.select :service, Shipping::SERVICES.keys.map { |key| [ Shipping.service_label(key), key ] },
-                  { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "return-service-select" %>
+                  { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "service-pick-select" %>
           </label>
           <label class="return-reason">
             <span><%= t("admin.orders.detail.return_reason") %></span>
@@ -61,11 +61,18 @@
       <% end %>
 
       <% if presenter.reshippable? %>
-        <%= button_to admin_order_reship_path(presenter.number), method: :post, class: "act-btn",
-              form: { class: "act-form", data: { confirm: t("admin.orders.detail.reship_confirm", number: presenter.number) } } do %>
-          <i class="bi bi-truck"></i>
-          <span><%= t("admin.orders.detail.reship") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("label_issued")) %></span></span>
-          <i class="bi bi-arrow-right act-arrow"></i>
+        <%= form_with url: admin_order_reship_path(presenter.number), method: :post, class: "act-form service-form",
+              data: { confirm: t("admin.orders.detail.reship_confirm", number: presenter.number) } do |form| %>
+          <label class="service-pick">
+            <span><%= t("admin.orders.detail.reship_service") %></span>
+            <%= form.select :service, Shipping::SERVICES.keys.map { |key| [ Shipping.service_label(key), key ] },
+                  { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "service-pick-select" %>
+          </label>
+          <button type="submit" class="act-btn">
+            <i class="bi bi-truck"></i>
+            <span><%= t("admin.orders.detail.reship") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("label_issued")) %></span></span>
+            <i class="bi bi-arrow-right act-arrow"></i>
+          </button>
         <% end %>
       <% end %>
 

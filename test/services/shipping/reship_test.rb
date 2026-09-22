@@ -29,14 +29,36 @@ module Shipping
       assert_equal [ @outbound ], @order.past_shipments
     end
 
-    test "re-ships with the service the customer paid for, not the one chosen for their return" do
+    test "defaults to Mini Envios, like a return, and drops the old service's delivery estimate" do
       @outbound.update_columns(service: "sedex")
-      Shipment.create!(order: @order, direction: :inbound, service: "pac", created_at: 2.days.ago,
-                       **@outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
 
       Shipping::Reship.call(order: @order)
 
+      shipment = @order.reload.shipment
+      assert_equal Shipping::DEFAULT_RETURN_SERVICE, shipment.service
+      assert_nil shipment.delivery_business_days
+    end
+
+    test "re-ships with the operator's choice, never the service picked for the customer's return" do
+      Shipment.create!(order: @order, direction: :inbound, service: "pac", created_at: 2.days.ago,
+                       **@outbound.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
+
+      Shipping::Reship.call(order: @order, service: "sedex")
+
       assert_equal "sedex", @order.reload.shipment.service
+    end
+
+    test "keeps the delivery estimate when the service does not change" do
+      Shipping::Reship.call(order: @order, service: @outbound.service)
+
+      assert_equal 6, @order.reload.shipment.delivery_business_days
+    end
+
+    test "a service Correios does not sell us is refused before anything is touched" do
+      result = Shipping::Reship.call(order: @order, service: "carta")
+
+      assert_equal :invalid_service, result.error
+      assert_not @outbound.reload.superseded?
     end
 
     test "starts the label saga on the new despatch" do

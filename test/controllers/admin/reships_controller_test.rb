@@ -30,6 +30,23 @@ module Admin
       assert_enqueued_with(job: Shipping::CreatePrePostagemJob, args: [ { shipment_id: @order.shipment.id } ])
     end
 
+    test "the operator's service choice reaches the new despatch" do
+      sign_in users(:admin)
+
+      post admin_order_reship_path(@order.number), params: { service: "sedex" }
+
+      assert_equal "sedex", @order.reload.shipment.service
+    end
+
+    test "an unknown service is refused by name" do
+      sign_in users(:admin)
+
+      post admin_order_reship_path(@order.number), params: { service: "carta" }
+
+      assert_equal I18n.t("admin.orders.reship.errors.invalid_service"), flash[:alert]
+      assert_empty @order.reload.past_shipments
+    end
+
     test "an order that cannot be re-shipped is refused by name" do
       sign_in users(:admin)
       @order.update_columns(status: "delivered")
@@ -46,7 +63,9 @@ module Admin
 
       get admin_order_path(@order)
 
-      assert_select "form[action=?]", admin_order_reship_path(@order.number)
+      assert_select "form[action=?]", admin_order_reship_path(@order.number) do
+        assert_select "select[name=service] option[selected][value=?]", Shipping::DEFAULT_RETURN_SERVICE
+      end
     end
   end
 end

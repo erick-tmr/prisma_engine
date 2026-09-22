@@ -2,7 +2,7 @@ module Admin
   class ReshipsController < BaseController
     def create
       order = Order.find_by!(number: params[:number])
-      result = Shipping::Reship.call(order: order)
+      result = Shipping::Reship.call(order: order, service: params[:service])
       if result.success?
         flash[:notice] = t("admin.orders.reship.started")
       else

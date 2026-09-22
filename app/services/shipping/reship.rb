@@ -1,6 +1,6 @@
 module Shipping
   class Reship
-    CLONED = (StartReturn::CLONED + %i[service shipping_cents delivery_business_days receiver_obs]).freeze
+    CLONED = (StartReturn::CLONED + %i[shipping_cents receiver_obs]).freeze
 
     Result = Data.define(:shipment, :error) do
       def success?
@@ -8,8 +8,8 @@ module Shipping
       end
     end
 
-    def self.call(order:)
-      new(order).call
+    def self.call(order:, service: nil)
+      new(order, service: service).call
     end
 
     def self.reshippable?(order)
@@ -20,16 +20,19 @@ module Shipping
       !!(shipment && returned_at && shipment.created_at < returned_at)
     end
 
-    def initialize(order)
+    def initialize(order, service: nil)
       @order = order
+      @service = service.presence || Shipping::DEFAULT_RETURN_SERVICE
     end
 
     def call
+      return failure(:invalid_service) unless Shipping::SERVICES.key?(service.to_sym)
+
       shipment = Order.transaction do
         order.lock!
         despatch if self.class.reshippable?(order)
       end
-      return Result.new(shipment: nil, error: :not_reshippable) unless shipment
+      return failure(:not_reshippable) unless shipment
 
       Shipping::EmitLabel.resume(shipment)
       Result.new(shipment: shipment, error: nil)
@@ -37,14 +40,26 @@ module Shipping
 
     private
 
-    attr_reader :order
+    attr_reader :order, :service
 
     def despatch
-      snapshot = order.shipment.slice(*CLONED).symbolize_keys
+      snapshot = snapshot_of(order.shipment)
       now = Time.current
       Shipment.current.where(order: order).update_all(superseded_at: now, updated_at: now)
       order.reload
       Shipment.create!(order: order, direction: :outbound, **snapshot)
+    end
+
+    def snapshot_of(previous)
+      same_service = previous.service == service
+      previous.slice(*CLONED).symbolize_keys.merge(
+        service: service,
+        delivery_business_days: (previous.delivery_business_days if same_service)
+      )
+    end
+
+    def failure(reason)
+      Result.new(shipment: nil, error: reason)
     end
   end
 end

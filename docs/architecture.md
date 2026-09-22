@@ -536,9 +536,12 @@ current **Reenviar pedido** button (order page only, never the bulk bar) runs
   the live row, so every mailer, presenter and checkout caller keeps meaning "the
   current despatch".
 - `Reship` locks the order, supersedes the live outbound row and any live inbound one
-  (so a later second return can open a fresh inbound leg), clones the address, service
-  and price snapshot into a new outbound row, and resumes the label saga on it. The
-  customer is not charged again.
+  (so a later second return can open a fresh inbound leg), clones the address and price
+  snapshot into a new outbound row with the service the operator picks (default Mini
+  Envios, like a return), and resumes the label saga on it. The customer is not charged
+  again. The original service's delivery estimate is kept only when the service is
+  unchanged, so the "enviado" e-mail never promises a SEDEX window for a Mini Envios
+  parcel.
 - The order **stays `returned` while the label is being bought**. The `returned →
   label_issued` edge is taken by `Leg::OUTBOUND.announce_label` in `DownloadDceJob`,
   exactly as for a first despatch, so the label_issued e-mail goes out only once the new

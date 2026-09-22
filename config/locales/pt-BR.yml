@@ -942,6 +942,7 @@ pt-BR:
         started: "Reenvio iniciado. Estamos gerando a nova etiqueta dos Correios."
         errors:
           not_reshippable: "Só é possível reenviar um pedido devolvido que ainda não tenha um novo envio em andamento."
+          invalid_service: "Escolha um serviço de envio válido para o reenvio."
       detail:
         page_title: "Pedido %{number} · Backoffice | Prisma Games"
         topbar_title: "Detalhe do pedido"
@@ -1010,6 +1011,7 @@ pt-BR:
         return_reason_missing: "Nenhum motivo foi registrado na abertura da devolução."
         cancel_return: "Cancelar devolução"
         reship: "Reenviar pedido"
+        reship_service: "Serviço do reenvio"
         reship_confirm: "Reenviar o pedido %{number}? Uma nova etiqueta será emitida nos Correios para o mesmo endereço."
         print_return_label: "Imprimir etiqueta de devolução"
         return_confirm: "Cancelar a devolução do pedido %{number}? A etiqueta emitida deixa de valer."
