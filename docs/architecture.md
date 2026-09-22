@@ -553,6 +553,9 @@ current **Reenviar pedido** button (order page only, never the bulk bar) runs
 `returned → shipped` and `delivery_issue → shipped` stay in `Order::TRANSITIONS` but no
 operator action drives them.
 
+The full model (associations, guard, e-mail timing, what each audience sees) is in
+`docs/shipments.md`.
+
 **Per-issue e-mail copy:** `Shipping::DeliveryIssue` owns the one table mapping an
 issue signal to the `tracking_state` it derives. `OrderMailer#delivery_issue`
 re-derives the issue from the persisted events rather than from the status change, so
