@@ -979,7 +979,7 @@ pt-BR:
         return_reason_missing: "Nenhum motivo foi registrado na abertura da devolução."
         cancel_return: "Cancelar devolução"
         reship: "Reenviar pedido"
-        reship_confirm: "Reenviar o pedido %{number}? Uma nova etiqueta será comprada nos Correios para o mesmo endereço."
+        reship_confirm: "Reenviar o pedido %{number}? Uma nova etiqueta será emitida nos Correios para o mesmo endereço."
         past_tracking: "Envio anterior"
         past_return_tracking: "Devolução anterior"
         print_return_label: "Imprimir etiqueta de devolução"
