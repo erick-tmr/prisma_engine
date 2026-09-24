@@ -12,15 +12,25 @@ module Admin
       assert_redirected_to admin_login_path
     end
 
-    test "the preview lists production-eligible orders and hides the rest" do
+    test "the preview lists orders waiting for or already in production and hides the rest" do
       sign_in users(:admin)
       get admin_production_report_path
 
       assert_response :success
-      assert_match orders(:confirmed_paid).number, response.body # payment_confirmed → eligible
-      assert_no_match(/#{orders(:awaiting).number}/, response.body)   # awaiting_payment → hidden
-      assert_no_match(/#{orders(:producing).number}/, response.body)  # already in_production → hidden
-      assert_select "[data-pr-open]"
+      assert_match orders(:confirmed_paid).number, response.body
+      assert_match orders(:producing).number, response.body
+      assert_no_match(/#{orders(:awaiting).number}/, response.body)
+      assert_select "[data-pr-open]", text: /Enviar para produção e gerar/
+      assert_select ".pr-modal__summary", text: /1 pedido passa para Em produção agora/
+    end
+
+    test "the preview offers a plain generate when every order is already in production" do
+      sign_in users(:admin)
+      orders(:confirmed_paid).transition_to!("in_production")
+      get admin_production_report_path
+
+      assert_select "[data-pr-open]", text: /Gerar relatório/
+      assert_select ".pr-modal__summary", text: /Todos já estão Em produção/
     end
 
     test "the preview narrows to the selected period and shows the empty state" do
@@ -40,9 +50,10 @@ module Admin
       assert_match orders(:confirmed_paid).number, response.body
     end
 
-    test "confirming records a batch, sends the eligible orders to production and redirects to the sheet" do
+    test "confirming sends the waiting orders to production and renders the sheet with the ones already there" do
       sign_in users(:admin)
       eligible = orders(:confirmed_paid)
+      producing = orders(:producing)
       untouched = orders(:awaiting)
       with_variants = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 1_000, total_cents: 1_000)
       with_variants.order_items.create!(product: products(:yellow), name: "Pokemon - Gold", unit_price_cents: 1_000, quantity: 1,
@@ -50,29 +61,26 @@ module Admin
       accessories_only = Order.create!(user: users(:confirmed), status: "payment_confirmed", subtotal_cents: 2_500, total_cents: 2_500)
       accessories_only.order_items.create!(product: products(:game_box), name: "Caixa", unit_price_cents: 2_500, quantity: 1, chosen_options: [])
 
-      assert_difference -> { ProductionBatch.count }, 1 do
+      assert_no_difference -> { producing.status_changes.count } do
         post admin_production_report_path
       end
 
-      batch = ProductionBatch.order(:id).last
-      assert_redirected_to admin_production_report_batch_path(batch)
-      assert_equal users(:admin), batch.operator
-      assert_equal 3, batch.orders_count
+      assert_response :success
       assert eligible.reload.in_production?
-      assert_equal batch, eligible.production_batch
       assert with_variants.reload.in_production?
-      assert untouched.reload.awaiting_payment?
       assert accessories_only.reload.in_production?, "an accessories-only order is eligible too"
-      assert_equal batch, accessories_only.production_batch
+      assert untouched.reload.awaiting_payment?
 
       change = eligible.status_changes.chronological.last
       assert_equal "in_production", change.to_status
       assert_equal users(:admin), change.actor
 
-      follow_redirect!
-      assert_response :success
-      assert_select ".pr-order"
-      assert_select ".pr-item__flag", text: "🇺🇸" # language shows as a bare flag, no chip or text
+      assert_match eligible.number, response.body
+      assert_match producing.number, response.body
+      assert_no_match(/#{untouched.number}/, response.body)
+      assert_select "a.pr-back[href=?]", admin_root_path
+      assert_match users(:admin).full_name, response.body
+      assert_select ".pr-item__flag", text: "🇺🇸"
       assert_select ".pr-item__variants", text: "Transparente"
     end
 
@@ -83,26 +91,10 @@ module Admin
       mixed.order_items.create!(product: products(:game_box), name: "Caixa do jogo", unit_price_cents: 2_500, quantity: 1, chosen_options: [])
 
       post admin_production_report_path
-      follow_redirect!
 
       assert_response :success
       assert_match "Metroid II", response.body
       assert_match "Caixa do jogo", response.body
-    end
-
-    test "show reprints a stored batch from its frozen orders" do
-      sign_in users(:admin)
-      order = orders(:confirmed_paid)
-      post admin_production_report_path
-      batch = ProductionBatch.order(:id).last
-
-      get admin_production_report_batch_path(batch)
-
-      assert_response :success
-      assert_select ".pr-order"
-      assert_select "a.pr-back[href=?]", admin_reports_path
-      assert_match order.number, response.body
-      assert_match "Lote ##{batch.id}", response.body
     end
 
     test "the sheet shows the requested game and notes for made-to-order items" do
@@ -118,8 +110,6 @@ module Admin
       )
 
       post admin_production_report_path
-      batch = ProductionBatch.order(:id).last
-      get admin_production_report_batch_path(batch)
 
       assert_response :success
       assert_select ".pr-item__pedido-game", text: /Pokémon Unbound/
@@ -135,36 +125,32 @@ module Admin
       noted.order_items.create!(product: products(:metroid), name: "Metroid II", unit_price_cents: 1_000, quantity: 1, chosen_options: [])
 
       post admin_production_report_path
-      batch = ProductionBatch.order(:id).last
-
-      get admin_production_report_batch_path(batch)
 
       assert_response :success
       assert_select ".pr-order__note", text: /Observação:\s*Entregar após as 18h/
     end
 
-    test "confirming with no eligible orders redirects with an alert and records no batch" do
+    test "confirming with no eligible orders redirects with an alert" do
       sign_in users(:admin)
 
-      assert_no_difference -> { ProductionBatch.count } do
-        post admin_production_report_path(de: "2020-01-01", ate: "2020-01-02")
-      end
+      post admin_production_report_path(de: "2020-01-01", ate: "2020-01-02")
 
       assert_redirected_to admin_production_report_path(de: "2020-01-01", ate: "2020-01-02")
       follow_redirect!
       assert_select ".pr-flash--alert"
     end
 
-    test "re-confirming is a no-op once the batch already moved" do
+    test "re-confirming prints the same orders again without moving anything" do
       sign_in users(:admin)
-
       post admin_production_report_path
-      assert_response :redirect
+      first_sheet = css_select(".pr-order__number").map(&:text)
 
-      post admin_production_report_path # nothing eligible left in the fixtures
-      assert_redirected_to admin_production_report_path
-      follow_redirect!
-      assert_select ".pr-flash--alert"
+      assert_no_difference -> { OrderStatusChange.count } do
+        post admin_production_report_path
+      end
+
+      assert_response :success
+      assert_equal first_sheet, css_select(".pr-order__number").map(&:text)
     end
   end
 end

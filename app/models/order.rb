@@ -1,4 +1,6 @@
 class Order < ApplicationRecord
+  self.ignored_columns += %w[production_batch_id]
+
   InvalidTransition = Class.new(StandardError)
   UnallocatableNumber = Class.new(StandardError)
 
@@ -11,7 +13,6 @@ class Order < ApplicationRecord
   RETURN_REASON_LIMIT = 500
 
   belongs_to :user
-  belongs_to :production_batch, optional: true
   belongs_to :merged_into, class_name: "Order", optional: true
   has_one :shipment, -> { outbound.current },
           inverse_of: :order, dependent: :nullify
@@ -67,7 +68,7 @@ class Order < ApplicationRecord
   }.freeze
 
   CANCELLABLE_STATUSES = TRANSITIONS.select { |_, targets| targets.include?("cancelled") }.keys.freeze
-  MERGEABLE_STATUSES = Production::EligibleOrders::STATUSES
+  MERGEABLE_STATUSES = TRANSITIONS.select { |_, targets| targets.include?("merged") }.keys.freeze
   PAID_STATUSES = (STATUSES - %w[awaiting_payment cancelled merged]).freeze
 
   scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }

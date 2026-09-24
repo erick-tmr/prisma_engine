@@ -435,7 +435,7 @@ authorized to send does not.
 
 **Branch points** (the flow is not linear):
 
-- After **2 `pagamento_confirmado`** → either **3.1 `aguardando_componentes`** (manual; operator flags missing parts) or **3.2 `em_producao`** (auto; the order first appears on the production report). From 3.1, an operator move flips to 3.2 once components arrive.
+- After **2 `pagamento_confirmado`** → either **3.1 `aguardando_componentes`** (manual; operator flags missing parts) or **3.2 `em_producao`** (generating the production report moves it). The report is printed and never stored: it lists every order in 2, 3.1, 4.1 and 3.2, and an order leaves it only when the backoffice moves it on (label issued, flagged, cancelled). Generating it is also how 3.1 and 4.1 return to 3.2.
 - During **3.2 `em_producao`** → either **4.2 `etiqueta_emitida`** (auto; `Shipping::CreatePrePostagem` succeeded) or **4.1 `problema_na_producao`** (auto; 2 calendar days without progress). Recovery from 4.1 back to 3.2 is a manual operator transition.
 
 **Cross-cutting:**

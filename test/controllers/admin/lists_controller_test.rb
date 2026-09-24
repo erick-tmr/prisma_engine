@@ -4,8 +4,7 @@ module Admin
   class ListsControllerTest < ActionDispatch::IntegrationTest
     include Devise::Test::IntegrationHelpers
 
-    LISTS = { orders: "/admin", clients: "/admin/clientes", reports: "/admin/relatorios",
-              questions: "/admin/perguntas" }.freeze
+    LISTS = { orders: "/admin", clients: "/admin/clientes", questions: "/admin/perguntas" }.freeze
 
     test "signed-out visitors are sent to the backoffice login" do
       LISTS.each_value do |path|

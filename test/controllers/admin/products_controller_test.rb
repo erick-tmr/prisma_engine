@@ -52,7 +52,6 @@ module Admin
 
       assert_select ".sb-nav a[href=?] .count", admin_root_path, text: Order.count.to_s
       assert_select ".sb-nav a[href=?] .count", admin_clients_path, text: User.where(admin: false).count.to_s
-      assert_select ".sb-nav a[href=?] .count", admin_reports_path, text: ProductionBatch.count.to_s
       assert_select ".sb-nav a[href=?] .count", admin_products_path, text: Product.count.to_s
     end
 

@@ -25,7 +25,7 @@
     <div class="pr-meta">
       <span class="pr-count"><%= t("admin.production_report.count", count: @presenter.count) %> <%= @presenter.period_clause %></span>
       <button type="button" class="pr-btn pr-btn--primary" data-pr-open>
-        <i class="bi bi-printer"></i> <%= t("admin.production_report.generate") %>
+        <i class="bi bi-printer"></i> <%= t(@presenter.entering_count.zero? ? "admin.production_report.generate_only" : "admin.production_report.generate") %>
       </button>
     </div>
 
@@ -56,6 +56,7 @@
       <div class="pr-modal__box" role="dialog" aria-modal="true" aria-labelledby="pr-modal-title">
         <h2 class="pr-modal__title" id="pr-modal-title"><%= t("admin.production_report.confirm.title") %></h2>
         <p class="pr-modal__summary"><%= t("admin.production_report.confirm.summary", count: @presenter.count, period: @presenter.period_clause) %></p>
+        <p class="pr-modal__summary"><%= t("admin.production_report.confirm.entering", count: @presenter.entering_count) %></p>
         <p class="pr-modal__warning"><%= t("admin.production_report.confirm.warning") %></p>
         <div class="pr-modal__actions">
           <button type="button" class="pr-btn pr-btn--ghost" data-pr-close><%= t("admin.production_report.confirm.cancel") %></button>

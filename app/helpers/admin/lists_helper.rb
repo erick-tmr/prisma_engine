@@ -30,14 +30,6 @@ module Admin
       lines
     end
 
-    def batch_period(batch)
-      from = batch.period_from
-      to = batch.period_to
-      return t("admin.production_report.report.all_periods") unless from || to
-
-      [ from, to ].compact.map { |date| l(date) }.join(" a ")
-    end
-
     def period_label(from, to)
       return l(from, format: :list) unless to
 

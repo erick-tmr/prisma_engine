@@ -33,7 +33,6 @@ module Admin
 
       assert_select ".sb-nav a[href=?] .count", admin_root_path, text: Order.count.to_s
       assert_select ".sb-nav a[href=?] .count", admin_clients_path, text: User.where(admin: false).count.to_s
-      assert_select ".sb-nav a[href=?] .count", admin_reports_path, text: ProductionBatch.count.to_s
       assert_select ".sb-nav a[href=?] .count", admin_products_path, text: Product.count.to_s
     end
 
@@ -309,12 +308,12 @@ module Admin
       assert_response :not_found
     end
 
-    test "the order detail renders the shared backoffice nav, including the reports tab" do
+    test "the order detail renders the shared backoffice nav" do
       sign_in users(:admin)
       get admin_order_path(orders(:producing))
 
       assert_response :success
-      assert_select "aside.sidebar a.sb-link[href=?]", admin_reports_path
+      assert_select "aside.sidebar a.sb-link[href=?]", admin_clients_path
     end
 
     test "the return label endpoint serves the inbound PDF" do

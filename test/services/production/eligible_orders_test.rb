@@ -14,26 +14,29 @@ module Production
       order
     end
 
-    test "STATUSES are the paid-to-produce states the report can pull from" do
-      assert_equal %w[payment_confirmed awaiting_components production_issue], EligibleOrders::STATUSES
+    test "the report covers the orders waiting for production and the ones already in it" do
+      assert_equal %w[payment_confirmed awaiting_components production_issue], EligibleOrders::ENTERING
+      assert_equal %w[payment_confirmed awaiting_components production_issue in_production], EligibleOrders::STATUSES
     end
 
-    test "returns every paid-to-produce order, whatever it carries" do
+    test "returns every order waiting for or in production, whatever it carries" do
       with_a_game = make_order(status: "payment_confirmed")
       accessories_only = make_order(status: "payment_confirmed", items: [ { product: products(:game_box) } ])
-      wrong_status = make_order(status: "awaiting_payment")
+      producing = make_order(status: "in_production")
+      excluded = %w[awaiting_payment label_issued cancelled].map { |status| make_order(status: status) }
 
       numbers = EligibleOrders.within.map(&:number)
       assert_includes numbers, with_a_game.number
       assert_includes numbers, accessories_only.number
-      assert_not_includes numbers, wrong_status.number
+      assert_includes numbers, producing.number
+      excluded.each { |order| assert_not_includes numbers, order.number }
       EligibleOrders.within.each { |order| assert_includes EligibleOrders::STATUSES, order.status }
     end
 
     test "narrows to a period, oldest first" do
       older = make_order(status: "payment_confirmed", created_at: Time.zone.local(2026, 1, 10, 9))
       newer = make_order(status: "production_issue", created_at: Time.zone.local(2026, 1, 15, 9))
-      make_order(status: "payment_confirmed", created_at: Time.zone.local(2025, 12, 31, 9)) # outside the window
+      make_order(status: "payment_confirmed", created_at: Time.zone.local(2025, 12, 31, 9))
 
       result = EligibleOrders.within(from: Date.new(2026, 1, 1), to: Date.new(2026, 1, 31)).map(&:number)
       assert_equal [ older.number, newer.number ], result
