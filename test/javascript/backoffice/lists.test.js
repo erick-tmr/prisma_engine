@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MOBILE_NAV_MAX_WIDTH, dismissToasts, initShell } from "../../../app/javascript/backoffice/shell.js";
 import { initClients } from "../../../app/javascript/backoffice/clients.js";
-import { initReports } from "../../../app/javascript/backoffice/reports.js";
 import { initCatalog, navigate } from "../../../app/javascript/backoffice/catalog.js";
 
 const click = (el) => el.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
@@ -167,27 +166,6 @@ describe("initClients", () => {
     document.body.innerHTML = shell("clients", markup);
     started.push(initClients(document.querySelector(".app")));
 
-    expect(() => click(document.querySelector("[data-part=count]"))).not.toThrow();
-  });
-});
-
-describe("initReports", () => {
-  it("opens a batch by forwarding the row click to its link", () => {
-    document.body.innerHTML = shell("reports", "");
-    document.querySelector("[data-part=table]").innerHTML =
-      `<table><tbody><tr data-report="12"><td><a class="cell-link" href="/admin/relatorio-producao/12">x</a></td><td class="other">y</td></tr></tbody></table>`;
-    started.push(initReports(document.querySelector(".app")));
-
-    const link = document.querySelector("a.cell-link");
-    const spy = vi.spyOn(link, "click");
-    click(document.querySelector("td.other"));
-
-    expect(spy).toHaveBeenCalledOnce();
-  });
-
-  it("ignores clicks outside a batch row", () => {
-    document.body.innerHTML = shell("reports", "");
-    started.push(initReports(document.querySelector(".app")));
     expect(() => click(document.querySelector("[data-part=count]"))).not.toThrow();
   });
 });

@@ -1,6 +1,7 @@
 module Production
   class EligibleOrders
-    STATUSES = %w[payment_confirmed awaiting_components production_issue].freeze
+    ENTERING = %w[payment_confirmed awaiting_components production_issue].freeze
+    STATUSES = (ENTERING + %w[in_production]).freeze
 
     def self.within(from: nil, to: nil)
       new(from: from, to: to).relation

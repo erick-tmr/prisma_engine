@@ -41,7 +41,6 @@ Rails.application.routes.draw do
     get    "clientes/:id", to: "clients#show",  as: :client, constraints: { id: /\d+/ }
     delete "clientes/:client_id/strikes/:id", to: "client_strikes#destroy", as: :client_strike,
            constraints: { client_id: /\d+/, id: /\d+/ }
-    get    "relatorios", to: "reports#index", as: :reports
     resources :produtos, controller: "products", as: :products,
               only: %i[index new create edit update],
               path_names: { new: "novo", edit: "editar" }
@@ -55,7 +54,6 @@ Rails.application.routes.draw do
     delete "sair",   to: "sessions#destroy", as: :logout
     get    "relatorio-producao", to: "production_reports#new",    as: :production_report
     post   "relatorio-producao", to: "production_reports#create"
-    get    "relatorio-producao/:id", to: "production_reports#show", as: :production_report_batch, constraints: { id: /\d+/ }
     post   "etiquetas",         to: "labels#create_batch", as: :labels
     post   "etiquetas/:number", to: "labels#create",       as: :label, constraints: { number: /PG-\d+/ }
     post   "etiquetas/impressao", to: "labels#print_sheet", as: :print_labels

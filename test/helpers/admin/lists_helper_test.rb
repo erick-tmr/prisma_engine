@@ -94,17 +94,6 @@ module Admin
       assert_equal I18n.t("account.orders.states.shipped.label"), status_option_label("shipped")
     end
 
-    test "batch_period covers an open, half-open and closed range" do
-      batch = ProductionBatch.new
-      assert_equal I18n.t("admin.production_report.report.all_periods"), batch_period(batch)
-
-      batch.period_from = Date.new(2026, 6, 1)
-      assert_equal I18n.l(Date.new(2026, 6, 1)), batch_period(batch)
-
-      batch.period_to = Date.new(2026, 6, 30)
-      assert_equal "01/06/2026 a 30/06/2026", batch_period(batch)
-    end
-
     private
 
     def page_for(total, per: Admin::Page::PER)

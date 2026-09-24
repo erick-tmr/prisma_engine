@@ -96,16 +96,13 @@ module Admin
       assert_nil ProductionReportPresenter.new(orders: []).column_break_seq
     end
 
-    test "for_batch reprints the batch's own orders, every item, with its stored period" do
-      order = order_with([ { product: products(:metroid), name: "Metroid II" }, { product: products(:game_box), name: "Caixa" } ])
-      batch = ProductionBatch.create!(period_from: Date.new(2026, 1, 1), period_to: Date.new(2026, 1, 31), orders_count: 1)
-      order.update!(production_batch: batch)
+    test "entering_count counts only the orders the report is about to send to production" do
+      producing = order_with([ { name: "Metroid II" } ])
+      waiting = order_with([ { name: "Zelda" } ])
+      waiting.update!(status: "production_issue")
 
-      presenter = ProductionReportPresenter.for_batch(batch)
-
-      assert_equal [ order.number ], presenter.orders.map(&:number)
-      assert_equal [ "Metroid II", "Caixa" ], presenter.rows.first.items.map(&:name)
-      assert_equal "do período 01/01/2026 a 31/01/2026", presenter.period_clause
+      assert_equal 1, ProductionReportPresenter.new(orders: [ producing, waiting ]).entering_count
+      assert_equal 0, ProductionReportPresenter.new(orders: [ producing ]).entering_count
     end
 
     test "period clause and iso readers reflect whether a window was given" do

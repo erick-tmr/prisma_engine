@@ -5,11 +5,6 @@ module Admin
 
     CHARS_PER_LINE = 58
 
-    def self.for_batch(batch)
-      orders = batch.orders.includes(:user, :order_items).order(created_at: :asc)
-      new(orders: orders, from: batch.period_from, to: batch.period_to)
-    end
-
     def initialize(orders:, from: nil, to: nil)
       @relation = orders
       @from = from
@@ -22,6 +17,10 @@ module Admin
 
     def count
       orders.size
+    end
+
+    def entering_count
+      orders.count { |order| Production::EligibleOrders::ENTERING.include?(order.status) }
     end
 
     def rows

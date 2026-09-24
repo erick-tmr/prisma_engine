@@ -28,7 +28,6 @@ module Admin
       @sidebar_counts ||= {
         "orders" => Order.count,
         "clients" => User.clients.count,
-        "reports" => ProductionBatch.count,
         "catalog" => Product.count,
         "questions" => Question.awaiting_answer.count
       }

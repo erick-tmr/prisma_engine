@@ -580,9 +580,6 @@ pt-BR:
       clients_count:
         one: "%{count} cliente"
         other: "%{count} clientes"
-      reports_count:
-        one: "%{count} relatório"
-        other: "%{count} relatórios"
       products_count:
         one: "%{count} produto"
         other: "%{count} produtos"
@@ -593,8 +590,6 @@ pt-BR:
       orders: "pedidos"
       client: "cliente"
       clients: "clientes"
-      report: "relatório"
-      reports: "relatórios"
       product: "produto"
       products: "produtos"
       question: "pergunta"
@@ -614,7 +609,6 @@ pt-BR:
       nav:
         orders: "Pedidos"
         clients: "Clientes"
-        reports: "Relatórios"
         catalog: "Catálogo"
         questions: "Perguntas"
       bulk:
@@ -629,9 +623,6 @@ pt-BR:
         clients:
           title: "Clientes"
           crumb: "Todos os clientes cadastrados"
-        reports:
-          title: "Relatórios de produção"
-          crumb: "Lotes de produção já gerados"
         catalog:
           title: "Catálogo"
           crumb: "Todos os produtos da loja"
@@ -703,17 +694,6 @@ pt-BR:
         empty:
           title: "Nenhum cliente encontrado"
           hint: "Tente outro nome, e-mail ou CPF."
-      reports:
-        heading: "Relatórios de produção"
-        sub: "Cada lote enviado para produção. Abra um lote para reimprimir a folha."
-        columns:
-          generated: "Gerado em"
-          operator: "Operador"
-          orders: "Pedidos"
-          period: "Período"
-        empty:
-          title: "Nenhum relatório gerado"
-          hint: "Gere um relatório de produção pela aba Pedidos."
       bulk_actions:
         to_components: "Aguardar componentes"
         issue_label: "Emitir etiqueta Correios"
@@ -1105,9 +1085,10 @@ pt-BR:
     production_report:
       page_title: "Relatório de produção · Backoffice | Prisma Games"
       heading: "Relatório de produção"
-      lede: "Pedidos pagos prontos para fabricação. Gerar o relatório envia este lote para produção."
+      lede: "Pedidos pagos para fabricar, incluindo os que já estão em produção. Gerar o relatório envia os novos para produção."
       back: "Voltar ao painel"
       generate: "Enviar para produção e gerar"
+      generate_only: "Gerar relatório"
       count:
         one: "%{count} pedido"
         other: "%{count} pedidos"
@@ -1124,24 +1105,25 @@ pt-BR:
         other: "%{count} itens"
       empty:
         title: "Nenhum pedido elegível"
-        hint: "Não há pedidos pagos aguardando produção neste período."
+        hint: "Não há pedidos pagos ou em produção neste período."
       confirm:
         title: "Confirmar envio para produção"
         summary:
-          one: "%{count} pedido %{period} será enviado para produção e marcado como Em produção."
-          other: "%{count} pedidos %{period} serão enviados para produção e marcados como Em produção."
-        warning: "Esta ação atualiza o status dos pedidos. O relatório será gerado em seguida."
+          one: "%{count} pedido %{period} entra no relatório."
+          other: "%{count} pedidos %{period} entram no relatório."
+        entering:
+          zero: "Todos já estão Em produção: nenhum status muda."
+          one: "%{count} pedido passa para Em produção agora."
+          other: "%{count} pedidos passam para Em produção agora."
+        warning: "Quem já está Em produção continua no relatório até mudar de status no backoffice. O relatório não fica salvo: imprima antes de sair da página."
         cancel: "Cancelar"
         submit: "Confirmar e gerar"
       none: "Nenhum pedido elegível para enviar à produção."
       report:
         page_title: "Relatório de produção | Prisma Games"
         heading: "Relatório de produção"
-        back: "Voltar aos relatórios"
-        batch: "Lote #%{id}"
+        back: "Voltar aos pedidos"
         generated_by: "Gerado em %{date} por %{operator}"
-        system: "sistema"
-        all_periods: "Todos os períodos"
         print: "Imprimir"
         checkbox_aria: "Marcar como produzido"
         observation: "Observação"

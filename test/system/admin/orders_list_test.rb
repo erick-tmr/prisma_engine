@@ -114,10 +114,6 @@ class AdminOrdersListTest < ApplicationSystemTestCase
     find(".sb-link", text: "Clientes").click
     assert_current_path admin_clients_path
     assert_selector "[data-list=clients] tr[data-client]", minimum: 1
-
-    find(".sb-link", text: "Relatórios").click
-    assert_current_path admin_reports_path
-    assert_selector "[data-list=reports]"
   end
 
   test "the Correios column reports each stage of a label emission" do
