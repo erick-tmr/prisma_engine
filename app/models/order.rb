@@ -1,6 +1,4 @@
 class Order < ApplicationRecord
-  self.ignored_columns += %w[production_batch_id]
-
   InvalidTransition = Class.new(StandardError)
   UnallocatableNumber = Class.new(StandardError)
 
