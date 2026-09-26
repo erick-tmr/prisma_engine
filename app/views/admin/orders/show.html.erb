@@ -1,7 +1,7 @@
 <% content_for :title, t("admin.orders.detail.page_title", number: @presenter.number) %>
 <% content_for :head do %>
   <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
-  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-order" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell", "pages/backoffice-order", "pages/backoffice-order-merge" %>
 <% end %>
 
 <div class="app-rainbow" aria-hidden="true"></div>
@@ -46,6 +46,13 @@
         <div class="od-merged-note" role="status">
           <i class="bi bi-box-seam" aria-hidden="true"></i>
           <span><%= t("admin.orders.detail.merged_into_html", number: link_to("##{@presenter.merged_into.number}", admin_order_path(@presenter.merged_into))) %></span>
+        </div>
+      <% end %>
+
+      <% if (stranded = @presenter.stranded_merge) %>
+        <div class="od-merged-note" role="status" data-merge-stranded>
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          <span><%= t("admin.orders.merge.stranded_html", number: link_to("##{stranded.master_order.number}", admin_order_path(stranded.master_order))) %></span>
         </div>
       <% end %>
 
@@ -99,6 +106,8 @@
               <div class="row-t row-total"><span><%= t("admin.orders.detail.total") %></span><span><%= format_brl(@presenter.total_cents) %></span></div>
             </div>
           </div>
+
+          <%= render "merge_panel", panel: @presenter.merge_panel %>
           <% end %>
 
           <div class="panel">
@@ -188,6 +197,7 @@
       </div>
     </main>
   </div>
+  <div data-merge-modal></div>
 </div>
 
 <% content_for :scripts do %>

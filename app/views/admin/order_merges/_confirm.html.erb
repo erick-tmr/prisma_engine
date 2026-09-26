@@ -1,0 +1,99 @@
+<%# locals: (result:) %>
+<div class="mg-ov" data-merge-overlay>
+  <div class="mg-modal" role="dialog" aria-modal="true" aria-labelledby="mg-title">
+    <% if result.success? %>
+      <% preview = result.preview %>
+      <% master = preview.master %>
+      <div class="mg-m-top">
+        <h3 id="mg-title"><%= t("admin.orders.merge.confirm.title", count: preview.absorbed.size, number: master.number) %></h3>
+        <p><%= t("admin.orders.merge.confirm.lead_html", status: t("account.orders.states.#{preview.settled_status}.label")) %></p>
+      </div>
+
+      <div class="mg-flow">
+        <% preview.absorbed.each do |order| %>
+          <div class="mg-flow-src">
+            <span class="n"><%= order.number %></span>
+            <span class="m"><%= t("admin.orders.merge.items", count: order.order_items.sum(&:quantity)) %> · <%= format_brl(order.subtotal_cents) %></span>
+            <span class="r">
+              <span class="pill st-<%= order.status %>"><%= t("account.orders.states.#{order.status}.label") %></span>
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              <span class="pill st-merged"><%= t("account.orders.states.merged.label") %></span>
+            </span>
+          </div>
+        <% end %>
+        <div class="mg-flow-arrow"><i class="bi bi-arrow-down" aria-hidden="true"></i> <%= t("admin.orders.merge.confirm.absorbed_by") %></div>
+        <div class="mg-flow-dst">
+          <i class="bi bi-star-fill" aria-hidden="true"></i>
+          <span class="n"><%= master.number %></span>
+          <span class="m"><%= t("admin.orders.merge.confirm.master") %></span>
+        </div>
+      </div>
+
+      <div class="mg-calc">
+        <div class="mg-calc-row">
+          <span class="k"><%= t("admin.orders.merge.confirm.items") %></span>
+          <span class="was"><%= master.order_items.sum(&:quantity) %></span><span class="ar">→</span>
+          <span class="now"><%= preview.item_count %></span>
+        </div>
+        <div class="mg-calc-row">
+          <span class="k"><%= t("admin.orders.merge.confirm.subtotal") %></span>
+          <span class="was"><%= format_brl(master.subtotal_cents) %></span><span class="ar">→</span>
+          <span class="now"><%= format_brl(preview.subtotal_cents) %></span>
+        </div>
+        <div class="mg-calc-row">
+          <span class="k"><%= t("admin.orders.merge.confirm.shipping", service: preview.service_label) %></span>
+          <span class="was"><%= master.shipment.shipping_cents.zero? ? t("admin.orders.merge.confirm.free") : format_brl(master.shipment.shipping_cents) %></span><span class="ar">→</span>
+          <span class="now" data-merge-shipping><%= preview.shipping_cents.zero? ? t("admin.orders.merge.confirm.free") : format_brl(preview.shipping_cents) %></span>
+        </div>
+        <div class="mg-calc-hint"><%= t("admin.orders.merge.confirm.shipping_hint") %></div>
+        <div class="mg-calc-row total">
+          <span class="k"><%= t("admin.orders.merge.confirm.total") %></span>
+          <span class="was"><%= format_brl(master.total_cents) %></span><span class="ar">→</span>
+          <span class="now"><%= format_brl(preview.total_cents) %></span>
+        </div>
+      </div>
+
+      <% if preview.observation.present? %>
+        <div class="mg-obs">
+          <div class="h"><i class="bi bi-chat-left-text" aria-hidden="true"></i> <%= t("admin.orders.detail.observation") %></div>
+          <div class="ln"><%= preview.observation %></div>
+        </div>
+      <% end %>
+
+      <% address = master.shipment.address %>
+      <% preview.address_mismatches.each do |order| %>
+        <div class="mg-warn" data-merge-warning="address">
+          <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+          <div><%= t("admin.orders.merge.confirm.address_html", number: order.number, address: "#{address[:street]}, #{address[:number]} · #{address[:city]}/#{address[:state]}") %></div>
+        </div>
+      <% end %>
+
+      <% preview.voided_labels.each do |order| %>
+        <div class="mg-warn" data-merge-warning="label">
+          <i class="bi bi-tag-fill" aria-hidden="true"></i>
+          <div><%= t(order == master ? "admin.orders.merge.confirm.label_master_html" : "admin.orders.merge.confirm.label_absorbed_html", number: order.number) %></div>
+        </div>
+      <% end %>
+
+      <div class="mg-warn">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <div><%= t("admin.orders.merge.confirm.irreversible_html", number: master.number) %></div>
+      </div>
+
+      <div class="mg-m-foot">
+        <button class="btn-ghost" type="button" data-merge-close><%= t("admin.orders.merge.confirm.cancel") %></button>
+        <button class="btn-dark" type="submit" form="merge-form" data-merge-confirm>
+          <i class="bi bi-diagram-2" aria-hidden="true"></i> <%= t("admin.orders.merge.confirm.submit") %>
+        </button>
+      </div>
+    <% else %>
+      <div class="mg-m-top">
+        <h3 id="mg-title"><%= t("admin.orders.merge.title") %></h3>
+        <p data-merge-error><%= t("admin.orders.merge.errors.#{result.error}") %></p>
+      </div>
+      <div class="mg-m-foot">
+        <button class="btn-ghost" type="button" data-merge-close><%= t("admin.orders.merge.confirm.cancel") %></button>
+      </div>
+    <% end %>
+  </div>
+</div>

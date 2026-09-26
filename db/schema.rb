@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -164,7 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
 
   create_table "order_merges", force: :cascade do |t|
     t.jsonb "absorbed_order_ids", default: [], null: false
-    t.bigint "carrier_order_id", null: false
+    t.bigint "carrier_order_id"
     t.string "combined_service", null: false
     t.integer "combined_shipping_cents", null: false
     t.integer "combined_weight_grams", null: false
@@ -183,10 +183,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
     t.datetime "created_at", null: false
     t.string "from_status"
     t.bigint "order_id", null: false
+    t.bigint "order_merge_id"
     t.string "to_status", null: false
     t.datetime "updated_at", null: false
     t.index ["actor_id"], name: "index_order_status_changes_on_actor_id"
     t.index ["order_id"], name: "index_order_status_changes_on_order_id"
+    t.index ["order_merge_id"], name: "index_order_status_changes_on_order_merge_id"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -450,6 +452,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
   add_foreign_key "order_items", "products", on_delete: :nullify
   add_foreign_key "order_merges", "orders", column: "carrier_order_id"
   add_foreign_key "order_merges", "orders", column: "master_order_id"
+  add_foreign_key "order_status_changes", "order_merges"
   add_foreign_key "order_status_changes", "orders"
   add_foreign_key "order_status_changes", "users", column: "actor_id"
   add_foreign_key "orders", "orders", column: "merged_into_id"

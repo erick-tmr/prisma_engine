@@ -13,6 +13,7 @@ class OrderStatusChange < ApplicationRecord
 
   belongs_to :order
   belongs_to :actor, class_name: "User", optional: true
+  belongs_to :order_merge, optional: true
 
   validates :to_status, presence: true
 
@@ -25,6 +26,7 @@ class OrderStatusChange < ApplicationRecord
   def deliver_order_email
     action = NOTIFIED[to_status]
     return unless action
+    return if order_merge_id
     return unless order.reload.status == to_status
 
     OrderMailer.public_send(action, order).deliver_later

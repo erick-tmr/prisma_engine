@@ -52,9 +52,9 @@ class Order < ApplicationRecord
     "awaiting_payment"    => %w[payment_confirmed cancelled],
     "payment_confirmed"   => %w[awaiting_components in_production merged cancelled],
     "awaiting_components" => %w[in_production merged cancelled],
-    "in_production"       => %w[label_issued production_issue cancelled],
+    "in_production"       => %w[label_issued production_issue merged cancelled],
     "production_issue"    => %w[in_production merged cancelled],
-    "label_issued"        => %w[shipped cancelled],
+    "label_issued"        => %w[shipped merged cancelled],
     "shipped"             => %w[delivered delivery_issue returned],
     "delivered"           => %w[awaiting_return returned],
     "delivery_issue"      => %w[delivered awaiting_return returned shipped],
@@ -67,11 +67,13 @@ class Order < ApplicationRecord
 
   CANCELLABLE_STATUSES = TRANSITIONS.select { |_, targets| targets.include?("cancelled") }.keys.freeze
   MERGEABLE_STATUSES = TRANSITIONS.select { |_, targets| targets.include?("merged") }.keys.freeze
+  CHECKOUT_MERGEABLE_STATUSES = %w[payment_confirmed awaiting_components production_issue].freeze
+  MERGE_RANK = %w[awaiting_components production_issue payment_confirmed in_production].freeze
   PAID_STATUSES = (STATUSES - %w[awaiting_payment cancelled merged]).freeze
 
   scope :awaiting_payment_expired, -> { awaiting_payment.where(created_at: ..EXPIRY_WINDOW.ago) }
   scope :recent_first, -> { order(created_at: :desc) }
-  scope :mergeable, -> { where(status: MERGEABLE_STATUSES).order(created_at: :asc) }
+  scope :mergeable, -> { where(status: CHECKOUT_MERGEABLE_STATUSES).order(created_at: :asc) }
   scope :paid, -> { where(status: PAID_STATUSES) }
   scope :label_reissuable, -> {
     where(status: "label_issued").where(id: Shipment.outbound.current.label_expired.select(:order_id))
@@ -88,6 +90,10 @@ class Order < ApplicationRecord
   before_validation :assign_number, on: :create
   after_create :record_initial_status
   before_destroy :prevent_destroy
+
+  def self.settled_merge_status(participants)
+    participants.map(&:merge_rank_status).min_by { |status| MERGE_RANK.index(status) }
+  end
 
   def to_param
     number
@@ -139,6 +145,22 @@ class Order < ApplicationRecord
 
   def tracked_shipment
     (return_leg? && return_shipment) || shipment
+  end
+
+  def merge_rank_status
+    label_issued? ? "in_production" : status
+  end
+
+  # :reek:BooleanParameter
+  def settle_after_merge!(target, order_merge:, actor: nil, automatic: false)
+    previous = status
+
+    transaction do
+      claim_status(previous, target) if target != previous
+      status_changes.create!(
+        from_status: previous, to_status: status, actor: actor, automatic: automatic, order_merge: order_merge
+      )
+    end
   end
 
   def cancel!(**opts)

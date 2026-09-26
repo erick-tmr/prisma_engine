@@ -10,7 +10,7 @@ module Admin
     end
 
     def show
-      order = Order.includes({ status_changes: :actor }, { shipment: :shipping_label })
+      order = Order.includes({ status_changes: %i[actor order_merge] }, { shipment: :shipping_label })
                    .find_by!(number: params[:number])
       render partial: "admin/orders/label_status",
              locals: { presenter: OrderPresenter.new(order) }, layout: false
