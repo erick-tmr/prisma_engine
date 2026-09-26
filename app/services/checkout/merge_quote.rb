@@ -1,7 +1,5 @@
 module Checkout
   class MergeQuote
-    SERVICE_TIERS = { "mini_envios" => 0, "pac" => 1, "sedex" => 2 }.freeze
-
     Result = Data.define(
       :master, :absorbed_orders, :combined_weight_grams, :service, :service_label,
       :combined_shipping_cents, :paid_fretes_cents, :delta_cents,
@@ -74,11 +72,7 @@ module Checkout
     end
 
     def choose_service(orders)
-      floor = orders.map { |order| SERVICE_TIERS.fetch(order.shipment.service, 0) }.max
-      allowed = quote(orders, combined_weight(orders)).select do |service|
-        service[:eligible] && SERVICE_TIERS.fetch(service[:key].to_s, 0) >= floor
-      end
-      allowed.min_by { |service| service[:price_cents] }
+      Shipping::CombinedService.call(orders: orders, weight_grams: combined_weight(orders))
     end
 
     def savings(orders, paid, combined)

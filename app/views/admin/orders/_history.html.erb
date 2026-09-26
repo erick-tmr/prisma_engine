@@ -6,6 +6,7 @@
       <div class="hist-body">
         <div>
           <div class="desc"><b><%= entry[:label] %></b></div>
+          <% if entry[:note] %><div class="note"><%= entry[:note] %></div><% end %>
           <div class="who-by"><%= entry[:by] %></div>
         </div>
         <div class="time"><%= l(entry[:at], format: :short) %></div>

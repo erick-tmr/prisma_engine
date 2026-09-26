@@ -105,6 +105,15 @@ module Admin
       @label_feedback ||= LabelFeedback.new(order)
     end
 
+    def merge_panel
+      MergePanel.new(order)
+    end
+
+    def stranded_merge
+      plan = order.order_merge
+      plan if plan&.pending? && !order.unpaid? && !merged?
+    end
+
     def return_startable?
       Shipping::StartReturn::SOURCES.include?(status) && order.shipment.present? && order.return_shipment.nil?
     end
@@ -154,7 +163,8 @@ module Admin
           status: change.to_status,
           label: status_label(change.to_status),
           by: actor_label(change),
-          at: change.created_at
+          at: change.created_at,
+          note: merge_note(change)
         }
       end
     end
@@ -176,6 +186,13 @@ module Admin
     end
 
     private
+
+    def merge_note(change)
+      plan = change.order_merge
+      return unless plan
+
+      I18n.t("admin.orders.merge.history_note", numbers: plan.folded_orders.pluck(:number).join(", "))
+    end
 
     def actor_label(change)
       return I18n.t("admin.orders.detail.automatic") if change.automatic || change.actor.nil?

@@ -1,6 +1,7 @@
 bi-archive
 bi-arrow-clockwise
 bi-arrow-counterclockwise
+bi-arrow-down
 bi-arrow-down-circle
 bi-arrow-left
 bi-arrow-repeat
@@ -47,6 +48,7 @@ bi-credit-card
 bi-credit-card-2-front
 bi-dash
 bi-database-x
+bi-diagram-2
 bi-disc
 bi-download
 bi-envelope
@@ -86,6 +88,7 @@ bi-link-45deg
 bi-list
 bi-list-ol
 bi-list-ul
+bi-lock
 bi-lock-fill
 bi-magic
 bi-palette
@@ -118,6 +121,7 @@ bi-star
 bi-star-fill
 bi-stars
 bi-tag
+bi-tag-fill
 bi-telephone
 bi-text-paragraph
 bi-translate

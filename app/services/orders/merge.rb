@@ -13,8 +13,9 @@ module Orders
       return if order_merge.executed_at.present?
 
       Order.transaction do
-        master  = order_merge.master_order.lock!
-        carrier = order_merge.carrier_order.lock!
+        master = order_merge.master_order.lock!
+        master.shipment&.lock!
+        carrier = order_merge.carrier_order&.lock!
         consolidate(master, carrier) if mergeable_target?(master)
       end
     end
@@ -23,27 +24,35 @@ module Orders
 
     attr_reader :order_merge, :actor
 
+    def origin
+      order_merge.origin
+    end
+
+    def automatic?
+      origin == :checkout
+    end
+
     def consolidate(master, carrier)
-      folded = [ carrier ]
-      fold(carrier.lock!, master)
-      folded.concat(absorb(master))
+      folded = [ carrier, *absorb ].compact
+      target = Order.settled_merge_status([ master, *folded ])
+      folded.each { |order| fold_and_retire(order, master) }
+      void_label(master.shipment)
       recompute(master, folded)
-      finalize(carrier, master)
+      master.settle_after_merge!(target, order_merge: order_merge, actor: actor, automatic: automatic?)
       order_merge.update!(executed_at: Time.current)
     end
 
     def mergeable_target?(master)
-      shipment = master.shipment
-      return true if shipment && shipment.tracking_code.nil?
+      verdict = MergeEligibility.for(master, origin: origin)
+      return true if verdict.ok?
 
-      Rails.logger.warn("Orders::Merge skipped ##{master.number}: master no longer accepts merges")
+      Rails.logger.warn("Orders::Merge skipped ##{master.number}: master no longer accepts merges (#{verdict.reason})")
       false
     end
 
-    def absorb(master)
-      foldable, skipped = absorbed_orders.partition { |order| Order::MERGEABLE_STATUSES.include?(order.status) }
+    def absorb
+      foldable, skipped = absorbed_orders.partition { |order| MergeEligibility.for(order, origin: origin).ok? }
       skipped.each { |order| log_ineligible(order) }
-      foldable.each { |order| fold_and_retire(order, master) }
       foldable
     end
 
@@ -56,18 +65,20 @@ module Orders
     end
 
     def fold_and_retire(order, master)
-      fold(order, master)
-      retire(order, master)
-    end
-
-    def fold(source, master)
-      source.order_items.update_all(order_id: master.id)
-    end
-
-    def retire(order, master)
+      order.order_items.update_all(order_id: master.id)
       order.shipment.destroy!
       order.update!(merged_into_id: master.id)
-      order.transition_to!("merged", actor: actor, automatic: true)
+      order.transition_to!("merged", actor: actor, automatic: automatic?)
+    end
+
+    def void_label(shipment)
+      label = shipment.shipping_label
+      return unless label
+
+      shipment.tracking_events.delete_all
+      shipment.reset_for_reissue
+      shipment.save!
+      label.destroy!
     end
 
     def recompute(master, folded)
@@ -84,10 +95,6 @@ module Orders
         total_cents:    subtotal + frete,
         observation:    MergedObservation.call(master: master, folded: folded)
       )
-    end
-
-    def finalize(carrier, master)
-      retire(carrier, master)
     end
   end
 end

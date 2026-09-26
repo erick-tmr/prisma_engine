@@ -57,7 +57,7 @@ class OrderTest < ActiveSupport::TestCase
   test "exhausting every draw raises rather than saving a duplicate" do
     srand(2)
     Array.new(Order::NUMBER_ATTEMPTS) { "PG-#{format('%05d', rand(100_000))}" }
-      .uniq.each { |n| build_order(number: n).save! }
+      .uniq.each { |number| build_order(number: number).save! }
     srand(2)
     assert_raises(Order::UnallocatableNumber) { build_order.save! }
   end
@@ -392,7 +392,7 @@ class OrderTest < ActiveSupport::TestCase
   end
 
   test "each mergeable state can transition to merged" do
-    %w[payment_confirmed awaiting_components production_issue].each do |state|
+    %w[payment_confirmed awaiting_components in_production production_issue label_issued].each do |state|
       order = build_order
       order.save!
       order.update_column(:status, state)
@@ -488,6 +488,26 @@ class OrderTest < ActiveSupport::TestCase
     user.orders.create!(base_attrs)
 
     assert_equal [ older.id, newer.id ], user.orders.mergeable.pluck(:id)
+  end
+
+  test "a label_issued order ranks as in production for a merge, since its label is voided" do
+    order = build_order(status: "label_issued")
+    assert_equal "in_production", order.merge_rank_status
+    assert_equal "awaiting_components", build_order(status: "awaiting_components").merge_rank_status
+  end
+
+  test "settle_after_merge! moves to the target along an edge TRANSITIONS does not list" do
+    order = build_order
+    order.save!
+    order.update_column(:status, "in_production")
+    plan = OrderMerge.create!(master_order: order, combined_weight_grams: 1, combined_service: "pac",
+                              combined_shipping_cents: 0, paid_fretes_cents: 0)
+
+    order.settle_after_merge!("payment_confirmed", order_merge: plan, actor: users(:admin))
+
+    assert order.reload.payment_confirmed?
+    change = order.status_changes.find_by!(order_merge: plan)
+    assert_equal %w[in_production payment_confirmed], [ change.from_status, change.to_status ]
   end
 
   test "merged_into links an absorbed order back to its master" do

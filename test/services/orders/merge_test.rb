@@ -2,6 +2,9 @@ require "test_helper"
 
 module Orders
   class MergeTest < ActiveSupport::TestCase
+    include ActiveJob::TestHelper
+    include ActionMailer::TestHelper
+
     setup do
       @user = User.create!(
         email: "merge@example.com", password: "password123",
@@ -33,6 +36,14 @@ module Orders
       carrier
     end
 
+    def backoffice_plan
+      OrderMerge.create!(
+        master_order: @master, absorbed_order_ids: [ @absorbed.id ],
+        combined_weight_grams: 508, combined_service: "pac",
+        combined_shipping_cents: 2384, paid_fretes_cents: 1200
+      )
+    end
+
     def shipment_attrs(frete)
       {
         service: "pac", shipping_cents: frete, weight_grams: 250,
@@ -51,7 +62,7 @@ module Orders
       assert_equal 2384, @master.shipment.shipping_cents
       assert_equal 508, @master.shipment.weight_grams
       assert_equal 23_000 + 2384, @master.total_cents
-      assert @master.payment_confirmed?, "master keeps its own status"
+      assert @master.awaiting_components?, "master takes the most blocked participant's status"
     end
 
     test "marks the absorbed order and carrier merged, linked to the master, shipments gone" do
@@ -116,6 +127,112 @@ module Orders
       assert_not @carrier.reload.merged?
       assert_nil @plan.reload.executed_at
       assert_equal 1, @master.reload.order_items.count
+    end
+
+    test "aborts when the master was cancelled between the quote and the payment" do
+      @master.cancel!
+
+      Orders::Merge.call(order_merge: @plan, actor: @user)
+
+      assert_not @carrier.reload.merged?
+      assert_nil @plan.reload.executed_at
+      assert @master.reload.cancelled?
+    end
+
+    test "a checkout merge never folds into a master already in production" do
+      @master.update_column(:status, "in_production")
+
+      Orders::Merge.call(order_merge: @plan, actor: @user)
+
+      assert_not @carrier.reload.merged?
+      assert_equal 1, @master.reload.order_items.count
+    end
+
+    test "records the merge on the master's history without e-mailing the customer" do
+      @absorbed.update_column(:status, "payment_confirmed")
+
+      assert_no_enqueued_emails do
+        Orders::Merge.call(order_merge: @plan, actor: @user)
+      end
+
+      change = @master.status_changes.find_by!(order_merge: @plan)
+      assert_equal %w[payment_confirmed payment_confirmed], [ change.from_status, change.to_status ]
+      assert change.automatic
+      assert @master.reload.payment_confirmed?
+    end
+
+    test "a production issue on an absorbed order carries over to the master" do
+      @absorbed.update_column(:status, "production_issue")
+
+      Orders::Merge.call(order_merge: @plan, actor: @user)
+
+      assert @master.reload.production_issue?
+    end
+
+    test "missing components outrank a production issue, since the parcel still waits for stock" do
+      @master.update_column(:status, "production_issue")
+
+      Orders::Merge.call(order_merge: @plan, actor: @user)
+
+      assert @master.reload.awaiting_components?
+    end
+
+    test "a backoffice merge folds an order already in production and settles on the least advanced status" do
+      operator = users(:admin)
+      @master.update_column(:status, "in_production")
+      @absorbed.update_column(:status, "payment_confirmed")
+      plan = backoffice_plan
+
+      Orders::Merge.call(order_merge: plan, actor: operator)
+
+      @master.reload
+      assert @master.payment_confirmed?
+      assert @absorbed.reload.merged?
+      assert_equal 2, @master.order_items.count
+      change = @master.status_changes.find_by!(order_merge: plan)
+      assert_equal operator, change.actor
+      assert_not change.automatic
+      assert_not @absorbed.status_changes.find_by!(to_status: "merged").automatic
+    end
+
+    test "a backoffice merge into a label_issued master drops its label and returns it to production" do
+      @absorbed.update_column(:status, "in_production")
+      @master.update_column(:status, "label_issued")
+      @master.shipment.update!(tracking_code: "AA123456789BR", pre_post_id: "PRE-1")
+      @master.shipment.create_shipping_label!(state: :ready, recibo_id: "R-1", filename: "r.pdf", pdf_base64: "x")
+
+      assert_no_enqueued_jobs(only: Shipping::CreatePrePostagemJob) do
+        Orders::Merge.call(order_merge: backoffice_plan, actor: users(:admin))
+      end
+
+      @master.reload
+      assert @master.in_production?
+      assert_nil @master.shipment.tracking_code
+      assert_nil @master.shipment.pre_post_id
+      assert_nil @master.shipment.shipping_label, "no label left behind to read as queued"
+      assert Orders::MergeEligibility.for(@master, origin: :backoffice).ok?
+    end
+
+    test "a backoffice merge absorbs a label_issued order and drops its shipment" do
+      @absorbed.update_column(:status, "label_issued")
+      @absorbed.shipment.update!(tracking_code: "AB123456789BR")
+      @absorbed.shipment.create_shipping_label!(state: :ready)
+
+      Orders::Merge.call(order_merge: backoffice_plan, actor: users(:admin))
+
+      assert @absorbed.reload.merged?
+      assert_nil @absorbed.shipment
+      assert @master.reload.payment_confirmed?
+    end
+
+    test "a backoffice merge skips an absorbed order whose label is still being bought" do
+      @absorbed.update_column(:status, "in_production")
+      @absorbed.shipment.create_shipping_label!(state: :prepost_created)
+
+      Orders::Merge.call(order_merge: backoffice_plan, actor: users(:admin))
+
+      assert @absorbed.reload.in_production?
+      assert_not_nil @absorbed.shipment
     end
 
     test "aborts when the master has no shipment to update" do

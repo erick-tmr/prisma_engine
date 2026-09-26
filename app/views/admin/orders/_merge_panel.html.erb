@@ -1,0 +1,102 @@
+<%# locals: (panel:) %>
+<% master = panel.master %>
+<% eligible = panel.eligible_rows %>
+<% blocked = panel.blocked_rows %>
+<div class="panel mg-panel" data-merge-panel
+     data-preview-url="<%= admin_order_merge_preview_path(master) %>"
+     data-picked-one="<%= t("admin.orders.merge.picked", count: 1) %>"
+     data-picked-other="<%= t("admin.orders.merge.picked", count: "{n}") %>"
+     data-items-one="<%= t("admin.orders.merge.items", count: 1) %>"
+     data-items-other="<%= t("admin.orders.merge.items", count: "{n}") %>"
+     data-adds="<%= t("admin.orders.merge.adds", items: "{items}", amount: "{amount}") %>"
+     data-pick="<%= t("admin.orders.merge.pick") %>"
+     data-stays="<%= t("admin.orders.merge.stays_master", number: master.number) %>">
+  <div class="panel-top">
+    <div class="panel-top-main">
+      <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.orders.merge.title") %></h2>
+      <div class="sub"><%= t("admin.orders.merge.subtitle", name: master.user.full_name) %></div>
+    </div>
+    <div class="panel-top-right">
+      <span class="mg-count"><%= t("admin.orders.merge.count", eligible: eligible.size, total: panel.rows.size) %></span>
+    </div>
+  </div>
+
+  <% unless panel.master_eligible? %>
+    <div class="mg-lock" data-merge-lock>
+      <i class="bi bi-lock" aria-hidden="true"></i>
+      <div><%= t("admin.orders.merge.lock_html", reason: panel.lock_reason) %></div>
+    </div>
+  <% end %>
+
+  <%= form_with url: admin_order_merge_path(master), method: :post, id: "merge-form", data: { merge_form: true } do %>
+    <div class="mg-list">
+      <div class="mg-row is-master">
+        <span class="mg-master-ic" aria-hidden="true"><i class="bi bi-star-fill"></i></span>
+        <div class="mg-main">
+          <div class="mg-num"><%= master.number %><span class="mg-tag master"><%= t("admin.orders.merge.master_tag") %></span></div>
+          <div class="mg-sub"><%= t("admin.orders.merge.this_order", date: l(master.created_at.to_date, format: :long), items: t("admin.orders.merge.items", count: master.order_items.sum(&:quantity))) %></div>
+        </div>
+        <span class="pill st-<%= master.status %>"><%= t("account.orders.states.#{master.status}.label") %></span>
+        <div class="mg-amt"><%= format_brl(master.total_cents) %></div>
+      </div>
+
+      <% if eligible.any? %>
+        <div class="mg-group"><%= t("admin.orders.merge.eligible_group") %></div>
+        <% eligible.each do |row| %>
+          <% order = row.order %>
+          <label class="mg-row" data-merge-row data-items="<%= row.item_count %>" data-subtotal-cents="<%= order.subtotal_cents %>">
+            <input type="checkbox" class="mg-input" name="numbers[]" value="<%= order.number %>" data-merge-pick>
+            <span class="mg-cbox" aria-hidden="true"></span>
+            <span class="mg-main">
+              <span class="mg-num">
+                <%= link_to order.number, admin_order_path(order) %>
+                <% if row.custom_order? %><span class="mg-tag pedido"><%= t("admin.orders.merge.custom_order_tag") %></span><% end %>
+              </span>
+              <span class="mg-sub"><%= t("admin.orders.merge.row_sub", date: l(order.created_at.to_date, format: :long), items: t("admin.orders.merge.items", count: row.item_count)) %></span>
+            </span>
+            <span class="pill st-<%= order.status %>"><%= t("account.orders.states.#{order.status}.label") %></span>
+            <span class="mg-amt"><%= format_brl(order.total_cents) %></span>
+          </label>
+        <% end %>
+      <% elsif panel.master_eligible? %>
+        <div class="mg-empty"><%= t(panel.rows.any? ? "admin.orders.merge.empty" : "admin.orders.merge.no_others") %></div>
+      <% end %>
+
+      <% if blocked.any? %>
+        <details class="mg-off">
+          <summary class="mg-group"><%= t("admin.orders.merge.blocked_group", count: blocked.size) %> <i class="bi bi-chevron-down chev" aria-hidden="true"></i></summary>
+          <% blocked.each do |row| %>
+            <% order = row.order %>
+            <div class="mg-row is-off" data-merge-blocked="<%= order.number %>">
+              <span class="mg-cbox" aria-hidden="true"></span>
+              <div class="mg-main">
+                <div class="mg-num"><%= link_to order.number, admin_order_path(order) %></div>
+                <div class="mg-why">
+                  <i class="bi <%= row.merged_here ? "bi-diagram-2" : "bi-slash-circle" %>" aria-hidden="true"></i>
+                  <%= panel.reason_text(row) %>
+                </div>
+              </div>
+              <span class="pill st-<%= order.status %>"><%= t("account.orders.states.#{order.status}.label") %></span>
+              <div class="mg-amt"><%= format_brl(order.total_cents) %></div>
+            </div>
+          <% end %>
+        </details>
+      <% end %>
+    </div>
+
+    <% if eligible.any? %>
+      <div class="mg-bar">
+        <div class="mg-bar-sum">
+          <span class="t" data-merge-title><%= t("admin.orders.merge.pick") %></span>
+          <span class="s" data-merge-summary><%= t("admin.orders.merge.stays_master", number: master.number) %></span>
+        </div>
+        <div class="mg-bar-act">
+          <button class="btn-clear" type="button" data-merge-clear hidden><%= t("admin.orders.merge.clear") %></button>
+          <button class="btn-dark" type="button" data-merge-open disabled>
+            <i class="bi bi-diagram-2" aria-hidden="true"></i> <%= t("admin.orders.merge.submit", number: master.number) %>
+          </button>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
