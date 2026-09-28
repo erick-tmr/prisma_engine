@@ -4,6 +4,8 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
   include ActionMailer::TestHelper
 
+  setup { stub_return_quote }
+
   BASE = Correios::Api::BASE_URL
   PREPOST = "#{BASE}/prepostagem/v1/prepostagens".freeze
   ROTULO = "#{BASE}/prepostagem/v1/prepostagens/rotulo/assincrono/pdf".freeze
@@ -69,6 +71,35 @@ class ReturnFlowTest < ActionDispatch::IntegrationTest
       Shipping::TrackingUpdate.apply(inbound, [ event("PO", "01", "Objeto postado") ])
       Shipping::OrderProgress.apply(inbound.reload)
     end
+  end
+
+  test "a customer-paid return buys nothing at Correios until the freight is paid" do
+    stub_all
+
+    perform_enqueued_jobs { Shipping::StartReturn.call(order: @order, payer: "customer") }
+
+    assert_not_requested :post, PREPOST
+    inbound = @order.reload.return_shipment
+    assert_nil inbound.shipping_label
+
+    perform_enqueued_jobs { Shipping::EmitLabel.restart(inbound) }
+    assert_not_requested :post, PREPOST
+
+    inbound.freight_charge.update!(paid_at: Time.current, payment_method: "pix")
+    perform_enqueued_jobs { Shipping::EmitLabel.resume(inbound.reload) }
+
+    assert @order.reload.return_shipping_label.ready?
+    assert_requested :post, PREPOST, times: 1
+  end
+
+  test "the store assuming the freight releases the held label" do
+    stub_all
+    Shipping::StartReturn.call(order: @order, payer: "customer")
+
+    perform_enqueued_jobs { Shipping::AssumeReturnFreight.call(order: @order.reload) }
+
+    assert @order.reload.return_shipping_label.ready?
+    assert_requested :post, PREPOST, times: 1
   end
 
   private

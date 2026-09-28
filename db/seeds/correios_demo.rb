@@ -193,6 +193,21 @@ def ensure_return_demo(user, index)
   order
 end
 
+FREIGHT_DEMOS = { "freight-pending" => 1.hour, "freight-expired" => 4.days, "freight-paid" => 1.day }.freeze
+
+def ensure_freight_demo(key, age, user, index)
+  order = ensure_order(key, "awaiting_return", index, user)
+  shipment = order.return_shipment ||
+             Shipment.create!(order: order, direction: :inbound, service: Shipping::DEFAULT_RETURN_SERVICE,
+                              shipping_cents: 1_490,
+                              **order.shipment.slice(*Shipping::StartReturn::CLONED).symbolize_keys)
+  shipment.return_freight_charges.destroy_all
+  charge = ReturnFreightCharge.issue(shipment: shipment, amount_cents: 1_490, at: age.ago)
+  charge.update!(paid_at: 2.hours.ago, payment_method: "pix") if key == "freight-paid"
+  order.update!(return_reason: "Cartucho não salva o progresso.")
+  order
+end
+
 if ENV["MODE"] == "step"
   step_demo!
 else
@@ -209,6 +224,11 @@ else
 
   returning = ensure_return_demo(clients.first, DEMO_ORDERS.size + 1)
   rows << "#{returning.number}  #{'returning'.ljust(14)} devolução pronta para baixar"
+
+  FREIGHT_DEMOS.each_with_index do |(key, age), offset|
+    order = ensure_freight_demo(key, age, clients.first, DEMO_ORDERS.size + 2 + offset)
+    rows << "#{order.number}  #{'awaiting_return'.ljust(14)} frete da devolução: #{key.delete_prefix('freight-')}"
+  end
 
   puts "Correios demo orders (newest first in /admin):"
   puts rows.map { |line| "  #{line}" }

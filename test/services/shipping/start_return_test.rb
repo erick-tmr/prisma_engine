@@ -4,6 +4,8 @@ module Shipping
   class StartReturnTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
 
+    setup { stub_return_quote }
+
     setup { @order = orders(:delivered) }
 
     test "opens the inbound leg and starts its label" do
@@ -33,7 +35,7 @@ module Shipping
       assert_equal Shipping::DEFAULT_RETURN_SERVICE, inbound.service
       assert_nil inbound.tracking_code
       assert_nil inbound.posted_at
-      assert_nil inbound.shipping_cents
+      assert_equal 1490, inbound.shipping_cents
       assert_nil inbound.receiver_obs
     end
 
@@ -130,6 +132,61 @@ module Shipping
 
       assert_not result.success?
       assert_nil orders(:producing).reload.return_reason
+    end
+
+    test "the store pays by default: no charge, and the label starts at once" do
+      assert_enqueued_with(job: Shipping::CreatePrePostagemJob) do
+        Shipping::StartReturn.call(order: @order, service: "sedex")
+      end
+
+      inbound = @order.reload.return_shipment
+      assert_equal 3270, inbound.shipping_cents
+      assert_empty inbound.return_freight_charges
+    end
+
+    test "the store still opens the return when Correios cannot quote it" do
+      stub_request(:post, "#{Correios::Api::BASE_URL}/preco/v1/nacional").to_return(status: 503, body: "down")
+
+      result = Shipping::StartReturn.call(order: @order)
+
+      assert result.success?
+      assert_nil result.return_shipment.shipping_cents
+    end
+
+    test "a customer-paid return charges the quoted freight and holds the label" do
+      result = nil
+
+      freeze_time do
+        assert_no_enqueued_jobs(only: Shipping::CreatePrePostagemJob) do
+          result = Shipping::StartReturn.call(order: @order, service: "pac", payer: "customer")
+        end
+
+        charge = result.return_shipment.freight_charge
+        assert_equal 2140, charge.amount_cents
+        assert_equal 2140, result.return_shipment.shipping_cents
+        assert_equal ReturnFreightCharge::TTL.from_now, charge.expires_at
+        assert charge.pending?
+      end
+
+      assert @order.reload.awaiting_return?
+      assert_nil result.return_shipment.shipping_label
+    end
+
+    test "a customer-paid return is refused when Correios does not quote the service" do
+      stub_return_quote(RETURN_QUOTE_PRICES.except("04227"))
+
+      result = Shipping::StartReturn.call(order: @order, payer: "customer")
+
+      assert_equal :quote_unavailable, result.error
+      assert @order.reload.delivered?
+      assert_nil @order.return_shipment
+    end
+
+    test "refuses a payer that is neither the store nor the customer" do
+      result = Shipping::StartReturn.call(order: @order, payer: "correios")
+
+      assert_equal :invalid_payer, result.error
+      assert @order.reload.delivered?
     end
   end
 end

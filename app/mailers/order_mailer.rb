@@ -24,6 +24,7 @@ class OrderMailer < ApplicationMailer
   end
 
   def awaiting_return(order)
+    @charge = order.return_shipment&.freight_charge
     deliver_for(order)
   end
 

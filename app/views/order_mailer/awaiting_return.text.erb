@@ -2,6 +2,18 @@
 
 <%= t("order_mailer.awaiting_return.heading") %>
 
+<% if @charge %>
+<%= t("order_mailer.awaiting_return.charge.intro") %>
+
+<%= t("order_mailer.awaiting_return.charge.title", amount: HasMoney.format(@charge.amount_cents), service: @charge.shipment.service_label) %>
+<%= t("order_mailer.awaiting_return.charge.text", deadline: l(@charge.expires_at, format: :day_month_at_hour)) %>
+
+<%= t("order_mailer.awaiting_return.charge.page_note") %>
+
+<%= render "summary", shipping_service: @order.shipment.service_label %>
+
+<%= t("order_mailer.awaiting_return.charge.cta") %>: <%= account_order_url(@order) %>
+<% else %>
 <%= t("order_mailer.awaiting_return.intro") %>
 
 <%= t("order_mailer.awaiting_return.page_note") %>
@@ -9,5 +21,6 @@
 <%= render "summary", shipping_service: @order.shipment.service_label %>
 
 <%= t("order_mailer.awaiting_return.cta") %>: <%= account_order_url(@order) %>
+<% end %>
 
 <%= t("mailer.signature") %>

@@ -59,4 +59,28 @@ class AdminOrderDetailTest < ApplicationSystemTestCase
     assert_selector ".act-proc:not(.is-err) .ap-head", wait: 8
     assert_nil label.reload.errored_at
   end
+
+  test "an operator makes the customer pay the return freight, quoted live" do
+    stub_return_quote
+    order = orders(:delivered)
+    login_as_user(users(:admin))
+
+    visit admin_order_path(order)
+
+    assert_no_selector ".quote"
+    assert_selector ".payer-cta-store", text: I18n.t("admin.orders.detail.start_return")
+    find(".payer-opt", text: I18n.t("admin.orders.detail.return_freight.customer")).click
+
+    assert_selector "[data-return-quote-price]", text: "R$ 14,90"
+    select "SEDEX", from: "service"
+    assert_selector "[data-return-quote-price]", text: "R$ 32,70"
+    fill_in "reason", with: "Cartucho não salva o progresso."
+    find(".payer-cta-customer", text: I18n.t("admin.orders.detail.return_freight.start_customer")).click
+
+    assert_selector ".fc-state.wait", text: I18n.t("admin.orders.detail.return_freight.states.pending")
+    assert_selector ".fc-row .v.big", text: "R$ 32,70"
+    assert_selector ".label-wait"
+    assert_selector ".lc-step.wait .lc-wait", text: I18n.t("admin.orders.lifecycle.wait_freight")
+    assert_equal 3270, order.reload.return_shipment.freight_charge.amount_cents
+  end
 end

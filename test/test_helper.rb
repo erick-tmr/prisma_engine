@@ -41,6 +41,15 @@ module ActiveSupport
 
     SPARE_CPFS = %w[52987411340 61829374591 70345182626 81572639482].freeze
 
+    RETURN_QUOTE_PRICES = { "03220" => "32,70", "03298" => "21,40", "04227" => "14,90" }.freeze
+
+    def stub_return_quote(prices = RETURN_QUOTE_PRICES)
+      stub_request(:post, "#{Correios::Api::BASE_URL}/preco/v1/nacional").to_return(
+        status: 200, headers: { "Content-Type" => "application/json" },
+        body: prices.map { |code, price| { "coProduto" => code, "nuRequisicao" => code, "pcFinal" => price } }.to_json
+      )
+    end
+
     def bare_order(user: users(:confirmed))
       Order.create!(user: user, subtotal_cents: 1_000, total_cents: 1_000)
     end

@@ -2,9 +2,18 @@ module Admin
   class ReturnsController < BaseController
     def create
       order = find_order
-      result = Shipping::StartReturn.call(order: order, actor: current_user,
-                                 service: params[:service], reason: params[:reason])
+      result = Shipping::StartReturn.call(order: order, actor: current_user, service: params[:service],
+                                          reason: params[:reason], payer: params[:payer])
       respond_with(order, result, "started")
+    end
+
+    def quote
+      shipment = find_order.shipment
+      return head(:not_found) unless shipment
+
+      render json: Shipping::ReturnQuote.call(shipment).transform_values { |cents| priced(cents) }
+    rescue Correios::Api::Error
+      head :bad_gateway
     end
 
     def destroy
@@ -17,6 +26,10 @@ module Admin
 
     def find_order
       Order.find_by!(number: params[:number])
+    end
+
+    def priced(cents)
+      cents && { price_cents: cents, price_formatted: HasMoney.format(cents) }
     end
 
     def respond_with(order, result, notice_key)

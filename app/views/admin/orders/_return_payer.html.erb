@@ -1,0 +1,25 @@
+<%# locals: (form:) %>
+<div class="payer">
+  <span><%= t("admin.orders.detail.return_freight.payer") %></span>
+  <div class="payer-opts">
+    <% [ [ "store", "bi-shop" ], [ "customer", "bi-person" ] ].each do |payer, icon| %>
+      <label class="payer-opt">
+        <%= form.radio_button :payer, payer, checked: payer == "store", data: { return_payer: payer } %>
+        <span class="t"><i class="bi <%= icon %>"></i> <%= t("admin.orders.detail.return_freight.#{payer}") %></span>
+        <span class="d"><%= t("admin.orders.detail.return_freight.#{payer}_hint") %></span>
+      </label>
+    <% end %>
+  </div>
+</div>
+<div class="quote">
+  <div class="quote-row">
+    <span><%= t("admin.orders.detail.return_freight.quote_label") %></span>
+    <b data-return-quote-price data-loading="<%= t("admin.orders.detail.return_freight.quote_loading") %>"
+       data-unavailable="<%= t("admin.orders.detail.return_freight.quote_unavailable") %>">–</b>
+  </div>
+  <div class="quote-row">
+    <span><%= t("admin.orders.detail.return_freight.link_validity") %></span>
+    <span class="v"><%= t("admin.orders.detail.return_freight.link_validity_value", count: ReturnFreightCharge::TTL.in_days.to_i) %></span>
+  </div>
+  <div class="quote-note"><i class="bi bi-envelope"></i><span><%= t("admin.orders.detail.return_freight.quote_note") %></span></div>
+</div>

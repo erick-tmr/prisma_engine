@@ -8,14 +8,21 @@
     } do %>
   <tr>
     <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
-      <%= t("order_mailer.awaiting_return.intro") %>
+      <%= @charge ? t("order_mailer.awaiting_return.charge.intro") : t("order_mailer.awaiting_return.intro") %>
     </td>
   </tr>
+  <% if @charge %>
+    <%= render "shared/email_panel",
+          background: "#fff8e6", border: "#f3dca0", title_color: "#8a6500",
+          title: t("order_mailer.awaiting_return.charge.title", amount: HasMoney.format(@charge.amount_cents),
+                                                              service: @charge.shipment.service_label),
+          text: t("order_mailer.awaiting_return.charge.text", deadline: l(@charge.expires_at, format: :day_month_at_hour)) %>
+  <% end %>
   <tr>
     <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
-      <%= t("order_mailer.awaiting_return.page_note") %>
+      <%= @charge ? t("order_mailer.awaiting_return.charge.page_note") : t("order_mailer.awaiting_return.page_note") %>
     </td>
   </tr>
   <%= render "summary", shipping_service: @order.shipment.service_label %>
-  <%= render "shared/email_cta", url: account_order_url(@order), label: t("order_mailer.awaiting_return.cta") %>
+  <%= render "shared/email_cta", url: account_order_url(@order), label: @charge ? t("order_mailer.awaiting_return.charge.cta") : t("order_mailer.awaiting_return.cta") %>
 <% end %>

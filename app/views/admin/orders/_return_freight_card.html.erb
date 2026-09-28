@@ -1,0 +1,64 @@
+<%# locals: (freight:, number:, link:) %>
+<% scope = "admin.orders.detail.return_freight" %>
+<div class="fc">
+  <div class="fc-head">
+    <i class="bi bi-truck"></i> <%= t("#{scope}.heading") %>
+    <span class="fc-state <%= freight.state_class %>"><%= freight.state_label %></span>
+  </div>
+  <div class="fc-body">
+    <% if freight.store? %>
+      <div class="fc-row"><span><%= t("#{scope}.cost") %></span><span class="v"><%= freight.cost %></span></div>
+    <% else %>
+      <div class="fc-row"><span><%= t("#{scope}.paid_by") %></span><span class="v"><%= t("#{scope}.paid_by_customer") %></span></div>
+      <% if freight.paid? %>
+        <div class="fc-row"><span><%= t("#{scope}.amount") %></span><span class="v"><%= freight.paid_amount %></span></div>
+        <div class="fc-row"><span><%= t("#{scope}.paid_at") %></span><span class="v"><%= freight.paid_at %></span></div>
+      <% elsif freight.expired? %>
+        <div class="fc-row"><span><%= t("#{scope}.amount") %></span><span class="v"><%= freight.amount %></span></div>
+        <div class="fc-row"><span><%= t("#{scope}.expired_at") %></span><span class="v warn"><%= freight.expires_at %></span></div>
+      <% else %>
+        <div class="fc-row"><span><%= t("#{scope}.amount") %></span><span class="v big"><%= freight.amount %></span></div>
+        <div class="fc-row"><span><%= t("#{scope}.service") %></span><span class="v"><%= freight.service_label %></span></div>
+        <div class="fc-row"><span><%= t("#{scope}.sent_at") %></span><span class="v"><%= freight.sent_at %></span></div>
+        <div class="fc-row"><span><%= t("#{scope}.expires_at") %></span><span class="v"><%= freight.expires_at %></span></div>
+        <div class="fc-link">
+          <span data-copy-source><%= link %></span>
+          <button type="button" data-copy-link data-copied-label="<%= t("#{scope}.copied") %>">
+            <i class="bi bi-copy"></i> <span data-copy-text><%= t("#{scope}.copy") %></span>
+          </button>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+  <% if freight.pending? %>
+    <div class="fc-foot">
+      <%= button_to admin_resend_order_return_charge_path(number), method: :post, form: { class: "act-form" } do %>
+        <i class="bi bi-send"></i> <%= t("#{scope}.resend") %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<% if freight.pending? %>
+  <div class="label-wait">
+    <i class="bi bi-hourglass-split"></i>
+    <div><b><%= t("#{scope}.label_wait_title") %></b><%= t("#{scope}.label_wait_sub") %></div>
+  </div>
+<% end %>
+
+<% if freight.expired? %>
+  <%= button_to admin_order_return_charge_path(number), method: :post, class: "act-btn primary", form: { class: "act-form" } do %>
+    <i class="bi bi-arrow-repeat"></i>
+    <span><%= t("#{scope}.renew") %><span class="act-to"><%= t("#{scope}.renew_to", count: ReturnFreightCharge::TTL.in_days.to_i) %></span></span>
+    <i class="bi bi-arrow-right act-arrow"></i>
+  <% end %>
+<% end %>
+
+<% if freight.waivable? %>
+  <%= button_to admin_waive_order_return_charge_path(number), method: :post, class: "act-btn",
+        form: { class: "act-form", data: { confirm: t("#{scope}.waive_confirm", number: number) } } do %>
+    <i class="bi bi-shop"></i>
+    <span><%= t("#{scope}.waive") %><span class="act-to"><%= t("#{scope}.waive_#{freight.state}_to") %></span></span>
+    <i class="bi bi-arrow-right act-arrow"></i>
+  <% end %>
+<% end %>

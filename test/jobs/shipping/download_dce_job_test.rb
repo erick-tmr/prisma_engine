@@ -4,6 +4,8 @@ module Shipping
   class DownloadDceJobTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
 
+    setup { stub_return_quote }
+
     BASE = Correios::Api::BASE_URL
     URL = "#{BASE}/prepostagem/v1/prepostagens/dce/dace/impressao".freeze
     JSON_HEADERS = { "Content-Type" => "application/json" }.freeze

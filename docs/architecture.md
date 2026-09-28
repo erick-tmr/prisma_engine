@@ -429,6 +429,28 @@ label chip rather than an order that silently never entered the leg. Aborting a 
 destroys the inbound shipment, which frees the unique index for a fresh attempt and leaves
 the abandoned pré-postagem to expire at Correios; there is no cancel endpoint wrapped.
 
+**Who pays the return freight.** When authorizing the return the operator picks a payer.
+*Loja paga* is the flow above. *Cliente paga* quotes Correios for the chosen service from
+the customer's CEP back to the store, at cost with no handling fee (`Shipping::ReturnQuote`),
+and records a `ReturnFreightCharge` on the inbound shipment, valid for
+`ReturnFreightCharge::TTL` (3 days). The payer is derived rather than stored: the store
+pays unless the shipment has a live (not voided) charge. The inbound shipment keeps the
+quoted cost in `shipping_cents` either way, so the backoffice shows what the return cost.
+
+The label waits for the money. `Shipping::Leg::INBOUND` is `freight_gated`, so
+`Leg#emittable?` also asks `Shipment#freight_settled?` (no live charge, or a paid one).
+Every path into the saga (`EmitLabel.resume`, `recover`, `restart`, the step jobs) goes
+through that one check, so a held return cannot buy a rótulo by accident. The order still
+enters `awaiting_return` on the click, and the `awaiting_return` e-mail asks for the
+freight instead of promising a prepaid label.
+
+Expiry is derived (`expires_at <= now`), with no sweeper job. From the order page the
+operator can resend the charge, generate a new one once it expires (same amount, new
+window), or *assume the freight*, which voids the live charges and lets the label go. A
+charge becomes paid only through the customer payment flow, which is not built yet.
+Cancelling the return destroys its charges along with the inbound shipment, so a payment
+that later arrives for an unknown or voided charge is a refund case, never a label.
+
 `returned` now has two producers, so its customer e-mail branches on which one: a package
 Correios bounced back on its own still blames Correios, while one the customer was
 authorized to send does not.

@@ -5,6 +5,8 @@ module Admin
     include Devise::Test::IntegrationHelpers
     include ActiveJob::TestHelper
 
+    setup { stub_return_quote }
+
     test "non-admins are sent to the backoffice login" do
       get admin_order_path(orders(:producing))
       assert_redirected_to admin_login_path
@@ -365,6 +367,80 @@ module Admin
           assert_select ".od-track-empty", text: /Nenhuma movimentação/
         end
       end
+    end
+
+    test "show offers the freight payer choice on the return form" do
+      sign_in users(:admin)
+
+      get admin_order_path(orders(:delivered))
+
+      assert_select "form[data-return-form][data-quote-url=?]", admin_order_return_quote_path(orders(:delivered).number) do
+        assert_select "input[type=radio][name=payer][value=store][checked]"
+        assert_select "input[type=radio][name=payer][value=customer]:not([checked])"
+        assert_select "[data-return-quote-price]"
+        assert_select ".payer-cta-customer", text: /Enviar cobrança e iniciar devolução/
+      end
+    end
+
+    test "show renders a pending freight charge with its link, resend and assume actions" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order, payer: "customer", reason: "Cartucho não salva")
+
+      get admin_order_path(order)
+
+      assert_select ".fc-state.wait", text: "Pendente"
+      assert_select ".fc-row .v.big", text: "R$ 14,90"
+      assert_select "[data-copy-source]", text: account_order_url(order)
+      assert_select "form[action=?]", admin_resend_order_return_charge_path(order.number)
+      assert_select ".label-wait", text: /Etiqueta aguardando pagamento/
+      assert_select "form[action=?][data-confirm]", admin_waive_order_return_charge_path(order.number)
+      assert_select ".lc-step.wait .lc-wait", text: I18n.t("admin.orders.lifecycle.wait_freight")
+      assert_select "form[action=?]", admin_order_return_charge_path(order.number), count: 0
+      assert_select ".return-recorded p", text: "Cartucho não salva"
+    end
+
+    test "show renders an expired charge with a renew action and the way back to Entregue" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order, payer: "customer")
+      order.return_shipment.freight_charge.update!(expires_at: 1.minute.ago)
+
+      get admin_order_path(order)
+
+      assert_select ".fc-state.exp", text: "Expirou"
+      assert_select ".fc-row .v.warn"
+      assert_select "form[action=?] .act-to", admin_order_return_charge_path(order.number), text: "Novo link válido por 3 dias"
+      assert_select "form[action=?] .act-to", admin_waive_order_return_charge_path(order.number),
+                    text: I18n.t("admin.orders.detail.return_freight.waive_expired_to")
+      assert_select ".act-btn.danger .act-to", text: "Volta para: Entregue"
+      assert_select ".label-wait", count: 0
+    end
+
+    test "show renders a paid charge with how it was paid" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order, payer: "customer")
+      order.return_shipment.freight_charge.update!(paid_at: Time.current, payment_method: "pix")
+
+      get admin_order_path(order)
+
+      assert_select ".fc-state.paid", text: "Pago"
+      assert_select ".fc-row .v", text: "R$ 14,90 · Pix"
+      assert_select ".act-btn.danger .act-to", text: I18n.t("admin.orders.detail.return_freight.cancel_paid_to")
+      assert_select "form[action=?]", admin_waive_order_return_charge_path(order.number), count: 0
+    end
+
+    test "show records what a store-paid return cost" do
+      sign_in users(:admin)
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order)
+
+      get admin_order_path(order)
+
+      assert_select ".fc-state.store", text: "Loja paga"
+      assert_select ".fc-row .v", text: "R$ 14,90 · Mini Envios"
+      assert_select ".fc-link", count: 0
     end
   end
 end

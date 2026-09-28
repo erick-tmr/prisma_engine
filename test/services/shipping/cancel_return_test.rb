@@ -4,6 +4,8 @@ module Shipping
   class CancelReturnTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
 
+    setup { stub_return_quote }
+
     setup do
       @order = orders(:delivered)
       Shipping::StartReturn.call(order: @order)

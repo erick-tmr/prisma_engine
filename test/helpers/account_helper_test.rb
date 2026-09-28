@@ -1,6 +1,8 @@
 require "test_helper"
 
 class AccountHelperTest < ActionView::TestCase
+  setup { stub_return_quote }
+
   test "number_to_cep formats 8 digits as 5-3" do
     assert_equal "12345-678", number_to_cep("12345678")
   end

@@ -19,6 +19,7 @@ pt-BR:
       short: "%d/%m %H:%M"
       date_at_time: "%d/%m/%Y às %H:%M"
       day_month_at_hour: "%-d de %B, %Hh%M"
+      day_abbr_month_at: "%-d %b, %H:%M"
     am: am
     pm: pm
   auth:
@@ -163,6 +164,12 @@ pt-BR:
       intro: "Preparamos uma etiqueta de devolução pré-paga dos Correios para o seu pedido. Você não paga nada pelo envio."
       page_note: "Na página do pedido estão a etiqueta, a declaração de conteúdo e o passo a passo completo, incluindo como preparar o pacote."
       cta: "Ver instruções de devolução"
+      charge:
+        intro: "O frete desta devolução fica por sua conta. Assim que o pagamento for confirmado, liberamos a etiqueta de devolução dos Correios."
+        title: "Frete da devolução: %{amount} (%{service})"
+        text: "Pague pela página do pedido, com Pix ou cartão, até %{deadline}."
+        page_note: "Depois do pagamento, a etiqueta, a declaração de conteúdo e o passo a passo completo aparecem na página do pedido."
+        cta: "Pagar o frete da devolução"
     returning:
       subject: "Recebemos a postagem da devolução do pedido %{number}"
       badge_label: "Devolução a caminho"
@@ -1096,6 +1103,61 @@ pt-BR:
             no_return: "Este pedido não tem devolução em andamento para cancelar."
             already_posted: "O cliente já postou a devolução, então ela não pode mais ser cancelada."
             invalid_service: "Escolha um serviço de envio válido para a devolução."
+            invalid_payer: "Escolha quem paga o frete da devolução."
+            quote_unavailable: "Não foi possível cotar o frete da devolução nos Correios. Tente de novo ou escolha Loja paga."
+        return_charges:
+          renewed: "Nova cobrança do frete enviada ao cliente."
+          resent: "Cobrança do frete reenviada ao cliente."
+          waived: "A loja assumiu o frete. Estamos gerando a etiqueta de devolução."
+          errors:
+            not_awaiting: "Este pedido não está aguardando devolução."
+            no_charge: "A cobrança do frete já não está nesse estado. Recarregue a página."
+        return_freight:
+          heading: "Frete da devolução"
+          payer: "Frete da devolução"
+          store: "Loja paga"
+          store_hint: "Etiqueta emitida na hora"
+          customer: "Cliente paga"
+          customer_hint: "Cobrado pelo site antes da etiqueta"
+          quote_label: "Cobrança ao cliente"
+          quote_loading: "Cotando…"
+          quote_unavailable: "Cotação indisponível"
+          link_validity: "Validade do link"
+          link_validity_value:
+            one: "%{count} dia"
+            other: "%{count} dias"
+          quote_note: "O cliente recebe o link por e-mail e vê a cobrança em Minha conta. A etiqueta é emitida assim que o pagamento for confirmado."
+          start_customer: "Enviar cobrança e iniciar devolução"
+          start_customer_to: "Etiqueta emitida após o pagamento"
+          states:
+            store: "Loja paga"
+            pending: "Pendente"
+            paid: "Pago"
+            expired: "Expirou"
+          paid_by: "Pago por"
+          paid_by_customer: "Cliente"
+          amount: "Valor"
+          service: "Serviço"
+          cost: "Custo"
+          sent_at: "Enviado"
+          expires_at: "Expira"
+          expired_at: "Expirou em"
+          paid_at: "Pago em"
+          copy: "Copiar"
+          copied: "Copiado"
+          resend: "Reenviar cobrança"
+          label_wait_title: "Etiqueta aguardando pagamento"
+          label_wait_sub: "Será emitida automaticamente nos Correios após a confirmação."
+          waive: "Assumir o frete"
+          waive_pending_to: "Cancela a cobrança e emite a etiqueta agora"
+          waive_expired_to: "Emite a etiqueta agora, sem cobrança"
+          renew: "Gerar nova cobrança"
+          renew_to:
+            one: "Novo link válido por %{count} dia"
+            other: "Novo link válido por %{count} dias"
+          cancel_paid_to: "O frete pago será reembolsado ao cliente"
+          cancel_expired_to: "Volta para: Entregue"
+          waive_confirm: "Assumir o frete da devolução do pedido %{number}? A cobrança é cancelada e a etiqueta sai agora, paga pela loja."
         transition_done: "Status atualizado para %{status}."
         transition_invalid: "Esta ação não está disponível para o status atual do pedido."
         cancel_confirm: "Cancelar o pedido %{number}? Esta ação não pode ser desfeita."
@@ -1141,6 +1203,8 @@ pt-BR:
           description: "Os Correios não conseguiram entregar e o objeto ficou com eles. Se o cliente retirar, o rastreio conclui sozinho. Combine o reenvio com o cliente pelo WhatsApp: a nova postagem ainda não é feita por aqui."
         awaiting_return:
           description: "Devolução iniciada. O cliente recebe a etiqueta pré-paga e posta o pacote. O status avança sozinho quando os Correios registrarem a postagem."
+          description_charge_pending: "Cobrança do frete enviada. A etiqueta de devolução será emitida quando o cliente pagar."
+          description_charge_expired: "O cliente não pagou o frete dentro do prazo. Decida como seguir."
         returning:
           description: "A devolução está em trânsito para o nosso endereço. O rastreio conclui sozinho quando o pacote chegar."
         returned:
@@ -1168,6 +1232,10 @@ pt-BR:
         auto_correios: "automático (Correios)"
         doing_queued: "na fila dos Correios"
         doing_running: "emitindo agora…"
+        auto_posting: "Automático ao postar"
+        auto_arrival: "Automático ao chegar"
+        wait_freight: "Aguardando pagamento do frete"
+        freight_expired: "Cobrança do frete expirou"
     production_report:
       page_title: "Relatório de produção · Backoffice | Prisma Games"
       heading: "Relatório de produção"

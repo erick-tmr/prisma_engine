@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -322,6 +322,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_200000) do
     t.index ["url"], name: "index_recommendations_on_url", unique: true
   end
 
+  create_table "return_freight_charges", force: :cascade do |t|
+    t.integer "amount_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "paid_at"
+    t.string "payment_method"
+    t.bigint "shipment_id", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "voided_at"
+    t.index ["shipment_id"], name: "index_return_freight_charges_on_shipment_id"
+  end
+
   create_table "shipment_tracking_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "description"
@@ -468,6 +480,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_200000) do
   add_foreign_key "question_strikes", "users", column: "issued_by_id"
   add_foreign_key "questions", "products"
   add_foreign_key "questions", "users"
+  add_foreign_key "return_freight_charges", "shipments"
   add_foreign_key "shipment_tracking_events", "shipments"
   add_foreign_key "shipments", "orders"
   add_foreign_key "shipping_labels", "shipments"

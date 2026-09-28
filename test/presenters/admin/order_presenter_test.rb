@@ -2,6 +2,8 @@ require "test_helper"
 
 module Admin
   class OrderPresenterTest < ActiveSupport::TestCase
+    setup { stub_return_quote }
+
     PATHS = {
       "awaiting_payment"    => [],
       "payment_confirmed"   => %w[payment_confirmed],
@@ -319,6 +321,94 @@ module Admin
 
         assert_nothing_raised { Admin::OrderPresenter.new(order).lifecycle }
       end
+    end
+
+    test "a return walks its own rail: Entregue, then the three return steps" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order)
+      order.return_shipping_label.update!(state: :label_downloaded, errored_at: nil)
+      ready_label!(order.return_shipping_label, filename: "d.pdf", pdf: "x")
+
+      steps = Admin::OrderPresenter.new(order.reload).lifecycle
+
+      assert_equal [ "Entregue", "Aguardando devolução", "Devolução a caminho", "Devolvido" ], steps.map(&:label)
+      assert_equal %w[done current upcoming upcoming], steps.map(&:classes)
+      assert_equal I18n.t("admin.orders.lifecycle.auto_posting"), steps.third.auto_note
+      assert_equal I18n.t("admin.orders.lifecycle.auto_arrival"), steps.fourth.auto_note
+    end
+
+    test "the return step says the label is on its way while Correios builds it" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order)
+
+      step = Admin::OrderPresenter.new(order.reload).lifecycle.second
+
+      assert_equal "pending", step.classes
+      assert_equal I18n.t("admin.orders.lifecycle.doing_queued"), step.doing
+    end
+
+    test "a pending freight charge parks the return step and says why" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order, payer: "customer")
+      presenter = Admin::OrderPresenter.new(order.reload)
+
+      step = presenter.lifecycle.second
+      assert_equal "wait current", step.classes
+      assert_equal I18n.t("admin.orders.lifecycle.wait_freight"), step.wait
+      assert_equal I18n.t("admin.orders.states.awaiting_return.description_charge_pending"), presenter.status_description
+      assert_nil presenter.cancel_return_note
+    end
+
+    test "an expired freight charge turns the return step into a branch that needs a decision" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order, payer: "customer")
+      order.return_shipment.freight_charge.update!(expires_at: 1.minute.ago)
+      presenter = Admin::OrderPresenter.new(order.reload)
+
+      steps = presenter.lifecycle
+      assert_equal "branch current", steps.second.classes
+      assert_equal I18n.t("admin.orders.lifecycle.freight_expired"), steps.second.auto_note
+      assert_nil steps.third.auto_note
+      assert_equal I18n.t("admin.orders.states.awaiting_return.description_charge_expired"), presenter.status_description
+      assert_equal I18n.t("admin.orders.detail.return_freight.cancel_expired_to"), presenter.cancel_return_note
+    end
+
+    test "a paid freight charge reads as the normal return, and cancelling it means a refund" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order, payer: "customer")
+      order.return_shipment.freight_charge.update!(paid_at: Time.current)
+      presenter = Admin::OrderPresenter.new(order.reload)
+
+      assert_equal I18n.t("admin.orders.states.awaiting_return.description"), presenter.status_description
+      assert_equal I18n.t("admin.orders.detail.return_freight.cancel_paid_to"), presenter.cancel_return_note
+    end
+
+    test "a returned order that came back on its return label ends the return rail" do
+      order = orders(:delivered)
+      Shipping::StartReturn.call(order: order)
+      order.reload.transition_to!("returning", automatic: true)
+      order.transition_to!("returned", automatic: true)
+
+      steps = Admin::OrderPresenter.new(order.reload).lifecycle
+
+      assert_equal %w[done done done current], steps.map(&:classes)
+    end
+
+    test "no return, no freight to show" do
+      assert_nil Admin::OrderPresenter.new(orders(:delivered)).return_freight
+      assert_nil Admin::OrderPresenter.new(orders(:delivered)).cancel_return_note
+    end
+
+    test "awaiting_return reads the plain copy when there is no charge to talk about" do
+      order = orders(:delivered)
+      order.update_column(:status, "awaiting_return")
+      assert_equal I18n.t("admin.orders.states.awaiting_return.description"),
+                   Admin::OrderPresenter.new(order).status_description
+
+      order.update_column(:status, "delivered")
+      Shipping::StartReturn.call(order: order)
+      assert_equal I18n.t("admin.orders.states.awaiting_return.description"),
+                   Admin::OrderPresenter.new(order.reload).status_description
     end
   end
 end

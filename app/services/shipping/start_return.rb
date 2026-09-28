@@ -7,42 +7,67 @@ module Shipping
       receiver_name receiver_cpf zip street number complement neighborhood city state
     ].freeze
 
+    PAYERS = %w[store customer].freeze
+
     Result = Data.define(:return_shipment, :error) do
       def success?
         error.nil?
       end
     end
 
-    def self.call(order:, actor: nil, service: nil, reason: nil)
-      new(order: order, actor: actor, service: service, reason: reason).call
+    def self.call(order:, actor: nil, service: nil, reason: nil, payer: nil)
+      new(order: order, actor: actor, service: service, reason: reason, payer: payer).call
     end
 
-    def initialize(order:, actor: nil, service: nil, reason: nil)
+    def initialize(order:, actor: nil, service: nil, reason: nil, payer: nil)
       @order = order
       @actor = actor
       @service = service.presence || Shipping::DEFAULT_RETURN_SERVICE
       @reason = reason
+      @payer = payer.presence || PAYERS.first
     end
 
     def call
-      return failure(:not_returnable) unless SOURCES.include?(order.status)
-      return failure(:invalid_service) unless Shipping::SERVICES.key?(service.to_sym)
-      return failure(:no_shipment) unless order.shipment
-      return failure(:already_open) if order.return_shipment
+      refusal = refusal_reason
+      return failure(refusal) if refusal
 
-      authorize
+      price_cents = quote
+      return failure(:quote_unavailable) if customer_pays? && price_cents.nil?
+
+      authorize(price_cents)
     rescue ActiveRecord::RecordNotUnique
       failure(:already_open)
     end
 
     private
 
-    attr_reader :order, :actor, :service, :reason
+    attr_reader :order, :actor, :service, :reason, :payer
 
-    def authorize
+    def refusal_reason
+      return :not_returnable unless SOURCES.include?(order.status)
+      return :invalid_service unless Shipping::SERVICES.key?(service.to_sym)
+      return :invalid_payer unless PAYERS.include?(payer)
+      return :no_shipment unless order.shipment
+
+      :already_open if order.return_shipment
+    end
+
+    def customer_pays?
+      payer == "customer"
+    end
+
+    def quote
+      Shipping::ReturnQuote.price_cents(order.shipment, service)
+    rescue Correios::Api::Error
+      nil
+    end
+
+    def authorize(price_cents)
       shipment = nil
       Order.transaction do
-        shipment = Shipment.create!(order: order, direction: :inbound, service: service, **snapshot)
+        shipment = Shipment.create!(order: order, direction: :inbound, service: service,
+                                    shipping_cents: price_cents, **snapshot)
+        ReturnFreightCharge.issue(shipment: shipment, amount_cents: price_cents) if customer_pays?
         order.update!(return_reason: reason)
         order.transition_to!("awaiting_return", actor: actor)
         Shipping::EmitLabel.resume(shipment)
