@@ -66,11 +66,14 @@ module Shipping
       reader.string(preco, "coProduto") == requested_code && reader.string(prazo, "coProduto") == requested_code
     end
 
-    def quoted_price_cents(preco)
+    def self.correios_cents(preco)
       price = Correios::Api::Payload.decimal(preco, "pcFinal")
-      return if price.nil? || !price.positive?
+      (price * 100).round if price&.positive?
+    end
 
-      (price * 100).round + handling_fee_cents
+    def quoted_price_cents(preco)
+      cents = self.class.correios_cents(preco)
+      cents && cents + handling_fee_cents
     end
 
     # :reek:ControlParameter

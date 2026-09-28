@@ -2,6 +2,8 @@ require "test_helper"
 
 module Admin
   class LabelFeedbackTest < ActiveSupport::TestCase
+    setup { stub_return_quote }
+
     setup { @order = orders(:producing) }
 
     def feedback_for(order)

@@ -1,6 +1,8 @@
 require "test_helper"
 
 class OrderMailerTest < ActionMailer::TestCase
+  setup { stub_return_quote }
+
   test "payment_confirmed greets the customer and lists the order summary" do
     order = orders(:confirmed_paid)
     email = OrderMailer.payment_confirmed(order)
@@ -201,6 +203,41 @@ class OrderMailerTest < ActionMailer::TestCase
     assert_includes mail.html_part.body.to_s, I18n.t("order_mailer.awaiting_return.page_note")
     assert_includes mail.html_part.body.to_s, order.shipment.service_label
     assert_includes mail.html_part.body.to_s, order.number
+  end
+
+  test "awaiting_return asks for the freight first when the customer pays for the return" do
+    order = orders(:delivered)
+    freeze_time do
+      Shipping::StartReturn.call(order: order, payer: "customer")
+    end
+    charge = order.reload.return_shipment.freight_charge
+
+    mail = OrderMailer.awaiting_return(order)
+    deadline = I18n.l(charge.expires_at, format: :day_month_at_hour)
+
+    [ mail.html_part.body.to_s, mail.text_part.body.to_s ].each do |body|
+      assert_includes body, CGI.escapeHTML(I18n.t("order_mailer.awaiting_return.charge.intro"))
+      assert_includes body, "R$ 14,90 (Mini Envios)"
+      assert_includes body, deadline
+      assert_includes body, I18n.t("order_mailer.awaiting_return.charge.cta")
+      assert_not_includes body, I18n.t("order_mailer.awaiting_return.intro")
+    end
+  end
+
+  test "awaiting_return keeps the prepaid copy for an order with no return shipment" do
+    body = OrderMailer.awaiting_return(orders(:delivered)).html_part.body.to_s
+
+    assert_includes body, I18n.t("order_mailer.awaiting_return.intro")
+  end
+
+  test "awaiting_return in plain text points at the order page" do
+    order = orders(:delivered)
+    Shipping::StartReturn.call(order: order)
+
+    body = OrderMailer.awaiting_return(order.reload).text_part.body.to_s
+
+    assert_includes body, I18n.t("order_mailer.awaiting_return.intro")
+    assert_includes body, "/minha-conta/pedidos/"
   end
 
   test "returning carries the return tracking code" do

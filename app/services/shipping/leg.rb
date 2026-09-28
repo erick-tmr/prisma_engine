@@ -1,13 +1,13 @@
 module Shipping
-  class Leg < Data.define(:emittable_statuses, :announces_label, :sender_is_store, :progress)
+  class Leg < Data.define(:emittable_statuses, :freight_gated, :announces_label, :sender_is_store, :progress)
     Progress = Data.define(:walk, :targets, :resolutions, :issue_status, :branch_status, :notable_unmapped)
 
     def self.for(shipment)
       shipment.inbound? ? INBOUND : OUTBOUND
     end
 
-    def emittable?(order)
-      emittable_statuses.include?(order.status)
+    def emittable?(shipment)
+      emittable_statuses.include?(shipment.order.status) && (!freight_gated || shipment.freight_settled?)
     end
 
     def announce_label(order)
@@ -24,6 +24,7 @@ module Shipping
 
     OUTBOUND = new(
       emittable_statuses: Order::STATUSES - %w[cancelled],
+      freight_gated: false,
       announces_label: true,
       sender_is_store: true,
       progress: Progress.new(
@@ -43,6 +44,7 @@ module Shipping
 
     INBOUND = new(
       emittable_statuses: RETURN_WALK[0..-2],
+      freight_gated: true,
       announces_label: false,
       sender_is_store: false,
       progress: Progress.new(

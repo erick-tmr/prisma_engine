@@ -3,6 +3,9 @@ require "test_helper"
 class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
+
+  setup { stub_return_quote }
+
   setup do
     @shipment = shipments(:delivered)
     @shipment.tracking_events.create!(position: 1, event_code: "PO", event_type: "01",

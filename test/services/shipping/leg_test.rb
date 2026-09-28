@@ -50,5 +50,21 @@ module Shipping
       assert_equal @order.number, Shipping::Leg::OUTBOUND.observacao_for(@order)
       assert_equal "#{@order.number} DEVOLUCAO", Shipping::Leg::INBOUND.observacao_for(@order)
     end
+
+    test "the inbound label waits for the customer's freight, the outbound one never does" do
+      @order.update_column(:status, "awaiting_return")
+      charge = ReturnFreightCharge.issue(shipment: @inbound, amount_cents: 1490)
+
+      assert_not Shipping::Leg::INBOUND.emittable?(@inbound)
+
+      charge.update!(paid_at: Time.current)
+      assert Shipping::Leg::INBOUND.emittable?(@inbound.reload)
+    end
+
+    test "the freight gate never holds an order out of the leg's statuses" do
+      assert_not Shipping::Leg::INBOUND.emittable?(@inbound)
+      assert Shipping::Leg::OUTBOUND.emittable?(@outbound)
+      assert_not Shipping::Leg::OUTBOUND.freight_gated
+    end
   end
 end

@@ -14,6 +14,7 @@
           <%= step.label %>
           <% if step.auto_note %><span class="lc-auto"><%= step.auto_note %></span><% end %>
           <% if step.doing %><span class="lc-doing"><%= step.doing %></span><% end %>
+          <% if step.wait %><span class="lc-wait"><%= step.wait %></span><% end %>
         </div>
       </div>
     <% end %>
@@ -41,12 +42,14 @@
       <% end %>
 
       <% if presenter.return_startable? %>
-        <%= form_with url: admin_order_return_path(presenter.number), method: :post, class: "act-form service-form" do |form| %>
+        <%= form_with url: admin_order_return_path(presenter.number), method: :post, class: "act-form service-form",
+              data: { return_form: true, quote_url: admin_order_return_quote_path(presenter.number) } do |form| %>
           <label class="service-pick">
             <span><%= t("admin.orders.detail.return_service") %></span>
             <%= form.select :service, Shipping::SERVICES.keys.map { |key| [ Shipping.service_label(key), key ] },
-                  { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "service-pick-select" %>
+                  { selected: Shipping::DEFAULT_RETURN_SERVICE }, class: "service-pick-select", data: { return_service: true } %>
           </label>
+          <%= render "admin/orders/return_payer", form: form %>
           <label class="return-reason">
             <span><%= t("admin.orders.detail.return_reason") %></span>
             <%= form.text_area :reason, rows: 3, maxlength: Order::RETURN_REASON_LIMIT,
@@ -54,7 +57,8 @@
           </label>
           <button type="submit" class="act-btn">
             <i class="bi bi-arrow-counterclockwise"></i>
-            <span><%= t("admin.orders.detail.start_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
+            <span class="payer-cta-store"><%= t("admin.orders.detail.start_return") %><span class="act-to"><%= t("admin.orders.detail.action_target", status: presenter.status_label("awaiting_return")) %></span></span>
+            <span class="payer-cta-customer"><%= t("admin.orders.detail.return_freight.start_customer") %><span class="act-to"><%= t("admin.orders.detail.return_freight.start_customer_to") %></span></span>
             <i class="bi bi-arrow-right act-arrow"></i>
           </button>
         <% end %>
@@ -77,6 +81,17 @@
       <% end %>
 
       <% if presenter.return_recorded? %>
+        <%= render "admin/orders/return_freight_card", freight: presenter.return_freight, number: presenter.number,
+                                                       link: account_order_url(presenter.order) %>
+      <% end %>
+
+      <% if presenter.return_label_printable? %>
+        <%= link_to admin_order_return_label_path(presenter.number), class: "act-btn", target: "_blank", rel: "noopener" do %>
+          <i class="bi bi-printer"></i><span><%= t("admin.orders.detail.print_return_label") %></span>
+        <% end %>
+      <% end %>
+
+      <% if presenter.return_recorded? %>
         <div class="return-recorded">
           <div class="return-recorded-head"><i class="bi bi-chat-left-text"></i> <%= t("admin.orders.detail.return_reason") %></div>
           <% if presenter.return_reason.present? %>
@@ -87,17 +102,11 @@
         </div>
       <% end %>
 
-      <% if presenter.return_label_printable? %>
-        <%= link_to admin_order_return_label_path(presenter.number), class: "act-btn", target: "_blank", rel: "noopener" do %>
-          <i class="bi bi-printer"></i><span><%= t("admin.orders.detail.print_return_label") %></span>
-        <% end %>
-      <% end %>
-
       <% if presenter.return_abortable? %>
         <%= button_to admin_order_return_path(presenter.number), method: :delete,
               class: "act-btn danger", form: { class: "act-form",
               data: { confirm: t("admin.orders.detail.return_confirm", number: presenter.number) } } do %>
-          <i class="bi bi-x-circle"></i><span><%= t("admin.orders.detail.cancel_return") %></span>
+          <i class="bi bi-x-circle"></i><span><%= t("admin.orders.detail.cancel_return") %><% if (note = presenter.cancel_return_note) %><span class="act-to"><%= note %></span><% end %></span>
         <% end %>
       <% end %>
 

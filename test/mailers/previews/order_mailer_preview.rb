@@ -19,6 +19,13 @@ class OrderMailerPreview < ActionMailer::Preview
     OrderMailer.awaiting_return(returning_order || shipped_order)
   end
 
+  def awaiting_return_customer_pays
+    charged = Order.joins(return_shipment: :return_freight_charges)
+                   .merge(ReturnFreightCharge.live.where(paid_at: nil))
+                   .recent_first.first
+    OrderMailer.awaiting_return(charged || returning_order || shipped_order)
+  end
+
   def returning
     OrderMailer.returning(returning_order || shipped_order)
   end

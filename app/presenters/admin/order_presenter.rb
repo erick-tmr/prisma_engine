@@ -1,6 +1,8 @@
 module Admin
   class OrderPresenter
     FLOW = %w[awaiting_payment payment_confirmed in_production label_issued shipped delivered].freeze
+    RETURN_FLOW = [ "delivered", *Shipping::RETURN_WALK ].freeze
+    RETURN_AUTO_NOTE = { "returning" => "auto_posting", "returned" => "auto_arrival" }.freeze
 
     BRANCH_ANCHOR = {
       "awaiting_components" => "payment_confirmed",
@@ -25,7 +27,11 @@ module Admin
     PAYMENT_METHOD_LABELS = { "pix" => "Pix", "credit_card" => "Cartão de crédito" }.freeze
     PAYMENT_METHOD_ICONS = { "pix" => "bi-cash-coin", "credit_card" => "bi-credit-card" }.freeze
 
-    LifecycleStep = Data.define(:label, :classes, :auto_note, :doing)
+    LifecycleStep = Data.define(:label, :classes, :auto_note, :doing, :wait) do
+      def initialize(label:, classes:, auto_note: nil, doing: nil, wait: nil)
+        super
+      end
+    end
     Payment = Data.define(:method_label, :icon, :status_class, :status_icon, :status_label)
 
     def initialize(order)
@@ -43,7 +49,9 @@ module Admin
     end
 
     def status_description
-      I18n.t("admin.orders.states.#{status}.description")
+      charge_state = order.awaiting_return? && return_freight&.charge&.state
+      variant = %w[pending expired].include?(charge_state) ? "description_charge_#{charge_state}" : "description"
+      I18n.t("admin.orders.states.#{status}.#{variant}")
     end
 
     def item_count
@@ -137,6 +145,18 @@ module Admin
       order.return_reason
     end
 
+    def return_freight
+      shipment = order.return_shipment
+      @return_freight ||= ReturnFreight.new(shipment) if shipment
+    end
+
+    def cancel_return_note
+      freight = return_freight
+      return unless freight&.paid? || freight&.expired?
+
+      I18n.t("admin.orders.detail.return_freight.cancel_#{freight.paid? ? 'paid' : 'expired'}_to")
+    end
+
     def return_label_printable?
       !!order.return_shipping_label&.ready?
     end
@@ -150,11 +170,7 @@ module Admin
     end
 
     def lifecycle
-      anchor = BRANCH_ANCHOR[status]
-      branch = anchor.present? && FLOW.exclude?(status)
-      current = FLOW.index(branch ? anchor : status)
-      steps = FLOW.each_with_index.map { |step, index| flow_step(step, index, current) }
-      branch ? with_branch_step(steps, current) : steps
+      order.return_leg? && order.return_shipment ? return_lifecycle : flow_lifecycle
     end
 
     def history
@@ -212,9 +228,50 @@ module Admin
       action.danger ? "act-btn danger" : "act-btn primary"
     end
 
+    def flow_lifecycle
+      anchor = BRANCH_ANCHOR[status]
+      branch = anchor.present? && FLOW.exclude?(status)
+      current = FLOW.index(branch ? anchor : status)
+      steps = FLOW.each_with_index.map { |step, index| flow_step(step, index, current) }
+      branch ? with_branch_step(steps, current) : steps
+    end
+
+    def return_lifecycle
+      current = RETURN_FLOW.index(status)
+      RETURN_FLOW.each_with_index.map do |step, index|
+        next current_return_step(step) if index == current
+
+        index < current ? LifecycleStep.new(label: return_step_label(step), classes: "done") : upcoming_return_step(step)
+      end
+    end
+
+    def upcoming_return_step(step)
+      note = RETURN_AUTO_NOTE[step] unless return_freight.expired?
+      LifecycleStep.new(label: return_step_label(step), classes: "upcoming",
+                        auto_note: note && I18n.t("admin.orders.lifecycle.#{note}"))
+    end
+
+    def current_return_step(step)
+      label = return_step_label(step)
+      freight = return_freight
+      if (doing = step == "awaiting_return" && doing_note)
+        LifecycleStep.new(label: label, classes: "pending", doing: doing)
+      elsif freight.pending?
+        LifecycleStep.new(label: label, classes: "wait current", wait: I18n.t("admin.orders.lifecycle.wait_freight"))
+      elsif freight.expired?
+        LifecycleStep.new(label: label, classes: "branch current", auto_note: I18n.t("admin.orders.lifecycle.freight_expired"))
+      else
+        LifecycleStep.new(label: label, classes: "current")
+      end
+    end
+
+    def return_step_label(step)
+      step == "delivered" ? lifecycle_label(step) : status_label(step)
+    end
+
     def with_branch_step(steps, current)
       steps[current] = steps[current].with(classes: "done")
-      steps.insert(current + 1, LifecycleStep.new(label: status_label, classes: "branch current", auto_note: nil, doing: nil))
+      steps.insert(current + 1, LifecycleStep.new(label: status_label, classes: "branch current"))
       steps
     end
 

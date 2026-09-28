@@ -31,6 +31,8 @@ class Shipment < ApplicationRecord
            class_name: "ShipmentTrackingEvent",
            dependent: :destroy
 
+  has_many :return_freight_charges, dependent: :destroy
+
   validates :tracking_code, uniqueness: true, allow_nil: true
   validates :pre_post_id, uniqueness: true, allow_nil: true
   validates :service, inclusion: { in: Shipping::SERVICES.keys.map(&:to_s) }, allow_nil: true
@@ -98,6 +100,15 @@ class Shipment < ApplicationRecord
       tracking_state: :pending, last_tracking_status: nil, last_tracked_at: nil,
       posted_at: nil, delivered_at: nil, tracking_error: nil, tracking_errored_at: nil
     )
+  end
+
+  def freight_charge
+    return_freight_charges.live.newest_first.first
+  end
+
+  def freight_settled?
+    charge = freight_charge
+    charge.nil? || charge.paid?
   end
 
   def mark_tracking_unavailable!(error_message)

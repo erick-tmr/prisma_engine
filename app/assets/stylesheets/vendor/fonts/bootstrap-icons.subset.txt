@@ -43,6 +43,7 @@ bi-clock
 bi-clock-history
 bi-code-slash
 bi-controller
+bi-copy
 bi-cpu
 bi-credit-card
 bi-credit-card-2-front
@@ -115,6 +116,7 @@ bi-shield-check
 bi-shield-exclamation
 bi-shield-lock
 bi-shield-lock-fill
+bi-shop
 bi-slash-circle
 bi-sliders2
 bi-star

@@ -2,6 +2,7 @@ import { bindConfirm, bindFlashDismiss, bindSidebar } from "backoffice/shell";
 import { createLabelFeedback, inFlight } from "backoffice/label_feedback";
 import { bindShipmentNav } from "backoffice/shipment_nav";
 import { bindMergePanel } from "backoffice/order_merge";
+import { bindReturnFreight } from "backoffice/return_freight";
 
 export const ELAPSED_TICK_MS = 1_000;
 export const RETRY_FAILED = "Não foi possível reenviar para os Correios. Tente novamente.";
@@ -54,6 +55,7 @@ export function initOrder(root, doc = document) {
   bindMenu(root, doc);
   bindFlashDismiss(root);
   bindShipmentNav(root);
+  bindReturnFreight(root);
   bindMergePanel(root.querySelector("[data-merge-panel]"), root.querySelector("[data-merge-modal]"), { doc });
   tickElapsed(root);
   const ticker = setInterval(() => tickElapsed(root), ELAPSED_TICK_MS);
