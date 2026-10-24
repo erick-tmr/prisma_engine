@@ -51,6 +51,36 @@ module Admin
       assert_select ".result-count--paid", text: "Total pago: #{expected}"
     end
 
+    test "the paid total follows the filters on the full page" do
+      sign_in users(:admin)
+      delivered = Order.where(status: "delivered").sum(:total_cents)
+      assert_not_equal Order.paid.sum(:total_cents), delivered
+
+      get admin_root_path, params: { status: [ "delivered" ] }
+
+      expected = Admin::OrdersController.helpers.format_brl(delivered)
+      assert_select "[data-part=paid-total]", text: "Total pago: #{expected}"
+    end
+
+    test "the paid total follows the filters on a fetch refresh" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      assert_not_equal Order.paid.sum(:total_cents), order.total_cents
+
+      get admin_root_path, params: { q: order.number }, headers: { "X-Requested-With" => "fetch" }
+
+      expected = Admin::OrdersController.helpers.format_brl(order.total_cents)
+      assert_select "[data-part=paid-total]", count: 1, text: "Total pago: #{expected}"
+    end
+
+    test "the paid total leaves unpaid orders out of the filtered set" do
+      sign_in users(:admin)
+      get admin_root_path, params: { status: [ "awaiting_payment" ] }, headers: { "X-Requested-With" => "fetch" }
+
+      expected = Admin::OrdersController.helpers.format_brl(0)
+      assert_select "[data-part=paid-total]", text: "Total pago: #{expected}"
+    end
+
     test "a fetch request returns just the results, without the page shell" do
       sign_in users(:admin)
       get admin_root_path, headers: { "X-Requested-With" => "fetch" }

@@ -124,6 +124,15 @@ module Admin
       assert_equal Order.where(status: "delivered").sum(:total_cents), search.total_cents
     end
 
+    test "paid_total_cents sums only the paid orders of the filtered set" do
+      search = OrderSearch.new({ status: %w[awaiting_payment delivered] })
+      delivered = Order.where(status: "delivered").sum(:total_cents)
+
+      assert_not_equal search.total_cents, delivered
+      assert_not_equal Order.paid.sum(:total_cents), delivered
+      assert_equal delivered, search.paid_total_cents
+    end
+
     test "to_params keeps only what differs from the defaults" do
       assert_empty OrderSearch.new({}).to_params
       assert_empty OrderSearch.new({ sort: "date", dir: "desc" }).to_params

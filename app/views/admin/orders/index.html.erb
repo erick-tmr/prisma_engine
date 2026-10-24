@@ -29,7 +29,7 @@
           </div>
           <div class="panel-top-right">
             <%= render "results_count" %>
-            <span class="result-count result-count--paid"><%= t("admin.dashboard.orders.paid_total", amount: format_brl(Order.paid.sum(:total_cents))) %></span>
+            <%= render "paid_total" %>
             <a class="btn-ghost" id="gen-production" href="<%= admin_production_report_path(@search.period_params) %>">
               <i class="bi bi-printer"></i> <%= t("admin.dashboard.orders.production_report") %>
             </a>
