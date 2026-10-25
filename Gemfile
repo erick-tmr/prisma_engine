@@ -1,11 +1,11 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.1.3"
+gem "rails", "~> 8.1.4"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+gem "pg", "~> 1.7"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -39,7 +39,7 @@ gem "thruster", require: false
 gem "kamal", "~> 2.12", require: false
 
 # S3-compatible client for the Cloudflare R2 Active Storage service [https://github.com/aws/aws-sdk-ruby]
-gem "aws-sdk-s3", "~> 1.232", require: false
+gem "aws-sdk-s3", "~> 1.233", require: false
 
 # HTTP client for the Correios tracking (rastro) API [https://github.com/lostisland/faraday]
 gem "faraday", "~> 2.14"
@@ -96,7 +96,7 @@ group :test do
   gem "minitest-mock", "~> 5.27"
 
   # Stub external HTTP (Correios rastro) in tests [https://github.com/bblimke/webmock]
-  gem "webmock", "~> 3.26"
+  gem "webmock", "~> 3.34"
 
   # Test coverage reporting [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false
