@@ -90,7 +90,7 @@ end
 
 group :test do
   gem "capybara"
-  gem "cuprite", "~> 0.18"
+  gem "cuprite", "~> 0.19"
 
   # Object#stub / Minitest::Mock, extracted from minitest core in v6 [https://github.com/minitest/minitest-mock]
   gem "minitest-mock", "~> 5.27"

@@ -133,9 +133,9 @@ GEM
       bigdecimal
       rexml
     crass (1.0.8)
-    cuprite (0.18)
+    cuprite (0.19)
       capybara (~> 3.0)
-      ferrum (~> 0.18.0)
+      ferrum (~> 0.19.1)
     date (3.5.1)
     debug (1.11.1)
       irb (~> 1.10)
@@ -209,7 +209,7 @@ GEM
       logger
     faraday-net_http (3.4.4)
       net-http (~> 0.5)
-    ferrum (0.18.0)
+    ferrum (0.19.1)
       addressable (~> 2.5)
       base64 (~> 0.2)
       concurrent-ruby (~> 1.1)
@@ -549,7 +549,7 @@ DEPENDENCIES
   bundler-audit
   capybara
   combine_pdf (~> 1.0)
-  cuprite (~> 0.18)
+  cuprite (~> 0.19)
   debug
   derailed_benchmarks
   devise (~> 5.0, >= 5.0.4)
