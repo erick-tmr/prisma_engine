@@ -33,8 +33,8 @@ module ActiveSupport
       SimpleCov.command_name "#{SimpleCov.command_name}-#{worker}"
     end
 
-    parallelize_teardown do |_worker|
-      SimpleCov.result
+    parallelize_teardown do |worker|
+      SimpleCov.result if worker
     end
 
     fixtures :all
