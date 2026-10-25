@@ -26,6 +26,10 @@ module Admin
       filtered.sum(:total_cents)
     end
 
+    def paid_total_cents
+      filtered.paid.sum(:total_cents)
+    end
+
     def to_params
       {
         q: query.presence,
