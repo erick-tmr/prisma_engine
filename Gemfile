@@ -42,7 +42,7 @@ gem "kamal", "~> 2.12", require: false
 gem "aws-sdk-s3", "~> 1.233", require: false
 
 # HTTP client for the Correios tracking (rastro) API [https://github.com/lostisland/faraday]
-gem "faraday", "~> 2.14"
+gem "faraday", "~> 2.15"
 
 # Impose Correios labels four-up on A4 for batch printing, unscaled [https://github.com/boazsegev/combine_pdf]
 gem "combine_pdf", "~> 1.0"
