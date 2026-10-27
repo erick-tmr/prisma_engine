@@ -27,13 +27,19 @@ class User < ApplicationRecord
   def update_contact(attributes)
     skip_reconfirmation!
     assign_attributes(attributes)
-    self.unconfirmed_email = nil if email.to_s.strip.downcase != email_in_database
+    vouch_for_new_email if email.to_s.strip.downcase != email_in_database
     saved = save
     announce_email_change if saved && saved_change_to_email?
     saved
   end
 
   private
+
+  def vouch_for_new_email
+    self.unconfirmed_email = nil
+    self.confirmation_token = nil
+    self.confirmed_at ||= Time.current
+  end
 
   def announce_email_change
     ContactChangeMailer.previous_address(self, email_before_last_save).deliver_later
