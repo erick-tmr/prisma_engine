@@ -1,0 +1,20 @@
+<%= render layout: "shared/email_card", locals: {
+      badge_label: t("contact_change_mailer.badge_label"),
+      badge_color: "#007bff",
+      hero_image: "dragon-face.png",
+      hero_height: 180,
+      heading: t("contact_change_mailer.new_address.heading"),
+      first_name: @user.first_name
+    } do %>
+  <tr>
+    <td class="px" style="padding:14px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#374151;">
+      <%= t("contact_change_mailer.new_address.intro") %>
+    </td>
+  </tr>
+  <%= render "shared/email_cta", url: new_user_session_url, label: t("contact_change_mailer.new_address.cta") %>
+  <tr>
+    <td class="px" style="padding:16px 40px 0;font-family:'Inter',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;font-size:13px;line-height:1.55;color:#6b7280;">
+      <%= t("contact_change_mailer.disclaimer") %>
+    </td>
+  </tr>
+<% end %>

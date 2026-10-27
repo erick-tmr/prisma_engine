@@ -57,4 +57,31 @@ class AdminClientDetailTest < ApplicationSystemTestCase
     assert_equal "awaiting_answer", strike.question.reload.status
     assert_empty client.question_strikes.reload
   end
+
+  test "an operator corrects a client's e-mail and phone from the contact card" do
+    client = users(:confirmed)
+    login_as_user(users(:admin))
+
+    visit admin_client_path(client)
+
+    find("[data-contact-edit]").click
+    assert_selector "form[data-contact-form]"
+    assert_selector "[data-contact-save][disabled]"
+
+    fill_in "client[email]", with: users(:locked).email
+    find("[data-contact-input=phone]").fill_in(with: "11977776666")
+    assert_field "client[phone]", with: "(11) 97777-6666"
+    find("[data-contact-save]").click
+
+    assert_selector "[data-contact-error=email]", text: "Já está em uso"
+    assert_selector "[data-contact-view]", visible: :hidden
+
+    fill_in "client[email]", with: "Novo.Login@Example.com"
+    find("[data-contact-save]").click
+
+    assert_selector ".od-flash--ok", text: "Contato atualizado: e-mail e telefone"
+    assert_selector "[data-contact-view] .cust-row .v", text: "novo.login@example.com"
+    assert_selector "[data-contact-view] .cust-row .v", text: "(11) 97777-6666"
+    assert_equal "novo.login@example.com", client.reload.email
+  end
 end

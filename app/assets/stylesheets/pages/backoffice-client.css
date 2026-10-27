@@ -3,7 +3,8 @@
    backoffice-dashboard.css (table.tbl, the pager, situation tags) and
    backoffice-order.css (the two-column detail grid, back link, flash,
    customer card, cust-av--N tints). This file owns the client header, the
-   KPI strip, the question-strike ledger and the address cards. */
+   KPI strip, the question-strike ledger, the contact edit form and the
+   address cards. */
 
 /* header */
 .cl-head { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -147,6 +148,51 @@
 .tbl thead th, .tbl tbody td { padding-left: 12px; padding-right: 12px; }
 .tbl thead th:first-child, .tbl tbody td:first-child { padding-left: 22px; }
 .tbl thead th:last-child, .tbl tbody td:last-child { padding-left: 0; padding-right: 18px; }
+
+/* contact edit */
+.ce-edit {
+  margin-left: auto; align-self: flex-start; flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px;
+  border-radius: 8px; border: 1px solid var(--pg-border); background: #fff; color: var(--pg-ink);
+  font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+  transition: border-color .14s ease, background .14s ease;
+}
+.ce-edit:hover { border-color: #cfd4da; background: #f7f8fa; }
+.ce-edit i { font-size: 12px; }
+.ce-form { padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 14px; }
+.ce-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pg-muted);
+}
+.ce-field { display: flex; flex-direction: column; gap: 6px; }
+.ce-field label { font-size: 12px; font-weight: 700; color: var(--pg-ink); }
+.ce-inp {
+  width: 100%; height: 40px; padding: 0 12px;
+  border: 1px solid var(--pg-border); border-radius: 10px; background: #fff; color: var(--pg-ink);
+  font-size: 13.5px; font-family: inherit; font-variant-numeric: tabular-nums;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.ce-inp:hover { border-color: #cfd4da; }
+.ce-inp:focus { outline: none; border-color: var(--pg-ink); box-shadow: 0 0 0 3px rgba(26, 29, 33, 0.10); }
+.ce-inp.bad { border-color: #c0392b; box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.10); }
+.ce-err { font-size: 12px; font-weight: 600; color: #c0392b; }
+.ce-err:empty { display: none; }
+.ce-hint { font-size: 12px; color: var(--pg-muted); line-height: 1.45; }
+.ce-ro { margin: 0 -12px; }
+.ce-ro .cust-row { color: var(--pg-muted); }
+.ce-lock { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: #98a0aa; }
+.ce-lock i { font-size: 11px; width: auto; }
+.ce-acts { display: flex; gap: 8px; justify-content: flex-end; padding-top: 14px; border-top: 1px solid var(--pg-border); }
+.ce-cancel, .ce-save {
+  height: 36px; padding: 0 14px; border-radius: 9px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+}
+.ce-cancel { border: 1px solid var(--pg-border); background: #fff; color: var(--pg-ink); }
+.ce-cancel:hover { border-color: #cfd4da; background: #f7f8fa; }
+.ce-save { border: 0; background: var(--pg-ink); color: #fff; }
+.ce-save:hover { background: #000; }
+.ce-save:disabled { opacity: .4; cursor: default; background: var(--pg-ink); }
 
 /* address cards */
 .addr-list { padding: 6px 8px 10px; }

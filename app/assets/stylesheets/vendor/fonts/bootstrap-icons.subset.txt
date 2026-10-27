@@ -94,6 +94,7 @@ bi-magic
 bi-palette
 bi-patch-check-fill
 bi-pencil
+bi-pencil-square
 bi-people
 bi-person
 bi-person-badge
