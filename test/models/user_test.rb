@@ -1,6 +1,7 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
+  include ActionMailer::TestHelper
   VALID_CPF = "11144477735"
   OTHER_VALID_CPF = "12345678909"
 
@@ -129,5 +130,55 @@ class UserTest < ActiveSupport::TestCase
     )
     second.mark_default!
     assert_equal second, user.default_address
+  end
+
+  test "update_contact swaps the login e-mail at once, without a reconfirmation round-trip" do
+    user = users(:confirmed)
+
+    delivered = capture_emails do
+      assert user.update_contact(email: "Novo.Login@Example.com", phone: "11977776666")
+    end
+
+    assert_equal [ [ "confirmed@example.com" ], [ "novo.login@example.com" ] ], delivered.map(&:to).sort
+    assert_equal [ "Este é o novo e-mail da sua conta", "Seu e-mail de acesso foi alterado" ], delivered.map(&:subject).sort
+
+    user.reload
+    assert_equal "novo.login@example.com", user.email
+    assert_nil user.unconfirmed_email
+    assert_equal "(11) 97777-6666", user.phone
+  end
+
+  test "update_contact drops a pending self-service e-mail change it replaces" do
+    user = users(:confirmed)
+    user.update_column(:unconfirmed_email, "pendente.antigo@example.com")
+
+    assert user.update_contact(email: "outro@example.com", phone: user.phone)
+    assert_nil user.reload.unconfirmed_email
+  end
+
+  test "update_contact leaves a pending e-mail change alone when only the phone moves" do
+    user = users(:confirmed)
+    user.update_column(:unconfirmed_email, "pendente.antigo@example.com")
+
+    assert user.update_contact(email: " #{user.email.upcase} ", phone: "11977776666")
+    assert_equal "pendente.antigo@example.com", user.reload.unconfirmed_email
+  end
+
+  test "update_contact leaves both addresses alone when only the phone moves" do
+    user = users(:confirmed)
+
+    assert_no_enqueued_emails do
+      assert user.update_contact(email: user.email, phone: "11977776666")
+    end
+  end
+
+  test "update_contact refuses an e-mail another account already logs in with" do
+    user = users(:confirmed)
+
+    assert_no_enqueued_emails do
+      assert_not user.update_contact(email: users(:locked).email, phone: user.phone)
+    end
+    assert user.errors.of_kind?(:email, :taken)
+    assert_equal "confirmed@example.com", user.reload.email
   end
 end

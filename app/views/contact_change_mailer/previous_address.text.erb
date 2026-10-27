@@ -1,0 +1,11 @@
+<%= t("mailer.greeting", name: @user.first_name) %>
+
+<%= t("contact_change_mailer.previous_address.heading") %>
+
+<%= t("contact_change_mailer.previous_address.intro") %>
+
+<%= t("contact_change_mailer.previous_address.new_email_label") %> <%= @user.email %>
+
+<%= t("contact_change_mailer.disclaimer") %>
+
+<%= t("mailer.signature") %>

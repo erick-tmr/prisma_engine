@@ -1,0 +1,74 @@
+<% scope = "admin.clients.detail.contact" %>
+<% editing = contact.errors.any? %>
+<section class="cust-card" data-contact>
+  <div class="cust-top">
+    <div class="cust-av cust-av--<%= presenter.avatar_tint_index %>"><%= account_avatar_initials(presenter.full_name) %></div>
+    <div class="cust-meta">
+      <div class="nm"><%= presenter.full_name %></div>
+      <div class="sub"><%= t("admin.clients.detail.account_created", date: l(presenter.created_at.to_date, format: :list)) %></div>
+    </div>
+    <button class="ce-edit" type="button" data-contact-edit<%= " hidden" if editing %>>
+      <i class="bi bi-pencil"></i> <%= t("#{scope}.edit") %>
+    </button>
+  </div>
+
+  <div class="cust-rows" data-contact-view<%= " hidden" if editing %>>
+    <div class="cust-row"><i class="bi bi-envelope"></i> <span class="v"><%= presenter.email %></span></div>
+    <div class="cust-row">
+      <i class="bi bi-telephone"></i>
+      <span class="v"><%= presenter.phone.presence ? format_phone(presenter.phone) : "–" %></span>
+      <% if presenter.whatsapp_url %>
+        <%= link_to presenter.whatsapp_url, class: "cust-wa", target: "_blank", rel: "noopener",
+                    title: t("admin.clients.detail.whatsapp.title", name: presenter.full_name) do %>
+          <i class="bi bi-whatsapp" aria-hidden="true"></i>
+          <span><%= t("admin.clients.detail.whatsapp.label") %></span>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="cust-row"><i class="bi bi-person-vcard"></i> <span class="v"><%= format_cpf(presenter.cpf) %></span></div>
+  </div>
+
+  <%= form_with model: contact, scope: :client, url: admin_client_path(contact), method: :patch,
+                class: "ce-form", novalidate: true, data: { contact_form: true }, html: { hidden: !editing } do |f| %>
+    <div class="ce-title"><i class="bi bi-pencil-square"></i> <%= t("#{scope}.title") %></div>
+    <% record_errors = contact.errors.reject { |error| %i[email phone].include?(error.attribute) } %>
+    <% if record_errors.any? %>
+      <div class="ce-err" data-contact-record-error><%= record_errors.map(&:full_message).to_sentence %></div>
+    <% end %>
+
+    <% email_error = contact.errors.messages_for(:email).first %>
+    <div class="ce-field">
+      <%= f.label :email, t("#{scope}.email") %>
+      <%= f.email_field :email, autocomplete: "off", class: [ "ce-inp", ("bad" if email_error) ],
+                        data: { contact_input: "email", original: presenter.email,
+                                invalid_message: t("#{scope}.email_invalid") } %>
+      <div class="ce-err" data-contact-error="email"><%= email_error&.upcase_first %></div>
+      <div class="ce-hint"><%= t("#{scope}.email_hint") %></div>
+    </div>
+
+    <% phone_error = contact.errors.messages_for(:phone).first %>
+    <div class="ce-field">
+      <%= f.label :phone, t("#{scope}.phone") %>
+      <%= f.telephone_field :phone, value: format_phone(contact.phone), autocomplete: "off", inputmode: "numeric",
+                            placeholder: t("#{scope}.phone_placeholder"),
+                            class: [ "ce-inp", ("bad" if phone_error) ],
+                            data: { contact_input: "phone", original: format_phone(presenter.phone),
+                                    invalid_message: t("#{scope}.phone_invalid") } %>
+      <div class="ce-err" data-contact-error="phone"><%= phone_error&.upcase_first %></div>
+    </div>
+
+    <div class="ce-ro">
+      <div class="cust-row">
+        <i class="bi bi-person-vcard"></i> <span class="v"><%= format_cpf(presenter.cpf) %></span>
+        <span class="ce-lock"><i class="bi bi-lock"></i> <%= t("#{scope}.locked") %></span>
+      </div>
+    </div>
+
+    <div class="ce-acts">
+      <button class="ce-cancel" type="button" data-contact-cancel><%= t("#{scope}.cancel") %></button>
+      <button class="ce-save" type="submit" data-contact-save<%= " disabled" unless editing %>>
+        <i class="bi bi-check2"></i> <%= t("#{scope}.save") %>
+      </button>
+    </div>
+  <% end %>
+</section>

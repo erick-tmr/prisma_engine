@@ -206,6 +206,19 @@ pt-BR:
       heading: "Bem-vindo à Prisma Games!"
       intro: "Sua conta foi criada com sucesso. Agora é só escolher seus clássicos favoritos. Do resto a gente cuida, com um carteiro alado bem dedicado voando até a sua porta."
       cta: "Explorar a loja"
+  contact_change_mailer:
+    badge_label: "Conta atualizada"
+    disclaimer: "Não reconhece essa mudança? Fale com a gente imediatamente pelo suporte abaixo."
+    previous_address:
+      subject: "Seu e-mail de acesso foi alterado"
+      heading: "Seu e-mail de acesso foi alterado."
+      intro: "Nossa equipe atualizou o e-mail de acesso da sua conta Prisma Games. A partir de agora, você entra na loja com o novo endereço, e este aqui deixa de receber nossas mensagens."
+      new_email_label: "Novo e-mail:"
+    new_address:
+      subject: "Este é o novo e-mail da sua conta"
+      heading: "Este é o novo e-mail da sua conta."
+      intro: "Nossa equipe definiu este endereço como o e-mail de acesso da sua conta Prisma Games. Use-o para entrar na loja; sua senha continua a mesma."
+      cta: "Entrar na minha conta"
   reset_password_mailer:
     badge_label: "Segurança"
     heading: "Vamos redefinir sua senha."
@@ -832,6 +845,23 @@ pt-BR:
         whatsapp:
           label: "WhatsApp"
           title: "Abrir a conversa com %{name} no WhatsApp"
+        contact:
+          edit: "Editar"
+          title: "Editar contato"
+          email: "E-mail"
+          email_hint: "É também o login do cliente. Ele passa a entrar com o novo e-mail, e avisamos os dois endereços da troca."
+          email_invalid: "Informe um e-mail válido."
+          phone: "Telefone"
+          phone_placeholder: "(00) 00000-0000"
+          phone_invalid: "Informe DDD + número (10 ou 11 dígitos)."
+          locked: "não editável"
+          cancel: "Cancelar"
+          save: "Salvar"
+          updated: "Contato atualizado: %{fields} de %{name}."
+          unchanged: "Nada mudou no contato de %{name}."
+          fields:
+            email: "e-mail"
+            phone: "telefone"
         badge:
           clear: "Perguntas liberadas"
           served:

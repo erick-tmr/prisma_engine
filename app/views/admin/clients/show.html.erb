@@ -76,7 +76,7 @@
 
       <div class="od-grid">
         <div class="od-col-main">
-          <%= render "strikes", presenter: @presenter, client: @client %>
+          <%= render "strikes", presenter: @presenter, client: @presenter.client %>
 
           <section class="panel">
             <div class="panel-top">
@@ -91,30 +91,7 @@
         </div>
 
         <aside class="od-col-side">
-          <section class="cust-card">
-            <div class="cust-top">
-              <div class="cust-av cust-av--<%= @presenter.avatar_tint_index %>"><%= account_avatar_initials(@presenter.full_name) %></div>
-              <div class="cust-meta">
-                <div class="nm"><%= @presenter.full_name %></div>
-                <div class="sub"><%= t("admin.clients.detail.account_created", date: l(@presenter.created_at.to_date, format: :list)) %></div>
-              </div>
-            </div>
-            <div class="cust-rows">
-              <div class="cust-row"><i class="bi bi-envelope"></i> <span class="v"><%= @presenter.email %></span></div>
-              <div class="cust-row">
-                <i class="bi bi-telephone"></i>
-                <span class="v"><%= @presenter.phone.presence ? format_phone(@presenter.phone) : "–" %></span>
-                <% if @presenter.whatsapp_url %>
-                  <%= link_to @presenter.whatsapp_url, class: "cust-wa", target: "_blank", rel: "noopener",
-                              title: t("admin.clients.detail.whatsapp.title", name: @presenter.full_name) do %>
-                    <i class="bi bi-whatsapp" aria-hidden="true"></i>
-                    <span><%= t("admin.clients.detail.whatsapp.label") %></span>
-                  <% end %>
-                <% end %>
-              </div>
-              <div class="cust-row"><i class="bi bi-person-vcard"></i> <span class="v"><%= format_cpf(@presenter.cpf) %></span></div>
-            </div>
-          </section>
+          <%= render "contact", presenter: @presenter, contact: @contact %>
 
           <section class="panel">
             <div class="panel-top">

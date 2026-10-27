@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { elapsedPercent, initClient, paintClock, remaining, startClock }
+import { bindContactEdit, elapsedPercent, initClient, maskPhone, paintClock, remaining, startClock }
   from "../../../app/javascript/backoffice/client.js";
 
 const SECOND = 1000;
@@ -201,5 +201,171 @@ describe("initClient", () => {
 
     client.destroy();
     expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+// Mirrors app/views/admin/clients/_contact.html.erb.
+const contactMarkup = ({ editing = false, email = "ana@example.com", phone = "(11) 98876-5521" } = {}) => `
+  <div class="app">
+    <section data-contact>
+      <button type="button" data-contact-edit ${editing ? "hidden" : ""}></button>
+      <div data-contact-view ${editing ? "hidden" : ""}></div>
+      <form data-contact-form ${editing ? "" : "hidden"}>
+        <input data-contact-input="email" data-original="ana@example.com" data-invalid-message="E-mail ruim" value="${email}">
+        <div data-contact-error="email"></div>
+        <input data-contact-input="phone" data-original="(11) 98876-5521" data-invalid-message="Telefone ruim" value="${phone}">
+        <div data-contact-error="phone"></div>
+        <button type="button" data-contact-cancel></button>
+        <button type="submit" data-contact-save></button>
+      </form>
+    </section>
+  </div>`;
+
+const type = (input, value) => {
+  input.value = value;
+  input.dispatchEvent(new window.Event("input", { bubbles: true }));
+};
+const submit = (form) => {
+  const event = new window.Event("submit", { cancelable: true, bubbles: true });
+  form.dispatchEvent(event);
+  return event;
+};
+const contact = () => ({
+  edit: document.querySelector("[data-contact-edit]"),
+  view: document.querySelector("[data-contact-view]"),
+  form: document.querySelector("[data-contact-form]"),
+  email: document.querySelector("[data-contact-input=email]"),
+  phone: document.querySelector("[data-contact-input=phone]"),
+  save: document.querySelector("[data-contact-save]"),
+  error: (field) => document.querySelector(`[data-contact-error=${field}]`).textContent
+});
+
+describe("maskPhone", () => {
+  it("formats a mobile and a landline", () => {
+    expect(maskPhone("11988765521")).toBe("(11) 98876-5521");
+    expect(maskPhone("1133334444")).toBe("(11) 3333-4444");
+  });
+
+  it("builds the mask up as digits arrive", () => {
+    expect(maskPhone("")).toBe("");
+    expect(maskPhone("1")).toBe("(1");
+    expect(maskPhone("11")).toBe("(11");
+    expect(maskPhone("119")).toBe("(11) 9");
+    expect(maskPhone("119887")).toBe("(11) 9887");
+    expect(maskPhone("1198876")).toBe("(11) 9887-6");
+  });
+
+  it("drops anything that is not a digit and caps at eleven", () => {
+    expect(maskPhone("(11) 98876-5521 999")).toBe("(11) 98876-5521");
+  });
+});
+
+describe("bindContactEdit", () => {
+  it("does nothing on a page without the contact card", () => {
+    document.body.innerHTML = `<div class="app"></div>`;
+    expect(() => bindContactEdit(document.querySelector(".app"))).not.toThrow();
+  });
+
+  it("opens the form in place of the card, with save held until something changes", () => {
+    document.body.innerHTML = contactMarkup();
+    bindContactEdit(document.querySelector(".app"));
+    const c = contact();
+
+    click(c.edit);
+
+    expect(c.form.hidden).toBe(false);
+    expect(c.view.hidden).toBe(true);
+    expect(c.edit.hidden).toBe(true);
+    expect(document.activeElement).toBe(c.email);
+    expect(c.save.disabled).toBe(true);
+  });
+
+  it("ignores case and padding in the e-mail and formatting in the phone when deciding what changed", () => {
+    document.body.innerHTML = contactMarkup();
+    bindContactEdit(document.querySelector(".app"));
+    const c = contact();
+
+    type(c.email, " ANA@example.com ");
+    expect(c.save.disabled).toBe(true);
+
+    type(c.email, "ana.nova@example.com");
+    expect(c.save.disabled).toBe(false);
+  });
+
+  it("masks the phone as it is typed", () => {
+    document.body.innerHTML = contactMarkup();
+    bindContactEdit(document.querySelector(".app"));
+    const c = contact();
+
+    type(c.phone, "11977776666");
+
+    expect(c.phone.value).toBe("(11) 97777-6666");
+    expect(c.save.disabled).toBe(false);
+  });
+
+  it("blocks a submit with a malformed e-mail or a short phone and focuses the first one", () => {
+    document.body.innerHTML = contactMarkup({ editing: true, email: "ana@", phone: "(11) 9887" });
+    bindContactEdit(document.querySelector(".app"));
+    const c = contact();
+
+    const event = submit(c.form);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(c.error("email")).toBe("E-mail ruim");
+    expect(c.error("phone")).toBe("Telefone ruim");
+    expect(c.email.classList.contains("bad")).toBe(true);
+    expect(document.activeElement).toBe(c.email);
+  });
+
+  it("clears a field's error as soon as it is edited", () => {
+    document.body.innerHTML = contactMarkup({ editing: true, email: "ana@" });
+    bindContactEdit(document.querySelector(".app"));
+    const c = contact();
+    submit(c.form);
+
+    type(c.email, "ana@example.com.br");
+
+    expect(c.error("email")).toBe("");
+    expect(c.email.classList.contains("bad")).toBe(false);
+  });
+
+  it("lets a valid contact through to the server", () => {
+    document.body.innerHTML = contactMarkup({ editing: true, email: "ana.nova@example.com" });
+    bindContactEdit(document.querySelector(".app"));
+
+    expect(submit(contact().form).defaultPrevented).toBe(false);
+  });
+
+  it("enables save on a form the server reopened with the rejected values", () => {
+    document.body.innerHTML = contactMarkup({ editing: true, email: "outra@example.com" });
+    bindContactEdit(document.querySelector(".app"));
+
+    expect(contact().save.disabled).toBe(false);
+  });
+
+  it("cancels back to the card with the stored values, by button or Escape", () => {
+    document.body.innerHTML = contactMarkup();
+    bindContactEdit(document.querySelector(".app"));
+    const c = contact();
+
+    click(c.edit);
+    type(c.email, "ana@");
+    submit(c.form);
+    click(document.querySelector("[data-contact-cancel]"));
+
+    expect(c.form.hidden).toBe(true);
+    expect(c.view.hidden).toBe(false);
+    expect(c.email.value).toBe("ana@example.com");
+    expect(c.error("email")).toBe("");
+    expect(document.activeElement).toBe(c.edit);
+
+    click(c.edit);
+    type(c.phone, "1");
+    c.form.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(c.form.hidden).toBe(false);
+    c.form.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+
+    expect(c.form.hidden).toBe(true);
+    expect(c.phone.value).toBe("(11) 98876-5521");
   });
 });

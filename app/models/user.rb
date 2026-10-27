@@ -24,7 +24,21 @@ class User < ApplicationRecord
     addresses.find_by(default: true)
   end
 
+  def update_contact(attributes)
+    skip_reconfirmation!
+    assign_attributes(attributes)
+    self.unconfirmed_email = nil if email.to_s.strip.downcase != email_in_database
+    saved = save
+    announce_email_change if saved && saved_change_to_email?
+    saved
+  end
+
   private
+
+  def announce_email_change
+    ContactChangeMailer.previous_address(self, email_before_last_save).deliver_later
+    ContactChangeMailer.new_address(self).deliver_later
+  end
 
   def normalize_cpf
     self.cpf = cpf.to_s.gsub(/\D/, "").presence

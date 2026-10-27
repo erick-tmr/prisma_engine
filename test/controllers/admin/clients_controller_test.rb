@@ -3,6 +3,7 @@ require "test_helper"
 module Admin
   class ClientsControllerTest < ActionDispatch::IntegrationTest
     include Devise::Test::IntegrationHelpers
+    include ActionMailer::TestHelper
 
     test "signed-out visitors are sent to the backoffice login" do
       get admin_client_path(users(:buyer))
@@ -226,6 +227,104 @@ module Admin
       get admin_client_path(users(:orderless))
 
       assert_select ".addr-list .addr-body", text: /ainda não cadastrou/
+    end
+
+    test "the contact card ships the edit form closed, primed with the stored values" do
+      sign_in users(:admin)
+      client = users(:confirmed)
+      get admin_client_path(client)
+
+      assert_select "[data-contact] [data-contact-edit]:not([hidden])"
+      assert_select "[data-contact-view]:not([hidden])"
+      assert_select "form[data-contact-form][hidden][action=?]", admin_client_path(client) do
+        assert_select "input[name='client[email]'][value=?][data-original=?]", client.email, client.email
+        assert_select "input[name='client[phone]'][value=?]", "(11) 99999-8888"
+        assert_select "[data-contact-save][disabled]"
+      end
+    end
+
+    test "signed-out visitors cannot edit a client's contact" do
+      patch admin_client_path(users(:confirmed)), params: { client: { email: "x@example.com", phone: "11977776666" } }
+
+      assert_redirected_to admin_login_path
+      assert_equal "confirmed@example.com", users(:confirmed).reload.email
+    end
+
+    test "an admin account's contact is not editable from the client page" do
+      sign_in users(:admin)
+      patch admin_client_path(users(:admin)), params: { client: { email: "x@example.com", phone: "11977776666" } }
+
+      assert_response :not_found
+    end
+
+    test "an admin changes the e-mail and phone, the client logs in with the new e-mail right away, and both addresses hear of it" do
+      sign_in users(:admin)
+      client = users(:confirmed)
+
+      assert_enqueued_emails 2 do
+        patch admin_client_path(client), params: { client: { email: "Novo@Example.com", phone: "(11) 97777-6666" } }
+      end
+
+      assert_redirected_to admin_client_path(client)
+      assert_equal "Contato atualizado: e-mail e telefone de #{client.first_name}.", flash[:notice]
+      client.reload
+      assert_equal "novo@example.com", client.email
+      assert_nil client.unconfirmed_email
+      assert_equal "(11) 97777-6666", client.phone
+    end
+
+    test "the notice names only the field that moved" do
+      sign_in users(:admin)
+      client = users(:confirmed)
+      patch admin_client_path(client), params: { client: { email: client.email, phone: "11977776666" } }
+
+      assert_equal "Contato atualizado: telefone de #{client.first_name}.", flash[:notice]
+    end
+
+    test "saving the same contact says nothing changed" do
+      sign_in users(:admin)
+      client = users(:confirmed)
+      client.update_column(:phone, "(11) 99999-8888")
+      patch admin_client_path(client), params: { client: { email: client.email, phone: "(11) 99999-8888" } }
+
+      assert_equal "Nada mudou no contato de #{client.first_name}.", flash[:notice]
+    end
+
+    test "an e-mail already in use reopens the form with the error, the card keeping the stored contact" do
+      sign_in users(:admin)
+      client = users(:confirmed)
+      patch admin_client_path(client), params: { client: { email: users(:locked).email, phone: "11977776666" } }
+
+      assert_response :unprocessable_entity
+      assert_select "[data-contact-view][hidden] .cust-row .v", text: client.email
+      assert_select "[data-contact-edit][hidden]"
+      assert_select "form[data-contact-form]:not([hidden])" do
+        assert_select "input.ce-inp.bad[name='client[email]'][value=?][data-original=?]", users(:locked).email, client.email
+        assert_select "input.ce-inp:not(.bad)[name='client[phone]'][value=?]", "(11) 97777-6666"
+        assert_select "[data-contact-error=email]", text: "Já está em uso"
+        assert_select "[data-contact-save]:not([disabled])"
+      end
+      assert_equal "confirmed@example.com", client.reload.email
+    end
+
+    test "an unusable phone is kept as typed beside its error" do
+      sign_in users(:admin)
+      patch admin_client_path(users(:confirmed)), params: { client: { email: "confirmed@example.com", phone: "1234" } }
+
+      assert_response :unprocessable_entity
+      assert_select "input.ce-inp.bad[name='client[phone]'][value=?]", "1234"
+      assert_select "[data-contact-error=phone]", text: /\AInforme DDD e número/
+      assert_select "[data-contact-record-error]", count: 0
+    end
+
+    test "a record blocked by a field outside the form says why instead of failing silently" do
+      sign_in users(:admin)
+      client = users(:buyer)
+      patch admin_client_path(client), params: { client: { email: "novo@example.com", phone: "11977776666" } }
+
+      assert_response :unprocessable_entity
+      assert_select "[data-contact-record-error]", text: "CPF não é válido"
+      assert_equal "comprador@example.com", client.reload.email
     end
   end
 end
