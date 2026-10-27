@@ -849,7 +849,7 @@ pt-BR:
           edit: "Editar"
           title: "Editar contato"
           email: "E-mail"
-          email_hint: "É também o login do cliente. Ele passa a entrar com o novo e-mail, e avisamos os dois endereços da troca."
+          email_hint: "É também o login do cliente. Ele passa a entrar com o novo e-mail, e avisamos os dois endereços da troca. Uma conta pendente fica confirmada."
           email_invalid: "Informe um e-mail válido."
           phone: "Telefone"
           phone_placeholder: "(00) 00000-0000"

@@ -172,6 +172,34 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
+  test "update_contact confirms a pending account whose e-mail the admin corrects" do
+    user = users(:unconfirmed)
+    user.update_columns(phone: "11977776666", confirmation_token: "link-to-the-typo")
+
+    assert user.update_contact(email: "corrigido@example.com", phone: user.phone)
+
+    user.reload
+    assert user.confirmed?
+    assert_in_delta Time.current, user.confirmed_at, 5.seconds
+    assert_nil user.confirmation_token
+    assert user.active_for_authentication?
+  end
+
+  test "update_contact keeps the original confirmation date of an account that was already confirmed" do
+    user = users(:confirmed)
+    confirmed_at = user.confirmed_at
+
+    assert user.update_contact(email: "outro@example.com", phone: user.phone)
+    assert_equal confirmed_at.to_i, user.reload.confirmed_at.to_i
+  end
+
+  test "update_contact leaves a pending account pending when only the phone moves" do
+    user = users(:unconfirmed)
+
+    assert user.update_contact(email: user.email, phone: "11977776666")
+    assert_not user.reload.confirmed?
+  end
+
   test "update_contact refuses an e-mail another account already logs in with" do
     user = users(:confirmed)
 
