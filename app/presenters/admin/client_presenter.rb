@@ -8,7 +8,7 @@ module Admin
 
     attr_reader :client
 
-    delegate :id, :full_name, :email, :cpf, :phone, :created_at, to: :client
+    delegate :id, :full_name, :email, :cpf, :phone, :created_at, :confirmed?, :confirmation_sent_at, to: :client
 
     def situation
       return "locked" if client.locked_at

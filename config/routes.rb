@@ -40,6 +40,8 @@ Rails.application.routes.draw do
     get    "clientes",     to: "clients#index", as: :clients
     get    "clientes/:id", to: "clients#show",  as: :client, constraints: { id: /\d+/ }
     patch  "clientes/:id", to: "clients#update", constraints: { id: /\d+/ }
+    post   "clientes/:client_id/confirmacao", to: "client_confirmations#create", as: :client_confirmation,
+           constraints: { client_id: /\d+/ }
     delete "clientes/:client_id/strikes/:id", to: "client_strikes#destroy", as: :client_strike,
            constraints: { client_id: /\d+/, id: /\d+/ }
     resources :produtos, controller: "products", as: :products,

@@ -84,4 +84,17 @@ class AdminClientDetailTest < ApplicationSystemTestCase
     assert_selector "[data-contact-view] .cust-row .v", text: "(11) 97777-6666"
     assert_equal "novo.login@example.com", client.reload.email
   end
+
+  test "an operator resends the confirmation link to a pending client" do
+    client = users(:unconfirmed)
+    login_as_user(users(:admin))
+
+    visit admin_client_path(client)
+
+    assert_selector "[data-confirmation-pending]"
+    accept_confirm { find("[data-confirmation-pending] .ce-resend").click }
+
+    assert_selector ".od-flash--ok", text: "Enviamos um novo link de confirmação para #{client.email}"
+    assert_not_nil client.reload.confirmation_sent_at
+  end
 end

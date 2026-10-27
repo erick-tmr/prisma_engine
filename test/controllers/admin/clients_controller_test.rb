@@ -326,5 +326,36 @@ module Admin
       assert_select "[data-contact-record-error]", text: "CPF não é válido"
       assert_equal "comprador@example.com", client.reload.email
     end
+
+    test "a pending client's card offers to resend the confirmation link, behind a confirm" do
+      sign_in users(:admin)
+      client = users(:unconfirmed)
+      client.update_column(:confirmation_sent_at, Time.zone.local(2026, 10, 20, 14, 5))
+      get admin_client_path(client)
+
+      assert_select "[data-contact-view] [data-confirmation-pending]" do
+        assert_select ".ce-pending__text", text: /Último link enviado em 20\/10\/2026 às 14:05/
+        assert_select "form[action=?][data-confirm=?] button.ce-resend",
+                      admin_client_confirmation_path(client),
+                      "Enviar um novo link de confirmação para #{client.email}?"
+      end
+    end
+
+    test "a pending client with no link on record still gets the resend button" do
+      sign_in users(:admin)
+      client = users(:unconfirmed)
+      client.update_column(:confirmation_sent_at, nil)
+      get admin_client_path(client)
+
+      assert_select "[data-confirmation-pending] .ce-pending__text", text: /Último link/, count: 0
+      assert_select "[data-confirmation-pending] button.ce-resend"
+    end
+
+    test "a confirmed client's card has no resend button" do
+      sign_in users(:admin)
+      get admin_client_path(users(:confirmed))
+
+      assert_select "[data-confirmation-pending]", count: 0
+    end
   end
 end

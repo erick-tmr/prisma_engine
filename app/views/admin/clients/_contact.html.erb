@@ -26,6 +26,24 @@
       <% end %>
     </div>
     <div class="cust-row"><i class="bi bi-person-vcard"></i> <span class="v"><%= format_cpf(presenter.cpf) %></span></div>
+    <% unless presenter.confirmed? %>
+      <% confirmation = "admin.clients.detail.confirmation" %>
+      <div class="ce-pending" data-confirmation-pending>
+        <div class="ce-pending__text">
+          <i class="bi bi-hourglass-split"></i>
+          <span>
+            <%= t("#{confirmation}.pending") %>
+            <% if presenter.confirmation_sent_at %>
+              <%= t("#{confirmation}.last_sent", at: l(presenter.confirmation_sent_at, format: :date_at_time)) %>
+            <% end %>
+          </span>
+        </div>
+        <%= button_to admin_client_confirmation_path(presenter.client), class: "ce-resend",
+                      form: { data: { confirm: t("#{confirmation}.confirm", email: presenter.email) } } do %>
+          <i class="bi bi-send"></i> <%= t("#{confirmation}.resend") %>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 
   <%= form_with model: contact, scope: :client, url: admin_client_path(contact), method: :patch,

@@ -845,6 +845,13 @@ pt-BR:
         whatsapp:
           label: "WhatsApp"
           title: "Abrir a conversa com %{name} no WhatsApp"
+        confirmation:
+          pending: "Conta aguardando a confirmação do e-mail. Sem ela, o cliente não consegue entrar."
+          last_sent: "Último link enviado em %{at}."
+          resend: "Reenviar confirmação"
+          confirm: "Enviar um novo link de confirmação para %{email}?"
+          sent: "Enviamos um novo link de confirmação para %{email}. Peça ao cliente para abrir o e-mail (vale conferir o spam) e clicar no link."
+          already_confirmed: "Esta conta já está confirmada, então nenhum link foi enviado."
         contact:
           edit: "Editar"
           title: "Editar contato"
