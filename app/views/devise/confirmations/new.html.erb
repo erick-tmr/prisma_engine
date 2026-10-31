@@ -20,7 +20,26 @@
         <%= @email.present? ? t("auth.confirmations.lede_known") : t("auth.confirmations.lede_unknown") %>
       </p>
 
-      <% if @email.present? %>
+      <% if @editable_email %>
+        <div class="confirm__email" data-email-edit>
+          <span class="confirm__email-pill" data-email-edit-view>
+            <i class="bi bi-envelope"></i> <%= @email %>
+            <button type="button" class="confirm__email-edit" data-email-edit-open>
+              <i class="bi bi-pencil-square"></i> <%= t("auth.confirmations.edit") %>
+            </button>
+          </span>
+          <%= form_with url: signup_email_path, method: :patch, scope: :user, class: "confirm__email-form", data: { email_edit_form: "" }, html: { hidden: true, novalidate: true } do |f| %>
+            <div class="field">
+              <%= f.label :email, t("auth.fields.email"), class: "field__label" %>
+              <%= f.email_field :email, value: @email, autocomplete: "email", class: "field__input", required: true %>
+            </div>
+            <div class="confirm__email-actions">
+              <button type="submit" class="button"><%= t("auth.confirmations.edit_submit") %></button>
+              <button type="button" class="button-ghost" data-email-edit-cancel><%= t("auth.confirmations.edit_cancel") %></button>
+            </div>
+          <% end %>
+        </div>
+      <% elsif @email.present? %>
         <span class="confirm__email-pill"><i class="bi bi-envelope"></i> <%= @email %></span>
       <% end %>
 
@@ -58,9 +77,6 @@
       </div>
 
       <div class="auth__foot">
-        <%= t("auth.confirmations.wrong_email") %>
-        <%= link_to t("auth.confirmations.back_to_sign_up"), new_registration_path(resource_name) %>
-        <span class="auth__foot-sep">·</span>
         <%= link_to t("auth.confirmations.to_sign_in"), new_session_path(resource_name) %>
       </div>
     </div>
@@ -69,4 +85,5 @@
 
 <% content_for :scripts do %>
   <%= javascript_include_tag "storefront/resend_cooldown", type: "module" %>
+  <%= javascript_include_tag "storefront/signup_email_edit", type: "module" if @editable_email %>
 <% end %>
