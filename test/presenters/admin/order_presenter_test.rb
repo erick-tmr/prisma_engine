@@ -206,6 +206,14 @@ module Admin
       assert_includes 0..7, presenter.avatar_tint_index
     end
 
+    test "customer whatsapp url opens a chat on a mobile number and is absent otherwise" do
+      presenter = order_in("payment_confirmed")
+      assert_equal "https://web.whatsapp.com/send?phone=5511999998888", presenter.customer_whatsapp_url
+
+      presenter.customer.phone = "1133334444"
+      assert_nil presenter.customer_whatsapp_url
+    end
+
     test "shipment tracks list the outbound leg before the return leg" do
       presenter = OrderPresenter.new(orders(:delivered))
       Shipment.create!(order: presenter.order, direction: :inbound, tracking_code: "PG515656030BR",

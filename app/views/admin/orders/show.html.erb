@@ -35,7 +35,7 @@
         <div class="od-head-main">
           <%= render "detail_head", presenter: @presenter %>
           <div class="od-head-sub">
-            <span><%= t("admin.orders.detail.placed_on", date: l(@presenter.placed_at.to_date, format: :long)) %></span>
+            <span><%= t("admin.orders.detail.placed_on", date: l(@presenter.placed_at, format: :long)) %></span>
             <span class="dotsep"></span>
             <span><%= t("admin.orders.detail.item_count", count: @presenter.item_count) %></span>
           </div>
@@ -180,13 +180,23 @@
             <div class="cust-top">
               <div class="cust-av cust-av--<%= @presenter.avatar_tint_index %>"><%= account_avatar_initials(customer.full_name) %></div>
               <div class="cust-meta">
-                <div class="nm"><%= customer.full_name %></div>
+                <div class="nm"><%= link_to customer.full_name, admin_client_path(customer), class: "cust-link" %></div>
                 <div class="sub"><%= t("admin.orders.detail.customer_since", date: l(customer.created_at.to_date, format: :long)) %></div>
               </div>
             </div>
             <div class="cust-rows">
               <div class="cust-row"><i class="bi bi-envelope"></i> <span class="v"><%= customer.email %></span></div>
-              <div class="cust-row"><i class="bi bi-telephone"></i> <span class="v"><%= @presenter.customer_phone %></span></div>
+              <div class="cust-row">
+                <i class="bi bi-telephone"></i>
+                <span class="v"><%= @presenter.customer_phone %></span>
+                <% if (whatsapp_url = @presenter.customer_whatsapp_url) %>
+                  <%= link_to whatsapp_url, class: "cust-wa", target: "_blank", rel: "noopener",
+                              title: t("admin.clients.detail.whatsapp.title", name: customer.full_name) do %>
+                    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                    <span><%= t("admin.clients.detail.whatsapp.label") %></span>
+                  <% end %>
+                <% end %>
+              </div>
               <div class="cust-row"><i class="bi bi-person-vcard"></i> <span class="v"><%= @presenter.customer_cpf %></span></div>
               <% if address %>
               <div class="cust-row"><i class="bi bi-geo"></i> <span class="v"><%= address[:city] %>/<%= address[:state] %></span></div>

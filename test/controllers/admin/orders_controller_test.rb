@@ -27,6 +27,27 @@ module Admin
       assert_select ".act-btn.primary"
     end
 
+    test "show links the customer to their client page, offers WhatsApp and stamps the placed time" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      customer = order.user
+      get admin_order_path(order)
+
+      assert_select ".cust-meta .nm a.cust-link[href=?]", admin_client_path(customer), text: customer.full_name
+      assert_select "a.cust-wa[href=?][target=_blank]", "https://web.whatsapp.com/send?phone=5511999998888"
+      assert_select ".od-head-sub", text: /#{Regexp.escape(I18n.l(order.placed_at, format: :long))}/
+    end
+
+    test "show hides the WhatsApp shortcut for a customer without a mobile number" do
+      sign_in users(:admin)
+      order = orders(:confirmed_paid)
+      order.user.update_columns(phone: "1133334444")
+      get admin_order_path(order)
+
+      assert_response :success
+      assert_select "a.cust-wa", count: 0
+    end
+
     test "show renders every sidebar count" do
       sign_in users(:admin)
       get admin_order_path(orders(:confirmed_paid))
