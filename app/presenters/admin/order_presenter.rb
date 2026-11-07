@@ -181,6 +181,10 @@ module Admin
       PhoneFormat.call(customer.phone)
     end
 
+    def customer_whatsapp_url
+      Phones.whatsapp_url(customer.phone)
+    end
+
     def avatar_tint_index
       AvatarTint.index_for(customer.full_name)
     end

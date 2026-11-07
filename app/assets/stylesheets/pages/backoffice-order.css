@@ -315,6 +315,9 @@
 .cust-av { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; }
 .cust-meta { min-width: 0; line-height: 1.35; }
 .cust-meta .nm { font-size: 15px; font-weight: 700; color: var(--pg-ink); }
+.cust-link { color: inherit; text-decoration: none; }
+.cust-link:hover { text-decoration: underline; }
+.cust-link:focus-visible { outline: 2px solid var(--pg-ink); outline-offset: 2px; border-radius: 3px; }
 .cust-meta .sub { font-size: 12.5px; color: var(--pg-muted); }
 .cust-rows { padding: 6px 8px 10px; }
 .cust-row { display: flex; align-items: center; gap: 11px; padding: 9px 12px; font-size: 13px; color: #4b5563; border-radius: 9px; }
