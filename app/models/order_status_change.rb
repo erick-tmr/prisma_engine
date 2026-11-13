@@ -1,5 +1,6 @@
 class OrderStatusChange < ApplicationRecord
   NOTIFIED = {
+    "awaiting_payment"  => :awaiting_payment,
     "payment_confirmed" => :payment_confirmed,
     "label_issued"      => :label_issued,
     "shipped"           => :shipped,

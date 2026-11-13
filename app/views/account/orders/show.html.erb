@@ -22,6 +22,12 @@
           <%= t("account.orders.states.#{@order.status}.label") %>
         </span>
         <p><%= order_state_description(@order) %></p>
+        <% if @order.payable? %>
+          <p class="order-detail__pay-deadline"><%= t("account.orders.show.pay_deadline_html", deadline: @order.payment_deadline.strftime("%d/%m/%Y, %Hh%M")) %></p>
+          <%= link_to checkout_return_path(order_nsu: @order.number), class: "order-detail__pay-btn", data: { pay_link: true } do %>
+            <i class="bi bi-lock-fill" aria-hidden="true"></i> <%= t("account.orders.show.pay_cta") %>
+          <% end %>
+        <% end %>
       </div>
     </div>
 
