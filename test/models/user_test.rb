@@ -16,6 +16,10 @@ class UserTest < ActiveSupport::TestCase
     }.merge(overrides)
   end
 
+  def pending_account
+    users(:unconfirmed).tap { |user| user.update_column(:phone, "(11) 98888-7777") }
+  end
+
   test "a fully-populated record is valid" do
     user = User.new(base_attrs(cpf: "52998224725"))
     assert user.valid?, user.errors.full_messages.to_sentence
@@ -208,5 +212,114 @@ class UserTest < ActiveSupport::TestCase
     end
     assert user.errors.of_kind?(:email, :taken)
     assert_equal "confirmed@example.com", user.reload.email
+  end
+
+  test "correct_signup_email moves a pending account to the new address and sends the link only there" do
+    user = pending_account
+
+    delivered = capture_emails do
+      assert user.correct_signup_email("Certo@Example.com")
+    end
+
+    assert_equal [ [ "certo@example.com" ] ], delivered.map(&:to)
+    user.reload
+    assert_equal "certo@example.com", user.email
+    assert_nil user.unconfirmed_email
+    assert_not user.confirmed?
+  end
+
+  test "correct_signup_email kills the link that went to the mistyped address" do
+    user = pending_account
+
+    user.correct_signup_email("certo@example.com")
+
+    assert_nil User.confirm_by_token("raw-token-pendente").id
+    assert_not user.reload.confirmed?
+  end
+
+  test "correct_signup_email restarts the confirmation window" do
+    user = pending_account
+    user.update_column(:confirmation_sent_at, 6.days.ago)
+
+    user.correct_signup_email("certo@example.com")
+
+    assert_in_delta Time.current, user.reload.confirmation_sent_at, 5.seconds
+  end
+
+  test "correct_signup_email sends nothing when the address does not change" do
+    user = pending_account
+
+    assert_no_emails do
+      assert user.correct_signup_email(" #{user.email.upcase} ")
+    end
+  end
+
+  test "correct_signup_email refuses an account that is already confirmed" do
+    user = users(:confirmed)
+
+    assert_no_emails do
+      assert_not user.correct_signup_email("certo@example.com")
+    end
+    assert_equal "confirmed@example.com", user.reload.email
+  end
+
+  test "correct_signup_email refuses an address another account logs in with" do
+    user = pending_account
+
+    assert_no_emails do
+      assert_not user.correct_signup_email(users(:confirmed).email)
+    end
+    assert user.errors.of_kind?(:email, :taken)
+    assert_equal "pendente@example.com", user.reload.email
+  end
+
+  test "pending_signup finds the unconfirmed holder of a CPF when the password matches" do
+    assert_equal users(:unconfirmed), User.pending_signup(cpf: "123.456.789-09", password: "password123")
+  end
+
+  test "pending_signup ignores a wrong password" do
+    assert_nil User.pending_signup(cpf: users(:unconfirmed).cpf, password: "outra-senha")
+  end
+
+  test "pending_signup ignores a confirmed account" do
+    assert_nil User.pending_signup(cpf: users(:confirmed).cpf, password: "password123")
+  end
+
+  test "a signup does not take the CPF of a pending account still inside its confirmation window" do
+    holder = pending_account
+
+    user = User.new(base_attrs(cpf: holder.cpf))
+
+    assert_not user.save
+    assert user.errors.of_kind?(:cpf, :taken)
+    assert User.exists?(holder.id)
+  end
+
+  test "a signup takes the CPF of a pending account whose confirmation window expired" do
+    holder = pending_account
+    holder.update_column(:confirmation_sent_at, (User.confirm_within + 1.day).ago)
+
+    user = User.new(base_attrs(cpf: holder.cpf))
+
+    assert user.save, user.errors.full_messages.to_sentence
+    assert_not User.exists?(holder.id)
+  end
+
+  test "a failed signup leaves the expired pending account in place" do
+    holder = pending_account
+    holder.update_column(:confirmation_sent_at, (User.confirm_within + 1.day).ago)
+
+    user = User.new(base_attrs(cpf: holder.cpf, password: "curta", password_confirmation: "curta"))
+
+    assert_not user.save
+    assert User.exists?(holder.id)
+  end
+
+  test "an updated account still cannot share a CPF" do
+    user = pending_account
+    user.cpf = users(:confirmed).cpf
+
+    assert_not user.valid?
+    assert user.errors.of_kind?(:cpf, :taken)
   end
 end
