@@ -7,6 +7,12 @@ class OrderMailer < ApplicationMailer
   }.freeze
   DEFAULT_ISSUE_HERO = "dragon-letter-full.png".freeze
 
+  def awaiting_payment(order)
+    return unless order.awaiting_payment?
+
+    deliver_for(order)
+  end
+
   def payment_confirmed(order)
     deliver_for(order)
   end

@@ -377,6 +377,27 @@ class OrderTest < ActiveSupport::TestCase
     end
   end
 
+  test "payable? only while awaiting payment and inside the deadline" do
+    order = build_order
+    order.save!
+    assert order.payable?
+
+    travel_to 25.hours.from_now do
+      assert_not order.payable?
+    end
+
+    order.confirm_payment!
+    assert_not order.payable?
+  end
+
+  test "a cancelled order is not payable" do
+    order = build_order
+    order.save!
+    order.cancel!(automatic: true)
+
+    assert_not order.payable?
+  end
+
   test "awaiting_payment_expired scopes to stale unpaid orders only" do
     fresh = build_order
     fresh.save!

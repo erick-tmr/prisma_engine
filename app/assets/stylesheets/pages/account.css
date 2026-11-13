@@ -343,6 +343,26 @@
 }
 .order-detail__status-banner .sb-text { display: flex; flex-direction: column; gap: 6px; }
 .order-detail__status-banner .sb-text p { margin: 0; font-size: 14px; color: var(--pg-ink); line-height: 1.5; }
+.order-detail__status-banner .sb-text .order-detail__pay-deadline { font-size: 13px; color: var(--pg-muted); }
+.order-detail__pay-btn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  text-decoration: none;
+  padding: 11px 18px;
+  border-radius: 10px;
+  background: var(--pg-ink);
+  transition: opacity 0.14s ease;
+}
+.order-detail__pay-btn:hover { color: #fff; opacity: 0.9; }
+.order-detail__pay-btn:active { transform: translateY(1px); }
+.order-detail__pay-btn i { font-size: 14px; }
 
 .order-detail__subcard {
   border: 1px solid var(--pg-border);

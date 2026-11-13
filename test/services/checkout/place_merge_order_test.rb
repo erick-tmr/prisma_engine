@@ -103,6 +103,13 @@ module Checkout
       assert_equal PAYMENT_URL, place.payment_url
     end
 
+    test "stores the minted payment url on the carrier so the same link is reused later" do
+      add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
+      stub_preco_prazo
+
+      assert_equal PAYMENT_URL, place.order.reload.payment_url
+    end
+
     test "mints the link before the carrier is written, from an order that already carries its identity" do
       add_order(status: "payment_confirmed", frete: 500, created: 3.days.ago)
       stub_preco_prazo
