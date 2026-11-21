@@ -117,6 +117,14 @@ pt-BR:
       label_issued: "Etiqueta emitida"
       posted: "Postado"
       delivered: "Entregue"
+    awaiting_payment:
+      subject: "Recebemos seu pedido %{number}"
+      badge_label: "Aguardando pagamento"
+      heading: "Falta só o pagamento!"
+      intro: "Recebemos o seu pedido. Se você ainda não concluiu o pagamento, é só clicar no botão abaixo para voltar ao ambiente seguro da InfinitePay e finalizar com Pix ou cartão. Se já pagou, pode ignorar este e-mail: avisaremos assim que a confirmação chegar."
+      deadline_html: 'Conclua o pagamento até <strong style="color:#1a1d21;">%{deadline}</strong>. Depois disso o pedido é cancelado automaticamente.'
+      deadline: "Conclua o pagamento até %{deadline}. Depois disso o pedido é cancelado automaticamente."
+      cta: "Finalizar pagamento"
     payment_confirmed:
       subject: "Pagamento confirmado do pedido %{number}"
       badge_label: "Pagamento confirmado"
@@ -513,6 +521,8 @@ pt-BR:
       show:
         placed_on: "Feito em %{date}"
         back: "Voltar para pedidos"
+        pay_cta: "Finalizar pagamento"
+        pay_deadline_html: "Prazo para pagamento: <b>%{deadline}</b>"
         items: "Itens"
         quantity:
           one: "%{count} unidade"

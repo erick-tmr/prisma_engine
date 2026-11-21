@@ -133,6 +133,27 @@ class AccountOrdersFlowTest < ActionDispatch::IntegrationTest
     assert_match(/Aguardando pagamento/, body)
   end
 
+  test "show on an awaiting-payment order links to the payment page with the deadline" do
+    order = orders(:awaiting)
+    sign_in users(:confirmed)
+    get account_order_path(order)
+
+    assert_select "a[data-pay-link][href=?]", checkout_return_path(order_nsu: order.number)
+    assert_match order.payment_deadline.strftime("%d/%m/%Y, %Hh%M"), response.body
+  end
+
+  test "show offers no payment link once the deadline passed or the order was paid" do
+    sign_in users(:confirmed)
+
+    travel_to 25.hours.from_now do
+      get account_order_path(orders(:awaiting))
+      assert_select "[data-pay-link]", false
+    end
+
+    get account_order_path(orders(:confirmed_paid))
+    assert_select "[data-pay-link]", false
+  end
+
   test "show on an unknown number is 404" do
     sign_in users(:confirmed)
     get account_order_path("PG-999999999999")

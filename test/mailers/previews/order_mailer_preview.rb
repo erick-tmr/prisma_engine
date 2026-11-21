@@ -1,4 +1,8 @@
 class OrderMailerPreview < ActionMailer::Preview
+  def awaiting_payment
+    OrderMailer.awaiting_payment(Order.awaiting_payment.recent_first.first || Order.joins(:shipment).recent_first.first)
+  end
+
   def payment_confirmed
     OrderMailer.payment_confirmed(Order.paid.recent_first.first || Order.first)
   end

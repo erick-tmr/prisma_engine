@@ -47,9 +47,9 @@ module Checkout
     end
 
     def place(order)
-      payment_url = payment_link.call(order)
+      order.payment_url = payment_link.call(order)
       order.save!
-      Result.new(order: order, payment_url: payment_url, error: nil)
+      Result.new(order: order, payment_url: order.payment_url, error: nil)
     rescue InfinitePay::Api::Error
       failure(:payment_error)
     end

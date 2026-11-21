@@ -2,6 +2,8 @@ require "test_helper"
 
 module Checkout
   class PlaceOrderTest < ActiveSupport::TestCase
+    include ActionMailer::TestHelper
+
     PRECO_URL = "#{Correios::Api::BASE_URL}/preco/v1/nacional".freeze
     PRAZO_URL = "#{Correios::Api::BASE_URL}/prazo/v1/nacional".freeze
     PAYMENT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
@@ -126,6 +128,21 @@ module Checkout
       assert_equal PAYMENT_URL, result.payment_url
     end
 
+    test "stores the minted payment url on the order so the same link is reused later" do
+      stub_preco_prazo(all_eligible: true)
+
+      assert_equal PAYMENT_URL, place.order.reload.payment_url
+    end
+
+    test "e-mails the customer the way back to the payment page as soon as the order is placed" do
+      stub_preco_prazo(all_eligible: true)
+
+      assert_enqueued_emails 1 do
+        @order = place.order
+      end
+      assert_enqueued_email_with OrderMailer, :awaiting_payment, args: [ @order ]
+    end
+
     test "mints the link before the order is written, from an order that already carries its identity" do
       stub_preco_prazo(all_eligible: true)
 
@@ -149,6 +166,7 @@ module Checkout
       assert_nil result.order
       assert_nil result.payment_url
       assert_equal 1, @linked.length
+      assert_no_enqueued_emails
     end
 
     test "writes nothing when the payment link fails transiently" do

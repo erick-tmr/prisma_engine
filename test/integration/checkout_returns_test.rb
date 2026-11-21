@@ -6,6 +6,7 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
   LINKS_URL = "#{InfinitePay::Api::BASE_URL}/links".freeze
   CHECK_URL = "#{InfinitePay::Api::BASE_URL}/payment_check".freeze
   CHECKOUT_URL = "https://checkout.infinitepay.io/prisma_games?lenc=abc".freeze
+  STORED_URL = "https://checkout.infinitepay.io/prisma_games?lenc=stored".freeze
 
   setup do
     @user = users(:confirmed)
@@ -146,7 +147,18 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     assert_match(/#{master.number}/, response.body)
   end
 
-  test "POST /checkout/retorno/pagar regenerates the link and redirects to InfinitePay" do
+  test "POST /checkout/retorno/pagar sends the customer to the link stored at checkout, minting none" do
+    sign_in @user
+    order = create_order_for(@user)
+    order.update!(payment_url: STORED_URL)
+
+    post checkout_pay_path, params: { order_nsu: order.number }
+
+    assert_equal STORED_URL, response.headers["Location"]
+    assert_not_requested(:post, LINKS_URL)
+  end
+
+  test "POST /checkout/retorno/pagar mints a link once for an order placed before links were stored" do
     sign_in @user
     order = create_order_for(@user)
     stub_links
@@ -154,12 +166,30 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     post checkout_pay_path, params: { order_nsu: order.number }
 
     assert_equal CHECKOUT_URL, response.headers["Location"]
-    assert_requested(:post, LINKS_URL) do |req|
+    assert_equal CHECKOUT_URL, order.reload.payment_url
+    assert_requested(:post, LINKS_URL, times: 1) do |req|
       body = JSON.parse(req.body)
       assert_equal order.number, body["order_nsu"]
       assert_equal payments_webhook_url(order.webhook_token), body["webhook_url"]
       true
     end
+
+    post checkout_pay_path, params: { order_nsu: order.number }
+
+    assert_equal CHECKOUT_URL, response.headers["Location"]
+    assert_requested(:post, LINKS_URL, times: 1)
+  end
+
+  test "POST /checkout/retorno/pagar past the deadline returns to the status page, never to the stored link" do
+    sign_in @user
+    order = create_order_for(@user)
+    order.update!(payment_url: STORED_URL)
+
+    travel_to 25.hours.from_now do
+      post checkout_pay_path, params: { order_nsu: order.number }
+    end
+
+    assert_redirected_to checkout_return_path(order_nsu: order.number)
   end
 
   test "POST /checkout/retorno/pagar on an already-paid order returns to the status page" do
@@ -173,7 +203,7 @@ class CheckoutReturnsTest < ActionDispatch::IntegrationTest
     assert_not_requested(:post, LINKS_URL)
   end
 
-  test "POST /checkout/retorno/pagar flashes when the link cannot be regenerated" do
+  test "POST /checkout/retorno/pagar flashes when the link cannot be minted" do
     sign_in @user
     order = create_order_for(@user)
     stub_request(:post, LINKS_URL).to_return(status: 503, body: "down")

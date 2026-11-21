@@ -17,18 +17,27 @@ module Checkout
       order = current_user.orders.find_by!(number: params[:order_nsu])
       # Internal status-page path; order.number is a persisted value, not user input.
       # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
-      return redirect_to checkout_return_path(order_nsu: order.number) unless order.awaiting_payment?
+      return redirect_to checkout_return_path(order_nsu: order.number) unless order.payable?
 
-      # Redirects to the InfinitePay hosted-checkout URL from Payments::Checkout (a trusted PSP), not user input.
+      # Redirects to the InfinitePay hosted-checkout URL stored on the order (a trusted PSP), not user input.
       # nosemgrep: ruby.rails.security.audit.xss.avoid-redirect.avoid-redirect
-      redirect_to Payments::Checkout.start(order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token)),
-                  allow_other_host: true
+      redirect_to stored_payment_url(order), allow_other_host: true
     rescue InfinitePay::Api::Error
       flash[:alert] = ERROR_MESSAGES[:payment_error]
       redirect_to checkout_return_path(order_nsu: params[:order_nsu])
     end
 
     private
+
+    def stored_payment_url(order)
+      order.payment_url || mint_payment_url(order)
+    end
+
+    def mint_payment_url(order)
+      url = Payments::Checkout.start(order, redirect_url: checkout_return_url, webhook_url: payments_webhook_url(order.webhook_token))
+      order.update!(payment_url: url)
+      url
+    end
 
     def find_order(number)
       current_user.orders.includes(order_items: OrderItem::PHOTO_INCLUDES).find_by!(number:)

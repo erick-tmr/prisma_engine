@@ -23,6 +23,14 @@ class OrderStatusChangeTest < ActiveSupport::TestCase
     end
   end
 
+  test "the initial awaiting_payment change e-mails the customer the way back to the payment page" do
+    order = orders(:awaiting)
+
+    assert_enqueued_email_with OrderMailer, :awaiting_payment, args: [ order ] do
+      order.status_changes.create!(from_status: nil, to_status: "awaiting_payment", automatic: true)
+    end
+  end
+
   test "a status the order has already moved past sends no email" do
     order = orders(:shipped_order)
     order.update_column(:status, "delivered")

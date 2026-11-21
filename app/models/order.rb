@@ -175,6 +175,10 @@ class Order < ApplicationRecord
     awaiting_payment? && payment_deadline.past?
   end
 
+  def payable?
+    awaiting_payment? && !payment_expired?
+  end
+
   def assign_number
     return if number.present?
 

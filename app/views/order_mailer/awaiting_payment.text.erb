@@ -1,0 +1,13 @@
+<%= t("mailer.greeting", name: @order.user.first_name) %>
+
+<%= t("order_mailer.awaiting_payment.heading") %>
+
+<%= t("order_mailer.awaiting_payment.intro") %>
+
+<%= t("order_mailer.awaiting_payment.deadline", deadline: @order.payment_deadline.strftime("%d/%m/%Y, %Hh%M")) %>
+
+<%= render "summary", shipping_service: @order.shipment.service_label %>
+
+<%= t("order_mailer.awaiting_payment.cta") %>: <%= checkout_return_url(order_nsu: @order.number) %>
+
+<%= t("mailer.signature") %>

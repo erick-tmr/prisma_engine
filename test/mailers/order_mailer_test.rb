@@ -1,6 +1,32 @@
 require "test_helper"
 
 class OrderMailerTest < ActionMailer::TestCase
+  test "awaiting_payment links back to the payment page and states the deadline" do
+    order = orders(:awaiting)
+    email = OrderMailer.awaiting_payment(order)
+    pay_page = "http://example.com/checkout/retorno?order_nsu=#{order.number}"
+    deadline = order.payment_deadline.strftime("%d/%m/%Y, %Hh%M")
+
+    assert_equal [ order.user.email ], email.to
+    assert_equal "Recebemos seu pedido #{order.number}", email.subject
+
+    [ email.html_part, email.text_part ].each do |part|
+      body = part.body.to_s
+      assert_includes body, order.user.first_name
+      assert_includes body, order.number
+      assert_includes body, "Finalizar pagamento"
+      assert_includes body, deadline
+      assert_includes body, pay_page
+    end
+    assert_not_includes email.html_part.body.to_s, "checkout.infinitepay.io"
+  end
+
+  test "awaiting_payment sends nothing once the order is no longer awaiting payment" do
+    order = orders(:confirmed_paid)
+
+    assert_nil OrderMailer.awaiting_payment(order).message.to
+  end
+
   test "payment_confirmed greets the customer and lists the order summary" do
     order = orders(:confirmed_paid)
     email = OrderMailer.payment_confirmed(order)
