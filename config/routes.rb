@@ -19,6 +19,7 @@ Rails.application.routes.draw do
                passwords: "users/passwords",
                unlocks: "users/unlocks"
              }
+  patch "confirmar/email", to: "users/signup_emails#update", as: :signup_email
 
   scope path: "minha-conta", module: "account", as: :account do
     root to: redirect("/minha-conta/perfil")

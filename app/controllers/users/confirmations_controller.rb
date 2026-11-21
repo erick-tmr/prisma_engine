@@ -1,6 +1,6 @@
 module Users
   class ConfirmationsController < Devise::ConfirmationsController
-    include EmailResendCooldown
+    include PendingSignup
 
     enforce_resend_cooldown flow: :confirmation, redirect_to: :new_user_confirmation_path
 
@@ -8,6 +8,7 @@ module Users
       super
       @email = params[:email].presence
       @resend_deadline = resend_deadline(:confirmation, @email)
+      @editable_email = @email.present? && pending_signup_user&.email == @email
     end
 
     def show
