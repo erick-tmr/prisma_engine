@@ -96,7 +96,7 @@ group :test do
   gem "minitest-mock", "~> 5.27"
 
   # Stub external HTTP (Correios rastro) in tests [https://github.com/bblimke/webmock]
-  gem "webmock", "~> 3.34"
+  gem "webmock", "~> 3.36"
 
   # Test coverage reporting [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false
