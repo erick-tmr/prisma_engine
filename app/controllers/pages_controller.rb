@@ -1,6 +1,6 @@
 class PagesController < ApplicationController
   def home
-    @banners = HeroBanner.active.in_display_order.with_attached_image
+    @banners = StoreSetting.current.black_friday? ? HeroBanner.for_black_friday_home : HeroBanner.for_home
     @current_gotm = GameOfTheMonth.current
                                   .includes(
                                     published_picks: {
