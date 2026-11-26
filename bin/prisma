@@ -55,13 +55,15 @@ Actions:
                    application invariants. Exits 1 on warnings, 2 on failures.
                    --hours N scans a wider log window, --verify-restore also
                    proves the newest dump is a readable archive.
-  upload-asset <file> [--yes]
-                   Upload a file to the production R2 bucket exactly as Active
-                   Storage would (same key format, checksum and cache headers),
-                   without touching the production database. Prints the public
+  upload-asset <file> --env development|production [--yes]
+                   Upload a file to that environment's R2 bucket exactly as
+                   Active Storage would (same key format, checksum and cache
+                   headers), without touching its database. Prints the public
                    URL and an ActiveStorage::Blob.create! line to paste into
-                   `bin/kamal console`, where you attach the blob to a record.
-                   Needs config/credentials/production.key for the R2 keys.
+                   that environment's console (bin/kamal console for
+                   production, bin/rails console for development), where you
+                   attach the blob to a record. --env is required. Needs
+                   config/credentials/production.key or config/master.key.
   help             Show this message.
 
 Runbooks: docs/deployment.md, docs/vps-healthcheck.md
@@ -130,25 +132,35 @@ cmd_deploy() {
 }
 
 cmd_upload_asset() {
-  local assume_yes=0 file="" arg
-  for arg in "$@"; do
-    case "$arg" in
+  local assume_yes=0 file="" env=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
       -y|--yes) assume_yes=1 ;;
-      -*)       die "upload-asset: unknown option: $arg (try bin/prisma help)" ;;
-      *)        [ -z "$file" ] || die "upload-asset: one file at a time"; file="$arg" ;;
+      --env)    [ $# -ge 2 ] || die "upload-asset: --env needs development or production"; env="$2"; shift ;;
+      --env=*)  env="${1#--env=}" ;;
+      -*)       die "upload-asset: unknown option: $1 (try bin/prisma help)" ;;
+      *)        [ -z "$file" ] || die "upload-asset: one file at a time"; file="$1" ;;
     esac
+    shift
   done
-  [ -n "$file" ] || die "usage: bin/prisma upload-asset <file> [--yes]"
+
+  local key_file console
+  case "$env" in
+    production)  key_file="config/credentials/production.key"; console="bin/kamal console" ;;
+    development) key_file="config/master.key";                  console="bin/rails console" ;;
+    "")          die "usage: bin/prisma upload-asset <file> --env development|production [--yes]" ;;
+    *)           die "upload-asset: --env must be development or production, not '$env'" ;;
+  esac
+  [ -n "$file" ] || die "usage: bin/prisma upload-asset <file> --env development|production [--yes]"
   [ -f "$file" ] || die "upload-asset: no such file: $file"
-  [ -f config/credentials/production.key ] ||
-    die "config/credentials/production.key is missing, so the production R2 keys cannot decrypt"
+  [ -f "$key_file" ] || die "$key_file is missing, so the $env R2 keys cannot decrypt"
   file="$(cd -- "$(dirname -- "$file")" && pwd)/$(basename -- "$file")"
 
   step "upload"
-  printf '  %s (%s bytes) -> production R2 bucket\n' "$file" "$(wc -c <"$file" | tr -d ' ')"
+  printf '  %s (%s bytes) -> %s R2 bucket\n' "$file" "$(wc -c <"$file" | tr -d ' ')" "$env"
   if [ "$assume_yes" -ne 1 ]; then
     local reply
-    printf '\nUpload it? [y/N] '
+    printf '\nUpload it to %s? [y/N] ' "$env"
     read -r reply || die "nothing on stdin to answer with; pass --yes to upload non-interactively"
     case "$reply" in
       [yY]|[yY][eE][sS]) ;;
@@ -157,7 +169,7 @@ cmd_upload_asset() {
   fi
 
   local output url
-  output="$(RAILS_ENV=production DATABASE_HOST=127.0.0.1 DATABASE_PORT=9 \
+  output="$(RAILS_ENV="$env" DATABASE_HOST=127.0.0.1 DATABASE_PORT=9 \
     SECRET_KEY_BASE="${SECRET_KEY_BASE:-$(openssl rand -hex 32)}" \
     bin/rails runner '
       result = Storage::AssetUpload.call(ARGV.fetch(0))
@@ -171,9 +183,9 @@ cmd_upload_asset() {
   local status
   status="$(curl -s -o /dev/null -w '%{http_code}' -I "$url")"
   [ "$status" = "200" ] || die "the CDN answered $status for $url"
-  ok "served by the CDN"
+  ok "served from $url"
 
-  step "attach it in bin/kamal console"
+  step "attach it in $console ($env)"
   printf '%s\n' "$output" | sed -n '2,$p'
   printf '\nthen point a record at it, for example:\n'
   printf '  HeroBanner.create!(image: blob, alt: "...", black_friday: true, position: 0)\n'
