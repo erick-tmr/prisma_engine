@@ -173,10 +173,13 @@ cmd_upload_asset() {
     SECRET_KEY_BASE="${SECRET_KEY_BASE:-$(openssl rand -hex 32)}" \
     bin/rails runner '
       result = Storage::AssetUpload.call(ARGV.fetch(0))
-      puts result.url
-      puts result.console_snippet
+      puts "upload-asset-url: #{result.url}"
+      puts "upload-asset-blob: #{result.console_snippet}"
     ' "$file")" || die "upload failed"
-  url="$(printf '%s\n' "$output" | sed -n 1p)"
+  local snippet
+  url="$(printf '%s\n' "$output" | sed -n 's/^upload-asset-url: //p')"
+  snippet="$(printf '%s\n' "$output" | sed -n 's/^upload-asset-blob: //p')"
+  [ -n "$url" ] && [ -n "$snippet" ] || die "upload ran but reported nothing usable:"$'\n'"$output"
   ok "uploaded: $url"
 
   step "verify"
@@ -186,7 +189,7 @@ cmd_upload_asset() {
   ok "served from $url"
 
   step "attach it in $console ($env)"
-  printf '%s\n' "$output" | sed -n '2,$p'
+  printf '%s\n' "$snippet"
   printf '\nthen point a record at it, for example:\n'
   printf '  HeroBanner.create!(image: blob, alt: "...", black_friday: true, position: 0)\n'
 }
