@@ -1,0 +1,78 @@
+<% content_for :title, t("admin.theme.title") %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
+  <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell",
+                          "pages/backoffice-dashboard", "pages/backoffice-order", "pages/backoffice-catalog" %>
+<% end %>
+
+<div class="app-rainbow" aria-hidden="true"></div>
+
+<div class="app" data-list="store-theme">
+  <%= render "admin/sidebar", active: "theme" %>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menu-toggle" type="button" aria-label="<%= t("admin.dashboard.menu") %>"><i class="bi bi-list"></i></button>
+      <div class="topbar-head">
+        <h1><%= t("admin.theme.topbar_title") %></h1>
+        <span class="crumb"><%= t("admin.theme.crumb") %></span>
+      </div>
+      <div class="topbar-right"></div>
+    </header>
+
+    <main class="content">
+      <% flash.each do |type, message| %>
+        <div class="od-flash od-flash--<%= type == "alert" ? "alert" : "ok" %>" role="alert">
+          <span class="od-flash__msg"><%= message %></span>
+          <button type="button" class="od-flash__close" data-flash-close aria-label="<%= t("admin.theme.dismiss") %>"><i class="bi bi-x-lg"></i></button>
+        </div>
+      <% end %>
+
+      <div class="panel">
+        <div class="panel-top">
+          <div class="panel-top-main">
+            <h2><span class="rbar" aria-hidden="true"></span> <%= t("admin.theme.heading") %></h2>
+            <div class="sub"><%= t("admin.theme.sub") %></div>
+          </div>
+          <div class="panel-top-right">
+            <span class="gotm-edition" data-theme-status>
+              <%= t("admin.theme.status.#{@setting.black_friday_status}",
+                    starts_at: @setting.black_friday_starts_at && l(@setting.black_friday_starts_at, format: :long),
+                    ends_at: @setting.black_friday_ends_at && l(@setting.black_friday_ends_at, format: :long)) %>
+            </span>
+          </div>
+        </div>
+
+        <%= form_with model: @setting, url: admin_store_theme_path, method: :patch, class: "panel-body" do |f| %>
+          <div class="field">
+            <%= f.label :black_friday_starts_at, t("admin.theme.starts_at") %>
+            <%= f.datetime_local_field :black_friday_starts_at, class: "inp", value: theme_picker_value(@setting.black_friday_starts_at) %>
+            <span class="fhint"><%= t("admin.theme.timezone_hint") %></span>
+          </div>
+          <div class="field">
+            <%= f.label :black_friday_ends_at do %>
+              <%= t("admin.theme.ends_at") %> <span class="lbl-note"><%= t("admin.theme.ends_at_note") %></span>
+            <% end %>
+            <%= f.datetime_local_field :black_friday_ends_at, class: "inp", value: theme_picker_value(@setting.black_friday_ends_at) %>
+          </div>
+          <div class="gap-top">
+            <button type="submit" class="btn-dark"><i class="bi bi-calendar-event"></i> <%= t("admin.theme.save") %></button>
+          </div>
+        <% end %>
+
+        <% if @setting.black_friday_starts_at %>
+          <div class="panel-body">
+            <%= button_to admin_store_theme_path, method: :delete, class: "btn-ghost",
+                          form: { data: { confirm: t("admin.theme.turn_off_confirm") } } do %>
+              <i class="bi bi-x-circle"></i> <%= t("admin.theme.turn_off") %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </main>
+  </div>
+</div>
+
+<% content_for :scripts do %>
+  <%= javascript_import_module_tag "backoffice/store_theme" %>
+<% end %>

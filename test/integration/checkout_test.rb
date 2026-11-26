@@ -22,6 +22,15 @@ class CheckoutTest < ActionDispatch::IntegrationTest
     Rails.cache.clear
   end
 
+  test "GET /checkout wears the black friday theme while the window is open" do
+    store_settings(:default).update!(black_friday_starts_at: 1.hour.ago)
+    sign_in @user
+    add_yellow_to_cart
+    get checkout_path
+
+    assert_select "head link[href*=?]", "themes/black-friday"
+  end
+
   test "GET /checkout requires login" do
     get checkout_path
     assert_redirected_to new_user_session_path

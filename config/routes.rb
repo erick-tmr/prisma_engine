@@ -53,6 +53,9 @@ Rails.application.routes.draw do
     get    "entrar", to: "sessions#new",     as: :login
     post   "entrar", to: "sessions#create",  as: :session
     delete "sair",   to: "sessions#destroy", as: :logout
+    get    "tema", to: "store_themes#edit", as: :store_theme
+    patch  "tema", to: "store_themes#update"
+    delete "tema", to: "store_themes#destroy"
     get    "relatorio-producao", to: "production_reports#new",    as: :production_report
     post   "relatorio-producao", to: "production_reports#create"
     post   "etiquetas",         to: "labels#create_batch", as: :labels

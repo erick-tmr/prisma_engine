@@ -1,0 +1,242 @@
+:root:root {
+  --bf-black: #0a0a0a;
+  --bf-black2: #151515;
+  --bf-line: #2a2a2a;
+  --bf-yellow: #ffd400;
+  --bf-orange: #ff7a00;
+  --bf-red: #d90f2b;
+  --bf-grad: linear-gradient(90deg, #ffd400 0%, #ff7a00 50%, #d90f2b 100%);
+  --bf-grad-v: linear-gradient(180deg, #ffd400 0%, #ff7a00 50%, #d90f2b 100%);
+  --bf-font: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --pg-primary: var(--bf-red);
+  --pg-navy: var(--bf-black);
+  --pg-bg: #efeeea;
+  --pg-rainbow: linear-gradient(90deg, #ffd400, #ff7a00, #d90f2b, #ff7a00, #ffd400);
+  --pg-rainbow-edge: var(--bf-grad-v);
+}
+
+body::before {
+  content: "★ BLACK FRIDAY ★  PRISMA GAMES  ★ BLACK FRIDAY ★";
+  display: block;
+  padding: 10px 16px 9px;
+  background: var(--bf-black);
+  border-bottom: 3px solid transparent;
+  border-image: var(--bf-grad) 1;
+  color: var(--bf-yellow);
+  font-family: var(--bf-font);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  line-height: 1.4;
+  text-align: center;
+  white-space: pre;
+  overflow: hidden;
+}
+
+@media (max-width: 520px) {
+  body::before { content: "★ BLACK FRIDAY ★"; font-size: 11px; }
+}
+
+.header,
+.checkout-header {
+  background: var(--bf-black);
+  border-bottom: 1px solid var(--bf-line);
+  color: #fff;
+}
+
+.header__logo img,
+.checkout-header__logo img {
+  filter: invert(1) hue-rotate(180deg) saturate(1.2);
+}
+
+.header__burger,
+.header__action,
+.checkout-header__back,
+.checkout-header__secure {
+  color: #fff;
+}
+
+.header__action:hover,
+.checkout-header__back:hover { color: var(--bf-yellow); }
+
+.header__search-input {
+  background: var(--bf-black2);
+  border-color: #3a3a3a;
+  color: #fff;
+}
+
+.header__search-input::placeholder { color: #9a9a9a; }
+
+.header__search-input:focus {
+  border-color: var(--bf-yellow);
+  box-shadow: none;
+}
+
+.header__search-btn {
+  background: var(--bf-yellow);
+  color: var(--bf-black);
+}
+
+.header__cart-count {
+  background: var(--bf-yellow);
+  color: var(--bf-black);
+}
+
+.nav-strip {
+  background: var(--bf-black);
+  border-bottom: 3px solid transparent;
+  border-image: var(--bf-grad) 1;
+}
+
+.links-menu__btn {
+  background: var(--bf-yellow);
+  color: var(--bf-black);
+}
+
+.section-title .rainbow-bar {
+  height: 5px;
+  border-radius: 0;
+}
+
+.section-title__wordmark { color: var(--bf-black); }
+.section-title__see-all:hover { color: var(--bf-red); }
+
+.product-card {
+  border: 2px solid var(--bf-yellow);
+  border-radius: 8px;
+}
+
+.product-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--bf-black);
+}
+
+.product-card__thumb::after {
+  content: "BLACK FRIDAY";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  padding: 6px 9px 5px;
+  background: var(--bf-black);
+  color: var(--bf-yellow);
+  font-family: var(--bf-font);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  border-radius: 0 4px 4px 0;
+  pointer-events: none;
+}
+
+.product-card__price {
+  color: var(--bf-red);
+  font-weight: 800;
+}
+
+.gotm-band { background: var(--bf-black); }
+.gotm-band::before { height: 5px; }
+.gotm-price { color: var(--bf-yellow); }
+
+.button,
+.gotm-btn,
+.pdp-btn--dark,
+.cart-btn--dark,
+.checkout__btn--dark,
+.pay-return__btn--dark {
+  background: var(--bf-yellow);
+  color: var(--bf-black);
+  border: 2px solid var(--bf-black);
+  box-shadow: 3px 3px 0 var(--bf-black);
+  font-weight: 800;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.button:hover,
+.gotm-btn:hover,
+.pdp-btn--dark:hover,
+.cart-btn--dark:hover,
+.checkout__btn--dark:hover,
+.pay-return__btn--dark:hover {
+  background: var(--bf-yellow);
+  color: var(--bf-black);
+  filter: none;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--bf-black);
+}
+
+.button:active,
+.gotm-btn:active,
+.pdp-btn--dark:active,
+.cart-btn--dark:active,
+.checkout__btn--dark:active,
+.pay-return__btn--dark:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--bf-black);
+}
+
+.button:disabled,
+.pdp-btn--dark:disabled,
+.cart-btn--dark:disabled,
+.checkout__btn--dark:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
+.price-now,
+.checkout__sum-total .amt,
+.pay-return__sum-total .amt { color: var(--bf-red); }
+
+.rail-link.is-active {
+  background: var(--bf-black);
+  color: var(--bf-yellow);
+}
+
+.rail-link.is-active .rail-link__ic,
+.rail-link.is-active .rail-link__count { color: var(--bf-yellow); }
+
+.qa.is-open .qa__chevron {
+  background: var(--bf-black);
+  border-color: var(--bf-black);
+  color: var(--bf-yellow);
+}
+
+.hero-card {
+  background: var(--bf-black);
+  border-top: 4px solid var(--bf-yellow);
+}
+
+.footer {
+  background: var(--bf-black);
+  border-top: 5px solid transparent;
+  border-image: var(--bf-grad) 1;
+}
+
+.footer a:hover { color: var(--bf-yellow); }
+.footer__heading { color: var(--bf-yellow); }
+
+.drawer__link:hover,
+.drawer__link:focus { border-left-color: var(--bf-yellow); }
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--bf-red);
+  outline-offset: 2px;
+}
+
+.header :where(a, button, input):focus-visible,
+.checkout-header :where(a, button):focus-visible,
+.nav-strip :where(a, button):focus-visible,
+.footer :where(a, button):focus-visible {
+  outline-color: var(--bf-yellow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card:hover,
+  .button:hover,
+  .gotm-btn:hover,
+  .pdp-btn--dark:hover,
+  .cart-btn--dark:hover,
+  .checkout__btn--dark:hover,
+  .pay-return__btn--dark:hover { transform: none; }
+}
