@@ -417,6 +417,20 @@ to behave the same whether the checkout it runs from still understands the old d
 not, which is exactly the situation it exists for, and raw SQL will not fire an
 `after_create_commit` that e-mails every affected customer.
 
+## Uploading a file to production R2
+
+Records without a backoffice upload (today: `HeroBanner`) get their image in two steps, so
+no laptop ever holds a connection to the production database:
+
+1. `bin/prisma upload-asset path/to/file.jpg` boots the app with `RAILS_ENV=production` and
+   the database pointed at a closed port, uploads the bytes to the production bucket under a
+   fresh Active Storage key (same checksum and `Cache-Control` the app uses), checks the CDN
+   serves it, and prints an `ActiveStorage::Blob.create!(...)` line.
+2. In `bin/kamal console`, paste that line, then attach the blob, for example
+   `HeroBanner.create!(image: blob, alt: "...", black_friday: true, position: 0)`.
+
+An upload that is never attached is inert: nothing references it and the site never shows it.
+
 ## Production logs
 
 The app logs structured JSON (one line per request, via lograge) to STDOUT, captured

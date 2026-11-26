@@ -55,6 +55,13 @@ Actions:
                    application invariants. Exits 1 on warnings, 2 on failures.
                    --hours N scans a wider log window, --verify-restore also
                    proves the newest dump is a readable archive.
+  upload-asset <file> [--yes]
+                   Upload a file to the production R2 bucket exactly as Active
+                   Storage would (same key format, checksum and cache headers),
+                   without touching the production database. Prints the public
+                   URL and an ActiveStorage::Blob.create! line to paste into
+                   `bin/kamal console`, where you attach the blob to a record.
+                   Needs config/credentials/production.key for the R2 keys.
   help             Show this message.
 
 Runbooks: docs/deployment.md, docs/vps-healthcheck.md
@@ -122,6 +129,56 @@ cmd_deploy() {
   printf '\n\033[1;32m✓ Deployed %s to production.\033[0m\n' "$(git rev-parse --short HEAD)"
 }
 
+cmd_upload_asset() {
+  local assume_yes=0 file="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      -y|--yes) assume_yes=1 ;;
+      -*)       die "upload-asset: unknown option: $arg (try bin/prisma help)" ;;
+      *)        [ -z "$file" ] || die "upload-asset: one file at a time"; file="$arg" ;;
+    esac
+  done
+  [ -n "$file" ] || die "usage: bin/prisma upload-asset <file> [--yes]"
+  [ -f "$file" ] || die "upload-asset: no such file: $file"
+  [ -f config/credentials/production.key ] ||
+    die "config/credentials/production.key is missing, so the production R2 keys cannot decrypt"
+  file="$(cd -- "$(dirname -- "$file")" && pwd)/$(basename -- "$file")"
+
+  step "upload"
+  printf '  %s (%s bytes) -> production R2 bucket\n' "$file" "$(wc -c <"$file" | tr -d ' ')"
+  if [ "$assume_yes" -ne 1 ]; then
+    local reply
+    printf '\nUpload it? [y/N] '
+    read -r reply || die "nothing on stdin to answer with; pass --yes to upload non-interactively"
+    case "$reply" in
+      [yY]|[yY][eE][sS]) ;;
+      *) die "aborted, nothing uploaded" ;;
+    esac
+  fi
+
+  local output url
+  output="$(RAILS_ENV=production DATABASE_HOST=127.0.0.1 DATABASE_PORT=9 \
+    SECRET_KEY_BASE="${SECRET_KEY_BASE:-$(openssl rand -hex 32)}" \
+    bin/rails runner '
+      result = Storage::AssetUpload.call(ARGV.fetch(0))
+      puts result.url
+      puts result.console_snippet
+    ' "$file")" || die "upload failed"
+  url="$(printf '%s\n' "$output" | sed -n 1p)"
+  ok "uploaded: $url"
+
+  step "verify"
+  local status
+  status="$(curl -s -o /dev/null -w '%{http_code}' -I "$url")"
+  [ "$status" = "200" ] || die "the CDN answered $status for $url"
+  ok "served by the CDN"
+
+  step "attach it in bin/kamal console"
+  printf '%s\n' "$output" | sed -n '2,$p'
+  printf '\nthen point a record at it, for example:\n'
+  printf '  HeroBanner.create!(image: blob, alt: "...", black_friday: true, position: 0)\n'
+}
+
 cmd_health() {
   exec deploy/vps-healthcheck.sh "$@"
 }
@@ -132,6 +189,7 @@ ACTION="${1:-help}"
 case "$ACTION" in
   -h|--help) ACTION="help" ;;
 esac
+ACTION="${ACTION//-/_}"
 
 if ! declare -F "cmd_$ACTION" >/dev/null; then
   printf '\033[1;31m✗ unknown action: %s\033[0m\n\n' "$ACTION" >&2
