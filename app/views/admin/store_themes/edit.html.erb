@@ -2,7 +2,8 @@
 <% content_for :head do %>
   <%= stylesheet_link_tag "vendor/bootstrap-icons" %>
   <%= stylesheet_link_tag "base/tokens", "base/animations", "pages/backoffice-shell",
-                          "pages/backoffice-dashboard", "pages/backoffice-order", "pages/backoffice-catalog" %>
+                          "pages/backoffice-dashboard", "pages/backoffice-order", "pages/backoffice-catalog",
+                          "pages/backoffice-theme" %>
 <% end %>
 
 <div class="app-rainbow" aria-hidden="true"></div>
@@ -43,19 +44,35 @@
           </div>
         </div>
 
-        <%= form_with model: @setting, url: admin_store_theme_path, method: :patch, class: "panel-body" do |f| %>
+        <%= form_with model: @setting, url: admin_store_theme_path, method: :patch, class: "panel-body",
+                      data: { schedule: true, schedule_empty: t("admin.theme.readout_empty"),
+                              schedule_open_end: t("admin.theme.readout_open_end") } do |f| %>
+          <%= f.hidden_field :black_friday_starts_at, value: theme_picker_value(@setting.black_friday_starts_at), data: { schedule_value: "start" } %>
+          <%= f.hidden_field :black_friday_ends_at, value: theme_picker_value(@setting.black_friday_ends_at), data: { schedule_value: "end" } %>
+
           <div class="field">
-            <%= f.label :black_friday_starts_at, t("admin.theme.starts_at") %>
-            <%= f.datetime_local_field :black_friday_starts_at, class: "inp", value: theme_picker_value(@setting.black_friday_starts_at) %>
-            <span class="fhint"><%= t("admin.theme.timezone_hint") %></span>
+            <label><%= t("admin.theme.period") %> <span class="lbl-note"><%= t("admin.theme.period_note") %></span></label>
+            <div class="theme-cal dp-cals" data-schedule-cals></div>
           </div>
-          <div class="field">
-            <%= f.label :black_friday_ends_at do %>
-              <%= t("admin.theme.ends_at") %> <span class="lbl-note"><%= t("admin.theme.ends_at_note") %></span>
-            <% end %>
-            <%= f.datetime_local_field :black_friday_ends_at, class: "inp", value: theme_picker_value(@setting.black_friday_ends_at) %>
+
+          <div class="theme-times">
+            <div class="field">
+              <label for="theme-start-time"><%= t("admin.theme.start_time") %></label>
+              <input class="inp theme-time" id="theme-start-time" type="text" inputmode="numeric" maxlength="5"
+                     pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="00:00" data-schedule-time="start">
+            </div>
+            <div class="field">
+              <label for="theme-end-time"><%= t("admin.theme.end_time") %></label>
+              <input class="inp theme-time" id="theme-end-time" type="text" inputmode="numeric" maxlength="5"
+                     pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="00:00" data-schedule-time="end">
+            </div>
           </div>
-          <div class="gap-top">
+          <span class="theme-hint"><%= t("admin.theme.timezone_hint") %></span>
+
+          <div class="theme-foot gap-top">
+            <span class="dp-readout" data-schedule-readout></span>
+            <span class="sp"></span>
+            <button type="button" class="btn-clear" data-schedule-clear><i class="bi bi-x-lg"></i> <%= t("admin.theme.clear") %></button>
             <button type="submit" class="btn-dark"><i class="bi bi-calendar-event"></i> <%= t("admin.theme.save") %></button>
           </div>
         <% end %>

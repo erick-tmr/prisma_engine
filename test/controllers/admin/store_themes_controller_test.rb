@@ -18,8 +18,11 @@ module Admin
       get admin_store_theme_path
 
       assert_response :success
-      assert_select "input[type=datetime-local][name=?]", "store_setting[black_friday_starts_at]"
-      assert_select "input[type=datetime-local][name=?]", "store_setting[black_friday_ends_at]"
+      assert_select "form[data-schedule][data-schedule-empty=?]", "Selecione o período"
+      assert_select "input[type=hidden][name=?][data-schedule-value=start]", "store_setting[black_friday_starts_at]"
+      assert_select "input[type=hidden][name=?][data-schedule-value=end]", "store_setting[black_friday_ends_at]"
+      assert_select "[data-schedule-cals]"
+      assert_select "input[data-schedule-time]", count: 2
       assert_select "[data-theme-status]", text: "Desligado"
       assert_select "form[data-confirm]", count: 0
       assert_select "link[href*=?]", "themes/black-friday", count: 0
