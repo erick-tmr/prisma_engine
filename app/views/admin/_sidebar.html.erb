@@ -23,6 +23,9 @@
       <i class="bi bi-chat-square-dots"></i> <%= t("admin.dashboard.nav.questions") %>
       <span class="count"><%= counts["questions"] %></span>
     </a>
+    <a class="sb-link<%= " active" if active == "theme" %>" href="<%= admin_store_theme_path %>">
+      <i class="bi bi-palette"></i> <%= t("admin.dashboard.nav.theme") %>
+    </a>
   </nav>
 
   <div class="sb-foot">

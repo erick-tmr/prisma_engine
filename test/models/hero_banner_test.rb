@@ -41,4 +41,26 @@ class HeroBannerTest < ActiveSupport::TestCase
 
     assert_equal [ 0, 1 ], HeroBanner.in_display_order.pluck(:position)
   end
+
+  test "the home outside black friday shows only the regular banners" do
+    regular = build_banner(position: 0).tap(&:save!)
+    build_banner(position: 0, black_friday: true).save!
+
+    assert_equal [ regular ], HeroBanner.for_home.to_a
+  end
+
+  test "the home during black friday swaps in the black friday banners" do
+    build_banner(position: 0).save!
+    seasonal = build_banner(position: 0, black_friday: true).tap(&:save!)
+    build_banner(position: 1, black_friday: true, active: false).save!
+
+    assert_equal [ seasonal ], HeroBanner.for_black_friday_home.to_a
+  end
+
+  test "black friday without its own banner keeps the regular ones" do
+    regular = build_banner(position: 0).tap(&:save!)
+    build_banner(position: 0, black_friday: true, active: false).save!
+
+    assert_equal [ regular ], HeroBanner.for_black_friday_home.to_a
+  end
 end

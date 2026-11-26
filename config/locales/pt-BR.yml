@@ -624,6 +624,7 @@ pt-BR:
         clients: "Clientes"
         catalog: "Catálogo"
         questions: "Perguntas"
+        theme: "Tema"
       bulk:
         selected: "selecionados"
         clear: "Limpar seleção"
@@ -1380,6 +1381,33 @@ pt-BR:
         not_moderated: "Só perguntas em spam ou arquivadas podem ser liberadas."
         spam_locked: "Pergunta marcada como spam não pode ser respondida. Libere a pergunta primeiro para voltar ao fluxo normal."
         unknown_event: "Ação desconhecida."
+    theme:
+      title: "Tema da loja | Backoffice"
+      topbar_title: "Tema da loja"
+      crumb: "Visual sazonal da vitrine"
+      heading: "Black Friday"
+      sub: "Escolha quando a vitrine troca para o visual Black Friday. Fora da janela, a loja volta sozinha ao visual padrão."
+      period: "Período"
+      period_note: "Clique no dia de início e depois no dia de fim. Só o início: fica ligado até você desligar"
+      start_time: "Hora de início"
+      end_time: "Hora de fim"
+      clear: "Limpar"
+      readout_empty: "Selecione o período"
+      readout_open_end: "sem fim"
+      timezone_hint: "Horário de Brasília."
+      save: "Salvar agendamento"
+      turn_off: "Desligar agora e voltar ao visual padrão"
+      turn_off_confirm: "Desligar o visual Black Friday agora?"
+      dismiss: "Fechar aviso"
+      status:
+        active: "Ativo agora"
+        active_until: "Ativo agora, até %{ends_at}"
+        scheduled: "Agendado para %{starts_at}"
+        ended: "Encerrado em %{ends_at}"
+        disabled: "Desligado"
+      flash:
+        saved: "Agendamento do tema salvo."
+        turned_off: "Visual Black Friday desligado. A loja voltou ao visual padrão."
   activerecord:
     attributes:
       user:
@@ -1409,8 +1437,15 @@ pt-BR:
         body: "Texto da resposta"
       game_of_the_month:
         publish_at: "Data de publicação do Jogo do Mês"
+      store_setting:
+        black_friday_starts_at: "Início da Black Friday"
+        black_friday_ends_at: "Fim da Black Friday"
     errors:
       models:
+        store_setting:
+          attributes:
+            black_friday_ends_at:
+              after_start: "precisa ser depois do início"
         user:
           attributes:
             cpf:
